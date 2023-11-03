@@ -1,5 +1,6 @@
 #pragma once
 
+#include <limits.h>
 #include <stddef.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -7,7 +8,6 @@
 #include <string.h>
 
 typedef long long int diff_t;
-typedef unsigned long long int size_t;
 
 #define ZETA_PRINT_POS printf("print pos at %s:%d\n", __FILE__, __LINE__);
 
