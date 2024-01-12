@@ -6,6 +6,8 @@ ZetaExeDir = os.path.dirname(File).replace("\\", "/")
 
 ZetaDevDir = f"{ZetaExeDir}/../"
 
+import argparse
+
 sys.path.append(ZetaDevDir)
 from builder import *
 
@@ -18,20 +20,20 @@ INCLUDE_DIRS = [
 ]
 
 def builder_add(builder):
-    debug = False
+    debug = True
 
-    cc = "gcc"
+    cc = "clang"
 
     args = [
-            "--verbose",
-            "-std=gnu17",
-            *[f"-I \"{path}\"" for path in INCLUDE_DIRS],
-            "-m64",
-            "-Wall",
-            "-Wextra",
-            "-ferror-limit=3", # for clang
-            # "-fmax-errors=3", # for gcc
-            ]
+        "--verbose",
+        "-std=gnu17",
+        *[f"-I \"{path}\"" for path in INCLUDE_DIRS],
+        "-m64",
+        "-Wall",
+        "-Wextra",
+        "-ferror-limit=3", # for clang
+        # "-fmax-errors=3", # for gcc
+    ]
 
     if debug:
         args += ["-g", "-D DEBUG"]
@@ -43,7 +45,7 @@ def builder_add(builder):
     builder.add(
         f"{File}",
         set(),
-        NullFunc
+        lambda : 0
     )
 
     builder.add(
@@ -51,7 +53,7 @@ def builder_add(builder):
         {
             f"{ZetaDir}/define.h",
         },
-        NullFunc
+        lambda : 0
     )
 
     builder.add(
@@ -59,7 +61,7 @@ def builder_add(builder):
         {
             f"{ZetaExeDir}/test_head.h",
         },
-        NullFunc
+        lambda : 0
     )
 
     builder.add(
@@ -74,7 +76,7 @@ def builder_add(builder):
             f"{ZetaExeDir}/SimpleVector.h",
             f"{ZetaExeDir}/test_head.h",
         },
-        NullFunc
+        lambda : 0
     )
 
     builder.add(
@@ -88,7 +90,7 @@ def builder_add(builder):
             f"{ZetaDir}/utils.o",
             f"{ZetaExeDir}/test_1.c",
         },
-        CmdExecutor([
+        lambda : os.system(" ".join([
             cc,
             f"-o {ZetaExeDir}/test_1.exe",
             *args,
@@ -98,7 +100,7 @@ def builder_add(builder):
             f"{ZetaDir}/random.o",
             f"{ZetaDir}/utils.o",
             f"{ZetaExeDir}/test_1.c",
-        ])
+        ]))
     )
 
     builder.add(
@@ -112,7 +114,7 @@ def builder_add(builder):
             f"{ZetaExeDir}/SimpleVector.h",
             f"{ZetaExeDir}/test_head.h",
         },
-        NullFunc
+        lambda : 0
     )
 
     builder.add(
@@ -125,7 +127,7 @@ def builder_add(builder):
             f"{ZetaDir}/utils.o",
             f"{ZetaExeDir}/test_gplist.c",
         },
-        CmdExecutor([
+        lambda : os.system(" ".join([
             cc,
             f"-o {ZetaExeDir}/test_gplist.exe",
             *args,
@@ -134,7 +136,7 @@ def builder_add(builder):
             f"{ZetaDir}/RBTree.o",
             f"{ZetaDir}/utils.o",
             f"{ZetaExeDir}/test_gplist.c",
-        ])
+        ]))
     )
 
     builder.add(
@@ -147,17 +149,18 @@ def builder_add(builder):
             f"{ZetaDir}/utils.o",
             f"{ZetaExeDir}/test_gplist.c",
         },
-        CmdExecutor([
+        lambda : os.system(" ".join([
             cc,
             f"-o {ZetaExeDir}/test_gplist.so",
             *args,
             f"-shared",
+            f"-fPIC",
             f"{ZetaDir}/CountingBinTree.o",
             f"{ZetaDir}/OrdinaryCountingBinColoredTreeNode.o",
             f"{ZetaDir}/RBTree.o",
             f"{ZetaDir}/utils.o",
             f"{ZetaExeDir}/test_gplist.c",
-        ])
+        ]))
     )
 
     builder.add(
@@ -169,7 +172,7 @@ def builder_add(builder):
             f"{ZetaDir}/RBTree.h",
             f"{ZetaDir}/utils.h",
         },
-        NullFunc
+        lambda : 0
     )
 
     builder.add(
@@ -183,18 +186,19 @@ def builder_add(builder):
             f"{ZetaDir}/utils.o",
             f"{ZetaExeDir}/gplist.c",
         },
-        CmdExecutor([
+        lambda : os.system(" ".join([
             cc,
             f"-o {ZetaExeDir}/gplist.so",
             *args,
             f"-shared",
+            f"-fPIC",
             f"{ZetaDir}/BinTree.o",
             f"{ZetaDir}/CountingBinTree.o",
             f"{ZetaDir}/OrdinaryCountingBinColoredTreeNode.o",
             f"{ZetaDir}/RBTree.o",
             f"{ZetaDir}/utils.o",
             f"{ZetaExeDir}/gplist.c",
-        ])
+        ]))
     )
 
     builder.add(
@@ -204,7 +208,7 @@ def builder_add(builder):
             f"{ZetaDir}/MultiLevelHashTable.h",
             f"{ZetaDir}/utils.h",
         },
-        NullFunc
+        lambda : 0
     )
 
     builder.add(
@@ -216,16 +220,17 @@ def builder_add(builder):
             f"{ZetaDir}/utils.o",
             f"{ZetaExeDir}/mlmap.c",
         },
-        CmdExecutor([
+        lambda : os.system(" ".join([
             cc,
             f"-o {ZetaExeDir}/mlmap.so",
             *args,
             f"-shared",
+            f"-fPIC",
             f"{ZetaDir}/MultiLevelEntryTable.o",
             f"{ZetaDir}/MultiLevelHashTable.o",
             f"{ZetaDir}/utils.o",
             f"{ZetaExeDir}/mlmap.c",
-        ])
+        ]))
     )
 
     builder.add(
@@ -237,7 +242,7 @@ def builder_add(builder):
             f"{ZetaExeDir}/SimpleVector.h",
             f"{ZetaExeDir}/test_head.h",
         },
-        NullFunc
+        lambda : 0
     )
 
     builder.add(
@@ -249,7 +254,7 @@ def builder_add(builder):
             f"{ZetaDir}/utils.o",
             f"{ZetaExeDir}/test_hashtable.c",
         },
-        CmdExecutor([
+        lambda : os.system(" ".join([
             cc,
             f"-o {ZetaExeDir}/test_hashtable.exe",
             *args,
@@ -257,7 +262,7 @@ def builder_add(builder):
             f"{ZetaDir}/MultiLevelHashTable.o",
             f"{ZetaDir}/utils.o",
             f"{ZetaExeDir}/test_hashtable.c",
-        ])
+        ]))
     )
 
     builder.add(
@@ -265,7 +270,7 @@ def builder_add(builder):
         {
             f"{File}",
         },
-        NullFunc
+        lambda : 0
     )
 
     builder.add(
@@ -274,21 +279,206 @@ def builder_add(builder):
             f"{File}",
             f"{ZetaExeDir}/test_2.c",
         },
-        CmdExecutor([
+        lambda : os.system(" ".join([
             cc,
             f"-o {ZetaExeDir}/test_2.exe",
             *args,
             "-stdlib=libc",
             f"{ZetaExeDir}/test_2.c",
-        ])
+        ]))
+    )
+
+    builder.add(
+        f"{ZetaExeDir}/FileIO.s",
+        {
+            f"{File}",
+        },
+        lambda : 0
+    )
+
+    builder.add(
+        f"{ZetaExeDir}/test_io.c",
+        {
+            f"{File}",
+        },
+        lambda : 0
+    )
+
+    builder.add(
+        f"{ZetaExeDir}/test_io.exe",
+        {
+            f"{File}",
+            f"{ZetaExeDir}/FileIO.s",
+            f"{ZetaExeDir}/test_io.c",
+        },
+        lambda : os.system(" ".join([
+            cc,
+            f"-o {ZetaExeDir}/test_io.exe",
+            *args,
+            f"{ZetaExeDir}/FileIO.s",
+            f"{ZetaExeDir}/test_io.c",
+        ]))
+    )
+
+    builder.add(
+        f"{ZetaExeDir}/test_sort.c",
+        {
+            f"{File}",
+            f"{ZetaDir}/Algorithm.h",
+        },
+        lambda : 0
+    )
+
+    builder.add(
+        f"{ZetaExeDir}/test_sort.exe",
+        {
+            f"{File}",
+            f"{ZetaDir}/utils.o",
+            f"{ZetaDir}/Algorithm.o",
+            f"{ZetaDir}/RawVector.o",
+            f"{ZetaDir}/random.o",
+            f"{ZetaExeDir}/test_sort.c",
+        },
+        lambda : os.system(" ".join([
+            cc,
+            f"-o {ZetaExeDir}/test_sort.exe",
+            *args,
+            f"{ZetaDir}/utils.o",
+            f"{ZetaDir}/Algorithm.o",
+            f"{ZetaDir}/RawVector.o",
+            f"{ZetaDir}/random.o",
+            f"{ZetaExeDir}/test_sort.c",
+        ]))
+    )
+
+    builder.add(
+        f"{ZetaExeDir}/test_sort.so",
+        {
+            f"{File}",
+            f"{ZetaDir}/utils.o",
+            f"{ZetaDir}/Algorithm.o",
+            f"{ZetaDir}/RawVector.o",
+            f"{ZetaDir}/random.o",
+            f"{ZetaExeDir}/test_sort.c",
+        },
+        lambda : os.system(" ".join([
+            cc,
+            f"-o {ZetaExeDir}/test_sort.so",
+            *args,
+            f"-shared",
+            f"-fPIC",
+            f"{ZetaDir}/utils.o",
+            f"{ZetaDir}/Algorithm.o",
+            f"{ZetaDir}/RawVector.o",
+            f"{ZetaDir}/random.o",
+            f"{ZetaExeDir}/test_sort.c",
+        ]))
+    )
+
+    builder.add(
+        f"{ZetaExeDir}/test_slab.c",
+        {
+            f"{File}",
+            f"{ZetaDir}/Algorithm.h",
+            f"{ZetaDir}/PoolAllocator.h",
+            f"{ZetaDir}/RawVector.h",
+            f"{ZetaDir}/SlabAllocator.h",
+            f"{ZetaDir}/random.h",
+        },
+        lambda : 0
+    )
+
+    builder.add(
+        f"{ZetaExeDir}/test_slab.exe",
+        {
+            f"{File}",
+            f"{ZetaDir}/utils.o",
+            f"{ZetaDir}/Algorithm.o",
+            f"{ZetaDir}/DoublyLinkedNode.o",
+            f"{ZetaDir}/PoolAllocator.o",
+            f"{ZetaDir}/RawVector.o",
+            f"{ZetaDir}/random.o",
+            f"{ZetaDir}/SlabAllocator.o",
+            f"{ZetaExeDir}/test_slab.c",
+        },
+        lambda : os.system(" ".join([
+            cc,
+            f"-o {ZetaExeDir}/test_slab.exe",
+            *args,
+            f"{ZetaDir}/utils.o",
+            f"{ZetaDir}/Algorithm.o",
+            f"{ZetaDir}/DoublyLinkedNode.o",
+            f"{ZetaDir}/PoolAllocator.o",
+            f"{ZetaDir}/RawVector.o",
+            f"{ZetaDir}/random.o",
+            f"{ZetaDir}/SlabAllocator.o",
+            f"{ZetaExeDir}/test_slab.c",
+        ]))
+    )
+
+    builder.add(
+        f"{ZetaExeDir}/switch.s",
+        {
+            f"{File}",
+        },
+        lambda : 0
+    )
+
+    builder.add(
+        f"{ZetaExeDir}/test_context.c",
+        {
+            f"{File}",
+            f"{ZetaDir}/define.h",
+        },
+        lambda : 0
+    )
+
+    builder.add(
+        f"{ZetaExeDir}/test_context.exe",
+        {
+            f"{File}",
+            f"{ZetaExeDir}/switch.s",
+            f"{ZetaExeDir}/test_context.c",
+        },
+        lambda : os.system(" ".join([
+            cc,
+            f"-o {ZetaExeDir}/test_context.exe",
+            *args,
+            f"{ZetaExeDir}/switch.s",
+            f"{ZetaExeDir}/test_context.c",
+        ]))
+    )
+
+    builder.add(
+        f"{ZetaExeDir}/test_context.s",
+        {
+            f"{File}",
+            f"{ZetaExeDir}/switch.s",
+            f"{ZetaExeDir}/test_context.c",
+        },
+        lambda : os.system(" ".join([
+            cc,
+            f"-o {ZetaExeDir}/test_context.s",
+            f"-S",
+            *args,
+            f"{ZetaExeDir}/switch.s",
+            f"{ZetaExeDir}/test_context.c",
+        ]))
     )
 
 if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
+    parser.add_argument("target", action="store")
+    parser.add_argument("--rebuild", dest="rebuild", action="store_true")
+    args = parser.parse_args(sys.argv[1:])
+
+    print(f"args = {args}")
+
     builder = Builder()
     builder_add(builder)
-    builder.add("all", builder.units(), NullFunc)
+    builder.add("all", builder.units(), lambda : 0)
 
-    non_built, built = builder.build(GetABSPath(sys.argv[1]))
+    non_built, built = builder.build(GetABSPath(args.target), args.rebuild)
 
     print("success")
     print("non_built: ", non_built)

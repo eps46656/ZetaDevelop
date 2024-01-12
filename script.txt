@@ -1,0 +1,32 @@
+
+python Zeta/build.py Zeta/MultiLevelEntryTable.o
+
+
+python ZetaExe/build.py ZetaExe/test_gplist.so
+python ZetaExe/build.py ZetaExe/test_hashtable.exe
+python ZetaExe/build.py ZetaExe/test_2.exe
+
+python ZetaExe/test_gplist.py
+
+ZetaExe\\test_gplist.exe
+ZetaExe\\test_hashtable.exe
+
+
+python Zeta/build.py Zeta/MultiLevelHashTable.o
+
+python ZetaExe/build.py ZetaExe/mlmap.so
+python ZetaExe/mlmap.py
+
+python ZetaExe/test_mlmap.py
+
+
+
+
+how to use gplist.py
+
+1. cd ZetaDevelop
+2. python ZetaExe/build.py ZetaExe/gplist.so
+
+GPList interface is in ZetaExe/gplist.py.
+Examples are in ZetaExe/gplist.py and ZetaExe/test_gplist.py
+

@@ -8,24 +8,24 @@ ZETA_DECL_STRUCT(Zeta_OrdinaryBinColoredTreeNode) {
     Zeta_OrdinaryBinColoredTreeNode *r;
 };
 
-void *Zeta_OrdinaryBinColoredTreeNode_GetP(void *n);
+void *Zeta_OrdinaryBinColoredTreeNode_GetP(void *context, void *n);
 
-void *Zeta_OrdinaryBinColoredTreeNode_GetL(void *n);
+void *Zeta_OrdinaryBinColoredTreeNode_GetL(void *context, void *n);
 
-void *Zeta_OrdinaryBinColoredTreeNode_GetR(void *n);
+void *Zeta_OrdinaryBinColoredTreeNode_GetR(void *context, void *n);
 
-int Zeta_OrdinaryBinColoredTreeNode_GetColor(void *n);
+int Zeta_OrdinaryBinColoredTreeNode_GetColor(void *context, void *n);
 
-void Zeta_OrdinaryBinColoredTreeNode_ReverseColor(void *n);
+void Zeta_OrdinaryBinColoredTreeNode_ReverseColor(void *context, void *n);
 
-void Zeta_OrdinaryBinColoredTreeNode_AttachL(void *n, void *m);
+void Zeta_OrdinaryBinColoredTreeNode_AttachL(void *context, void *n, void *m);
 
-void Zeta_OrdinaryBinColoredTreeNode_AttachR(void *n, void *m);
+void Zeta_OrdinaryBinColoredTreeNode_AttachR(void *context, void *n, void *m);
 
-void Zeta_OrdinaryBinColoredTreeNode_Detach(void *n);
+void Zeta_OrdinaryBinColoredTreeNode_Detach(void *context, void *n);
 
-void Zeta_OrdinaryBinColoredTreeNode_Swap(void *n, void *m);
+void Zeta_OrdinaryBinColoredTreeNode_Swap(void *context, void *n, void *m);
 
-void Zeta_OrdinaryBinColoredTreeNode_RotateL(void *n);
+void Zeta_OrdinaryBinColoredTreeNode_RotateL(void *context, void *n);
 
-void Zeta_OrdinaryBinColoredTreeNode_RotateR(void *n);
+void Zeta_OrdinaryBinColoredTreeNode_RotateR(void *context, void *n);

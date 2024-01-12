@@ -16,9 +16,3 @@ void Zeta_LCGRandomGenerator_Set(void* lcgrg, size_t seed);
 void Zeta_LCGRandomGenerator_Rotate(void* lcgrg);
 
 size_t Zeta_LCGRandomGenerator_Fetch(void* lcgrg);
-
-// -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
-
-// diff_t Zeta_GetInt

@@ -13,7 +13,9 @@ void Zeta_CountingBinTree_Access(void **dst_n, diff_t *dst_idx,
 
     if (dst_n == NULL && dst_idx == NULL) { return; }
 
-    diff_t n_acc_size = cbtn_opr->GetAccSize(n);
+    void *context = cbtn_opr->context;
+
+    diff_t n_acc_size = cbtn_opr->GetAccSize(context, n);
 
     if (n_acc_size <= idx) {
         if (dst_n != NULL) { *dst_n = NULL; }
@@ -22,8 +24,8 @@ void Zeta_CountingBinTree_Access(void **dst_n, diff_t *dst_idx,
     }
 
     while (n != NULL) {
-        void *nl = cbtn_opr->GetL(n);
-        diff_t nl_acc_size = cbtn_opr->GetAccSize(nl);
+        void *nl = cbtn_opr->GetL(context, n);
+        diff_t nl_acc_size = cbtn_opr->GetAccSize(context, nl);
 
         if (idx < nl_acc_size) {
             n = nl;
@@ -31,11 +33,11 @@ void Zeta_CountingBinTree_Access(void **dst_n, diff_t *dst_idx,
         }
 
         idx -= nl_acc_size;
-        diff_t n_size = cbtn_opr->GetSize(n);
+        diff_t n_size = cbtn_opr->GetSize(context, n);
 
         if (idx < n_size) { break; }
 
-        n = cbtn_opr->GetR(n);
+        n = cbtn_opr->GetR(context, n);
         idx -= n_size;
     }
 
@@ -57,16 +59,21 @@ void Zeta_CountingBinTree_GetAccSize(diff_t *dst_l_acc_size,
 
     if (dst_l_acc_size == NULL && dst_r_acc_size == NULL) { return; }
 
-    diff_t l_acc_size = cbtn_opr->GetAccSize(cbtn_opr->GetL(n));
-    diff_t r_acc_size = cbtn_opr->GetAccSize(cbtn_opr->GetR(n));
+    void *context = cbtn_opr->context;
+
+    diff_t l_acc_size =
+        cbtn_opr->GetAccSize(context, cbtn_opr->GetL(context, n));
+    diff_t r_acc_size =
+        cbtn_opr->GetAccSize(context, cbtn_opr->GetR(context, n));
 
     for (;;) {
-        void *np = cbtn_opr->GetP(n);
+        void *np = cbtn_opr->GetP(context, n);
         if (np == NULL) { break; }
 
-        diff_t k = cbtn_opr->GetAccSize(np) - cbtn_opr->GetAccSize(n);
+        diff_t k = cbtn_opr->GetAccSize(context, np) -
+                   cbtn_opr->GetAccSize(context, n);
 
-        if (cbtn_opr->GetL(np) == n) {
+        if (cbtn_opr->GetL(context, np) == n) {
             r_acc_size += k;
         } else {
             l_acc_size += k;

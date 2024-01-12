@@ -1,8 +1,10 @@
 #include "OrdinaryCountingBinColoredTreeNode.h"
 
-ZETA_STATIC_ASSERT(((uintptr_t)NULL & (uintptr_t)1) == 0);
+ZETA_STATIC_ASSERT(((intptr_t)NULL & (intptr_t)1) == 0);
 
-void Zeta_OrdinaryCountingBinColoredTreeNode_Init(void *n_) {
+void Zeta_OrdinaryCountingBinColoredTreeNode_Init(void *context, void *n_) {
+    ZETA_UNUSED(context);
+
     Zeta_OrdinaryCountingBinColoredTreeNode *n = n_;
     ZETA_DEBUG_ASSERT(n != NULL);
     n->p = NULL;
@@ -14,13 +16,13 @@ void Zeta_OrdinaryCountingBinColoredTreeNode_Init(void *n_) {
 static Zeta_OrdinaryCountingBinColoredTreeNode *GetP_(void *n_) {
     Zeta_OrdinaryCountingBinColoredTreeNode *n = n_;
     ZETA_DEBUG_ASSERT(n != NULL);
-    return (void *)((uintptr_t)(void *)n->p & ~(uintptr_t)1);
+    return (void *)((intptr_t)(void *)n->p & ~(intptr_t)1);
 }
 
 static void SetP_(void *n_, void *p) {
     Zeta_OrdinaryCountingBinColoredTreeNode *n = n_;
     ZETA_DEBUG_ASSERT(n != NULL);
-    n->p = (void *)((uintptr_t)p | ((uintptr_t)(void *)n->p & (uintptr_t)1));
+    n->p = (void *)((intptr_t)p | ((intptr_t)(void *)n->p & (intptr_t)1));
 }
 
 static void AddDiffSize_(Zeta_OrdinaryCountingBinColoredTreeNode *n,
@@ -29,55 +31,78 @@ static void AddDiffSize_(Zeta_OrdinaryCountingBinColoredTreeNode *n,
     for (; n != NULL; n = GetP_(n)) { n->acc_size += diff_size; }
 }
 
-void *Zeta_OrdinaryCountingBinColoredTreeNode_GetP(void *n_) {
+void *Zeta_OrdinaryCountingBinColoredTreeNode_GetP(void *context, void *n_) {
+    ZETA_UNUSED(context);
     return GetP_(n_);
 }
 
-void *Zeta_OrdinaryCountingBinColoredTreeNode_GetL(void *n_) {
+void *Zeta_OrdinaryCountingBinColoredTreeNode_GetL(void *context, void *n_) {
+    ZETA_UNUSED(context);
     Zeta_OrdinaryCountingBinColoredTreeNode *n = n_;
     ZETA_DEBUG_ASSERT(n != NULL);
     return n->l;
 }
 
-void *Zeta_OrdinaryCountingBinColoredTreeNode_GetR(void *n_) {
+void *Zeta_OrdinaryCountingBinColoredTreeNode_GetR(void *context, void *n_) {
+    ZETA_UNUSED(context);
     Zeta_OrdinaryCountingBinColoredTreeNode *n = n_;
     ZETA_DEBUG_ASSERT(n != NULL);
     return n->r;
 }
 
-int Zeta_OrdinaryCountingBinColoredTreeNode_GetColor(void *n_) {
+int Zeta_OrdinaryCountingBinColoredTreeNode_GetColor(void *context, void *n_) {
+    ZETA_UNUSED(context);
+
     Zeta_OrdinaryCountingBinColoredTreeNode *n = n_;
-    return n == NULL ? 0 : (uintptr_t)(void *)n->p & (uintptr_t)1;
+    return n == NULL ? 0 : (intptr_t)(void *)n->p & (intptr_t)1;
 }
 
-void Zeta_OrdinaryCountingBinColoredTreeNode_ReverseColor(void *n_) {
+void Zeta_OrdinaryCountingBinColoredTreeNode_ReverseColor(void *context,
+                                                          void *n_) {
+    ZETA_UNUSED(context);
     Zeta_OrdinaryCountingBinColoredTreeNode *n = n_;
     ZETA_DEBUG_ASSERT(n != NULL);
-    n->p = (void *)((uintptr_t)(void *)n->p ^ (uintptr_t)1);
+    n->p = (void *)((intptr_t)(void *)n->p ^ (intptr_t)1);
 }
 
-diff_t Zeta_OrdinaryCountingBinColoredTreeNode_GetAccSize(void *n_) {
+static diff_t GetAccSize_(void *n_) {
     Zeta_OrdinaryCountingBinColoredTreeNode *n = n_;
     return n == NULL ? 0 : n->acc_size;
 }
 
-diff_t Zeta_OrdinaryCountingBinColoredTreeNode_GetSize(void *n_) {
-    Zeta_OrdinaryCountingBinColoredTreeNode *n = n_;
-
-    return n == NULL
-               ? 0
-               : n->acc_size -
-                     Zeta_OrdinaryCountingBinColoredTreeNode_GetAccSize(n->l) -
-                     Zeta_OrdinaryCountingBinColoredTreeNode_GetAccSize(n->r);
+diff_t Zeta_OrdinaryCountingBinColoredTreeNode_GetAccSize(void *context,
+                                                          void *n) {
+    ZETA_UNUSED(context);
+    return GetAccSize_(n);
 }
 
-void Zeta_OrdinaryCountingBinColoredTreeNode_SetSize(void *n_, diff_t size) {
+static diff_t GetSize_(void *n_) {
+    Zeta_OrdinaryCountingBinColoredTreeNode *n = n_;
+
+    return n == NULL ? 0 : n->acc_size - GetAccSize_(n->l) - GetAccSize_(n->r);
+}
+
+diff_t Zeta_OrdinaryCountingBinColoredTreeNode_GetSize(void *context, void *n) {
+    ZETA_UNUSED(context);
+    return GetSize_(n);
+}
+
+static void SetSize_(void *n_, diff_t size) {
     Zeta_OrdinaryCountingBinColoredTreeNode *n = n_;
     ZETA_DEBUG_ASSERT(n != NULL);
-    AddDiffSize_(n, size - Zeta_OrdinaryCountingBinColoredTreeNode_GetSize(n));
+    AddDiffSize_(n, size - GetSize_(n));
 }
 
-void Zeta_OrdinaryCountingBinColoredTreeNode_AttachL(void *n_, void *m_) {
+void Zeta_OrdinaryCountingBinColoredTreeNode_SetSize(void *context, void *n,
+                                                     diff_t size) {
+    ZETA_UNUSED(context);
+    SetSize_(n, size);
+}
+
+void Zeta_OrdinaryCountingBinColoredTreeNode_AttachL(void *context, void *n_,
+                                                     void *m_) {
+    ZETA_UNUSED(context);
+
     Zeta_OrdinaryCountingBinColoredTreeNode *n = n_;
     Zeta_OrdinaryCountingBinColoredTreeNode *m = m_;
 
@@ -91,7 +116,10 @@ void Zeta_OrdinaryCountingBinColoredTreeNode_AttachL(void *n_, void *m_) {
     AddDiffSize_(n, m->acc_size);
 }
 
-void Zeta_OrdinaryCountingBinColoredTreeNode_AttachR(void *n_, void *m_) {
+void Zeta_OrdinaryCountingBinColoredTreeNode_AttachR(void *context, void *n_,
+                                                     void *m_) {
+    ZETA_UNUSED(context);
+
     Zeta_OrdinaryCountingBinColoredTreeNode *n = n_;
     Zeta_OrdinaryCountingBinColoredTreeNode *m = m_;
 
@@ -105,7 +133,9 @@ void Zeta_OrdinaryCountingBinColoredTreeNode_AttachR(void *n_, void *m_) {
     AddDiffSize_(n, m->acc_size);
 }
 
-void Zeta_OrdinaryCountingBinColoredTreeNode_Detach(void *n_) {
+void Zeta_OrdinaryCountingBinColoredTreeNode_Detach(void *context, void *n_) {
+    ZETA_UNUSED(context);
+
     Zeta_OrdinaryCountingBinColoredTreeNode *n = n_;
     ZETA_DEBUG_ASSERT(n != NULL);
 
@@ -147,7 +177,10 @@ static void Replace_(void *n_, void *m_) {
     if (nr != NULL) { SetP_(nr, m); }
 }
 
-void Zeta_OrdinaryCountingBinColoredTreeNode_Swap(void *n_, void *m_) {
+void Zeta_OrdinaryCountingBinColoredTreeNode_Swap(void *context, void *n_,
+                                                  void *m_) {
+    ZETA_UNUSED(context);
+
     Zeta_OrdinaryCountingBinColoredTreeNode *n = n_;
     Zeta_OrdinaryCountingBinColoredTreeNode *m = m_;
 
@@ -156,8 +189,8 @@ void Zeta_OrdinaryCountingBinColoredTreeNode_Swap(void *n_, void *m_) {
 
     if (n == m) { return; }
 
-    diff_t n_size = Zeta_OrdinaryCountingBinColoredTreeNode_GetSize(n);
-    diff_t m_size = Zeta_OrdinaryCountingBinColoredTreeNode_GetSize(m);
+    diff_t n_size = GetSize_(n);
+    diff_t m_size = GetSize_(m);
 
     Zeta_OrdinaryCountingBinColoredTreeNode tmp;
 
@@ -165,21 +198,20 @@ void Zeta_OrdinaryCountingBinColoredTreeNode_Swap(void *n_, void *m_) {
     Replace_(m, n);
     Replace_(&tmp, m);
 
-    ZETA_SWAP(n->acc_size, m->acc_size);
+    diff_t acc_size_tmp = n->acc_size;
+    n->acc_size = m->acc_size;
+    m->acc_size = acc_size_tmp;
 
     void *np = GetP_(n);
     void *mp = GetP_(m);
 
-    if (np != NULL) {
-        Zeta_OrdinaryCountingBinColoredTreeNode_SetSize(np, n_size);
-    }
-
-    if (mp != NULL) {
-        Zeta_OrdinaryCountingBinColoredTreeNode_SetSize(mp, m_size);
-    }
+    if (np != NULL) { SetSize_(np, n_size); }
+    if (mp != NULL) { SetSize_(mp, m_size); }
 }
 
-void Zeta_OrdinaryCountingBinColoredTreeNode_RotateL(void *n_) {
+void Zeta_OrdinaryCountingBinColoredTreeNode_RotateL(void *context, void *n_) {
+    ZETA_UNUSED(context);
+
     Zeta_OrdinaryCountingBinColoredTreeNode *n = n_;
     ZETA_DEBUG_ASSERT(n != NULL);
 
@@ -216,7 +248,9 @@ void Zeta_OrdinaryCountingBinColoredTreeNode_RotateL(void *n_) {
     n->acc_size = new_n_acc_size;
 }
 
-void Zeta_OrdinaryCountingBinColoredTreeNode_RotateR(void *n_) {
+void Zeta_OrdinaryCountingBinColoredTreeNode_RotateR(void *context, void *n_) {
+    ZETA_UNUSED(context);
+
     Zeta_OrdinaryCountingBinColoredTreeNode *n = n_;
     ZETA_DEBUG_ASSERT(n != NULL);
 

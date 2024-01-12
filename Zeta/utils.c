@@ -1,5 +1,29 @@
 #include "utils.h"
 
+void Zeta_MemCopy(diff_t size, char* dst, char* src) {
+    ZETA_DEBUG_ASSERT(0 <= size);
+
+    if (dst == src) { return; }
+
+    if (src < dst && dst < src + size) {
+        for (diff_t i = size - 1; 0 <= i; --i) { dst[i] = src[i]; }
+    } else {
+        for (diff_t i = 0; i < size; ++i) { dst[i] = src[i]; }
+    }
+}
+
+void Zeta_MemSwap(diff_t size, char* x, char* y) {
+    ZETA_DEBUG_ASSERT(0 <= size);
+
+    if (x == y) { return; }
+
+    for (diff_t i = 0; i < size; ++i) {
+        char tmp = x[i];
+        x[i] = y[i];
+        y[i] = tmp;
+    }
+}
+
 void Zeta_Swap(diff_t* a, diff_t* b) {
     diff_t tmp = *a;
     *a = *b;
@@ -11,7 +35,7 @@ size_t Zeta_PowerM(size_t base, size_t exp, size_t mod) {
     ZETA_DEBUG_ASSERT(1 <= mod);
 
     base %= mod;
-    size_t ret = 0;
+    size_t ret = 1;
 
     for (; 0 < exp; exp /= 2) {
         if (exp % 2 == 1) { ret = (ret * base) % mod; }
@@ -40,14 +64,15 @@ size_t Zeta_SimpleHash(size_t x) {
     return x;
 }
 
-void* Zeta_GetMostLink(void* (*GetLink)(void* n), void* n) {
+void* Zeta_GetMostLink(void* context, void* (*GetLink)(void* context, void* n),
+                       void* n) {
     ZETA_DEBUG_ASSERT(GetLink != NULL);
 
     void* m = n;
 
     while (m != NULL) {
         n = m;
-        m = GetLink(n);
+        m = GetLink(context, n);
     }
 
     return n;

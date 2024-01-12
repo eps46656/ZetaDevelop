@@ -1,9 +1,6 @@
 import os
 import time
 
-def NullFunc():
-    pass
-
 def GetABSPath(path):
     return os.path.abspath(path).replace("\\", "/")
 
@@ -19,7 +16,21 @@ def SetMTime(path, mtime):
     except:
         pass
 
-def BFS(A, sources):
+def CheckAdjList(adj_list):
+    # adj_list = {
+    #   "v 0": {"adj 00", "adj 01", "adj 02", ...},
+    #   "v 1": {"adj 10", "adj 11", "adj 12", ...},
+    #   "v 2": {"adj 20", "adj 21", "adj 22", ...},
+    #   ...
+    # }
+
+    vertices = {adj_list.keys()}
+
+    for adjs in adj_list.values():
+        assert adjs.issubset(vertices)
+
+
+def BFS(adj_list, sources):
     # A = {
     #   "v 0": {"adj 00", "adj 01", "adj 02", ...},
     #   "v 1": {"adj 10", "adj 11", "adj 12", ...},
@@ -30,31 +41,31 @@ def BFS(A, sources):
     # sources = ["s_0", "s_1", "s_2", ...]
 
     ret = list()
-    s = set()
+    discovered = set()
 
     i = 0
 
     for source in sources:
-        if source in s:
+        if source in discovered:
             continue
 
         ret.append(source)
-        s.add(source)
+        discovered.add(source)
 
         while i < len(ret):
             n = ret[i]
             i += 1
 
-            assert n in A, f"unknown vertex: {n}"
+            assert n in adj_list, f"unknown vertex: {n}"
 
-            for adj in A[n]:
-                if adj not in s:
+            for adj in adj_list[n]:
+                if adj not in discovered:
                     ret.append(adj)
-                    s.add(adj)
+                    discovered.add(adj)
 
     return ret
 
-def TPSort(A, sources):
+def TPSort(adj_list, sources):
     # A = {
     #   "v 0": {"adj 00", "adj 01", "adj 02", ...},
     #   "v 1": {"adj 10", "adj 11", "adj 12", ...},
@@ -64,12 +75,12 @@ def TPSort(A, sources):
     #
     # return ["u 0", "u 1", "u 2", ... ]
 
-    q = BFS(A, sources)
+    q = BFS(adj_list, sources)
 
     indegs = {n: 0 for n in q}
 
     for n in q:
-        for adj in A[n]:
+        for adj in adj_list[n]:
             indegs[adj] += 1
 
     q.clear()
@@ -85,28 +96,15 @@ def TPSort(A, sources):
         q.pop()
         ret.append(n)
 
-        for adj in A[n]:
+        for adj in adj_list[n]:
             indegs[adj] -= 1
 
             if indegs[adj] == 0:
                 q.append(adj)
 
-    assert len(indegs) <= len(ret), "cycle detected"
+    assert len(indegs) == len(ret), "cycle detected"
 
     return ret
-
-class CmdExecutor:
-    def __init__(self, cmd):
-        self.cmd = " ".join(cmd)
-
-    def __call__(self):
-        print(f"executing: {self.cmd}")
-
-        rc = os.system(self.cmd)
-
-        assert rc == 0, f"failed, exit with {rc}"
-
-        print(f"success")
 
 class Builder:
     def __init__(self):
@@ -135,7 +133,7 @@ class Builder:
     def units(self):
         return list(self.deps.keys())
 
-    def build(self, target):
+    def build(self, target, rebuild):
         assert target in self.deps, f"unknown unit {target}"
 
         v = TPSort(self.deps, [target])
@@ -149,14 +147,16 @@ class Builder:
             if len(self.deps[unit]) == 0:
                 continue
 
-            adj_mtime = max(mtimes[dep_unit] for dep_unit in self.deps[unit])
+            adj_mtime = max(mtimes[dep] for dep in self.deps[unit])
 
-            if adj_mtime <= mtimes[unit]:
+            if not rebuild and adj_mtime <= mtimes[unit]:
                 non_built.append(unit)
                 continue
 
             print(f"building {unit}")
-            self.callbacks[unit]()
+            rc = self.callbacks[unit]()
+
+            assert rc == 0
 
             assert os.path.exists(unit), \
                    f"unit {unit} does not exist after built"

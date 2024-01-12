@@ -2,11 +2,12 @@
 
 #include "define.h"
 
-typedef struct {
-    void *(*GetP)(void *n);
-    void *(*GetL)(void *n);
-    void *(*GetR)(void *n);
-} Zeta_BinTreeNodeAccessor;
+ZETA_DECL_STRUCT(Zeta_BinTreeNodeAccessor) {
+    void *context;
+    void *(*GetP)(void *context, void *n);
+    void *(*GetL)(void *context, void *n);
+    void *(*GetR)(void *context, void *n);
+};
 
 void *Zeta_BinTree_StepL(Zeta_BinTreeNodeAccessor *bt_accessor, void *n);
 

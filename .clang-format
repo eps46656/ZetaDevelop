@@ -1,0 +1,8 @@
+﻿---
+BasedOnStyle: Google
+AllowShortBlocksOnASingleLine: 'true'
+IncludeBlocks: Merge
+IndentWidth: '4'
+UseTab: Never
+
+...

@@ -5,8 +5,8 @@ import time
 
 from mlmap import MLMap
 
-m = {}
-# m = MLMap()
+# m = {}
+m = MLMap()
 
 KEY_RANGE_MIN = -1000000000
 KEY_RANGE_MAX =  1000000000

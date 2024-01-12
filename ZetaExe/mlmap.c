@@ -1,13 +1,13 @@
 #include "../Zeta/MultiLevelHashTable.h"
 #include "../Zeta/utils.h"
 
-typedef unsigned long long int key_t;
-typedef unsigned long long int val_t;
+typedef unsigned long long int mlmap_key_t;
+typedef unsigned long long int mlmap_val_t;
 
 ZETA_DECL_STRUCT(MLMapNode) {
     Zeta_MultiLevelHashTableNode mlhtn;
-    key_t key;
-    val_t val;
+    mlmap_key_t key;
+    mlmap_val_t val;
 };
 
 ZETA_DECL_STRUCT(MLMap) {
@@ -16,10 +16,17 @@ ZETA_DECL_STRUCT(MLMap) {
     Zeta_MultiLevelHashTable mlht;
 };
 
-void* MyAllocate(diff_t size) { return malloc(size); }
-void MyDeallocate(void* ptr) { free(ptr); }
+void* MLMap_Allocate(void* context, diff_t size) {
+    ZETA_UNUSED(context);
+    return malloc(size);
+}
 
-size_t SimpleHashKey(key_t key) {
+void MLMap_Deallocate(void* context, void* ptr) {
+    ZETA_UNUSED(context);
+    free(ptr);
+}
+
+size_t SimpleHashKey(mlmap_key_t key) {
     size_t x = key;
     x = (x ^ (x >> 30)) * 0xbf58476d1ce4e5b9ULL;
     x = (x ^ (x >> 27)) * 0x94d049bb133111ebULL;
@@ -42,8 +49,9 @@ void MLMap_Init(void* mlmap_) {
     mlet->branch_nums[0] = 256;
     mlet->branch_nums[1] = 256;
     mlet->branch_nums[2] = 256;
-    mlet->Allocate = MyAllocate;
-    mlet->Deallocate = MyDeallocate;
+    mlet->allocator = malloc(sizeof(Zeta_Allocator));
+    mlet->allocator->Allocate = MLMap_Allocate;
+    mlet->allocator->Deallocate = MLMap_Deallocate;
 
     mlht->mlet = mlet;
 }
@@ -63,19 +71,19 @@ diff_t MLMap_GetSize(void* mlmap_) {
 
 _Bool MLMap_IsNull(void* mlmapn_) { return mlmapn_ == NULL; }
 
-val_t MLMap_GetVal(void* mlmapn_) {
+mlmap_val_t MLMap_GetVal(void* mlmapn_) {
     MLMapNode* mlmapn = mlmapn_;
     ZETA_DEBUG_ASSERT(mlmapn != NULL);
     return mlmapn->val;
 }
 
-void MLMap_SetVal(void* mlmapn_, val_t val) {
+void MLMap_SetVal(void* mlmapn_, mlmap_val_t val) {
     MLMapNode* mlmapn = mlmapn_;
     ZETA_DEBUG_ASSERT(mlmapn != NULL);
     mlmapn->val = val;
 }
 
-void* MLMap_Find(void* mlmap_, key_t key) {
+void* MLMap_Find(void* mlmap_, mlmap_key_t key) {
     MLMap* mlmap = mlmap_;
     ZETA_DEBUG_ASSERT(mlmap != NULL);
 
@@ -94,7 +102,7 @@ void* MLMap_Find(void* mlmap_, key_t key) {
     return NULL;
 }
 
-void* MLMap_FindNext(void* mlmapn_, key_t key) {
+void* MLMap_FindNext(void* mlmapn_, mlmap_key_t key) {
     MLMapNode* mlmapn = mlmapn_;
     ZETA_DEBUG_ASSERT(mlmapn != NULL);
 
@@ -110,7 +118,7 @@ void* MLMap_FindNext(void* mlmapn_, key_t key) {
     return NULL;
 }
 
-void* MLMap_Insert(void* mlmap_, key_t key, val_t val) {
+void* MLMap_Insert(void* mlmap_, mlmap_key_t key, mlmap_val_t val) {
     MLMap* mlmap = mlmap_;
     ZETA_DEBUG_ASSERT(mlmap != NULL);
 

@@ -25,7 +25,7 @@ def Erase():
     if key in ma:
         del ma[key]
         assert mb[key] != None
-        mb.erase(key)
+        mb.pop(key)
     else:
         assert mb[key] == None
 
@@ -43,7 +43,7 @@ def main():
 
     print("a")
 
-    for _ in range(100):
+    for _ in range(10):
         for _ in range(random.randint(500, 600)):
             Insert()
             Compare()

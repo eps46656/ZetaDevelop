@@ -35,8 +35,8 @@ void Zeta_DoublyLinkedNode_InsertL(void *n_, void *m_) {
 }
 
 void Zeta_DoublyLinkedNode_InsertR(void *n_, void *m_) {
-    struct Zeta_DoublyLinkedNode *n = n_;
-    struct Zeta_DoublyLinkedNode *m = m_;
+    Zeta_DoublyLinkedNode *n = n_;
+    Zeta_DoublyLinkedNode *m = m_;
 
     ZETA_DEBUG_ASSERT(n != NULL);
     ZETA_DEBUG_ASSERT(m != NULL);

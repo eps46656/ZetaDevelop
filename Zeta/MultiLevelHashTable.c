@@ -35,7 +35,7 @@ void* Zeta_MultiLevelHashTable_GetFirst(void* mlht_) {
     diff_t idxes[Zeta_MultiLevelEntryTable_max_level];
     GetIdxes_(idxes, mlet, 0);
 
-    void** n = Zeta_MultiLevelEntryTable_GetNextNotNullIdx(mlet, idxes, 0);
+    void** n = Zeta_MultiLevelEntryTable_FindNextNotNull(mlet, idxes, 1);
 
     return n == NULL ? NULL : *n;
 }
@@ -55,7 +55,7 @@ void* Zeta_MultiLevelHashTable_GetNext(void* mlht_, void* mlhtn_) {
     diff_t idxes[Zeta_MultiLevelEntryTable_max_level];
     GetIdxes_(idxes, mlet, mlhtn->hash_code);
 
-    void** n = Zeta_MultiLevelEntryTable_GetNextNotNullIdx(mlet, idxes, 1);
+    void** n = Zeta_MultiLevelEntryTable_FindNextNotNull(mlet, idxes, 0);
 
     return n == NULL ? NULL : *n;
 }

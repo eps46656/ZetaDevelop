@@ -12,33 +12,43 @@ static void SetP_(void *n_, void *p) {
     n->p = (intptr_t)p | ((intptr_t)n->p & (intptr_t)1);
 }
 
-void *Zeta_OrdinaryBinColoredTreeNode_GetP(void *n_) { return GetP_(n_); }
+void *Zeta_OrdinaryBinColoredTreeNode_GetP(void *context, void *n_) {
+    ZETA_UNUSED(context);
+    return GetP_(n_);
+}
 
-void *Zeta_OrdinaryBinColoredTreeNode_GetL(void *n_) {
+void *Zeta_OrdinaryBinColoredTreeNode_GetL(void *context, void *n_) {
+    ZETA_UNUSED(context);
     Zeta_OrdinaryBinColoredTreeNode *n = n_;
     ZETA_DEBUG_ASSERT(n != NULL);
     return n->l;
 }
 
-void *Zeta_OrdinaryBinColoredTreeNode_GetR(void *n_) {
+void *Zeta_OrdinaryBinColoredTreeNode_GetR(void *context, void *n_) {
+    ZETA_UNUSED(context);
     Zeta_OrdinaryBinColoredTreeNode *n = n_;
     ZETA_DEBUG_ASSERT(n != NULL);
     return n->r;
 }
 
-int Zeta_OrdinaryBinColoredTreeNode_GetColor(void *n_) {
+int Zeta_OrdinaryBinColoredTreeNode_GetColor(void *context, void *n_) {
+    ZETA_UNUSED(context);
     Zeta_OrdinaryBinColoredTreeNode *n = n_;
     ZETA_DEBUG_ASSERT(n != NULL);
     return (int)n->p & 1;
 }
 
-void Zeta_OrdinaryBinColoredTreeNode_ReverseColor(void *n_) {
+void Zeta_OrdinaryBinColoredTreeNode_ReverseColor(void *context, void *n_) {
+    ZETA_UNUSED(context);
     Zeta_OrdinaryBinColoredTreeNode *n = n_;
     ZETA_DEBUG_ASSERT(n != NULL);
     n->p = (size_t)n->p ^ (size_t)1;
 }
 
-void Zeta_OrdinaryBinColoredTreeNode_AttachL(void *n_, void *m_) {
+void Zeta_OrdinaryBinColoredTreeNode_AttachL(void *context, void *n_,
+                                             void *m_) {
+    ZETA_UNUSED(context);
+
     Zeta_OrdinaryBinColoredTreeNode *n = n_;
     Zeta_OrdinaryBinColoredTreeNode *m = m_;
 
@@ -51,7 +61,10 @@ void Zeta_OrdinaryBinColoredTreeNode_AttachL(void *n_, void *m_) {
     SetP_(m, n);
 }
 
-void Zeta_OrdinaryBinColoredTreeNode_AttachR(void *n_, void *m_) {
+void Zeta_OrdinaryBinColoredTreeNode_AttachR(void *context, void *n_,
+                                             void *m_) {
+    ZETA_UNUSED(context);
+
     Zeta_OrdinaryBinColoredTreeNode *n = n_;
     Zeta_OrdinaryBinColoredTreeNode *m = m_;
 
@@ -64,7 +77,9 @@ void Zeta_OrdinaryBinColoredTreeNode_AttachR(void *n_, void *m_) {
     SetP_(m, n);
 }
 
-void Zeta_OrdinaryBinColoredTreeNode_Detach(void *n_) {
+void Zeta_OrdinaryBinColoredTreeNode_Detach(void *context, void *n_) {
+    ZETA_UNUSED(context);
+
     Zeta_OrdinaryBinColoredTreeNode *n = n_;
     ZETA_DEBUG_ASSERT(n != NULL);
 
@@ -108,7 +123,9 @@ static void Replace_(void *n_, void *m_) {
     if (nr != NULL) { SetP_(nr, m); }
 }
 
-void Zeta_OrdinaryBinColoredTreeNode_Swap(void *n_, void *m_) {
+void Zeta_OrdinaryBinColoredTreeNode_Swap(void *context, void *n_, void *m_) {
+    ZETA_UNUSED(context);
+
     Zeta_OrdinaryBinColoredTreeNode *n = n_;
     Zeta_OrdinaryBinColoredTreeNode *m = m_;
 
@@ -121,7 +138,9 @@ void Zeta_OrdinaryBinColoredTreeNode_Swap(void *n_, void *m_) {
     Replace_(&tmp, m);
 }
 
-void Zeta_OrdinaryBinColoredTreeNode_RotateL(void *n_) {
+void Zeta_OrdinaryBinColoredTreeNode_RotateL(void *context, void *n_) {
+    ZETA_UNUSED(context);
+
     Zeta_OrdinaryBinColoredTreeNode *n = n_;
     ZETA_DEBUG_ASSERT(n != NULL);
 
@@ -149,7 +168,9 @@ void Zeta_OrdinaryBinColoredTreeNode_RotateL(void *n_) {
     if (nrl != NULL) { SetP_(nrl, n); }
 }
 
-void Zeta_OrdinaryBinColoredTreeNode_RotateR(void *n_) {
+void Zeta_OrdinaryBinColoredTreeNode_RotateR(void *context, void *n_) {
+    ZETA_UNUSED(context);
+
     Zeta_OrdinaryBinColoredTreeNode *n = n_;
     ZETA_DEBUG_ASSERT(n != NULL);
 

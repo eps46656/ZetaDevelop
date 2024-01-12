@@ -15,7 +15,8 @@ void SimpleVector_Init(SimpleVector* sv) {
 }
 
 val_t* SimpleVector_Access(SimpleVector* sv, diff_t idx) {
-    ZETA_DEBUG_ASSERT(0 <= idx && idx < sv->size);
+    ZETA_DEBUG_ASSERT(0 <= idx);
+    ZETA_DEBUG_ASSERT(idx < sv->size);
     return sv->data + idx;
 }
 
@@ -31,7 +32,8 @@ void SimpleVector_Reserve(SimpleVector* sv, diff_t capacity) {
 }
 
 val_t* SimpleVector_InsertWithIdx(SimpleVector* sv, diff_t idx) {
-    ZETA_DEBUG_ASSERT(0 <= idx && idx <= sv->size);
+    ZETA_DEBUG_ASSERT(0 <= idx);
+    ZETA_DEBUG_ASSERT(idx <= sv->size);
 
     if (sv->capacity == sv->size) {
         diff_t new_capacity = sv->capacity == 0 ? 8 : sv->capacity * 2;
@@ -54,7 +56,8 @@ val_t* SimpleVector_InsertWithIdx(SimpleVector* sv, diff_t idx) {
 }
 
 void SimpleVector_EraseWithIdx(SimpleVector* sv, diff_t idx) {
-    ZETA_DEBUG_ASSERT(0 <= idx && idx < sv->size);
+    ZETA_DEBUG_ASSERT(0 <= idx);
+    ZETA_DEBUG_ASSERT(idx < sv->size);
 
     memmove(sv->data + idx, sv->data + idx + 1,
             sizeof(val_t) * (sv->size - idx - 1));

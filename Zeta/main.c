@@ -17,7 +17,7 @@ void Print(Zeta_CircularVector *cv) {
     printf("cv = { ");
 
     for (diff_t i = 0; i < size; ++i) {
-        int val = *(int *)Zeta_CircularVector_GetRef(cv, i);
+        int val = *(int *)Zeta_CircularVector_Access(cv, i);
         printf("%d ", val);
     }
 
@@ -27,20 +27,23 @@ void Print(Zeta_CircularVector *cv) {
 int main() {
     int data[N];
 
-    struct Zeta_RawVector raw_vector;
-    struct Zeta_CircularVector cv;
+    Zeta_RawVector rv;
+    rv.data = data;
+    rv.stride = sizeof(data[0]);
+    rv.size = N;
+
+    Zeta_Vector rv_vector;
+    rv_vector.context = &rv;
+    rv_vector.GetSize = Zeta_RawVector_GetSize;
+    rv_vector.Access = Zeta_RawVector_Access;
 
     ZETA_PRINT_POS;
 
-    Zeta_RawVector_Entrust(&raw_vector, data, sizeof(data[0]), N);
+    Zeta_CircularVector cv;
 
-    ZETA_PRINT_POS;
-
-    Zeta_RawVector_GetVectorOpr(&cv.vec_opr);
-
-    ZETA_PRINT_POS;
-
-    Zeta_CircularVector_Entrust(&cv, &raw_vector, 0, 0);
+    cv.vec = &rv_vector;
+    cv.offset = 0;
+    cv.size = 0;
 
     ZETA_PRINT_POS;
 

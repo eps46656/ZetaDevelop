@@ -3,13 +3,15 @@
 #include "RBTree.h"
 
 ZETA_DECL_STRUCT(Zeta_CountingBinTreeNodeOpr) {
-    void *(*GetP)(void *n);
-    void *(*GetL)(void *n);
-    void *(*GetR)(void *n);
+    void *context;
 
-    diff_t (*GetAccSize)(void *n);
-    diff_t (*GetSize)(void *n);
-    void (*SetSize)(void *n, diff_t size);
+    void *(*GetP)(void *context, void *n);
+    void *(*GetL)(void *context, void *n);
+    void *(*GetR)(void *context, void *n);
+
+    diff_t (*GetAccSize)(void *context, void *n);
+    diff_t (*GetSize)(void *context, void *n);
+    void (*SetSize)(void *context, void *n, diff_t size);
 };
 
 void Zeta_CountingBinTree_Access(void **dst_n, diff_t *dst_idx,
