@@ -84,10 +84,10 @@ int main() {
             Zeta_LCGRandomGenerator_Rotate(&lcgrg);
         }
 
-        diff_t beg = Fetch(Zeta_LCGRandomGenerator_Fetch(&lcgrg), 0, size - 2);
-        diff_t mid =
+        size_t beg = Fetch(Zeta_LCGRandomGenerator_Fetch(&lcgrg), 0, size - 2);
+        size_t mid =
             Fetch(Zeta_LCGRandomGenerator_Fetch(&lcgrg), beg + 1, size - 1);
-        diff_t end =
+        size_t end =
             Fetch(Zeta_LCGRandomGenerator_Fetch(&lcgrg), mid + 1, size);
 
         Zeta_KthElement(&int_vector,     // vec
@@ -101,9 +101,9 @@ int main() {
 
         lli pivot = arr[mid];
 
-        for (diff_t i = beg; i < mid; ++i) { ZETA_ASSERT(arr[i] <= pivot); }
+        for (size_t i = beg; i < mid; ++i) { ZETA_ASSERT(arr[i] <= pivot); }
 
-        for (diff_t i = mid + 1; i < end; ++i) { ZETA_ASSERT(pivot <= arr[i]); }
+        for (size_t i = mid + 1; i < end; ++i) { ZETA_ASSERT(pivot <= arr[i]); }
 
         printf("ok %d\n", test_i);
     }

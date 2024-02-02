@@ -8,7 +8,7 @@ File = os.path.abspath(__file__).replace("\\", "/")
 Dir = os.path.dirname(File).replace("\\", "/")
 
 void_p = ctypes.c_void_p
-diff_t = ctypes.c_longlong
+size_t = ctypes.c_ulonglong
 val_t = ctypes.c_ulonglong
 
 gplist_so_file = f"{Dir}/gplist.so"
@@ -27,7 +27,7 @@ gplist_so.GPList_Create.restype = void_p
 gplist_so.GPList_GetSize.argtypes = [void_p]
 gplist_so.GPList_GetSize.restype = val_t
 
-gplist_so.GPList_GetNode.argtypes = [void_p, diff_t]
+gplist_so.GPList_GetNode.argtypes = [void_p, size_t]
 gplist_so.GPList_GetNode.restype = void_p
 
 gplist_so.GPList_InsertL.argtypes = [void_p, void_p]
@@ -35,6 +35,9 @@ gplist_so.GPList_InsertL.restype = void_p
 
 gplist_so.GPList_Erase.argtypes = [void_p, void_p]
 gplist_so.GPList_Erase.restype = None
+
+gplist_so.GPList_Check.argtypes = [void_p]
+gplist_so.GPList_Check.restype = None
 
 ctypes.pythonapi.Py_IncRef.argtypes = [ctypes.py_object]
 ctypes.pythonapi.Py_IncRef.restype = None
@@ -80,6 +83,9 @@ class GPList:
     def __str__(self):
         s = ", ".join(str(self[i]) for i in range(len(self)))
         return f"[{s}]"
+
+    def check(self):
+        gplist_so.GPList_Check(self.gpl_ptr)
 
 l = GPList()
 # l = list()

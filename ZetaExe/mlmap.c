@@ -11,12 +11,12 @@ ZETA_DECL_STRUCT(MLMapNode) {
 };
 
 ZETA_DECL_STRUCT(MLMap) {
-    diff_t size;
+    size_t size;
     Zeta_MultiLevelEntryTable mlet;
     Zeta_MultiLevelHashTable mlht;
 };
 
-void* MLMap_Allocate(void* context, diff_t size) {
+void* MLMap_Allocate(void* context, size_t size) {
     ZETA_UNUSED(context);
     return malloc(size);
 }
@@ -62,14 +62,14 @@ void* MLMap_Create() {
     return mlmap;
 }
 
-diff_t MLMap_GetSize(void* mlmap_) {
+size_t MLMap_GetSize(void* mlmap_) {
     MLMap* mlmap = mlmap_;
     ZETA_DEBUG_ASSERT(mlmap != NULL);
 
     return mlmap->size;
 }
 
-_Bool MLMap_IsNull(void* mlmapn_) { return mlmapn_ == NULL; }
+bool_t MLMap_IsNull(void* mlmapn_) { return mlmapn_ == NULL; }
 
 mlmap_val_t MLMap_GetVal(void* mlmapn_) {
     MLMapNode* mlmapn = mlmapn_;

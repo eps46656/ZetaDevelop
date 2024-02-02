@@ -1,47 +1,47 @@
-#include "../Zeta/CountingBinTree.h"
-#include "../Zeta/OrdinaryCountingBinColoredTreeNode.h"
+#include "../Zeta/CntBinTree.h"
+#include "../Zeta/OrdCntRBTreeNode.h"
 #include "../Zeta/RBTree.h"
 #include "../Zeta/utils.h"
 
 typedef unsigned long long int val_t;
 
 Zeta_BinTreeNodeAccessor bt_accessor = {
-    .GetP = Zeta_OrdinaryCountingBinColoredTreeNode_GetP,
-    .GetL = Zeta_OrdinaryCountingBinColoredTreeNode_GetL,
-    .GetR = Zeta_OrdinaryCountingBinColoredTreeNode_GetR,
+    .GetP = Zeta_OrdCntRBTreeNode_GetP,
+    .GetL = Zeta_OrdCntRBTreeNode_GetL,
+    .GetR = Zeta_OrdCntRBTreeNode_GetR,
 };
 
 Zeta_RBTreeNodeOpr rbtn_opr = {
     .context = NULL,
 
-    .GetP = Zeta_OrdinaryCountingBinColoredTreeNode_GetP,
-    .GetL = Zeta_OrdinaryCountingBinColoredTreeNode_GetL,
-    .GetR = Zeta_OrdinaryCountingBinColoredTreeNode_GetR,
+    .GetP = Zeta_OrdCntRBTreeNode_GetP,
+    .GetL = Zeta_OrdCntRBTreeNode_GetL,
+    .GetR = Zeta_OrdCntRBTreeNode_GetR,
 
-    .GetColor = Zeta_OrdinaryCountingBinColoredTreeNode_GetColor,
-    .ReverseColor = Zeta_OrdinaryCountingBinColoredTreeNode_ReverseColor,
+    .GetColor = Zeta_OrdCntRBTreeNode_GetColor,
+    .ReverseColor = Zeta_OrdCntRBTreeNode_ReverseColor,
 
-    .AttachL = Zeta_OrdinaryCountingBinColoredTreeNode_AttachL,
-    .AttachR = Zeta_OrdinaryCountingBinColoredTreeNode_AttachR,
+    .AttachL = Zeta_OrdCntRBTreeNode_AttachL,
+    .AttachR = Zeta_OrdCntRBTreeNode_AttachR,
 
-    .Detach = Zeta_OrdinaryCountingBinColoredTreeNode_Detach,
+    .Detach = Zeta_OrdCntRBTreeNode_Detach,
 
-    .Swap = Zeta_OrdinaryCountingBinColoredTreeNode_Swap,
+    .Swap = Zeta_OrdCntRBTreeNode_Swap,
 
-    .RotateL = Zeta_OrdinaryCountingBinColoredTreeNode_RotateL,
-    .RotateR = Zeta_OrdinaryCountingBinColoredTreeNode_RotateR,
+    .RotateL = Zeta_OrdCntRBTreeNode_RotateL,
+    .RotateR = Zeta_OrdCntRBTreeNode_RotateR,
 };
 
-Zeta_CountingBinTreeNodeOpr cbtn_opr = {
+Zeta_CntBinTreeNodeOpr cbtn_opr = {
     .context = NULL,
 
-    .GetP = Zeta_OrdinaryCountingBinColoredTreeNode_GetP,
-    .GetL = Zeta_OrdinaryCountingBinColoredTreeNode_GetL,
-    .GetR = Zeta_OrdinaryCountingBinColoredTreeNode_GetR,
+    .GetP = Zeta_OrdCntRBTreeNode_GetP,
+    .GetL = Zeta_OrdCntRBTreeNode_GetL,
+    .GetR = Zeta_OrdCntRBTreeNode_GetR,
 
-    .GetAccSize = Zeta_OrdinaryCountingBinColoredTreeNode_GetAccSize,
-    .GetSize = Zeta_OrdinaryCountingBinColoredTreeNode_GetSize,
-    .SetSize = Zeta_OrdinaryCountingBinColoredTreeNode_SetSize,
+    .GetAccSize = Zeta_OrdCntRBTreeNode_GetAccSize,
+    .GetSize = Zeta_OrdCntRBTreeNode_GetSize,
+    .SetSize = Zeta_OrdCntRBTreeNode_SetSize,
 };
 
 // -----------------------------------------------------------------------------
@@ -49,14 +49,14 @@ Zeta_CountingBinTreeNodeOpr cbtn_opr = {
 // -----------------------------------------------------------------------------
 
 ZETA_DECL_STRUCT(GPListNode) {
-    Zeta_OrdinaryCountingBinColoredTreeNode n;
+    Zeta_OrdCntRBTreeNode n;
     val_t val;
 };
 
 ZETA_DECL_STRUCT(GPList) {
     void* root;
-    Zeta_OrdinaryCountingBinColoredTreeNode lb;
-    Zeta_OrdinaryCountingBinColoredTreeNode rb;
+    Zeta_OrdCntRBTreeNode* lb;
+    Zeta_OrdCntRBTreeNode* rb;
 };
 
 // -----------------------------------------------------------------------------
@@ -65,15 +65,19 @@ ZETA_DECL_STRUCT(GPList) {
 
 void GPList_Init(void* gpl_) {
     GPList* gpl = gpl_;
+    ZETA_DEBUG_ASSERT(gpl != NULL);
 
-    Zeta_OrdinaryCountingBinColoredTreeNode_Init(NULL, &gpl->lb);
-    Zeta_OrdinaryCountingBinColoredTreeNode_Init(NULL, &gpl->rb);
-    cbtn_opr.SetSize(NULL, &gpl->lb, 1);
-    cbtn_opr.SetSize(NULL, &gpl->rb, 1);
+    gpl->lb = malloc(sizeof(GPListNode));
+    gpl->rb = malloc(sizeof(GPListNode));
+
+    Zeta_OrdCntRBTreeNode_Init(NULL, gpl->lb);
+    Zeta_OrdCntRBTreeNode_Init(NULL, gpl->rb);
+    cbtn_opr.SetSize(NULL, gpl->lb, 1);
+    cbtn_opr.SetSize(NULL, gpl->rb, 1);
 
     void* root = NULL;
-    root = Zeta_RBTree_InsertR(&rbtn_opr, root, &gpl->lb);
-    root = Zeta_RBTree_InsertR(&rbtn_opr, root, &gpl->rb);
+    root = Zeta_RBTree_InsertR(&rbtn_opr, root, gpl->lb);
+    root = Zeta_RBTree_InsertR(&rbtn_opr, root, gpl->rb);
     gpl->root = root;
 }
 
@@ -83,24 +87,28 @@ void* GPList_Create() {
     return gpl;
 }
 
-diff_t GPList_GetSize(void* gpl_) {
+size_t GPList_GetSize(void* gpl_) {
     GPList* gpl = gpl_;
+    ZETA_DEBUG_ASSERT(gpl != NULL);
+
     return cbtn_opr.GetAccSize(NULL, gpl->root) - 2;
 }
 
-void* GPList_GetNode(void* gpl_, diff_t idx) {
+void* GPList_GetNode(void* gpl_, size_t idx) {
     GPList* gpl = gpl_;
+    ZETA_DEBUG_ASSERT(gpl != NULL);
 
-    diff_t size = GPList_GetSize(gpl);
-    ZETA_DEBUG_ASSERT(-1 <= idx && idx <= size);
+    size_t size = GPList_GetSize(gpl);
+    ZETA_DEBUG_ASSERT(0 <= idx);
+    ZETA_DEBUG_ASSERT(idx <= size);
 
     void* ret;
 
-    Zeta_CountingBinTree_Access(&ret,       // dst_n
-                                0,          // dst_idx
-                                &cbtn_opr,  // cbtn_opr
-                                gpl->root,  // n
-                                idx + 1     // idx
+    Zeta_CntBinTree_Access(&ret,       // dst_n
+                           0,          // dst_idx
+                           &cbtn_opr,  // cbtn_opr
+                           gpl->root,  // n
+                           idx + 1     // idx
     );
 
     return ret;
@@ -108,44 +116,54 @@ void* GPList_GetNode(void* gpl_, diff_t idx) {
 
 val_t GPList_GetVal(void* gpl_, void* n) {
     GPList* gpl = gpl_;
-    ZETA_DEBUG_ASSERT(&gpl->lb != n);
-    ZETA_DEBUG_ASSERT(&gpl->rb != n);
+    ZETA_DEBUG_ASSERT(gpl != NULL);
+
+    ZETA_DEBUG_ASSERT(gpl->lb != n);
+    ZETA_DEBUG_ASSERT(gpl->rb != n);
 
     return ZETA_FROM_MEM(GPListNode, n, n)->val;
 }
 
 void GPList_SetVal(void* gpl_, void* n, val_t val) {
     GPList* gpl = gpl_;
-    ZETA_DEBUG_ASSERT(&gpl->lb != n);
-    ZETA_DEBUG_ASSERT(&gpl->rb != n);
+    ZETA_DEBUG_ASSERT(gpl != NULL);
+
+    ZETA_DEBUG_ASSERT(gpl->lb != n);
+    ZETA_DEBUG_ASSERT(gpl->rb != n);
 
     ZETA_FROM_MEM(GPListNode, n, n)->val = val;
 }
 
 void* GPList_GetL(void* gpl_, void* n) {
     GPList* gpl = gpl_;
-    ZETA_DEBUG_ASSERT(&gpl->lb != n);
+    ZETA_DEBUG_ASSERT(gpl != NULL);
+
+    ZETA_DEBUG_ASSERT(gpl->lb != n);
+
     return Zeta_BinTree_StepL(&bt_accessor, n);
 }
 
 void* GPList_GetR(void* gpl_, void* n) {
     GPList* gpl = gpl_;
-    ZETA_DEBUG_ASSERT(&gpl->rb != n);
+    ZETA_DEBUG_ASSERT(gpl != NULL);
+
+    ZETA_DEBUG_ASSERT(gpl->rb != n);
+
     return Zeta_BinTree_StepR(&bt_accessor, n);
 }
 
 void* GPList_InsertL(void* gpl_, void* n) {
     GPList* gpl = gpl_;
+    ZETA_DEBUG_ASSERT(gpl != NULL);
 
-    void* root =
-        Zeta_GetMostLink(NULL, Zeta_OrdinaryCountingBinColoredTreeNode_GetP, n);
+    void* root = Zeta_GetMostLink(NULL, Zeta_OrdCntRBTreeNode_GetP, n);
 
     ZETA_DEBUG_ASSERT(gpl->root == root);
-    ZETA_DEBUG_ASSERT(&gpl->lb != n);
+    ZETA_DEBUG_ASSERT(gpl->lb != n);
 
     GPListNode* gpn = malloc(sizeof(GPListNode));
-    Zeta_OrdinaryCountingBinColoredTreeNode_Init(NULL, &gpn->n);
-    Zeta_OrdinaryCountingBinColoredTreeNode_SetSize(NULL, &gpn->n, 1);
+    Zeta_OrdCntRBTreeNode_Init(NULL, &gpn->n);
+    Zeta_OrdCntRBTreeNode_SetSize(NULL, &gpn->n, 1);
     gpl->root = Zeta_RBTree_InsertL(&rbtn_opr, n, &gpn->n);
 
     return &gpn->n;
@@ -153,16 +171,16 @@ void* GPList_InsertL(void* gpl_, void* n) {
 
 void* GPList_InsertR(void* gpl_, void* n) {
     GPList* gpl = gpl_;
+    ZETA_DEBUG_ASSERT(gpl != NULL);
 
-    void* root =
-        Zeta_GetMostLink(NULL, Zeta_OrdinaryCountingBinColoredTreeNode_GetP, n);
+    void* root = Zeta_GetMostLink(NULL, Zeta_OrdCntRBTreeNode_GetP, n);
 
     ZETA_DEBUG_ASSERT(gpl->root == root);
-    ZETA_DEBUG_ASSERT(&gpl->rb != n);
+    ZETA_DEBUG_ASSERT(gpl->rb != n);
 
     GPListNode* gpn = malloc(sizeof(GPListNode));
-    Zeta_OrdinaryCountingBinColoredTreeNode_Init(NULL, &gpn->n);
-    Zeta_OrdinaryCountingBinColoredTreeNode_SetSize(NULL, &gpn->n, 1);
+    Zeta_OrdCntRBTreeNode_Init(NULL, &gpn->n);
+    Zeta_OrdCntRBTreeNode_SetSize(NULL, &gpn->n, 1);
     gpl->root = Zeta_RBTree_InsertR(&rbtn_opr, n, &gpn->n);
 
     return &gpn->n;
@@ -170,56 +188,58 @@ void* GPList_InsertR(void* gpl_, void* n) {
 
 void GPList_Erase(void* gpl_, void* n) {
     GPList* gpl = gpl_;
+    ZETA_DEBUG_ASSERT(gpl != NULL);
 
-    void* root =
-        Zeta_GetMostLink(NULL, Zeta_OrdinaryCountingBinColoredTreeNode_GetP, n);
+    void* root = Zeta_GetMostLink(NULL, Zeta_OrdCntRBTreeNode_GetP, n);
 
     ZETA_DEBUG_ASSERT(gpl->root == root);
-    ZETA_DEBUG_ASSERT(&gpl->lb != n);
-    ZETA_DEBUG_ASSERT(&gpl->rb != n);
+    ZETA_DEBUG_ASSERT(gpl->lb != n);
+    ZETA_DEBUG_ASSERT(gpl->rb != n);
 
     gpl->root = Zeta_RBTree_Extract(&rbtn_opr, n);
     free(ZETA_FROM_MEM(GPListNode, n, n));
+}
+
+void GPList_Check(void* gpl_) {
+    GPList* gpl = gpl_;
+    ZETA_DEBUG_ASSERT(gpl != NULL);
+
+    Zeta_RBTree_Check(&rbtn_opr, gpl->root);
 }
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 
-static diff_t Check_(void* n) {
+static size_t Check_(void* n) {
     if (n == NULL) { return 0; }
 
-    ZETA_DEBUG_ASSERT(
-        Zeta_OrdinaryCountingBinColoredTreeNode_GetSize(NULL, n) == 1);
+    ZETA_DEBUG_ASSERT(Zeta_OrdCntRBTreeNode_GetSize(NULL, n) == 1);
 
-    void* nl = Zeta_OrdinaryCountingBinColoredTreeNode_GetL(NULL, n);
-    void* nr = Zeta_OrdinaryCountingBinColoredTreeNode_GetR(NULL, n);
+    void* nl = Zeta_OrdCntRBTreeNode_GetL(NULL, n);
+    void* nr = Zeta_OrdCntRBTreeNode_GetR(NULL, n);
 
     if (nl != NULL) {
-        ZETA_DEBUG_ASSERT(
-            Zeta_OrdinaryCountingBinColoredTreeNode_GetP(NULL, nl) == n);
+        ZETA_DEBUG_ASSERT(Zeta_OrdCntRBTreeNode_GetP(NULL, nl) == n);
     }
 
     if (nr != NULL) {
-        ZETA_DEBUG_ASSERT(
-            Zeta_OrdinaryCountingBinColoredTreeNode_GetP(NULL, nr) == n);
+        ZETA_DEBUG_ASSERT(Zeta_OrdCntRBTreeNode_GetP(NULL, nr) == n);
     }
 
-    int nc = Zeta_OrdinaryCountingBinColoredTreeNode_GetColor(NULL, n);
+    int nc = Zeta_OrdCntRBTreeNode_GetColor(NULL, n);
 
     if (nc == 1) {
-        ZETA_DEBUG_ASSERT(
-            Zeta_OrdinaryCountingBinColoredTreeNode_GetColor(NULL, nl) == 0);
-        ZETA_DEBUG_ASSERT(
-            Zeta_OrdinaryCountingBinColoredTreeNode_GetColor(NULL, nr) == 0);
+        ZETA_DEBUG_ASSERT(Zeta_OrdCntRBTreeNode_GetColor(NULL, nl) == 0);
+        ZETA_DEBUG_ASSERT(Zeta_OrdCntRBTreeNode_GetColor(NULL, nr) == 0);
     }
 
-    diff_t l_bh = Check_(nl);
-    diff_t r_bh = Check_(nr);
+    size_t l_bh = Check_(nl);
+    size_t r_bh = Check_(nr);
 
     ZETA_DEBUG_ASSERT(l_bh == r_bh);
 
     return nc == 1 ? l_bh : 1 + l_bh;
 }
 
-void GPList_Check(GPList* gpl) { Check_(gpl->root); }
+// void GPList_Check(GPList* gpl) {}

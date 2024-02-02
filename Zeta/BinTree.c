@@ -21,11 +21,38 @@ void *StepD_(void *context, void *(*GetP)(void *context, void *n),
 }
 
 void *Zeta_BinTree_StepL(Zeta_BinTreeNodeAccessor *bt_accessor, void *n) {
+    ZETA_DEBUG_ASSERT(bt_accessor != NULL);
+
     return StepD_(bt_accessor->context, bt_accessor->GetP, bt_accessor->GetL,
                   bt_accessor->GetR, n);
 }
 
 void *Zeta_BinTree_StepR(Zeta_BinTreeNodeAccessor *bt_accessor, void *n) {
+    ZETA_DEBUG_ASSERT(bt_accessor != NULL);
+
     return StepD_(bt_accessor->context, bt_accessor->GetP, bt_accessor->GetR,
                   bt_accessor->GetL, n);
+}
+
+void *Zeta_BinTree_FindFirst(Zeta_BinTreeNodeAccessor *bt_accessor, void *root,
+                             void *target, void *cmp_context,
+                             int (*Compare)(void *cmp_context, void *x,
+                                            void *y));
+{
+    ZETA_DEBUG_ASSERT(bt_accessor != NULL);
+    ZETA_DEBUG_ASSERT(Compare != NULL);
+
+    while (root != NULL) {
+        int cmp_result = Compare(cmp_context, target, root);
+
+        if (cmp_result < 0) {
+            //
+        }
+
+        if (0 < cmp_result) {
+            //
+        }
+
+        // return
+    }
 }

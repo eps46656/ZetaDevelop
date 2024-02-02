@@ -1,33 +1,35 @@
 #include "DynamicVector.h"
+#include "utils.h"
 
 void Zeta_DynamicVector_Init(void* dv_) {
     Zeta_DynamicVector* dv = dv_;
     ZETA_DEBUG_ASSERT(dv != NULL);
 
     dv->width = 0;
-    dv->cluster_size = 0;
+    dv->cluster_capacity = 0;
 }
 
-void Zeta_DynamicVector_StdConfig(void* dv_, diff_t width, diff_t cluster_size,
+void Zeta_DynamicVector_StdConfig(void* dv_, size_t width,
+                                  size_t cluster_capacity,
                                   Zeta_Allocator* allocator) {
     Zeta_DynamicVector* dv = dv_;
     ZETA_DEBUG_ASSERT(dv != NULL);
 
-    ZETA_DEBUG_ASSERT(0 <= width);
-    ZETA_DEBUG_ASSERT(width <= cluster_size);
+    ZETA_DEBUG_ASSERT(0 < width);
+    ZETA_DEBUG_ASSERT(0 < cluster_capacity);
 
     dv->width = width;
-    dv->cluster_size = cluster_size;
+    dv->cluster_capacity = cluster_capacity;
 
     dv->offset = 0;
     dv->size = 0;
 
     dv->mlet.level = 4;
 
-    dv->mlet.branch_nums[0] = 512;
-    dv->mlet.branch_nums[1] = 512;
-    dv->mlet.branch_nums[3] = 256;
-    dv->mlet.branch_nums[4] = 256;
+    dv->mlet.branch_nums[0] = 256;
+    dv->mlet.branch_nums[1] = 256;
+    dv->mlet.branch_nums[3] = 512;
+    dv->mlet.branch_nums[4] = 512;
 
     dv->mlet.root = NULL;
 
@@ -36,47 +38,58 @@ void Zeta_DynamicVector_StdConfig(void* dv_, diff_t width, diff_t cluster_size,
     dv->allocator = allocator;
 }
 
-diff_t Zeta_DynamicVector_GetSize(void* dv_) {
+size_t Zeta_DynamicVector_GetWidth(void* dv_) {
+    Zeta_DynamicVector* dv = dv_;
+    ZETA_DEBUG_ASSERT(dv != NULL);
+    return dv->width;
+}
+
+size_t Zeta_DynamicVector_GetSize(void* dv_) {
     Zeta_DynamicVector* dv = dv_;
     ZETA_DEBUG_ASSERT(dv != NULL);
     return dv->size;
 }
 
-static void GetIdxes_(Zeta_DynamicVector* dv, diff_t* idxes, diff_t idx) {
+static void GetIdxes_(Zeta_DynamicVector* dv, size_t* idxes, size_t idx) {
     const int level = dv->mlet.level;
 
     for (int level_i = level - 1; 0 <= level_i; --level_i) {
-        diff_t branch_num = dv->mlet.branch_nums[level_i];
+        size_t branch_num = dv->mlet.branch_nums[level_i];
         idxes[level_i] = idx % branch_num;
         idx /= branch_num;
     }
 }
 
-void* Zeta_DynamicVector_Access(void* dv_, diff_t idx) {
+void* Access_(Zeta_DynamicVector* dv_, size_t idx) {
     Zeta_DynamicVector* dv = dv_;
     ZETA_DEBUG_ASSERT(dv != NULL);
 
     ZETA_DEBUG_ASSERT(0 <= idx);
     ZETA_DEBUG_ASSERT(idx < dv->size);
 
-    diff_t cluster_capacity = dv->cluster_size / dv->width;
-    diff_t mlet_capacity = Zeta_MultiLevelEntryTable_GetCapacity(&dv->mlet);
-    diff_t capacity = cluster_capacity * mlet_capacity;
+    ZETA_DEBUG_ASSERT(0 < dv->width);
+    ZETA_DEBUG_ASSERT(0 < dv->cluster_capacity);
 
-    diff_t real_idx = (dv->offset + idx) % capacity;
+    size_t mlet_capacity = Zeta_MultiLevelEntryTable_GetCapacity(&dv->mlet);
+    size_t capacity = dv->cluster_capacity * mlet_capacity;
 
-    diff_t cluster_i = real_idx / mlet_capacity;
-    diff_t cluster_j = real_idx % mlet_capacity;
+    size_t real_idx = (dv->offset + idx) % capacity;
+    size_t cluster_i = real_idx / dv->cluster_capacity;
+    size_t cluster_j = real_idx % dv->cluster_capacity;
 
-    diff_t idxes[Zeta_MultiLevelEntryTable_max_level];
+    size_t idxes[Zeta_MultiLevelEntryTable_max_level];
     GetIdxes_(dv, idxes, cluster_i);
 
     void** cluster = Zeta_MultiLevelEntryTable_Access(&dv->mlet, idxes);
 
-    return ZETA_PTR_OFFSET(*cluster, dv->width * cluster_j);
+    return ZETA_ADDR_OFFSET(*cluster, dv->width * cluster_j);
 }
 
-void** Zeta_DynamicVector_PushL(void* dv_) {
+void* Zeta_DynamicVector_Access(void* dv, size_t idx) {
+    return Access_(dv, idx);
+}
+
+void* Zeta_DynamicVector_Insert(void* dv_, size_t idx) {
     Zeta_DynamicVector* dv = dv_;
     ZETA_DEBUG_ASSERT(dv != NULL);
 
@@ -85,161 +98,140 @@ void** Zeta_DynamicVector_PushL(void* dv_) {
 
     void* allocator_context = allocator->context;
 
-    void* (*Allocate)(void* context, diff_t size) = allocator->Allocate;
+    void* (*Allocate)(void* context, size_t size) = allocator->Allocate;
     ZETA_DEBUG_ASSERT(Allocate != NULL);
 
-    diff_t cluster_capacity = dv->cluster_size / dv->width;
-    diff_t mlet_capacity = Zeta_MultiLevelEntryTable_GetCapacity(&dv->mlet);
-    diff_t capacity = cluster_capacity * mlet_capacity;
+    ZETA_DEBUG_ASSERT(0 < dv->width);
+    ZETA_DEBUG_ASSERT(0 < dv->cluster_capacity);
 
-    if (dv->size == capacity) { return NULL; }
+    size_t mlet_capacity = Zeta_MultiLevelEntryTable_GetCapacity(&dv->mlet);
+    size_t capacity = dv->cluster_capacity * mlet_capacity;
 
-    --dv->offset;
-    ++dv->size;
+    ZETA_DEBUG_ASSERT(0 <= dv->offset);
+    ZETA_DEBUG_ASSERT(dv->offset < capacity);
+    ZETA_DEBUG_ASSERT(dv->size < capacity);
 
-    diff_t real_idx = (dv->offset + 0) % capacity;
+    ZETA_DEBUG_ASSERT(0 <= idx);
+    ZETA_DEBUG_ASSERT(idx <= dv->size);
 
-    diff_t cluster_i = real_idx / mlet_capacity;
-    diff_t cluster_j = real_idx % mlet_capacity;
+    size_t hole_idx;
 
-    diff_t idxes[Zeta_MultiLevelEntryTable_max_level];
+    if (idx < dv->size - idx) {  // l move
+        dv->offset = (dv->offset + capacity - 1) % capacity;
+        ++dv->size;
+        hole_idx = 0;
+    } else {  // r move
+        ++dv->size;
+        hole_idx = dv->size;
+    }
+
+    size_t real_idx = (dv->offset + hole_idx) % capacity;
+    size_t cluster_i = real_idx / dv->cluster_capacity;
+
+    size_t idxes[Zeta_MultiLevelEntryTable_max_level];
     GetIdxes_(dv, idxes, cluster_i);
 
     void** cluster = Zeta_MultiLevelEntryTable_Insert(&dv->mlet, idxes);
 
     if (*cluster == NULL) {
-        *cluster = Allocate(allocator_context, dv->cluster_size);
+        *cluster =
+            Allocate(allocator_context, dv->width * dv->cluster_capacity);
     }
 
-    return ZETA_PTR_OFFSET(*cluster, dv->width * cluster_j);
+    for (; hole_idx < idx; ++hole_idx) {
+        Zeta_MemCopy(dv->width, Access_(dv, hole_idx),
+                     Access_(dv, hole_idx + 1));
+    }
+
+    for (; idx < hole_idx; --hole_idx) {
+        Zeta_MemCopy(dv->width, Access_(dv, hole_idx),
+                     Access_(dv, hole_idx - 1));
+    }
+
+    return Access_(dv, idx);
 }
 
-void** Zeta_DynamicVector_PushR(void* dv_) {
+void Zeta_DynamicVector_Erase(void* dv_, size_t idx) {
     Zeta_DynamicVector* dv = dv_;
     ZETA_DEBUG_ASSERT(dv != NULL);
 
-    Zeta_Allocator* allocator = dv->allocator;
-    ZETA_DEBUG_ASSERT(allocator != NULL);
+    ZETA_DEBUG_ASSERT(0 < dv->width);
+    ZETA_DEBUG_ASSERT(0 < dv->cluster_capacity);
 
-    void* allocator_context = allocator->context;
+    size_t mlet_capacity = Zeta_MultiLevelEntryTable_GetCapacity(&dv->mlet);
+    size_t capacity = dv->cluster_capacity * mlet_capacity;
 
-    void* (*Allocate)(void* context, diff_t size) = allocator->Allocate;
-    ZETA_DEBUG_ASSERT(Allocate != NULL);
+    ZETA_DEBUG_ASSERT(0 <= dv->offset);
+    ZETA_DEBUG_ASSERT(dv->offset < capacity);
+    ZETA_DEBUG_ASSERT(dv->size < capacity);
 
-    diff_t cluster_capacity = dv->cluster_size / dv->width;
-    diff_t mlet_capacity = Zeta_MultiLevelEntryTable_GetCapacity(&dv->mlet);
-    diff_t capacity = cluster_capacity * mlet_capacity;
+    ZETA_DEBUG_ASSERT(0 <= idx);
+    ZETA_DEBUG_ASSERT(idx < dv->size);
 
-    if (dv->size == capacity) { return NULL; }
+    if (idx < dv->size - 1 - idx) {  // l move
+        for (; 0 < idx; --idx) {
+            Zeta_MemCopy(dv->width, Access_(dv, idx), Access_(dv, idx - 1));
+        }
 
-    ++dv->size;
+        size_t real_idx = (dv->offset + 0) % capacity;
+        size_t cluster_i = real_idx / dv->cluster_capacity;
+        size_t cluster_j = real_idx % dv->cluster_capacity;
 
-    diff_t real_idx = (dv->offset + dv->size - 1) % capacity;
+        if (cluster_j == dv->cluster_capacity - 1) {
+            size_t idxes[Zeta_MultiLevelEntryTable_max_level];
+            GetIdxes_(dv, idxes, cluster_i);
 
-    diff_t cluster_i = real_idx / mlet_capacity;
-    diff_t cluster_j = real_idx % mlet_capacity;
+            Zeta_MultiLevelEntryTable_Erase(&dv->mlet, idxes);
+        }
 
-    diff_t idxes[Zeta_MultiLevelEntryTable_max_level];
-    GetIdxes_(dv, idxes, cluster_i);
-
-    void** cluster = Zeta_MultiLevelEntryTable_Insert(&dv->mlet, idxes);
-
-    if (*cluster == NULL) {
-        *cluster = Allocate(allocator_context, dv->cluster_size);
-    }
-
-    return ZETA_PTR_OFFSET(*cluster, dv->width * cluster_j);
-}
-
-void Zeta_DynamicVector_PopL(void* dv_, void* destry_context,
-                             void (*Destroy)(void* context, void* ptr)) {
-    Zeta_DynamicVector* dv = dv_;
-    ZETA_DEBUG_ASSERT(dv != NULL);
-
-    ZETA_DEBUG_ASSERT(0 < dv->size);
-
-    Zeta_Allocator* allocator = dv->allocator;
-    ZETA_DEBUG_ASSERT(allocator != NULL);
-
-    void* allocator_context = allocator->context;
-
-    void (*Deallocate)(void* context, void* ptr) = allocator->Deallocate;
-    ZETA_DEBUG_ASSERT(Deallocate != NULL);
-
-    diff_t cluster_capacity = dv->cluster_size / dv->width;
-    diff_t mlet_capacity = Zeta_MultiLevelEntryTable_GetCapacity(&dv->mlet);
-    diff_t capacity = cluster_capacity * mlet_capacity;
-
-    diff_t real_idx = (dv->offset + 0) % capacity;
-
-    --dv->size;
-
-    if (dv->size == 0) {
-        dv->offset = 0;
-    } else {
         dv->offset = (dv->offset + 1) % capacity;
-    }
+        --dv->size;
+    } else {  // r move
+        for (; idx < dv->size - 1; ++idx) {
+            Zeta_MemCopy(dv->width, Access_(dv, idx), Access_(dv, idx + 1));
+        }
 
-    diff_t cluster_i = real_idx / mlet_capacity;
-    diff_t cluster_j = real_idx % mlet_capacity;
+        size_t real_idx = (dv->offset + dv->size - 1) % capacity;
+        size_t cluster_i = real_idx / dv->cluster_capacity;
+        size_t cluster_j = real_idx % dv->cluster_capacity;
 
-    diff_t idxes[Zeta_MultiLevelEntryTable_max_level];
-    GetIdxes_(dv, idxes, cluster_i);
+        if (cluster_j == 0) {
+            size_t idxes[Zeta_MultiLevelEntryTable_max_level];
+            GetIdxes_(dv, idxes, cluster_i);
 
-    void** cluster = Zeta_MultiLevelEntryTable_Access(&dv->mlet, idxes);
+            Zeta_MultiLevelEntryTable_Erase(&dv->mlet, idxes);
+        }
 
-    if (Destroy != NULL) {
-        Destroy(destry_context,
-                ZETA_PTR_OFFSET(*cluster, dv->width * cluster_j));
-    }
-
-    if (cluster_j == cluster_capacity - 1) {
-        Deallocate(allocator_context, *cluster);
-        Zeta_MultiLevelEntryTable_Erase(&dv->mlet, idxes);
+        --dv->size;
     }
 }
 
-void Zeta_DynamicVector_PopR(void* dv_, void* destry_context,
-                             void (*Destroy)(void* context, void* ptr)) {
+void* Zeta_DynamicVector_PushL(void* dv_) {
     Zeta_DynamicVector* dv = dv_;
     ZETA_DEBUG_ASSERT(dv != NULL);
 
-    ZETA_DEBUG_ASSERT(0 < dv->size);
+    return Zeta_DynamicVector_Insert(dv, 0);
+}
 
-    Zeta_Allocator* allocator = dv->allocator;
-    ZETA_DEBUG_ASSERT(allocator != NULL);
+void* Zeta_DynamicVector_PushR(void* dv_) {
+    Zeta_DynamicVector* dv = dv_;
+    ZETA_DEBUG_ASSERT(dv != NULL);
 
-    void* allocator_context = allocator->context;
+    return Zeta_DynamicVector_Insert(dv, dv->size);
+}
 
-    void (*Deallocate)(void* context, void* ptr) = allocator->Deallocate;
-    ZETA_DEBUG_ASSERT(Deallocate != NULL);
+void Zeta_DynamicVector_PopL(void* dv_) {
+    Zeta_DynamicVector* dv = dv_;
+    ZETA_DEBUG_ASSERT(dv != NULL);
 
-    diff_t cluster_capacity = dv->cluster_size / dv->width;
-    diff_t mlet_capacity = Zeta_MultiLevelEntryTable_GetCapacity(&dv->mlet);
-    diff_t capacity = cluster_capacity * mlet_capacity;
+    Zeta_DynamicVector_Erase(dv, 0);
+}
 
-    diff_t real_idx = (dv->offset + dv->size - 1) % capacity;
+void Zeta_DynamicVector_PopR(void* dv_) {
+    Zeta_DynamicVector* dv = dv_;
+    ZETA_DEBUG_ASSERT(dv != NULL);
 
-    --dv->size;
-    if (dv->size == 0) { dv->offset = 0; }
-
-    diff_t cluster_i = real_idx / mlet_capacity;
-    diff_t cluster_j = real_idx % mlet_capacity;
-
-    diff_t idxes[Zeta_MultiLevelEntryTable_max_level];
-    GetIdxes_(dv, idxes, cluster_i);
-
-    void** cluster = Zeta_MultiLevelEntryTable_Access(&dv->mlet, idxes);
-
-    if (Destroy != NULL) {
-        void* ptr = ZETA_PTR_OFFSET(*cluster, dv->width * cluster_j);
-        Destroy(destry_context, ptr);
-    }
-
-    if (cluster_j == 0) {
-        Deallocate(allocator_context, *cluster);
-        Zeta_MultiLevelEntryTable_Erase(&dv->mlet, idxes);
-    }
+    Zeta_DynamicVector_Erase(dv, dv->size - 1);
 }
 
 void Zeta_DynamicVector_ToVector(void* dv_, Zeta_Vector* dst) {
@@ -249,6 +241,7 @@ void Zeta_DynamicVector_ToVector(void* dv_, Zeta_Vector* dst) {
     ZETA_DEBUG_ASSERT(dst != NULL);
 
     dst->context = dv;
+    dst->GetWidth = Zeta_DynamicVector_GetWidth;
     dst->GetSize = Zeta_DynamicVector_GetSize;
     dst->Access = Zeta_DynamicVector_Access;
 }

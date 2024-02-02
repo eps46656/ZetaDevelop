@@ -7,7 +7,7 @@ File = os.path.abspath(__file__).replace("\\", "/")
 Dir = os.path.dirname(File).replace("\\", "/")
 
 void_p = ctypes.c_void_p
-diff_t = ctypes.c_longlong
+size_t = ctypes.c_ulonglong
 key_t = ctypes.c_ulonglong
 val_t = ctypes.c_ulonglong
 
@@ -36,7 +36,7 @@ mlmap_so.MLMap_GetVal.restype = val_t
 mlmap_so.MLMap_SetVal.argtypes = [void_p, val_t]
 mlmap_so.MLMap_SetVal.restype = None
 
-mlmap_so.MLMap_Find.argtypes = [void_p, diff_t]
+mlmap_so.MLMap_Find.argtypes = [void_p, size_t]
 mlmap_so.MLMap_Find.restype = void_p
 
 mlmap_so.MLMap_FindNext.argtypes = [void_p, key_t]

@@ -85,7 +85,8 @@ static void *Insert_(void *context, void *(*GetP)(void *context, void *n),
     return Zeta_GetMostLink(context, GetP, root);
 }
 
-void *Zeta_RBTree_InsertL(Zeta_RBTreeNodeOpr *rbtn_opr, void *n, void *m) {
+void *Zeta_RBTree_InsertL(const Zeta_RBTreeNodeOpr *rbtn_opr, void *n,
+                          void *m) {
     ZETA_DEBUG_ASSERT(rbtn_opr != NULL);
     ZETA_DEBUG_ASSERT(rbtn_opr->GetP != NULL);
     ZETA_DEBUG_ASSERT(rbtn_opr->GetL != NULL);
@@ -107,7 +108,8 @@ void *Zeta_RBTree_InsertL(Zeta_RBTreeNodeOpr *rbtn_opr, void *n, void *m) {
                    rbtn_opr->RotateR, n, m);
 }
 
-void *Zeta_RBTree_InsertR(Zeta_RBTreeNodeOpr *rbtn_opr, void *n, void *m) {
+void *Zeta_RBTree_InsertR(const Zeta_RBTreeNodeOpr *rbtn_opr, void *n,
+                          void *m) {
     ZETA_DEBUG_ASSERT(rbtn_opr != NULL);
     ZETA_DEBUG_ASSERT(rbtn_opr->GetP != NULL);
     ZETA_DEBUG_ASSERT(rbtn_opr->GetL != NULL);
@@ -129,7 +131,7 @@ void *Zeta_RBTree_InsertR(Zeta_RBTreeNodeOpr *rbtn_opr, void *n, void *m) {
                    rbtn_opr->RotateL, n, m);
 }
 
-static void ExtractBalance_(Zeta_RBTreeNodeOpr *rbtn_opr, void *n) {
+static void ExtractBalance_(const Zeta_RBTreeNodeOpr *rbtn_opr, void *n) {
     void *context = rbtn_opr->context;
 
     for (;;) {
@@ -198,7 +200,7 @@ static void ExtractBalance_(Zeta_RBTreeNodeOpr *rbtn_opr, void *n) {
     }
 }
 
-void *Zeta_RBTree_Extract(Zeta_RBTreeNodeOpr *rbtn_opr, void *n) {
+void *Zeta_RBTree_Extract(const Zeta_RBTreeNodeOpr *rbtn_opr, void *n) {
     ZETA_DEBUG_ASSERT(n != NULL);
 
     void *context = rbtn_opr->context;
@@ -240,4 +242,30 @@ void *Zeta_RBTree_Extract(Zeta_RBTreeNodeOpr *rbtn_opr, void *n) {
 
     rbtn_opr->Detach(context, n);
     return root;
+}
+
+size_t Zeta_RBTree_Check(const Zeta_RBTreeNodeOpr *rbtn_opr, void *n) {
+    if (n == NULL) { return 0; }
+
+    void *context = rbtn_opr->context;
+
+    void *nl = rbtn_opr->GetL(context, n);
+    void *nr = rbtn_opr->GetR(context, n);
+
+    if (nl != NULL) { ZETA_ASSERT(rbtn_opr->GetP(context, nl) == n); }
+    if (nr != NULL) { ZETA_ASSERT(rbtn_opr->GetP(context, nr) == n); }
+
+    size_t lbh = Zeta_RBTree_Check(rbtn_opr, nl);
+    size_t rbh = Zeta_RBTree_Check(rbtn_opr, nr);
+
+    ZETA_ASSERT(lbh == rbh);
+
+    int nc = rbtn_opr->GetColor(context, n);
+
+    if (nc == 0) { return lbh + 1; }
+
+    ZETA_ASSERT(rbtn_opr->GetColor(context, nl) == 0);
+    ZETA_ASSERT(rbtn_opr->GetColor(context, nr) == 0);
+
+    return lbh;
 }

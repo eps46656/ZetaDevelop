@@ -25,13 +25,19 @@ diff_t Zeta_RawVector_GetStride(void *rv_) {
     return rv->stride;
 }
 
-diff_t Zeta_RawVector_GetSize(void *rv_) {
+size_t Zeta_RawVector_GetWidth(void *rv_) {
+    Zeta_RawVector *rv = rv_;
+    ZETA_DEBUG_ASSERT(rv != NULL);
+    return rv->width;
+}
+
+size_t Zeta_RawVector_GetSize(void *rv_) {
     Zeta_RawVector *rv = rv_;
     ZETA_DEBUG_ASSERT(rv != NULL);
     return rv->size;
 }
 
-void Zeta_RawVector_Entrust(void *rv_, void *data, diff_t stride, diff_t size) {
+void Zeta_RawVector_Entrust(void *rv_, void *data, diff_t stride, size_t size) {
     Zeta_RawVector *rv = rv_;
     ZETA_DEBUG_ASSERT(rv != NULL);
 
@@ -44,14 +50,14 @@ void Zeta_RawVector_Entrust(void *rv_, void *data, diff_t stride, diff_t size) {
     rv->size = size;
 }
 
-void *Zeta_RawVector_Access(void *rv_, diff_t idx) {
+void *Zeta_RawVector_Access(void *rv_, size_t idx) {
     Zeta_RawVector *rv = rv_;
     ZETA_DEBUG_ASSERT(rv != NULL);
 
     ZETA_DEBUG_ASSERT(0 <= idx);
     ZETA_DEBUG_ASSERT(idx < rv->size);
 
-    return (void *)(intptr_t)((intptr_t)(rv->data) + rv->stride * idx);
+    return ZETA_ADDR_OFFSET(rv->data, rv->stride * idx);
 }
 
 void Zeta_RawVector_ToVector(void *rv_, Zeta_Vector *dst) {
@@ -61,6 +67,7 @@ void Zeta_RawVector_ToVector(void *rv_, Zeta_Vector *dst) {
     ZETA_DEBUG_ASSERT(dst != NULL);
 
     dst->context = rv;
+    dst->GetWidth = Zeta_RawVector_GetWidth;
     dst->GetSize = Zeta_RawVector_GetSize;
     dst->Access = Zeta_RawVector_Access;
 }

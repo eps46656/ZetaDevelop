@@ -4,7 +4,9 @@
 
 ZETA_STATIC_ASSERT(32 <= CHAR_BIT * sizeof(size_t));
 
-ZETA_DECL_STRUCT(Zeta_LCGRandomGenerator) {
+typedef struct Zeta_LCGRandomGenerator Zeta_LCGRandomGenerator;
+
+struct Zeta_LCGRandomGenerator {
     size_t a;
     size_t c;
     size_t m;

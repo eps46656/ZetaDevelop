@@ -7,7 +7,7 @@ void Zeta_PoolAllocator_Init(void* pa_) {
     pa->n = NULL;
 }
 
-void* Zeta_PoolAllocator_Allocate(void* pa_, diff_t size) {
+void* Zeta_PoolAllocator_Allocate(void* pa_, size_t size) {
     ZETA_UNUSED(size);
 
     Zeta_PoolAllocator* pa = pa_;

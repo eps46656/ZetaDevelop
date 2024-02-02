@@ -35,6 +35,8 @@ def Erase():
 def Check():
     global la, lb
 
+    lb.check()
+
     assert len(la) == len(lb)
 
     for idx in range(len(la)):
@@ -49,6 +51,8 @@ if __name__ == "__main__":
     for _ in range(50):
         for _ in range(10):
             for i in range(random.randint(50, 60)):
+                print(f"len(la) = {len(la)}")
+                print(f"len(lb) = {len(lb)}")
                 Insert()
             Check()
 

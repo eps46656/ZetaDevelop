@@ -55,7 +55,7 @@ void Thread_Create(Thread* thread, void (*func)()) {
     const size_t stack_size = 16 * 1024 * 1024;
 
     thread->stack =
-        Thread_Create_((RX)(intptr_t)malloc(stack_size) + stack_size, func);
+        Thread_Create_((RX)(uintptr_t)malloc(stack_size) + stack_size, func);
 }
 
 void Thread_Switch(Thread* dst, Thread* src) __attribute__((sysv_abi));

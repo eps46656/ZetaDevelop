@@ -3,104 +3,134 @@
 void Zeta_SlabAllocator_Init(void* sa_) {
     Zeta_SlabAllocator* sa = sa_;
 
-    sa->page_size = 0;
-    sa->num_of_divs = 0;
+    sa->num_of_types = 0;
 
     sa->allocator = NULL;
 }
 
-static diff_t GetSize_(diff_t page_size, diff_t div) {
-    size_t unit_size = (page_size - sizeof(Zeta_SlabAllocator_Slab) +
-                        sizeof(Zeta_SlabAllocator_Unit)) /
-                       div;
+int Zeta_SlabAllocator_GetMaxSize(size_t page_size, int num) {
+    ZETA_DEBUG_ASSERT(0 < num);
 
-    return unit_size < sizeof(void*)
-               ? 0
-               : (unit_size - sizeof(void*)) / alignof(void*) * alignof(void*);
+    size_t header_size =
+        sizeof(Zeta_SlabAllocator_Slab) - sizeof(Zeta_SlabAllocator_Unit);
+
+    size_t unit_size =
+        (page_size - header_size) / num / alignof(void*) * alignof(void*);
+
+    if (unit_size <= sizeof(void*)) { return 0; }
+
+    return unit_size - sizeof(void*);
 }
 
-diff_t Zeta_SlabAllocator_GetSize(void* sa_, diff_t div_i) {
-    Zeta_SlabAllocator* sa = sa_;
-    ZETA_DEBUG_ASSERT(sa != NULL);
+int Zeta_SlabAllocator_GetMaxNum(size_t page_size, int size) {
+    ZETA_DEBUG_ASSERT(0 < size);
 
-    ZETA_DEBUG_ASSERT(0 <= div_i);
-    ZETA_DEBUG_ASSERT(div_i < sa->num_of_divs);
+    size = (size + alignof(void*) - 1) / alignof(void*) * alignof(void*);
 
-    return GetSize_(sa->page_size, sa->divs[div_i]);
+    size_t header_size =
+        sizeof(Zeta_SlabAllocator_Slab) - sizeof(Zeta_SlabAllocator_Unit);
+
+    size_t unit_size = sizeof(void*) + size;
+
+    if (page_size <= header_size) { return 0; }
+
+    return (page_size - header_size) / unit_size;
 }
 
-void Zeta_SlabAllocator_Entrust(void* sa_, diff_t page_size, diff_t num_of_divs,
-                                const diff_t* divs, Zeta_Allocator* allocator) {
+size_t Zeta_SlabAllocator_GetPageSize(int size, int num) {
+    ZETA_DEBUG_ASSERT(0 < size);
+    ZETA_DEBUG_ASSERT(0 < num);
+
+    size = (size + alignof(void*) - 1) / alignof(void*) * alignof(void*);
+
+    return sizeof(Zeta_SlabAllocator_Slab) - sizeof(Zeta_SlabAllocator_Unit) +
+           (sizeof(void*) + size) * num;
+}
+
+void Zeta_SlabAllocator_Entrust(void* sa_, int num_of_types, const int* sizes,
+                                const int* nums, Zeta_Allocator* allocator) {
     Zeta_SlabAllocator* sa = sa_;
 
     ZETA_DEBUG_ASSERT(sa != NULL);
 
-    ZETA_DEBUG_ASSERT(0 <= page_size);
-    ZETA_DEBUG_ASSERT(page_size <= Zeta_SlabAllocator_max_page_size);
+    ZETA_DEBUG_ASSERT(0 < num_of_types);
+    ZETA_DEBUG_ASSERT(num_of_types <= Zeta_SlabAllocator_max_num_of_types);
 
-    ZETA_DEBUG_ASSERT(0 < num_of_divs);
-    ZETA_DEBUG_ASSERT(num_of_divs <= Zeta_SlabAllocator_max_num_of_divs);
+    for (int i = 0; i < num_of_types; ++i) {
+        ZETA_DEBUG_ASSERT(0 < sizes[i]);
+        ZETA_DEBUG_ASSERT(0 < nums[i]);
+    }
 
-    for (diff_t i = 0; i < num_of_divs; ++i) { ZETA_DEBUG_ASSERT(0 < divs[i]); }
+    for (int i = 1; i < num_of_types; ++i) {
+        ZETA_DEBUG_ASSERT(sizes[i - 1] < sizes[i]);
+    }
 
     ZETA_DEBUG_ASSERT(allocator != NULL);
 
-    sa->page_size = page_size;
+    sa->num_of_types = num_of_types;
 
-    sa->num_of_divs = num_of_divs;
+    for (int i = 0; i < num_of_types; ++i) {
+        sa->sizes[i] = sizes[i];
+        sa->nums[i] = nums[i];
+    }
 
-    for (diff_t i = 0; i < num_of_divs; ++i) { sa->divs[i] = divs[i]; }
-
-    for (diff_t i = 0; i < Zeta_SlabAllocator_max_num_of_divs; ++i) {
+    for (int i = 0; i < Zeta_SlabAllocator_max_num_of_types; ++i) {
         Zeta_DoublyLinkedNode_Init(sa->slab_list_heads + i);
     }
 
     sa->allocator = allocator;
 }
 
-void* Zeta_SlabAllocator_Allocate(void* sa_, diff_t size) {
+static int GetTypeIdx_(int num_of_types, const int* sizes, size_t size) {
+    int type_lb = 0;
+    int type_rb = num_of_types;
+
+    while (type_lb < type_rb) {
+        int type_mb = (type_lb + type_rb) / 2;
+
+        if ((size_t)sizes[type_mb] < size) {
+            type_lb = type_mb + 1;
+        } else {
+            type_rb = type_mb;
+        }
+    }
+
+    return type_lb;
+}
+
+size_t Zeta_SlabAllocator_Query(void* sa_, size_t size) {
+    Zeta_SlabAllocator* sa = sa_;
+    ZETA_DEBUG_ASSERT(sa != NULL);
+
+    if (size == 0) { return 0; }
+
+    int type_i = GetTypeIdx_(sa->num_of_types, sa->sizes, size);
+    if (type_i == sa->num_of_types) { return 0; }
+
+    return sa->sizes[type_i];
+}
+
+void* Zeta_SlabAllocator_Allocate(void* sa_, size_t size) {
     Zeta_SlabAllocator* sa = sa_;
 
     ZETA_DEBUG_ASSERT(sa != NULL);
     ZETA_DEBUG_ASSERT(sa->allocator != NULL);
     ZETA_DEBUG_ASSERT(sa->allocator->Allocate != NULL);
 
-    diff_t div_i;
+    if (size == 0) { return NULL; }
 
-    {
-        diff_t div_lb = -1;
-        diff_t div_rb = sa->num_of_divs - 1;
+    int type_i = GetTypeIdx_(sa->num_of_types, sa->sizes, size);
 
-        while (div_lb < div_rb) {
-            diff_t div_mb = (div_lb + div_rb + 1) / 2;
+    ZETA_PRINT_VAR("%d", type_i);
 
-            diff_t s = GetSize_(sa->page_size, sa->divs[div_mb]);
+    if (type_i == sa->num_of_types) { return NULL; }
 
-            if (s < size) {
-                div_rb = div_mb - 1;
-            } else {
-                div_lb = div_mb;
-            }
-        }
-
-        div_i = div_lb;
-    }
-
-    if (div_i == -1) { return NULL; }
-
-    diff_t div = sa->divs[div_i];
-
-    ZETA_PRINT_VAR("%lld", div);
-    ZETA_PRINT_VAR("%lld", GetSize_(sa->page_size, div));
-
-    if (GetSize_(sa->page_size, div) <= 0) { return NULL; }
-
-    void* slab_list_head = sa->slab_list_heads + div_i;
+    void* slab_list_head = sa->slab_list_heads + type_i;
     void* slab_k_n = Zeta_DoublyLinkedNode_GetR(slab_list_head);
 
     Zeta_SlabAllocator_Slab* slab_k;
 
-    _Bool alloc_new_slab = 0;
+    int alloc_new_slab = 0;
 
     if (slab_list_head == slab_k_n) {
         alloc_new_slab = 1;
@@ -109,25 +139,30 @@ void* Zeta_SlabAllocator_Allocate(void* sa_, diff_t size) {
         if (slab_k->ptr == NULL) { alloc_new_slab = 1; }
     }
 
-    if (alloc_new_slab) {
-        slab_k = sa->allocator->Allocate(sa->allocator->context, sa->page_size);
+    if (alloc_new_slab != 0) {
+        slab_k = sa->allocator->Allocate(
+            sa->allocator->context, Zeta_SlabAllocator_GetPageSize(
+                                        sa->sizes[type_i], sa->nums[type_i]));
+
         if (slab_k == NULL) { return NULL; }
 
         slab_k_n = &slab_k->n;
 
-        slab_k->div_i = div_i;
+        slab_k->type_i = type_i;
         Zeta_DoublyLinkedNode_Init(slab_k_n);
         Zeta_DoublyLinkedNode_InsertR(slab_list_head, slab_k_n);
 
         slab_k->ptr = slab_k->units;
 
-        for (int unit_i = 0; unit_i < size - 1; ++unit_i) {
+        int num = sa->nums[type_i];
+
+        for (int unit_i = 0; unit_i < num - 1; ++unit_i) {
             Zeta_SlabAllocator_Unit* unit = slab_k->units + unit_i;
             Zeta_SlabAllocator_Unit* nxt_unit = slab_k->units + unit_i + 1;
             unit->ptr = nxt_unit;
         }
 
-        slab_k->units[size - 1].ptr = NULL;
+        slab_k->units[num - 1].ptr = NULL;
     }
 
     Zeta_SlabAllocator_Unit* ret_unit = slab_k->ptr;
@@ -161,15 +196,15 @@ void Zeta_SlabAllocator_Deallocate(void* sa_, void* ptr) {
     unit->ptr = slab_k->ptr;
     slab_k->ptr = unit;
 
-    diff_t div_i = slab_k->div_i;
+    int type_i = slab_k->type_i;
 
-    Zeta_DoublyLinkedNode* slab_list_head = sa->slab_list_heads + div_i;
+    Zeta_DoublyLinkedNode* slab_list_head = sa->slab_list_heads + type_i;
 
     Zeta_DoublyLinkedNode_Extract(&slab_k->n);
 
-    diff_t div = sa->divs[div_i];
+    int num = sa->nums[type_i];
 
-    for (diff_t i = 0; i < div; ++i) {
+    for (int i = 0; i < num; ++i) {
         if (slab_k->units[i].ptr == slab_k) {
             Zeta_DoublyLinkedNode_InsertL(slab_list_head, &slab_k->n);
             return;

@@ -3,20 +3,21 @@
 #include "Allocator.h"
 #include "DoublyLinkedNode.h"
 
-#define Zeta_SlabAllocator_max_page_size (1 * 1024 * 1024 * 1024)
-
-#define Zeta_SlabAllocator_max_num_of_divs 32
+#define Zeta_SlabAllocator_max_num_of_types ZETA_MAXOF(u8_t)
 
 /*
 
 SlabLayout {
     Zeta_SlabAllocator_SlabHead {
-        Zeta_DoublyLinkedNode* slab_n;
-        void * unit;
+        int div_t;
+        Zeta_DoublyLinkedNode* n;
+        void * ptr;
     }
 
+    byte_t paddings[];
+
     unit {
-        void* nxt_unit;
+        void* ptr;
         void* data[size];
     } [N]
 }
@@ -47,38 +48,49 @@ for page_size == 4096
 
 */
 
-ZETA_DECL_STRUCT(Zeta_SlabAllocator_Unit) {
+typedef struct Zeta_SlabAllocator_Unit Zeta_SlabAllocator_Unit;
+
+struct Zeta_SlabAllocator_Unit {
     void* ptr;
     char data[1];
 };
 
-ZETA_DECL_STRUCT(Zeta_SlabAllocator_Slab) {
-    diff_t div_i;
+typedef struct Zeta_SlabAllocator_Slab Zeta_SlabAllocator_Slab;
+
+struct Zeta_SlabAllocator_Slab {
+    u8_t type_i;
     Zeta_DoublyLinkedNode n;
     void* ptr;
 
     Zeta_SlabAllocator_Unit units[1];
 };
 
-ZETA_DECL_STRUCT(Zeta_SlabAllocator) {
-    diff_t page_size;
+typedef struct Zeta_SlabAllocator Zeta_SlabAllocator;
 
-    diff_t num_of_divs;
-    diff_t divs[Zeta_SlabAllocator_max_num_of_divs];
+struct Zeta_SlabAllocator {
+    int num_of_types;
+    int sizes[Zeta_SlabAllocator_max_num_of_types];
+    int nums[Zeta_SlabAllocator_max_num_of_types];
 
-    Zeta_DoublyLinkedNode slab_list_heads[Zeta_SlabAllocator_max_num_of_divs];
+    Zeta_DoublyLinkedNode slab_list_heads[Zeta_SlabAllocator_max_num_of_types];
 
     Zeta_Allocator* allocator;
 };
 
 void Zeta_SlabAllocator_Init(void* sa);
 
-diff_t Zeta_SlabAllocator_GetSize(void* sa, diff_t div_i);
+int Zeta_SlabAllocator_GetMaxSize(size_t page_size, int num);
 
-void Zeta_SlabAllocator_Entrust(void* sa, diff_t page_size, diff_t num_of_divs,
-                                const diff_t* divs, Zeta_Allocator* allocator);
+int Zeta_SlabAllocator_GetMaxNum(size_t page_size, int size);
 
-void* Zeta_SlabAllocator_Allocate(void* sa, diff_t size);
+size_t Zeta_SlabAllocator_GetPageSize(int size, int num);
+
+void Zeta_SlabAllocator_Entrust(void* sa, int num_of_types, const int* sizes,
+                                const int* nums, Zeta_Allocator* allocator);
+
+size_t Zeta_SlabAllocator_Query(void* sa, size_t size);
+
+void* Zeta_SlabAllocator_Allocate(void* sa, size_t size);
 
 void Zeta_SlabAllocator_Deallocate(void* sa, void* ptr);
 

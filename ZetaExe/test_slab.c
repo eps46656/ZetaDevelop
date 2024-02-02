@@ -8,9 +8,32 @@
 #define lengthof(arr) (sizeof(arr) / sizeof(arr[0]))
 
 int main() {
-    diff_t page_size = 4 * 1024;
+    size_t page_size = 4 * 1024;
 
-    diff_t divs[] = {2, 3, 4, 6, 8, 12, 16, 24, 32, 48, 64};
+    const int max_type = Zeta_SlabAllocator_max_num_of_types;
+
+    int sizes[max_type];
+    int nums[max_type];
+
+    sizes[0] = 48;
+    sizes[1] = sizes[0] * 12 / 10;  // 1.2
+    sizes[2] = sizes[0] * 15 / 10;  // 1.5
+
+    int type_i = 3;
+
+    for (int i = 0; i < type_i; ++i) {
+        nums[i] = Zeta_SlabAllocator_GetMaxNum(page_size, sizes[i]);
+    }
+
+    for (; type_i < max_type; ++type_i) {
+        sizes[type_i] = sizes[type_i - 2] * 2;
+        nums[type_i] = Zeta_SlabAllocator_GetMaxNum(page_size, sizes[type_i]);
+
+        if (nums[type_i] == 0) { break; }
+    }
+
+    int num_of_types = type_i;
+    ZETA_PRINT_VAR("%d", num_of_types);
 
     Zeta_PoolAllocator pa_;
     Zeta_Allocator pa;
@@ -24,12 +47,13 @@ int main() {
     Zeta_Allocator sa;
     Zeta_SlabAllocator_DeployAllocator(&sa_, &sa);
 
-    Zeta_SlabAllocator_Entrust(&sa_, page_size, lengthof(divs), divs, &pa);
+    Zeta_SlabAllocator_Entrust(&sa_, num_of_types, sizes, nums, &pa);
 
-    printf("div\tsize\n");
+    printf("type_i\tsize\tnum\tpage size\n");
 
-    for (int i = 0; i < lengthof(divs); ++i) {
-        printf("%d\t%d\n", divs[i], Zeta_SlabAllocator_GetSize(&sa_, i));
+    for (int i = 0; i < num_of_types; ++i) {
+        printf("%d\t%d\t%d\t%d\n", i, sizes[i], nums[i],
+               Zeta_SlabAllocator_GetPageSize(sizes[i], nums[i]));
     }
 
     void* ptr_a = Zeta_SlabAllocator_Allocate(&sa_, 32);

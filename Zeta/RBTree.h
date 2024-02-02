@@ -2,7 +2,9 @@
 
 #include "BinTree.h"
 
-ZETA_DECL_STRUCT(Zeta_RBTreeNodeOpr) {
+typedef struct Zeta_RBTreeNodeOpr Zeta_RBTreeNodeOpr;
+
+struct Zeta_RBTreeNodeOpr {
     void *context;
 
     void *(*GetP)(void *context, void *n);
@@ -23,8 +25,10 @@ ZETA_DECL_STRUCT(Zeta_RBTreeNodeOpr) {
     void (*RotateR)(void *context, void *n);
 };
 
-void *Zeta_RBTree_InsertL(Zeta_RBTreeNodeOpr *rbtn_opr, void *n, void *m);
+void *Zeta_RBTree_InsertL(const Zeta_RBTreeNodeOpr *rbtn_opr, void *n, void *m);
 
-void *Zeta_RBTree_InsertR(Zeta_RBTreeNodeOpr *rbtn_opr, void *n, void *m);
+void *Zeta_RBTree_InsertR(const Zeta_RBTreeNodeOpr *rbtn_opr, void *n, void *m);
 
-void *Zeta_RBTree_Extract(Zeta_RBTreeNodeOpr *rbtn_opr, void *n);
+void *Zeta_RBTree_Extract(const Zeta_RBTreeNodeOpr *rbtn_opr, void *n);
+
+size_t Zeta_RBTree_Check(const Zeta_RBTreeNodeOpr *rbtn_opr, void *n);

@@ -3,8 +3,8 @@
 #include "test_head.h"
 
 ZETA_DECL_STRUCT(SimpleVector) {
-    diff_t capacity;
-    diff_t size;
+    size_t capacity;
+    size_t size;
     val_t* data;
 };
 
@@ -14,13 +14,13 @@ void SimpleVector_Init(SimpleVector* sv) {
     sv->data = NULL;
 }
 
-val_t* SimpleVector_Access(SimpleVector* sv, diff_t idx) {
+val_t* SimpleVector_Access(SimpleVector* sv, size_t idx) {
     ZETA_DEBUG_ASSERT(0 <= idx);
     ZETA_DEBUG_ASSERT(idx < sv->size);
     return sv->data + idx;
 }
 
-void SimpleVector_Reserve(SimpleVector* sv, diff_t capacity) {
+void SimpleVector_Reserve(SimpleVector* sv, size_t capacity) {
     if (capacity <= sv->capacity) { return; }
 
     val_t* new_data = malloc(sizeof(val_t) * capacity);
@@ -31,12 +31,12 @@ void SimpleVector_Reserve(SimpleVector* sv, diff_t capacity) {
     sv->data = new_data;
 }
 
-val_t* SimpleVector_InsertWithIdx(SimpleVector* sv, diff_t idx) {
+val_t* SimpleVector_InsertWithIdx(SimpleVector* sv, size_t idx) {
     ZETA_DEBUG_ASSERT(0 <= idx);
     ZETA_DEBUG_ASSERT(idx <= sv->size);
 
     if (sv->capacity == sv->size) {
-        diff_t new_capacity = sv->capacity == 0 ? 8 : sv->capacity * 2;
+        size_t new_capacity = sv->capacity == 0 ? 8 : sv->capacity * 2;
         val_t* new_data = malloc(sizeof(val_t) * new_capacity);
 
         memcpy(new_data, sv->data, sizeof(val_t) * idx);
@@ -55,7 +55,7 @@ val_t* SimpleVector_InsertWithIdx(SimpleVector* sv, diff_t idx) {
     return sv->data + idx;
 }
 
-void SimpleVector_EraseWithIdx(SimpleVector* sv, diff_t idx) {
+void SimpleVector_EraseWithIdx(SimpleVector* sv, size_t idx) {
     ZETA_DEBUG_ASSERT(0 <= idx);
     ZETA_DEBUG_ASSERT(idx < sv->size);
 
@@ -67,6 +67,6 @@ void SimpleVector_EraseWithIdx(SimpleVector* sv, diff_t idx) {
 
 void SimpleVector_PrintAll(SimpleVector* sv) {
     printf("{ ");
-    for (diff_t i = 0; i < sv->size; ++i) { printf("%d ", sv->data[i]); }
+    for (size_t i = 0; i < sv->size; ++i) { printf("%d ", sv->data[i]); }
     printf("}\n");
 }

@@ -1,11 +1,11 @@
 #include "MultiLevelHashTable.h"
 
-static void GetIdxes_(diff_t* dst_idxes, Zeta_MultiLevelEntryTable* mlet,
+static void GetIdxes_(size_t* dst_idxes, Zeta_MultiLevelEntryTable* mlet,
                       size_t hash_code) {
-    diff_t level = mlet->level;
-    diff_t* branch_nums = mlet->branch_nums;
+    size_t level = mlet->level;
+    size_t* branch_nums = mlet->branch_nums;
 
-    for (diff_t level_i = 0; level_i < level; ++level_i) {
+    for (size_t level_i = 0; level_i < level; ++level_i) {
         dst_idxes[level_i] = hash_code % branch_nums[level_i];
         hash_code /= branch_nums[level_i];
     }
@@ -32,7 +32,7 @@ void* Zeta_MultiLevelHashTable_GetFirst(void* mlht_) {
 
     Zeta_MultiLevelEntryTable* mlet = mlht->mlet;
 
-    diff_t idxes[Zeta_MultiLevelEntryTable_max_level];
+    size_t idxes[Zeta_MultiLevelEntryTable_max_level];
     GetIdxes_(idxes, mlet, 0);
 
     void** n = Zeta_MultiLevelEntryTable_FindNextNotNull(mlet, idxes, 1);
@@ -52,7 +52,7 @@ void* Zeta_MultiLevelHashTable_GetNext(void* mlht_, void* mlhtn_) {
 
     Zeta_MultiLevelEntryTable* mlet = mlht->mlet;
 
-    diff_t idxes[Zeta_MultiLevelEntryTable_max_level];
+    size_t idxes[Zeta_MultiLevelEntryTable_max_level];
     GetIdxes_(idxes, mlet, mlhtn->hash_code);
 
     void** n = Zeta_MultiLevelEntryTable_FindNextNotNull(mlet, idxes, 0);
@@ -72,7 +72,7 @@ void Zeta_MultiLevelHashTable_Insert(void* mlht_, void* mlhtn_) {
     Zeta_MultiLevelEntryTable* mlet = mlht->mlet;
     ZETA_DEBUG_ASSERT(mlet != NULL);
 
-    diff_t idxes[Zeta_MultiLevelEntryTable_max_level];
+    size_t idxes[Zeta_MultiLevelEntryTable_max_level];
     GetIdxes_(idxes, mlet, mlhtn->hash_code);
 
     void** n = Zeta_MultiLevelEntryTable_Insert(mlht->mlet, idxes);
@@ -96,7 +96,7 @@ void Zeta_MultiLevelHashTable_Extract(void* mlht_, void* mlhtn_) {
     Zeta_MultiLevelEntryTable* mlet = mlht->mlet;
     ZETA_DEBUG_ASSERT(mlet != NULL);
 
-    diff_t idxes[Zeta_MultiLevelEntryTable_max_level];
+    size_t idxes[Zeta_MultiLevelEntryTable_max_level];
     GetIdxes_(idxes, mlet, mlhtn->hash_code);
 
     void** n = Zeta_MultiLevelEntryTable_Insert(mlht->mlet, idxes);
@@ -104,7 +104,7 @@ void Zeta_MultiLevelHashTable_Extract(void* mlht_, void* mlhtn_) {
     ZETA_DEBUG_ASSERT(n != NULL);
 
     if (ZETA_DEBUG) {
-        _Bool found = 0;
+        bool_t found = 0;
 
         for (Zeta_MultiLevelHashTableNode* m = *n; m != NULL; m = m->next) {
             if (mlhtn == m) {
@@ -146,7 +146,7 @@ void* Zeta_MultiLevelHashTable_Find(void* mlht_, size_t hash_code) {
     Zeta_MultiLevelEntryTable* mlet = mlht->mlet;
     ZETA_DEBUG_ASSERT(mlet != NULL);
 
-    diff_t idxes[Zeta_MultiLevelEntryTable_max_level];
+    size_t idxes[Zeta_MultiLevelEntryTable_max_level];
     GetIdxes_(idxes, mlet, hash_code);
 
     void** n = Zeta_MultiLevelEntryTable_Insert(mlht->mlet, idxes);
