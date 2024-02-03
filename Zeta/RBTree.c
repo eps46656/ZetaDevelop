@@ -23,6 +23,7 @@ static void *Insert_(void *context, void *(*GetP)(void *context, void *n),
 
     if (nd == NULL) {
         AttachD(context, n, m);
+
     } else {
         AttachE(context, Zeta_GetMostLink(context, GetE, nd), m);
     }

@@ -19,20 +19,21 @@ struct Zeta_RawVector {
     size_t size;
 };
 
-void Zeta_RawVector_Init(void *rv);
+EXTERN_C void Zeta_RawVector_Init(void *rv);
 
-void Zeta_RawVector_Check(void *rv);
+EXTERN_C void Zeta_RawVector_Check(void *rv);
 
-void *Zeta_RawVector_GetData(void *rv);
+EXTERN_C void *Zeta_RawVector_GetData(void *rv);
 
-diff_t Zeta_RawVector_GetStride(void *rv);
+EXTERN_C diff_t Zeta_RawVector_GetStride(void *rv);
 
-size_t Zeta_RawVector_GetWidth(void *rv);
+EXTERN_C size_t Zeta_RawVector_GetWidth(void *rv);
 
-size_t Zeta_RawVector_GetSize(void *rv);
+EXTERN_C size_t Zeta_RawVector_GetSize(void *rv);
 
-void Zeta_RawVector_Entrust(void *rv, void *data, diff_t stride, size_t size);
+EXTERN_C void Zeta_RawVector_Entrust(void *rv, void *data, diff_t stride,
+                                     size_t size);
 
-void *Zeta_RawVector_Access(void *rv, size_t idx);
+EXTERN_C void *Zeta_RawVector_Access(void *rv, size_t idx);
 
-void Zeta_RawVector_ToVector(void *rv, Zeta_Vector *vec);
+EXTERN_C void Zeta_RawVector_ToVector(void *rv, Zeta_Vector *vec);

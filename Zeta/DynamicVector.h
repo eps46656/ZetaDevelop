@@ -35,22 +35,23 @@ struct Zeta_DynamicVector {
  *
  * @param dv The target DynamicVector
  */
-void Zeta_DynamicVector_Init(void* dv);
+EXTERN_C void Zeta_DynamicVector_Init(void* dv);
 
-void Zeta_DynamicVector_StdConfig(void* dv, size_t width, size_t cluster_size,
-                                  Zeta_Allocator* allocator);
+EXTERN_C void Zeta_DynamicVector_StdConfig(void* dv, size_t width,
+                                           size_t cluster_size,
+                                           Zeta_Allocator* allocator);
 
 /**
  * @brief Get the width(byte) of an element occupying.
  */
-size_t Zeta_DynamicVector_GetWidth(void* dv);
+EXTERN_C size_t Zeta_DynamicVector_GetWidth(void* dv);
 
 /**
  * @brief Get the number of elements.
  *
  * @param dv The target DynamicVector
  */
-size_t Zeta_DynamicVector_GetSize(void* dv);
+EXTERN_C size_t Zeta_DynamicVector_GetSize(void* dv);
 
 /**
  * @brief Access an element by idx.
@@ -60,7 +61,7 @@ size_t Zeta_DynamicVector_GetSize(void* dv);
  *
  * @return The target element.
  */
-void* Zeta_DynamicVector_Access(void* dv, size_t idx);
+EXTERN_C void* Zeta_DynamicVector_Access(void* dv, size_t idx);
 
 /**
  * @brief Insert an element by idx. Auto shift left or right elements
@@ -71,7 +72,7 @@ void* Zeta_DynamicVector_Access(void* dv, size_t idx);
  *
  * @return The target element.
  */
-void* Zeta_DynamicVector_Insert(void* dv, size_t idx);
+EXTERN_C void* Zeta_DynamicVector_Insert(void* dv, size_t idx);
 
 /**
  * @brief Push an element at left end of dv. A syntatic sugar of
@@ -81,7 +82,7 @@ void* Zeta_DynamicVector_Insert(void* dv, size_t idx);
  *
  * @return The target element.
  */
-void* Zeta_DynamicVector_PushL(void* dv);
+EXTERN_C void* Zeta_DynamicVector_PushL(void* dv);
 
 /**
  * @brief Push an element at right end of dv. A syntatic sugar of
@@ -91,7 +92,7 @@ void* Zeta_DynamicVector_PushL(void* dv);
  *
  * @return The target element.
  */
-void* Zeta_DynamicVector_PushR(void* dv);
+EXTERN_C void* Zeta_DynamicVector_PushR(void* dv);
 
 /**
  * @brief Erase an element at idx. Auto shift left or right elements.
@@ -99,7 +100,7 @@ void* Zeta_DynamicVector_PushR(void* dv);
  * @param dv The target DynamicVector.
  * @param idx The idx of target element.
  */
-void Zeta_DynamicVector_Erase(void* dv, size_t idx);
+EXTERN_C void Zeta_DynamicVector_Erase(void* dv, size_t idx);
 
 /**
  * @brief Pop an element at left end of dv. A syntatic sugar of
@@ -107,7 +108,7 @@ void Zeta_DynamicVector_Erase(void* dv, size_t idx);
  *
  * @param dv The target DynamicVector.
  */
-void Zeta_DynamicVector_PopL(void* dv);
+EXTERN_C void Zeta_DynamicVector_PopL(void* dv);
 
 /**
  * @brief Pop an element at right end of dv. A syntatic sugar of
@@ -115,7 +116,7 @@ void Zeta_DynamicVector_PopL(void* dv);
  *
  * @param dv The target DynamicVector.
  */
-void Zeta_DynamicVector_PopR(void* dv);
+EXTERN_C void Zeta_DynamicVector_PopR(void* dv);
 
 /**
  * @brief Construct a vector interface from dv. Place result at dst.
@@ -123,4 +124,4 @@ void Zeta_DynamicVector_PopR(void* dv);
  * @param dv The target DynamicVector.
  * @param dst The destination of Vector.
  */
-void Zeta_DynamicVector_ToVector(void* dv, Zeta_Vector* dst);
+EXTERN_C void Zeta_DynamicVector_ToVector(void* dv, Zeta_Vector* dst);

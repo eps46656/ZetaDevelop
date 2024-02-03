@@ -2,7 +2,9 @@
 
 #include "define.h"
 
-ZETA_DECL_STRUCT(Zeta_Vector) {
+typedef struct Zeta_Vector Zeta_Vector;
+
+struct Zeta_Vector {
     void *context;
 
     size_t (*GetWidth)(void *context);

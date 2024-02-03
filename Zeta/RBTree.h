@@ -25,10 +25,12 @@ struct Zeta_RBTreeNodeOpr {
     void (*RotateR)(void *context, void *n);
 };
 
-void *Zeta_RBTree_InsertL(const Zeta_RBTreeNodeOpr *rbtn_opr, void *n, void *m);
+EXTERN_C void *Zeta_RBTree_InsertL(const Zeta_RBTreeNodeOpr *rbtn_opr, void *n,
+                                   void *m);
 
-void *Zeta_RBTree_InsertR(const Zeta_RBTreeNodeOpr *rbtn_opr, void *n, void *m);
+EXTERN_C void *Zeta_RBTree_InsertR(const Zeta_RBTreeNodeOpr *rbtn_opr, void *n,
+                                   void *m);
 
-void *Zeta_RBTree_Extract(const Zeta_RBTreeNodeOpr *rbtn_opr, void *n);
+EXTERN_C void *Zeta_RBTree_Extract(const Zeta_RBTreeNodeOpr *rbtn_opr, void *n);
 
-size_t Zeta_RBTree_Check(const Zeta_RBTreeNodeOpr *rbtn_opr, void *n);
+EXTERN_C size_t Zeta_RBTree_Check(const Zeta_RBTreeNodeOpr *rbtn_opr, void *n);

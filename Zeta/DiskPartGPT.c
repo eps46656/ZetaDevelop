@@ -3,7 +3,9 @@
 
 ZETA_STATIC_ASSERT(4 <= sizeof(size_t))
 
-ZETA_DECL_STRUCT(Zeta_DiskPart_GPTHeader) {
+typedef struct Zeta_DiskPart_GPTHeader Zeta_DiskPart_GPTHeader;
+
+struct Zeta_DiskPart_GPTHeader {
     char sign[8];
 
     size_t revision_num;

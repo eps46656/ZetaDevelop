@@ -153,10 +153,10 @@ class Builder:
                 non_built.append(unit)
                 continue
 
-            print(f"building {unit}")
+            print(f"\033[93mbuilding:\033[0m {unit}")
             rc = self.callbacks[unit]()
 
-            assert rc == 0
+            assert rc == 0, f"error happened when building \033[93m{unit}\033[0m"
 
             assert os.path.exists(unit), \
                    f"unit {unit} does not exist after built"

@@ -2,7 +2,9 @@
 
 #include "define.h"
 
-ZETA_DECL_STRUCT(Zeta_CursorOpr) {
+typedef struct Zeta_CursorOpr Zeta_CursorOpr;
+
+struct Zeta_CursorOpr {
     void* context;
 
     void* (*Access)(void* context, void* cursor);

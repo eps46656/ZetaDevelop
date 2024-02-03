@@ -4,13 +4,17 @@
 typedef unsigned long long int mlmap_key_t;
 typedef unsigned long long int mlmap_val_t;
 
-ZETA_DECL_STRUCT(MLMapNode) {
+typedef struct MLMapNode MLMapNode;
+
+struct MLMapNode {
     Zeta_MultiLevelHashTableNode mlhtn;
     mlmap_key_t key;
     mlmap_val_t val;
 };
 
-ZETA_DECL_STRUCT(MLMap) {
+typedef struct MLMap MLMap;
+
+struct MLMap {
     size_t size;
     Zeta_MultiLevelEntryTable mlet;
     Zeta_MultiLevelHashTable mlht;

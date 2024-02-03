@@ -3,7 +3,11 @@
 
 typedef unsigned long long data_t;
 
-ZETA_DECL_STRUCT(DyVec) { Zeta_DynamicVector dv; };
+typedef struct DyVec DyVec;
+
+struct DyVec {
+    Zeta_DynamicVector dv;
+};
 
 void* StdAllocate(void* context, size_t size) {
     ZETA_UNUSED(context);

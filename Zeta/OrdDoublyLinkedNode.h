@@ -9,14 +9,14 @@ struct Zeta_OrdDoublyLinkedNode {
     Zeta_OrdDoublyLinkedNode *r;
 };
 
-void Zeta_OrdDoublyLinkedNode_Init(void *n);
+EXTERN_C void Zeta_OrdDoublyLinkedNode_Init(void *n);
 
-void *Zeta_OrdDoublyLinkedNode_GetL(void *n);
+EXTERN_C void *Zeta_OrdDoublyLinkedNode_GetL(void *n);
 
-void *Zeta_OrdDoublyLinkedNode_GetR(void *n);
+EXTERN_C void *Zeta_OrdDoublyLinkedNode_GetR(void *n);
 
-void Zeta_OrdDoublyLinkedNode_InsertL(void *n, void *m);
+EXTERN_C void Zeta_OrdDoublyLinkedNode_InsertL(void *n, void *m);
 
-void Zeta_OrdDoublyLinkedNode_InsertR(void *n, void *m);
+EXTERN_C void Zeta_OrdDoublyLinkedNode_InsertR(void *n, void *m);
 
-void Zeta_OrdDoublyLinkedNode_Extract(void *n);
+EXTERN_C void Zeta_OrdDoublyLinkedNode_Extract(void *n);

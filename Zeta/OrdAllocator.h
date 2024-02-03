@@ -104,9 +104,9 @@ struct Zeta_OrdAllocator {
         slab_list_heads[Zeta_OrdAllocator_max_num_of_slab_level];
 };
 
-void Zeta_OrdAllocator_Init(void* ord_allocator);
+EXTERN_C void Zeta_OrdAllocator_Init(void* ord_allocator);
 
-void* Zeta_OrdAllocator_Allocate(void* ord_allocator, size_t size);
+EXTERN_C void* Zeta_OrdAllocator_Allocate(void* ord_allocator, size_t size);
 
 /**
  * @brief Deallocate the target memory block. The memory block should be
@@ -116,6 +116,10 @@ void* Zeta_OrdAllocator_Allocate(void* ord_allocator, size_t size);
  * block.
  * @param ptr The target memory block.
  */
-void Zeta_OrdAllocator_Deallocate(void* ord_allocator, void* ptr);
+EXTERN_C void Zeta_OrdAllocator_Deallocate(void* ord_allocator, void* ptr);
 
-void Zeta_OrdAllocator_ToAllocator(void* ord_allocator, Zeta_Allocator* dst);
+EXTERN_C void Zeta_OrdAllocator_Check(void* ord_allocator, bool_t print_state,
+                                      void* dst_ptr_size_ht);
+
+EXTERN_C void Zeta_OrdAllocator_ToAllocator(void* ord_allocator,
+                                            Zeta_Allocator* dst);

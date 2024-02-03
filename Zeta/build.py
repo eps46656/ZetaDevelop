@@ -20,9 +20,10 @@ def builder_add(builder):
 
     cc = "clang"
 
-    args = [
+    cppc = "clang++"
+
+    cargs = [
         "--verbose",
-        "-c",
         "-std=gnu17",
         *[f"-I \"{path}\"" for path in INCLUDE_DIRS],
         "-m64",
@@ -33,10 +34,26 @@ def builder_add(builder):
         # "-fmax-errors=3", # for gcc
     ]
 
+    cppargs = [
+        "--verbose",
+        "-std=c++17",
+        *[f"-I \"{path}\"" for path in INCLUDE_DIRS],
+        "-m64",
+        "-Wall",
+        "-Wextra",
+        "-Werror",
+        "-ferror-limit=3", # for clang
+        # "-fmax-errors=3", # for gcc
+    ]
+
     if debug:
-        args += ["-g", "-D DEBUG"]
+        cargs += ["-g", "-D DEBUG"]
+
+        cppargs += ["-g", "-D DEBUG"]
     else:
-        args += ["-O3"]
+        cargs += ["-O3"]
+
+        cppargs += ["-O3"]
 
     builder.add(
         f"{File}",
@@ -70,8 +87,9 @@ def builder_add(builder):
         },
         lambda : os.system(" ".join([
             cc,
-            f"-o {ZetaDir}/Algorithm.o",
-            *args,
+            f"--output {ZetaDir}/Algorithm.o",
+            f"-c",
+            *cargs,
             f"{ZetaDir}/Algorithm.c",
         ]))
     )
@@ -112,8 +130,9 @@ def builder_add(builder):
         },
         lambda : os.system(" ".join([
             cc,
-            f"-o {ZetaDir}/BinTree.o",
-            *args,
+            f"--output {ZetaDir}/BinTree.o",
+            f"-c",
+            *cargs,
             f"{ZetaDir}/BinTree.c",
         ]))
     )
@@ -144,8 +163,9 @@ def builder_add(builder):
         },
         lambda : os.system(" ".join([
             cc,
-            f"-o {ZetaDir}/CircularVector.o",
-            *args,
+            f"--output {ZetaDir}/CircularVector.o",
+            f"-c",
+            *cargs,
             f"{ZetaDir}/CircularVector.c",
         ]))
     )
@@ -177,8 +197,9 @@ def builder_add(builder):
         },
         lambda : os.system(" ".join([
             cc,
-            f"-o {ZetaDir}/CntBinTree.o",
-            *args,
+            f"--output {ZetaDir}/CntBinTree.o",
+            f"-c",
+            *cargs,
             f"{ZetaDir}/CntBinTree.c",
         ]))
     )
@@ -209,9 +230,97 @@ def builder_add(builder):
         },
         lambda : os.system(" ".join([
             cc,
-            f"-o {ZetaDir}/CRC.o",
-            *args,
+            f"--output {ZetaDir}/CRC.o",
+            f"-c",
+            *cargs,
             f"{ZetaDir}/CRC.c",
+        ]))
+    )
+
+    builder.add(
+        f"{ZetaDir}/DebugHashTable.h",
+        {
+            f"{File}",
+            f"{ZetaDir}/define.h",
+        },
+        lambda : 0
+    )
+
+    builder.add(
+        f"{ZetaDir}/DebugHashTable.cpp",
+        {
+            f"{File}",
+            f"{ZetaDir}/DebugHashTable.h",
+        },
+        lambda : 0
+    )
+
+    builder.add(
+        f"{ZetaDir}/DebugHashTable.o",
+        {
+            f"{File}",
+            f"{ZetaDir}/DebugHashTable.cpp",
+        },
+        lambda : os.system(" ".join([
+            cppc,
+            f"-o {ZetaDir}/DebugHashTable.o",
+            *cppargs,
+            f"-c",
+            f"-fPIC",
+            f"{ZetaDir}/DebugHashTable.cpp",
+        ]))
+    )
+
+    builder.add(
+        f"{ZetaDir}/DebugHashTable.a",
+        {
+            f"{File}",
+            f"{ZetaDir}/DebugHashTable.cpp",
+        },
+        lambda : os.system(" ".join([
+            cppc,
+            f"--output {ZetaDir}/DebugHashTable.a",
+            f"-c",
+            *cppargs,
+
+            f"-static",
+            f"-fPIC",
+
+            f"{ZetaDir}/DebugHashTable.cpp",
+        ]))
+    )
+
+    builder.add(
+        f"{ZetaDir}/DebugTreeMap.h",
+        {
+            f"{File}",
+            f"{ZetaDir}/define.h",
+        },
+        lambda : 0
+    )
+
+    builder.add(
+        f"{ZetaDir}/DebugTreeMap.cpp",
+        {
+            f"{File}",
+            f"{ZetaDir}/DebugTreeMap.h",
+        },
+        lambda : 0
+    )
+
+    builder.add(
+        f"{ZetaDir}/DebugTreeMap.o",
+        {
+            f"{File}",
+            f"{ZetaDir}/DebugTreeMap.cpp",
+        },
+        lambda : os.system(" ".join([
+            cppc,
+            f"-o {ZetaDir}/DebugTreeMap.o",
+            *cppargs,
+            f"-c",
+            f"-fPIC",
+            f"{ZetaDir}/DebugTreeMap.cpp",
         ]))
     )
 
@@ -249,8 +358,9 @@ def builder_add(builder):
         },
         lambda : os.system(" ".join([
             cc,
-            f"-o {ZetaDir}/DiffDoublyLinkedNode.o",
-            *args,
+            f"--output {ZetaDir}/DiffDoublyLinkedNode.o",
+            f"-c",
+            *cargs,
             f"{ZetaDir}/DiffDoublyLinkedNode.c",
         ]))
     )
@@ -281,8 +391,9 @@ def builder_add(builder):
         },
         lambda : os.system(" ".join([
             cc,
-            f"-o {ZetaDir}/OrdDoublyLinkedNode.o",
-            *args,
+            f"--output {ZetaDir}/OrdDoublyLinkedNode.o",
+            f"-c",
+            *cargs,
             f"{ZetaDir}/OrdDoublyLinkedNode.c",
         ]))
     )
@@ -316,8 +427,9 @@ def builder_add(builder):
         },
         lambda : os.system(" ".join([
             cc,
-            f"-o {ZetaDir}/DynamicVector.o",
-            *args,
+            f"--output {ZetaDir}/DynamicVector.o",
+            f"-c",
+            *cargs,
             f"{ZetaDir}/DynamicVector.c",
         ]))
     )
@@ -348,8 +460,9 @@ def builder_add(builder):
         },
         lambda : os.system(" ".join([
             cc,
-            f"-o {ZetaDir}/MultiLevelEntryTable.o",
-            *args,
+            f"--output {ZetaDir}/MultiLevelEntryTable.o",
+            f"-c",
+            *cargs,
             f"{ZetaDir}/MultiLevelEntryTable.c",
         ]))
     )
@@ -380,8 +493,9 @@ def builder_add(builder):
         },
         lambda : os.system(" ".join([
             cc,
-            f"-o {ZetaDir}/MultiLevelHashTable.o",
-            *args,
+            f"--output {ZetaDir}/MultiLevelHashTable.o",
+            f"-c",
+            *cargs,
             f"{ZetaDir}/MultiLevelHashTable.c",
         ]))
     )
@@ -412,8 +526,9 @@ def builder_add(builder):
         },
         lambda : os.system(" ".join([
             cc,
-            f"-o {ZetaDir}/NearCntRBTreeNode.o",
-            *args,
+            f"--output {ZetaDir}/NearCntRBTreeNode.o",
+            f"-c",
+            *cargs,
             f"{ZetaDir}/NearCntRBTreeNode.c",
         ]))
     )
@@ -444,8 +559,9 @@ def builder_add(builder):
         },
         lambda : os.system(" ".join([
             cc,
-            f"-o {ZetaDir}/NearRBTreeNode.o",
-            *args,
+            f"--output {ZetaDir}/NearRBTreeNode.o",
+            f"-c",
+            *cargs,
             f"{ZetaDir}/NearRBTreeNode.c",
         ]))
     )
@@ -464,7 +580,11 @@ def builder_add(builder):
         {
             f"{File}",
             f"{ZetaDir}/OrdAllocator.h",
+            f"{ZetaDir}/Algorithm.h",
+            f"{ZetaDir}/DebugTreeMap.h",
             f"{ZetaDir}/RBTree.h",
+            f"{ZetaDir}/RawVector.h",
+            f"{ZetaDir}/utils.h",
         },
         lambda : 0
     )
@@ -477,8 +597,9 @@ def builder_add(builder):
         },
         lambda : os.system(" ".join([
             cc,
-            f"-o {ZetaDir}/OrdAllocator.o",
-            *args,
+            f"--output {ZetaDir}/OrdAllocator.o",
+            f"-c",
+            *cargs,
             f"{ZetaDir}/OrdAllocator.c",
         ]))
     )
@@ -509,8 +630,9 @@ def builder_add(builder):
         },
         lambda : os.system(" ".join([
             cc,
-            f"-o {ZetaDir}/OrdRBTreeNode.o",
-            *args,
+            f"--output {ZetaDir}/OrdRBTreeNode.o",
+            f"-c",
+            *cargs,
             f"{ZetaDir}/OrdRBTreeNode.c",
         ]))
     )
@@ -541,8 +663,9 @@ def builder_add(builder):
         },
         lambda : os.system(" ".join([
             cc,
-            f"-o {ZetaDir}/OrdCntRBTreeNode.o",
-            *args,
+            f"--output {ZetaDir}/OrdCntRBTreeNode.o",
+            f"-c",
+            *cargs,
             f"{ZetaDir}/OrdCntRBTreeNode.c",
         ]))
     )
@@ -573,8 +696,9 @@ def builder_add(builder):
         },
         lambda : os.system(" ".join([
             cc,
-            f"-o {ZetaDir}/PoolAllocator.o",
-            *args,
+            f"--output {ZetaDir}/PoolAllocator.o",
+            f"-c",
+            *cargs,
             f"{ZetaDir}/PoolAllocator.c",
         ]))
     )
@@ -605,8 +729,9 @@ def builder_add(builder):
         },
         lambda : os.system(" ".join([
             cc,
-            f"-o {ZetaDir}/random.o",
-            *args,
+            f"--output {ZetaDir}/random.o",
+            f"-c",
+            *cargs,
             f"{ZetaDir}/random.c",
         ]))
     )
@@ -637,8 +762,9 @@ def builder_add(builder):
         },
         lambda : os.system(" ".join([
             cc,
-            f"-o {ZetaDir}/RawVector.o",
-            *args,
+            f"--output {ZetaDir}/RawVector.o",
+            f"-c",
+            *cargs,
             f"{ZetaDir}/RawVector.c",
         ]))
     )
@@ -670,8 +796,9 @@ def builder_add(builder):
         },
         lambda : os.system(" ".join([
             cc,
-            f"-o {ZetaDir}/RBTree.o",
-            *args,
+            f"--output {ZetaDir}/RBTree.o",
+            f"-c",
+            *cargs,
             f"{ZetaDir}/RBTree.c",
         ]))
     )
@@ -703,8 +830,9 @@ def builder_add(builder):
         },
         lambda : os.system(" ".join([
             cc,
-            f"-o {ZetaDir}/SHA256.o",
-            *args,
+            f"--output {ZetaDir}/SHA256.o",
+            f"-c",
+            *cargs,
             f"{ZetaDir}/SHA256.c",
         ]))
     )
@@ -736,8 +864,9 @@ def builder_add(builder):
         },
         lambda : os.system(" ".join([
             cc,
-            f"-o {ZetaDir}/SlabAllocator.o",
-            *args,
+            f"--output {ZetaDir}/SlabAllocator.o",
+            f"-c",
+            *cargs,
             f"{ZetaDir}/SlabAllocator.c",
         ]))
     )
@@ -768,8 +897,9 @@ def builder_add(builder):
         },
         lambda : os.system(" ".join([
             cc,
-            f"-o {ZetaDir}/utils.o",
-            *args,
+            f"--output {ZetaDir}/utils.o",
+            f"-c",
+            *cargs,
             f"{ZetaDir}/utils.c",
         ]))
     )

@@ -31,14 +31,14 @@ struct Zeta_SHA256Hasher {
  * @param data The target data.
  * @param size The number of bytes of data.
  */
-void Zeta_SHA256_Hash(byte_t* dst, const byte_t* data, size_t size);
+EXTERN_C void Zeta_SHA256_Hash(byte_t* dst, const byte_t* data, size_t size);
 
 /**
  * @brief Initialize the hasher
  *
  * @param hasher The target hasher.
  */
-void Zeta_SHA256Hasher_Init(void* hasher);
+EXTERN_C void Zeta_SHA256Hasher_Init(void* hasher);
 
 /**
  * @brief Get the size(byte) of inputted data.
@@ -47,7 +47,7 @@ void Zeta_SHA256Hasher_Init(void* hasher);
  *
  * @return The size(byte) of inputted data.
  */
-size_t Zeta_SHA256Hasher_GetSize(void* hasher);
+EXTERN_C size_t Zeta_SHA256Hasher_GetSize(void* hasher);
 
 /**
  * @brief Get the size(byte) of result. Always return 32.
@@ -56,7 +56,7 @@ size_t Zeta_SHA256Hasher_GetSize(void* hasher);
  *
  * @return The size(byte) of result. Always return 32.
  */
-size_t Zeta_SHA256Hasher_GetResultSize(void* hasher);
+EXTERN_C size_t Zeta_SHA256Hasher_GetResultSize(void* hasher);
 
 /**
  * @brief Get the size(byte) of result. Always return 32.
@@ -64,7 +64,7 @@ size_t Zeta_SHA256Hasher_GetResultSize(void* hasher);
  * @param hasher The target hasher.
  * @param dst The destination of result.
  */
-void Zeta_SHA256Hasher_GetResult(void* hasher, byte_t* dst);
+EXTERN_C void Zeta_SHA256Hasher_GetResult(void* hasher, byte_t* dst);
 
 /**
  * @brief Append new data after previous inputted data to hash.
@@ -73,4 +73,5 @@ void Zeta_SHA256Hasher_GetResult(void* hasher, byte_t* dst);
  * @param data The target data.
  * @param size The size(byte) of target data.
  */
-void Zeta_SHA256Hasher_Rotate(void* hasher, const byte_t* data, size_t size);
+EXTERN_C void Zeta_SHA256Hasher_Rotate(void* hasher, const byte_t* data,
+                                       size_t size);

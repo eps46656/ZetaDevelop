@@ -8,7 +8,17 @@
 #include <string.h>
 
 #if !defined(bool_t)
+#if defined(__cplusplus)
+#define bool_t bool
+#else
 #define bool_t _Bool
+#endif
+#endif
+
+#if defined(__cplusplus)
+#define EXTERN_C extern "C"
+#else
+#define EXTERN_C
 #endif
 
 typedef unsigned char byte_t;
@@ -146,10 +156,6 @@ typedef unsigned _BitInt(128) u128_t;
         s128_t: ((s128_t)(((s128_t)1 << 127) - 1)))
 
 #define ZETA_SIGNED(type) (ZETA_MINOF(type) < 0)
-
-#define ZETA_DECL_STRUCT(type) \
-    typedef struct type type;  \
-    struct type
 
 #define ZETA_ADDR_OFFSET(ptr, offset) \
     ((void *)(intptr_t)((intptr_t)(void *)(ptr) + offset))

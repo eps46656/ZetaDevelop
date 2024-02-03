@@ -2,7 +2,9 @@
 
 #include "define.h"
 
-ZETA_DECL_STRUCT(Zeta_Allocator) {
+typedef struct Zeta_Allocator Zeta_Allocator;
+
+struct Zeta_Allocator {
     void *context;
 
     void *(*Allocate)(void *context, size_t size);

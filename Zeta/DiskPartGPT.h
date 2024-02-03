@@ -1,12 +1,12 @@
 #pragma once
 
-//
-
 #include "define.h"
 
 #define Zeta_GPT_max_num_of_partition 128
 
-ZETA_DECL_STRUCT(Zeta_DiskPart_GPT) {
+typedef struct Zeta_DiskPart_GPT Zeta_DiskPart_GPT;
+
+struct Zeta_DiskPart_GPT {
     char sign[8];
 
     size_t revision_num;
@@ -28,7 +28,9 @@ ZETA_DECL_STRUCT(Zeta_DiskPart_GPT) {
     size_t crc32_of_part_entries;
 };
 
-ZETA_DECL_STRUCT(Zeta_DiskPart_GPT_PartEntry) {
+typedef struct Zeta_DiskPart_GPT_PartEntry Zeta_DiskPart_GPT_PartEntry;
+
+struct Zeta_DiskPart_GPT_PartEntry {
     u128_t type_guid;
     u128_t part_guid;
 
@@ -40,5 +42,5 @@ ZETA_DECL_STRUCT(Zeta_DiskPart_GPT_PartEntry) {
     char name[72];
 };
 
-const byte_t* Zeta_DiskPart_GPT_ReadHeader(Zeta_DiskPart_GPTHeader* dst,
-                                           const byte_t* data);
+EXTERN_C const byte_t* Zeta_DiskPart_GPT_ReadHeader(
+    Zeta_DiskPart_GPTHeader* dst, const byte_t* data);

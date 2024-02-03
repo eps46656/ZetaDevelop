@@ -48,12 +48,16 @@ Zeta_CntBinTreeNodeOpr cbtn_opr = {
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 
-ZETA_DECL_STRUCT(GPListNode) {
+typedef struct GPListNode GPListNode;
+
+struct GPListNode {
     Zeta_OrdCntRBTreeNode n;
     val_t val;
 };
 
-ZETA_DECL_STRUCT(GPList) {
+typedef struct GPList GPList;
+
+struct GPList {
     void* root;
     Zeta_OrdCntRBTreeNode* lb;
     Zeta_OrdCntRBTreeNode* rb;

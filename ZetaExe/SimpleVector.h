@@ -2,7 +2,9 @@
 
 #include "test_head.h"
 
-ZETA_DECL_STRUCT(SimpleVector) {
+typedef struct SimpleVector SimpleVector;
+
+struct SimpleVector {
     size_t capacity;
     size_t size;
     val_t* data;
