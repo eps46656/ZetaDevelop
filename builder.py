@@ -140,8 +140,11 @@ class Builder:
 
         mtimes = { unit: GetMTime(unit) for unit in v }
 
-        non_built = []
+        not_built = []
         built = []
+
+        ybeg = "\033[93m"
+        yend = "\033[0m"
 
         for unit in reversed(v):
             if len(self.deps[unit]) == 0:
@@ -150,13 +153,13 @@ class Builder:
             adj_mtime = max(mtimes[dep] for dep in self.deps[unit])
 
             if not rebuild and adj_mtime <= mtimes[unit]:
-                non_built.append(unit)
+                not_built.append(unit)
                 continue
 
-            print(f"\033[93mbuilding:\033[0m {unit}")
+            print(f"{ybeg}building:{yend} {unit}")
             rc = self.callbacks[unit]()
 
-            assert rc == 0, f"error happened when building \033[93m{unit}\033[0m"
+            assert rc == 0, f"error happened when building {ybeg}{unit}{ybeg}"
 
             assert os.path.exists(unit), \
                    f"unit {unit} does not exist after built"
@@ -167,4 +170,4 @@ class Builder:
             SetMTime(unit, now)
             mtimes[unit] = now
 
-        return non_built, built
+        return not_built, built

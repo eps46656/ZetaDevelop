@@ -3,7 +3,7 @@
 #include "Allocator.h"
 #include "DoublyLinkedNode.h"
 
-#define Zeta_SlabAllocator_max_num_of_types ZETA_MAXOF(u8_t)
+#define ZETA_SlabAllocator_max_num_of_types ZETA_maxof(u8_t)
 
 /*
 

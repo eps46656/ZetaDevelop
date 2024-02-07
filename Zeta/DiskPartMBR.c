@@ -1,13 +1,14 @@
 #include "DiskPartMBR.h"
+
 #include "utils.h"
 
 #define MASK_6 ((u32_t)0b111111)
 #define MASK_8 ((u32_t)0b11111111)
 
-ZETA_STATIC_ASSERT(4 <= sizeof(u32_t))
+ZETA_StaticAssert(4 <= sizeof(u32_t))
 
-static const byte_t* Zeta_ReadPartInfo(Zeta_MBRInfo_PartEntry* dst,
-                                       const byte_t* data) {
+    static const byte_t* Zeta_ReadPartInfo(Zeta_MBRInfo_PartEntry* dst,
+                                           const byte_t* data) {
     dst->state = data[0];
     ++data;
 

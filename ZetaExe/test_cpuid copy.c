@@ -34,24 +34,24 @@ int main() {
 
     GetCpuInfo(&cpu_info);
 
-    ZETA_PRINT_POS;
+    ZETA_PrintPos;
 
-    ZETA_PRINT_VAR("%s", cpu_info.vender_id);
-    ZETA_PRINT_VAR("%d", cpu_info.type);
-    ZETA_PRINT_VAR("%d", cpu_info.family);
-    ZETA_PRINT_VAR("%d", cpu_info.ext_family);
-    ZETA_PRINT_VAR("%d", cpu_info.model);
-    ZETA_PRINT_VAR("%d", cpu_info.ext_model);
-    ZETA_PRINT_VAR("%d", cpu_info.stepping);
+    ZETA_PrintVar("%s", cpu_info.vender_id);
+    ZETA_PrintVar("%d", cpu_info.type);
+    ZETA_PrintVar("%d", cpu_info.family);
+    ZETA_PrintVar("%d", cpu_info.ext_family);
+    ZETA_PrintVar("%d", cpu_info.model);
+    ZETA_PrintVar("%d", cpu_info.ext_model);
+    ZETA_PrintVar("%d", cpu_info.stepping);
     */
 
     RX rip_a = GetRIPA();
     RX rip_b = GetRIPB();
     RX func_ptr = (RX)TargetFunc;
 
-    ZETA_PRINT_VAR("%lld", rip_a);
-    ZETA_PRINT_VAR("%lld", rip_b);
-    ZETA_PRINT_VAR("%lld", func_ptr);
+    ZETA_PrintVar("%lld", rip_a);
+    ZETA_PrintVar("%lld", rip_b);
+    ZETA_PrintVar("%lld", func_ptr);
 
     return 0;
 }

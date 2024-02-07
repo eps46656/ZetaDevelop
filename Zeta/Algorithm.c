@@ -72,80 +72,6 @@ static void Zeta_InsertionSort_(Zeta_Vector* vec, size_t beg, size_t end,
 
 static const size_t Zeta_InsertionSort_Threshold = 32;
 
-/*
-static void Zeta_ShellSort_(Zeta_Vector* vec,  size_t beg,
-                            size_t end, void* cmper_context,
-                            int (*cmper)(void* cmper_context, const void* x,
-                                         const void* y)) {
-    size_t gaps[] = {
-        1,
-        9,
-        34,
-        182,
-        836,
-        4025,
-        19001,
-        90358,
-        428481,
-        2034035,
-        9651787,
-        45806244,
-        217378076,
-        1031612713,
-        4895689348,
-        23233383508,
-        110258103799,
-        523249458736,
-        2483172990911,
-        11784338112247,
-        55924666344750,
-        265400424550505,
-        1259504788813791,
-        5977203382848010,
-    };
-
-    size_t size = (end - beg) / stride;
-
-    size_t gap_i;
-
-    {
-        size_t lb = 0;
-        size_t rb = sizeof(gaps) / sizeof(gaps[0]) - 1;
-
-        while (lb < rb) {
-            size_t mb = (lb + rb + 1) / 2;
-
-            if (size * 4 <= gaps[mb]) {
-                rb = mb - 1;
-            } else {
-                lb = mb;
-            }
-        }
-
-        gap_i = lb;
-    }
-
-    for (; 0 <= gap_i; --gap_i) {
-        size_t gap = gaps[gap_i];
-
-        for (size_t g = 0; g < gap; ++g) {
-            size_t subgroup_end =
-                beg +  gap * ((size - g + gap - 1) / gap);
-
-            // ZETA_DEBUG_ASSERT(subgroup_last < end);
-
-            size_t _ = (subgroup_end - end) / stride;
-
-            ZETA_DEBUG_ASSERT(0 <= _);
-            ZETA_DEBUG_ASSERT(_ < gap);
-
-            Zeta_InsertionSort_(vec, width,  gap, beg +  g,
-                                subgroup_end, cmper_context, cmper);
-        }
-    }
-}
-*/
-
 static size_t Zeta_Partition_(Zeta_Vector* vec, size_t beg, size_t end,
                               void* cmper_context,
                               int (*cmper)(void* cmper_context, const void* x,
@@ -299,21 +225,21 @@ void Zeta_KthElement(Zeta_Vector* vec, size_t beg, size_t mid, size_t end,
                      void* cmper_context,
                      int (*cmper)(void* cmper_context, const void* x,
                                   const void* y)) {
-    ZETA_DEBUG_ASSERT(vec != NULL);
-    ZETA_DEBUG_ASSERT(vec->GetSize != NULL);
-    ZETA_DEBUG_ASSERT(vec->Access != NULL);
+    ZETA_DebugAssert(vec != NULL);
+    ZETA_DebugAssert(vec->GetSize != NULL);
+    ZETA_DebugAssert(vec->Access != NULL);
 
     void* vec_context = vec->context;
 
     size_t width = vec->GetWidth(vec_context);
-    ZETA_DEBUG_ASSERT(0 < width);
+    ZETA_DebugAssert(1 <= width);
 
     size_t size = vec->GetSize(vec_context);
 
-    ZETA_DEBUG_ASSERT(0 <= beg);
-    ZETA_DEBUG_ASSERT(beg <= mid);
-    ZETA_DEBUG_ASSERT(mid <= end);
-    ZETA_DEBUG_ASSERT(end <= size);
+    ZETA_DebugAssert(0 <= beg);
+    ZETA_DebugAssert(beg <= mid);
+    ZETA_DebugAssert(mid <= end);
+    ZETA_DebugAssert(end <= size);
 
     if (mid != end) {
         Zeta_KthElement_(vec, beg, mid, end, cmper_context, cmper);
@@ -357,20 +283,20 @@ void Zeta_Sort_(size_t chance, Zeta_Vector* vec, size_t beg, size_t end,
 void Zeta_Sort(Zeta_Vector* vec, size_t beg, size_t end, void* cmper_context,
                int (*cmper)(void* cmper_context, const void* x,
                             const void* y)) {
-    ZETA_DEBUG_ASSERT(vec != NULL);
-    ZETA_DEBUG_ASSERT(vec->GetSize != NULL);
-    ZETA_DEBUG_ASSERT(vec->Access != NULL);
+    ZETA_DebugAssert(vec != NULL);
+    ZETA_DebugAssert(vec->GetSize != NULL);
+    ZETA_DebugAssert(vec->Access != NULL);
 
     void* vec_context = vec->context;
 
     size_t width = vec->GetWidth(vec_context);
-    ZETA_DEBUG_ASSERT(0 < width);
+    ZETA_DebugAssert(1 <= width);
 
     size_t size = vec->GetSize(vec_context);
 
-    ZETA_DEBUG_ASSERT(0 <= beg)
-    ZETA_DEBUG_ASSERT(beg <= end);
-    ZETA_DEBUG_ASSERT(end <= size);
+    ZETA_DebugAssert(0 <= beg);
+    ZETA_DebugAssert(beg <= end);
+    ZETA_DebugAssert(end <= size);
 
     Zeta_Sort_(size * 4, vec, beg, end, cmper_context, cmper);
 }

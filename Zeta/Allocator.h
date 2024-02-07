@@ -5,9 +5,11 @@
 typedef struct Zeta_Allocator Zeta_Allocator;
 
 struct Zeta_Allocator {
-    void *context;
+    void* context;
 
-    void *(*Allocate)(void *context, size_t size);
+    size_t (*Query)(void* context, size_t size);
 
-    void (*Deallocate)(void *context, void *ptr);
+    void* (*Allocate)(void* context, size_t size);
+
+    void (*Deallocate)(void* context, void* ptr);
 };

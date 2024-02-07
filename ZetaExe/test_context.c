@@ -137,14 +137,14 @@ int main() {
     func1_ret = INT_MAX;
     func2_ret = INT_MAX;
 
-    ZETA_PRINT_POS;
+    ZETA_PrintPos;
 
     do {
         Thread_Switch(&main_thread, &func1_thread);
-        ZETA_PRINT_VAR("%d\n", func1_ret);
+        ZETA_PrintVar("%d\n", func1_ret);
 
         Thread_Switch(&main_thread, &func2_thread);
-        ZETA_PRINT_VAR("%d\n", func2_ret);
+        ZETA_PrintVar("%d\n", func2_ret);
     } while (func2_ret != INT_MIN);
 
     return 0;

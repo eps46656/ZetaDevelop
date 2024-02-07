@@ -7,7 +7,7 @@
 
 ZETA_extern_c_beg;
 
-typedef struct Zeta_DynamicVector Zeta_DynamicVector;
+    typedef struct Zeta_DynamicVector Zeta_DynamicVector;
 
 /**
  * @brief A double-ended vector.
@@ -100,8 +100,12 @@ void* Zeta_DynamicVector_PushR(void* dv);
  *
  * @param dv The target DynamicVector.
  * @param idx The index of target element.
+ * @param callback_context The context which will be passed into Callback.
+ * @param Callback The Callback function will be called before erasing the
+ * target element.
  */
-void Zeta_DynamicVector_Erase(void* dv, size_t idx);
+void Zeta_DynamicVector_Erase(void* dv, size_t idx, void* callback_context,
+                              void (*Callback)(void* context, void* ptr));
 
 /**
  * @brief Pop an element at left end of dv. A syntatic sugar of
@@ -124,8 +128,12 @@ void Zeta_DynamicVector_PopR(void* dv);
  * erased. If Callback is NULL, it will be ignored and not called.
  *
  * @param dv The target dv.
+ * @param callback_context The context will be passed into Callback.
+ * @param Callback The Callback function will be called before erasing for each
+ * not NULL entry.
  */
-void Zeta_DynamicVector_EraseAll(void* dv);
+void Zeta_DynamicVector_EraseAll(void* dv, void* callback_context,
+                                 void (*Callback)(void* context, void* ptr));
 
 /**
  * @brief Construct a vector interface from dv. Place result at dst.

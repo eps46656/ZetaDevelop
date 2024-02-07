@@ -1,20 +1,26 @@
-typedef unsigned long long key_t;
-typedef unsigned long long val_t;
+#pragma once
 
 #include "define.h"
 
-EXTERN_C void* DebugHashTable_Create();
+ZETA_extern_c_beg;
 
-EXTERN_C void DebugHashTable_Destroy(void* ht);
+    typedef unsigned long long key_t;
+typedef unsigned long long val_t;
 
-EXTERN_C size_t DebugHashTable_GetSize(void* ht);
+void* DebugHashTable_Create();
 
-EXTERN_C val_t* DebugHashTable_Access(void* ht, key_t key);
+void DebugHashTable_Destroy(void* ht);
 
-EXTERN_C val_t* DebugHashTable_Insert(void* ht, key_t key);
+size_t DebugHashTable_GetSize(void* ht);
 
-EXTERN_C bool_t DebugHashTable_Erase(void* ht, key_t key);
+val_t* DebugHashTable_Access(void* ht, key_t key);
 
-EXTERN_C void DebugHashTable_EraseAll(void* ht);
+val_t* DebugHashTable_Insert(void* ht, key_t key);
 
-EXTERN_C void DebugHashTable_Print(void* ht);
+bool_t DebugHashTable_Erase(void* ht, key_t key);
+
+void DebugHashTable_EraseAll(void* ht);
+
+void DebugHashTable_Print(void* ht);
+
+ZETA_extern_c_end;

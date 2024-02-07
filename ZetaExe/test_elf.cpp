@@ -2,6 +2,7 @@
 #include <iostream>
 #include <string>
 #include <vector>
+
 #include "../Zeta/define.h"
 
 typedef unsigned char byte_t;
@@ -23,8 +24,8 @@ typedef unsigned long long ull;
 // -----------------------------------------------------------------------------
 
 size_t ReadLittleEndian(const byte_t* data, int length) {
-    ZETA_DEBUG_ASSERT(0 <= length);
-    ZETA_DEBUG_ASSERT((size_t)length <= sizeof(size_t));
+    ZETA_DebugAssert(0 <= length);
+    ZETA_DebugAssert((size_t)length <= sizeof(size_t));
 
     size_t ret = 0;
 
@@ -34,8 +35,8 @@ size_t ReadLittleEndian(const byte_t* data, int length) {
 }
 
 size_t ReadBigEndian(const byte_t* data, int length) {
-    ZETA_DEBUG_ASSERT(0 <= length);
-    ZETA_DEBUG_ASSERT((size_t)length <= sizeof(size_t));
+    ZETA_DebugAssert(0 <= length);
+    ZETA_DebugAssert((size_t)length <= sizeof(size_t));
 
     size_t ret = 0;
 
@@ -130,9 +131,7 @@ struct ELF_Headers {
 // -----------------------------------------------------------------------------
 
 #define TMP(dst, val, str) \
-    case val:              \
-        dst = str;         \
-        break;
+    case val: dst = str; break;
 
 void ELF_PrintHeader(ELF_Header* header) {
     printf("ei_mag: %d %c(%d) %c(%d) %c(%d)\n", header->ei_mag[0],
@@ -168,8 +167,7 @@ void ELF_PrintHeader(ELF_Header* header) {
         TMP(ei_osabi_str, 0x11, "Nuxi CloudABI");
         TMP(ei_osabi_str, 0x12, "Stratus Technologies OpenVOS");
 
-        default:
-            ei_osabi_str = "Unknown";
+        default: ei_osabi_str = "Unknown";
     }
 
     printf("ei_osabi: %d(%s)\n", header->ei_version, ei_osabi_str);
@@ -185,9 +183,7 @@ void ELF_PrintHeader(ELF_Header* header) {
         TMP(e_type_str, 0x03, "Shared file");
         TMP(e_type_str, 0x04, "Core file");
 
-        default:
-            e_type_str = "Unkonwn";
-            break;
+        default: e_type_str = "Unkonwn"; break;
     }
 
     printf("e_type: %d(%s)\n", (int)header->e_type, e_type_str);
@@ -215,9 +211,7 @@ void ELF_PrintHeader(ELF_Header* header) {
 
         TMP(e_machine_str, 0xF3, "RISC-V");
 
-        default:
-            e_machine_str = "Unknown";
-            break;
+        default: e_machine_str = "Unknown"; break;
     }
 
     printf("e_machine: %d(0x%llX, %s)\n", (int)header->e_machine,
@@ -275,12 +269,12 @@ void ELF_ReadHeader(ELF_Header* dst, const byte_t* data) {
     data += 4;
 
     READ(dst->ei_class, 1);
-    ZETA_DEBUG_ASSERT(dst->ei_class == 1 || dst->ei_class == 2);
+    ZETA_DebugAssert(dst->ei_class == 1 || dst->ei_class == 2);
 
     int length = dst->ei_class == 1 ? 4 : 8;
 
     READ(dst->ei_data, 1);
-    ZETA_DEBUG_ASSERT(dst->ei_data == 1 || dst->ei_data == 2);
+    ZETA_DebugAssert(dst->ei_data == 1 || dst->ei_data == 2);
 
     if (dst->ei_data == 2) { ReadFunc = ReadBigEndian; }
 
@@ -361,12 +355,12 @@ void ELF_ReadSectionHeader(ELF_SectionHeader* dst, ELF_Header* header,
 // -----------------------------------------------------------------------------
 
 int main() {
-    std::fstream iofs{"./test_2.elf", std::ios::in | std::ios::binary};
+    std::fstream iofs{ "./test_2.elf", std::ios::in | std::ios::binary };
 
     std::vector<byte_t> data;
     while (iofs) { data.push_back((byte_t)iofs.get()); }
 
-    ZETA_PRINT_VAR("%zu\n", data.size());
+    ZETA_PrintVar("%zu\n", data.size());
 
     ELF_Header header;
 
@@ -384,7 +378,7 @@ int main() {
             &prog_headers[i], &header,
             data.data() + header.e_phoff + header.e_phentsize * i);
 
-        ZETA_PRINT_VAR("%llu", (ull)prog_headers[i].p_type);
+        ZETA_PrintVar("%llu", (ull)prog_headers[i].p_type);
     }
 
     printf("ok\n");

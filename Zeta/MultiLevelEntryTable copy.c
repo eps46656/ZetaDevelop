@@ -14,8 +14,11 @@ static void CheckIdxes_(void* mlet_, size_t* idxes) {
         size_t branch_num = mlet->branch_nums[level_i];
         size_t idx = idxes[level_i];
 
-        ZETA_DebugAssert(0 <= idx);
-        ZETA_DebugAssert(idx < branch_num);
+        ZETA_DebugAssert(2 <= branch_num);
+        ZETA_DebugAssert(branch_num <=
+                         ZETA_MultiLevelEntryTable_max_branch_num);
+
+        ZETA_DebugAssert(0 <= idx) ZETA_DebugAssert(idx < branch_num);
     }
 }
 
@@ -27,7 +30,6 @@ void Zeta_MultiLevelEntryTable_Init(void* mlet_) {
 
     if (level <= 0) {
         level = 6;
-        ZETA_StaticAssert(6 <= ZETA_MultiLevelEntryTable_max_level);
 
         mlet->level = level;
 
@@ -68,6 +70,10 @@ size_t Zeta_MultiLevelEntryTable_GetCapacity(void* mlet_) {
     for (int level_i = 0; level_i < level; ++level_i) {
         size_t branch_num = mlet->branch_nums[level_i];
 
+        ZETA_DebugAssert(2 <= branch_num);
+        ZETA_DebugAssert(branch_num <=
+                         ZETA_MultiLevelEntryTable_max_branch_num);
+
         ZETA_DebugAssert(ret <= ZETA_maxof(size_t) / branch_num);
 
         ret *= branch_num;
@@ -92,12 +98,12 @@ void** Zeta_MultiLevelEntryTable_Access(void* mlet_, size_t* idxes) {
     return n;
 }
 
-static void** FindPrevNotNull_(int level, const size_t* branch_nums,
-                               size_t* idxes, void* page) {
+static void** FindPrevNotNull_(int level, size_t* branch_nums, size_t* idxes,
+                               void* page) {
     size_t branch_num = branch_nums[0];
 
     if (level == 1) {
-        for (size_t idx = idxes[0] + 1; 1 <= idx--;) {
+        for (size_t idx = idxes[0] + 1; 1 <= --idx;) {
             if (((void**)page)[idx] != NULL) {
                 idxes[0] = idx;
                 return (void**)page + idx;
@@ -105,24 +111,10 @@ static void** FindPrevNotNull_(int level, const size_t* branch_nums,
         }
 
         idxes[0] = branch_num - 1;
-
         return NULL;
     }
 
-    if (((void**)page)[idxes[0]] == NULL) {
-        for (int level_i = 1; level_i < level; ++level_i) {
-            idxes[level_i] = branch_nums[level_i] - 1;
-        }
-
-        if (idxes[0] == 0) {
-            idxes[0] = branch_nums[0] - 1;
-            return NULL;
-        }
-
-        --idxes[0];
-    }
-
-    for (size_t idx = idxes[0] + 1; 1 <= idx--;) {
+    for (size_t idx = idxes[0] + 1; 1 <= --idx;) {
         void* subpage = ((void**)page)[idx];
         if (subpage == NULL) { continue; }
 
@@ -136,12 +128,11 @@ static void** FindPrevNotNull_(int level, const size_t* branch_nums,
     }
 
     idxes[0] = branch_num - 1;
-
     return NULL;
 }
 
-static void** FindNextNotNull_(int level, const size_t* branch_nums,
-                               size_t* idxes, void* page) {
+static void** FindNextNotNull_(int level, size_t* branch_nums, size_t* idxes,
+                               void* page) {
     size_t branch_num = branch_nums[0];
 
     if (level == 1) {
@@ -153,21 +144,7 @@ static void** FindNextNotNull_(int level, const size_t* branch_nums,
         }
 
         idxes[0] = 0;
-
         return NULL;
-    }
-
-    if (((void**)page)[idxes[0]] == NULL) {
-        for (int level_i = 1; level_i < level; ++level_i) {
-            idxes[level_i] = 0;
-        }
-
-        if (idxes[0] == branch_nums[0] - 1) {
-            idxes[0] = 0;
-            return NULL;
-        }
-
-        ++idxes[0];
     }
 
     for (size_t idx = idxes[0]; idx < branch_num; ++idx) {
@@ -184,7 +161,6 @@ static void** FindNextNotNull_(int level, const size_t* branch_nums,
     }
 
     idxes[0] = 0;
-
     return NULL;
 }
 
@@ -332,15 +308,25 @@ void Zeta_MultiLevelEntryTable_Erase(void* mlet_, size_t* idxes) {
     }
 
     mlet->root = NULL;
+
+    return;
 }
 
-static void EraseAll_(int level, const size_t* branch_nums, void* page,
+static void EraseAll_(int level, size_t* branch_nums, void* page,
                       void* allocator_context,
-                      void (*Deallocate)(void* context, void* ptr)) {
+                      void (*Deallocate)(void* context, void* ptr),
+                      void* callback_context,
+                      void (*Callback)(void* context, void* ptr)) {
     size_t branch_num = branch_nums[0];
 
     if (level == 1) {
-        Deallocate(allocator_context, page);
+        if (Callback == NULL) { return; }
+
+        for (size_t idx = 0; idx < branch_num; ++idx) {
+            void* ptr = ((void**)page)[idx];
+            if (ptr != NULL) { Callback(callback_context, ptr); }
+        }
+
         return;
     }
 
@@ -348,19 +334,30 @@ static void EraseAll_(int level, const size_t* branch_nums, void* page,
         void* subpage = ((void**)page)[idx];
 
         if (subpage != NULL) {
-            EraseAll_(level - 1, branch_nums + 1, subpage, allocator_context,
-                      Deallocate);
+            EraseAll_(level + 1, branch_nums + 1, subpage, allocator_context,
+                      Deallocate, callback_context, Callback);
         }
     }
 
     Deallocate(allocator_context, page);
 }
 
-void Zeta_MultiLevelEntryTable_EraseAll(void* mlet_) {
+void Zeta_MultiLevelEntryTable_EraseAll(void* mlet_, void* callback_context,
+                                        void (*Callback)(void* context,
+                                                         void* ptr)) {
     Zeta_MultiLevelEntryTable* mlet = mlet_;
     ZETA_DebugAssert(mlet != NULL);
 
     int level = mlet->level;
+    ZETA_DebugAssert(1 <= level);
+    ZETA_DebugAssert(level <= ZETA_MultiLevelEntryTable_max_level);
+
+    for (int level_i = 0; level_i < level; ++level_i) {
+        size_t branch_num = mlet->branch_nums[level_i];
+        ZETA_DebugAssert(2 <= branch_num);
+        ZETA_DebugAssert(branch_num <=
+                         ZETA_MultiLevelEntryTable_max_branch_num);
+    }
 
     void* n = mlet->root;
     if (n == NULL) { return; }
@@ -371,77 +368,38 @@ void Zeta_MultiLevelEntryTable_EraseAll(void* mlet_) {
     void (*Deallocate)(void* context, void* ptr) = allocator->Deallocate;
     ZETA_DebugAssert(Deallocate != NULL);
 
-    EraseAll_(level, mlet->branch_nums, n, allocator->context, Deallocate);
+    EraseAll_(level, mlet->branch_nums, n, allocator->context, Deallocate,
+              callback_context, Callback);
 
     mlet->root = NULL;
 }
 
-static bool_t IsClean_(int level, const size_t* branch_nums, void* page) {
+static bool_t Clear_(
+    int level, size_t* branch_nums, void* page, void* allocator_context,
+    void (*Deallocate)(void* context,
+                       void* ptr)) {  // return if exists any entry
+    if (level == 0) { return 0; }
+
     size_t branch_num = branch_nums[0];
 
-    if (level == 1) {
-        for (size_t idx = 0; idx < branch_num; ++idx) {
-            if (((void**)page)[idx] != NULL) { return TRUE; }
-        }
-
-        return FALSE;
-    }
-
-    bool_t has_subpage = FALSE;
+    bool_t has_entries = 0;
 
     for (size_t idx = 0; idx < branch_num; ++idx) {
         void* subpage = ((void**)page)[idx];
         if (subpage == NULL) { continue; }
 
-        has_subpage = TRUE;
-
-        if (!IsClean_(level - 1, branch_nums + 1, subpage)) { return FALSE; }
-    }
-
-    return has_subpage;
-}
-
-bool_t Zeta_MultiLevelEntryTable_IsClean(void* mlet_) {
-    Zeta_MultiLevelEntryTable* mlet = mlet_;
-    ZETA_DebugAssert(mlet != NULL);
-
-    void* n = mlet->root;
-
-    return n == NULL || IsClean_(mlet->level, mlet->branch_nums, n);
-}
-
-static bool_t Clear_(int level, const size_t* branch_nums, void* page,
-                     void* allocator_context,
-                     void (*Deallocate)(void* context, void* ptr)) {
-    size_t branch_num = branch_nums[0];
-
-    if (level == 1) {
-        for (size_t idx = 0; idx < branch_num; ++idx) {
-            if (((void**)page)[idx] != NULL) { return TRUE; }
-        }
-
-        return FALSE;
-    }
-
-    bool_t has_entries = FALSE;
-
-    for (size_t idx = 0; idx < branch_num; ++idx) {
-        void* subpage = ((void**)page)[idx];
-        if (subpage == NULL) { continue; }
-
-        if (Clear_(level - 1, branch_nums + 1, subpage, allocator_context,
+        if (Clear_(level + 1, branch_nums + 1, subpage, allocator_context,
                    Deallocate)) {
-            has_entries = TRUE;
+            has_entries = 1;
         } else {
             ((void**)page)[idx] = NULL;
         }
     }
 
-    if (has_entries) { return TRUE; }
+    if (has_entries) { return 1; }
 
     Deallocate(allocator_context, page);
-
-    return FALSE;
+    return 0;
 }
 
 void Zeta_MultiLevelEntryTable_Clear(void* mlet_) {
@@ -449,6 +407,15 @@ void Zeta_MultiLevelEntryTable_Clear(void* mlet_) {
     ZETA_DebugAssert(mlet != NULL);
 
     int level = mlet->level;
+    ZETA_DebugAssert(1 <= level);
+    ZETA_DebugAssert(level <= ZETA_MultiLevelEntryTable_max_level);
+
+    for (int level_i = 0; level_i < level; ++level_i) {
+        size_t branch_num = mlet->branch_nums[level_i];
+        ZETA_DebugAssert(2 <= branch_num);
+        ZETA_DebugAssert(branch_num <=
+                         ZETA_MultiLevelEntryTable_max_branch_num);
+    }
 
     void* n = mlet->root;
     if (n == NULL) { return; }
@@ -464,8 +431,8 @@ void Zeta_MultiLevelEntryTable_Clear(void* mlet_) {
     }
 }
 
-static void GetAllPages_(Zeta_DebugTreeMap* dst, int level,
-                         const size_t* branch_nums, void* page) {
+static void GetAllPages_(Zeta_DebugTreeMap* dst, void* page, int level,
+                         const size_t* branch_nums) {
     Zeta_DebugTreeMap_Insert(dst, (size_t)(uintptr_t)page);
 
     if (level == 0) { return; }
@@ -474,7 +441,7 @@ static void GetAllPages_(Zeta_DebugTreeMap* dst, int level,
         void* subpage = ((void**)page)[i];
 
         if (subpage != NULL) {
-            GetAllPages_(dst, level - 1, branch_nums + 1, subpage);
+            GetAllPages_(dst, subpage, level - 1, branch_nums + 1);
         }
     }
 }
@@ -487,6 +454,6 @@ void Zeta_MultiLevelEntryTable_GetAllPages(void* mlet_,
     ZETA_DebugAssert(dst != NULL);
 
     if (mlet->root != NULL) {
-        GetAllPages_(dst, mlet->level - 1, mlet->branch_nums, mlet->root);
+        GetAllPages_(dst, mlet->root, mlet->level - 1, mlet->branch_nums);
     }
 }

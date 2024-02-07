@@ -164,10 +164,13 @@ void* Zeta_DynamicVector_Insert(void* dv_, size_t idx) {
                      Access_(dv, hole_idx - 1));
     }
 
+    ZETA_PrintPos;
+
     return Access_(dv, idx);
 }
 
-void Zeta_DynamicVector_Erase(void* dv_, size_t idx) {
+void Zeta_DynamicVector_Erase(void* dv_, size_t idx, void* callback_context,
+                              void (*Callback)(void* context, void* ptr)) {
     Zeta_DynamicVector* dv = dv_;
     ZETA_DebugAssert(dv != NULL);
 
@@ -196,6 +199,8 @@ void Zeta_DynamicVector_Erase(void* dv_, size_t idx) {
     ZETA_DebugAssert(0 <= idx);
     ZETA_DebugAssert(idx < dv->size);
 
+    if (Callback != NULL) { Callback(callback_context, Access_(dv, idx)); }
+
     if (idx < dv->size - 1 - idx) {  // l move
         for (; 0 < idx; --idx) {
             Zeta_MemCopy(dv->width, Access_(dv, idx), Access_(dv, idx - 1));
@@ -209,10 +214,8 @@ void Zeta_DynamicVector_Erase(void* dv_, size_t idx) {
             size_t idxes[ZETA_MultiLevelEntryTable_max_level];
             GetIdxes_(dv, idxes, cluster_i);
 
-            Deallocate(allocator_context,
-                       *Zeta_MultiLevelEntryTable_Access(&dv->mlet, idxes));
-
-            Zeta_MultiLevelEntryTable_Erase(&dv->mlet, idxes);
+            Zeta_MultiLevelEntryTable_Erase(&dv->mlet, idxes, allocator_context,
+                                            Deallocate);
         }
 
         dv->offset = (dv->offset + 1) % capacity;
@@ -230,10 +233,8 @@ void Zeta_DynamicVector_Erase(void* dv_, size_t idx) {
             size_t idxes[ZETA_MultiLevelEntryTable_max_level];
             GetIdxes_(dv, idxes, cluster_i);
 
-            Deallocate(allocator_context,
-                       *Zeta_MultiLevelEntryTable_Access(&dv->mlet, idxes));
-
-            Zeta_MultiLevelEntryTable_Erase(&dv->mlet, idxes);
+            Zeta_MultiLevelEntryTable_Erase(&dv->mlet, idxes, allocator_context,
+                                            Deallocate);
         }
 
         --dv->size;
@@ -270,7 +271,39 @@ void Zeta_DynamicVector_PopR(void* dv_) {
     Zeta_DynamicVector_Erase(dv, dv->size - 1);
 }
 
-void Zeta_DynamicVector_EraseAll(void* dv_) {
+typedef struct EraseAllCallbackContext EraseAllCallbackContext;
+
+struct EraseAllCallbackContext {
+    Zeta_DynamicVector* dv;
+    void* callback_context;
+    void (*Callback)(void* context, void* ptr);
+};
+
+static void EraseAllCallback_(void* context_, void* ptr) {
+    EraseAllCallbackContext* context = context_;
+
+    Zeta_DynamicVector* dv = context->dv;
+    void* callback_context = context->callback_context;
+    void (*Callback)(void* context, void* ptr) = context->Callback;
+
+    for (size_t i = 0; i < dv->cluster_capacity; ++i) {
+        ZETA_PrintPos;
+        Callback(callback_context, ZETA_OffsetPtr(ptr, dv->width * i));
+    }
+
+    Zeta_Allocator* allocator = dv->allocator;
+    ZETA_DebugAssert(allocator != NULL);
+
+    void* allocator_context = allocator->context;
+
+    void (*Deallocate)(void* context, void* ptr) = allocator->Deallocate;
+    ZETA_DebugAssert(Deallocate != NULL);
+
+    Deallocate(allocator_context, ptr);
+}
+
+void Zeta_DynamicVector_EraseAll(void* dv_, void* callback_context,
+                                 void (*Callback)(void* context, void* ptr)) {
     Zeta_DynamicVector* dv = dv_;
     ZETA_DebugAssert(dv != NULL);
 
@@ -285,31 +318,23 @@ void Zeta_DynamicVector_EraseAll(void* dv_) {
         size_t real_idx = (dv->offset + 0) % capacity;
         if (real_idx % dv->cluster_capacity == 0) { break; }
 
-        Zeta_DynamicVector_Erase(dv, 0);
+        Zeta_DynamicVector_Erase(dv, 0, callback_context, Callback);
     }
 
     while (0 < dv->size) {
         size_t real_idx = (dv->offset + dv->size) % capacity;
         if (real_idx % dv->cluster_capacity == 0) { break; }
 
-        Zeta_DynamicVector_Erase(dv, dv->size - 1);
+        Zeta_DynamicVector_Erase(dv, dv->size - 1, callback_context, Callback);
     }
 
-    if (dv->size == 0) {
-        dv->offset = 0;
-        return;
-    }
+    EraseAllCallbackContext c = {
+        .dv = dv,
+        .callback_context = callback_context,
+        .Callback = Callback,
+    };
 
-    size_t idxes[ZETA_MultiLevelEntryTable_max_level];
-
-    size_t cluster_i_beg = dv->offset / dv->cluster_capacity;
-    size_t cluster_i_end =
-        (dv->offset + dv->size) % capacity % dv->cluster_capacity;
-
-    for (size_t i = cluster_i_beg; i < cluster_i_end; ++i) {
-        GetIdxes_(dv, idxes, i);
-        Zeta_MultiLevelEntryTable_Erase(&dv->mlet, idxes);
-    }
+    Zeta_MultiLevelEntryTable_EraseAll(&dv->mlet, &c, EraseAllCallback_);
 
     dv->offset = 0;
     dv->size = 0;

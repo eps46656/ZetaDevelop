@@ -1,5 +1,6 @@
 
 #include <stdio.h>
+
 #include "../Zeta/SHA256.h"
 #include "../Zeta/utils.h"
 
@@ -17,8 +18,8 @@ int main() {
 
     _BitInt(32) k_ = Zeta_ReadBigEndian(k_tmp, 4);
 
-    ZETA_PRINT_VAR("%llu", (ull)k);
-    ZETA_PRINT_VAR("%llu", (ull)k_);
+    ZETA_PrintVar("%llu", (ull)k);
+    ZETA_PrintVar("%llu", (ull)k_);
 
     byte_t tmp;
 
@@ -38,7 +39,7 @@ int main() {
         // Zeta_SHA256Hasher_Rotate(&hasher, &tmp, 1);
     }
 
-    ZETA_PRINT_VAR("%llu", hasher.size);
+    ZETA_PrintVar("%llu", hasher.size);
 
     byte_t digits[32];
 

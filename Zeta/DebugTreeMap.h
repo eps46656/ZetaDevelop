@@ -1,32 +1,44 @@
-typedef unsigned long long key_t;
-typedef unsigned long long val_t;
+#pragma once
 
 #include "define.h"
 
-typedef struct KeyValPair KeyValPair;
+ZETA_extern_c_beg;
 
-struct KeyValPair {
+typedef unsigned long long Zeta_DebugTreeMap_key_t;
+typedef unsigned long long Zeta_DebugTreeMap_val_t;
+
+typedef struct Zeta_DebugTreeMap Zeta_DebugTreeMap;
+
+typedef struct Zeta_DebugTreeMap_KeyValPair Zeta_DebugTreeMap_KeyValPair;
+
+struct Zeta_DebugTreeMap_KeyValPair {
     bool_t b;
-    const key_t* key;
-    val_t* val;
+    const Zeta_DebugTreeMap_key_t* key;
+    Zeta_DebugTreeMap_val_t* val;
 };
 
-EXTERN_C void* DebugTreeMap_Create();
+void* Zeta_DebugTreeMap_Create();
 
-EXTERN_C void DebugTreeMap_Destroy(void* tm);
+void Zeta_DebugTreeMap_Destroy(void* tm);
 
-EXTERN_C size_t DebugTreeMap_GetSize(void* tm);
+size_t Zeta_DebugTreeMap_GetSize(void* tm);
 
-EXTERN_C KeyValPair DebugTreeMap_Find(void* tm, key_t key);
+Zeta_DebugTreeMap_KeyValPair Zeta_DebugTreeMap_Find(
+    void* tm, Zeta_DebugTreeMap_key_t key);
 
-EXTERN_C KeyValPair DebugTreeMap_LowerBound(void* tm, key_t target);
+Zeta_DebugTreeMap_KeyValPair Zeta_DebugTreeMap_LowerBound(
+    void* tm, Zeta_DebugTreeMap_key_t target);
 
-EXTERN_C KeyValPair DebugTreeMap_UpperBound(void* tm, key_t target);
+Zeta_DebugTreeMap_KeyValPair Zeta_DebugTreeMap_UpperBound(
+    void* tm, Zeta_DebugTreeMap_key_t target);
 
-EXTERN_C KeyValPair DebugTreeMap_Insert(void* tm, key_t key);
+Zeta_DebugTreeMap_KeyValPair Zeta_DebugTreeMap_Insert(
+    void* tm, Zeta_DebugTreeMap_key_t key);
 
-EXTERN_C bool_t DebugTreeMap_Erase(void* tm, key_t key);
+bool_t Zeta_DebugTreeMap_Erase(void* tm, Zeta_DebugTreeMap_key_t key);
 
-EXTERN_C void DebugTreeMap_EraseAll(void* tm);
+void Zeta_DebugTreeMap_EraseAll(void* tm);
 
-EXTERN_C void DebugTreeMap_Print(void* tm);
+void Zeta_DebugTreeMap_Print(void* tm);
+
+ZETA_extern_c_end;

@@ -2,9 +2,11 @@
 
 #include "define.h"
 
-#define Zeta_GPT_max_num_of_partition 128
+ZETA_extern_c_beg;
 
-typedef struct Zeta_DiskPart_GPT Zeta_DiskPart_GPT;
+#define ZETA_GPT_max_num_of_partition 128
+
+    typedef struct Zeta_DiskPart_GPT Zeta_DiskPart_GPT;
 
 struct Zeta_DiskPart_GPT {
     char sign[8];
@@ -42,5 +44,7 @@ struct Zeta_DiskPart_GPT_PartEntry {
     char name[72];
 };
 
-EXTERN_C const byte_t* Zeta_DiskPart_GPT_ReadHeader(
-    Zeta_DiskPart_GPTHeader* dst, const byte_t* data);
+const byte_t* Zeta_DiskPart_GPT_ReadHeader(Zeta_DiskPart_GPTHeader* dst,
+                                           const byte_t* data);
+
+ZETA_extern_c_end;

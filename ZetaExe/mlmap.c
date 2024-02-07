@@ -21,12 +21,12 @@ struct MLMap {
 };
 
 void* MLMap_Allocate(void* context, size_t size) {
-    ZETA_UNUSED(context);
+    ZETA_Unused(context);
     return malloc(size);
 }
 
 void MLMap_Deallocate(void* context, void* ptr) {
-    ZETA_UNUSED(context);
+    ZETA_Unused(context);
     free(ptr);
 }
 
@@ -68,7 +68,7 @@ void* MLMap_Create() {
 
 size_t MLMap_GetSize(void* mlmap_) {
     MLMap* mlmap = mlmap_;
-    ZETA_DEBUG_ASSERT(mlmap != NULL);
+    ZETA_DebugAssert(mlmap != NULL);
 
     return mlmap->size;
 }
@@ -77,19 +77,19 @@ bool_t MLMap_IsNull(void* mlmapn_) { return mlmapn_ == NULL; }
 
 mlmap_val_t MLMap_GetVal(void* mlmapn_) {
     MLMapNode* mlmapn = mlmapn_;
-    ZETA_DEBUG_ASSERT(mlmapn != NULL);
+    ZETA_DebugAssert(mlmapn != NULL);
     return mlmapn->val;
 }
 
 void MLMap_SetVal(void* mlmapn_, mlmap_val_t val) {
     MLMapNode* mlmapn = mlmapn_;
-    ZETA_DEBUG_ASSERT(mlmapn != NULL);
+    ZETA_DebugAssert(mlmapn != NULL);
     mlmapn->val = val;
 }
 
 void* MLMap_Find(void* mlmap_, mlmap_key_t key) {
     MLMap* mlmap = mlmap_;
-    ZETA_DEBUG_ASSERT(mlmap != NULL);
+    ZETA_DebugAssert(mlmap != NULL);
 
     Zeta_MultiLevelHashTable* mlht = &mlmap->mlht;
     size_t hash_code = SimpleHashKey(key);
@@ -98,7 +98,7 @@ void* MLMap_Find(void* mlmap_, mlmap_key_t key) {
         Zeta_MultiLevelHashTable_Find(mlht, hash_code);
 
     while (mlhtn != NULL) {
-        MLMapNode* mlmapn = ZETA_FROM_MEM(MLMapNode, mlhtn, mlhtn);
+        MLMapNode* mlmapn = ZETA_GetStructFromMem(MLMapNode, mlhtn, mlhtn);
         if (key == mlmapn->key) { return mlmapn; }
         mlhtn = Zeta_MultiLevelHashTable_FindNext(mlhtn);
     }
@@ -108,13 +108,13 @@ void* MLMap_Find(void* mlmap_, mlmap_key_t key) {
 
 void* MLMap_FindNext(void* mlmapn_, mlmap_key_t key) {
     MLMapNode* mlmapn = mlmapn_;
-    ZETA_DEBUG_ASSERT(mlmapn != NULL);
+    ZETA_DebugAssert(mlmapn != NULL);
 
     Zeta_MultiLevelHashTableNode* mlhtn = &mlmapn->mlhtn;
     mlhtn = Zeta_MultiLevelHashTable_FindNext(mlhtn);
 
     while (mlhtn != NULL) {
-        MLMapNode* mlmapn = ZETA_FROM_MEM(MLMapNode, mlhtn, mlhtn);
+        MLMapNode* mlmapn = ZETA_GetStructFromMem(MLMapNode, mlhtn, mlhtn);
         if (key == mlmapn->key) { return mlmapn; }
         mlhtn = Zeta_MultiLevelHashTable_FindNext(mlhtn);
     }
@@ -124,7 +124,7 @@ void* MLMap_FindNext(void* mlmapn_, mlmap_key_t key) {
 
 void* MLMap_Insert(void* mlmap_, mlmap_key_t key, mlmap_val_t val) {
     MLMap* mlmap = mlmap_;
-    ZETA_DEBUG_ASSERT(mlmap != NULL);
+    ZETA_DebugAssert(mlmap != NULL);
 
     Zeta_MultiLevelHashTable* mlht = &mlmap->mlht;
 
@@ -144,10 +144,10 @@ void* MLMap_Insert(void* mlmap_, mlmap_key_t key, mlmap_val_t val) {
 
 void MLMap_Erase(void* mlmap_, void* mlmapn_) {
     MLMap* mlmap = mlmap_;
-    ZETA_DEBUG_ASSERT(mlmap != NULL);
+    ZETA_DebugAssert(mlmap != NULL);
 
     MLMapNode* mlmapn = mlmapn_;
-    ZETA_DEBUG_ASSERT(mlmapn != NULL);
+    ZETA_DebugAssert(mlmapn != NULL);
 
     Zeta_MultiLevelHashTable* mlht = &mlmap->mlht;
     Zeta_MultiLevelHashTableNode* mlhtn = &mlmapn->mlhtn;

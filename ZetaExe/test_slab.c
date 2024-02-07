@@ -1,4 +1,5 @@
 #include <stddef.h>
+
 #include "../Zeta/Algorithm.h"
 #include "../Zeta/PoolAllocator.h"
 #include "../Zeta/RawVector.h"
@@ -33,7 +34,7 @@ int main() {
     }
 
     int num_of_types = type_i;
-    ZETA_PRINT_VAR("%d", num_of_types);
+    ZETA_PrintVar("%d", num_of_types);
 
     Zeta_PoolAllocator pa_;
     Zeta_Allocator pa;

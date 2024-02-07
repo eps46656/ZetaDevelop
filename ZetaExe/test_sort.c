@@ -1,4 +1,5 @@
 #include <stddef.h>
+
 #include "../Zeta/Algorithm.h"
 #include "../Zeta/RawVector.h"
 #include "../Zeta/random.h"
@@ -6,7 +7,7 @@
 typedef long long int lli;
 
 int Comparer(void* context, const void* x, const void* y) {
-    ZETA_UNUSED(context);
+    ZETA_Unused(context);
 
     lli x_val = *(const lli*)(x);
     lli y_val = *(const lli*)(y);
@@ -24,9 +25,9 @@ void Print(int* beg, int* end) {
 void CMySort(void* arr_, lli size, lli beg, lli end) {
     lli* arr = arr_;
 
-    ZETA_DEBUG_ASSERT(0 <= beg);
-    ZETA_DEBUG_ASSERT(beg <= end);
-    ZETA_DEBUG_ASSERT(end <= size);
+    ZETA_DebugAssert(0 <= beg);
+    ZETA_DebugAssert(beg <= end);
+    ZETA_DebugAssert(end <= size);
 
     Zeta_RawVector lli_raw_vector = {
         .data = arr,
@@ -101,9 +102,9 @@ int main() {
 
         lli pivot = arr[mid];
 
-        for (size_t i = beg; i < mid; ++i) { ZETA_ASSERT(arr[i] <= pivot); }
+        for (size_t i = beg; i < mid; ++i) { ZETA_Assert(arr[i] <= pivot); }
 
-        for (size_t i = mid + 1; i < end; ++i) { ZETA_ASSERT(pivot <= arr[i]); }
+        for (size_t i = mid + 1; i < end; ++i) { ZETA_Assert(pivot <= arr[i]); }
 
         printf("ok %d\n", test_i);
     }

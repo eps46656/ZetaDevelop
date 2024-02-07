@@ -2,7 +2,9 @@
 
 #include "define.h"
 
-typedef struct Zeta_Pagin_PageTable_Intel_32 Zeta_Pagin_PageTable_Intel_32;
+ZETA_extern_c_beg;
+
+    typedef struct Zeta_Pagin_PageTable_Intel_32 Zeta_Pagin_PageTable_Intel_32;
 
 struct Zeta_Pagin_PageTable_Intel_32 {
     //
@@ -28,8 +30,8 @@ struct Zeta_Pagin_PageTable_Intel_5Level {
     //
 };
 
-EXTERN_C void Zeta_Pagin_PageTable_Intel64_Insert(void* lin_addr,
-                                                  void* phy_addr);
+void Zeta_Pagin_PageTable_Intel64_Insert(void* lin_addr, void* phy_addr);
 
-EXTERN_C void Zeta_Pagin_PageTable_Intel64_Erase(void* lin_addr,
-                                                 void* phy_addr);
+void Zeta_Pagin_PageTable_Intel64_Erase(void* lin_addr, void* phy_addr);
+
+ZETA_extern_c_end;

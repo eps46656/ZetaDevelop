@@ -238,6 +238,73 @@ def builder_add(builder):
     )
 
     builder.add(
+        f"{ZetaDir}/DebugDeque.h",
+        {
+            f"{File}",
+            f"{ZetaDir}/define.h",
+        },
+        lambda : 0
+    )
+
+    builder.add(
+        f"{ZetaDir}/DebugDeque.cpp",
+        {
+            f"{File}",
+            f"{ZetaDir}/DebugDeque.h",
+        },
+        lambda : 0
+    )
+
+    builder.add(
+        f"{ZetaDir}/DebugDeque.o",
+        {
+            f"{File}",
+            f"{ZetaDir}/DebugDeque.cpp",
+        },
+        lambda : os.system(" ".join([
+            cppc,
+            f"-o {ZetaDir}/DebugDeque.o",
+            *cppargs,
+            f"-c",
+            f"{ZetaDir}/DebugDeque.cpp",
+        ]))
+    )
+
+    builder.add(
+        f"{ZetaDir}/DebugTreeMap.h",
+        {
+            f"{File}",
+            f"{ZetaDir}/define.h",
+        },
+        lambda : 0
+    )
+
+    builder.add(
+        f"{ZetaDir}/DebugTreeMap.cpp",
+        {
+            f"{File}",
+            f"{ZetaDir}/DebugTreeMap.h",
+        },
+        lambda : 0
+    )
+
+    builder.add(
+        f"{ZetaDir}/DebugTreeMap.o",
+        {
+            f"{File}",
+            f"{ZetaDir}/DebugTreeMap.cpp",
+        },
+        lambda : os.system(" ".join([
+            cppc,
+            f"-o {ZetaDir}/DebugTreeMap.o",
+            *cppargs,
+            f"-c",
+            f"-fPIC",
+            f"{ZetaDir}/DebugTreeMap.cpp",
+        ]))
+    )
+
+    builder.add(
         f"{ZetaDir}/DebugHashTable.h",
         {
             f"{File}",
@@ -287,40 +354,6 @@ def builder_add(builder):
             f"-fPIC",
 
             f"{ZetaDir}/DebugHashTable.cpp",
-        ]))
-    )
-
-    builder.add(
-        f"{ZetaDir}/DebugTreeMap.h",
-        {
-            f"{File}",
-            f"{ZetaDir}/define.h",
-        },
-        lambda : 0
-    )
-
-    builder.add(
-        f"{ZetaDir}/DebugTreeMap.cpp",
-        {
-            f"{File}",
-            f"{ZetaDir}/DebugTreeMap.h",
-        },
-        lambda : 0
-    )
-
-    builder.add(
-        f"{ZetaDir}/DebugTreeMap.o",
-        {
-            f"{File}",
-            f"{ZetaDir}/DebugTreeMap.cpp",
-        },
-        lambda : os.system(" ".join([
-            cppc,
-            f"-o {ZetaDir}/DebugTreeMap.o",
-            *cppargs,
-            f"-c",
-            f"-fPIC",
-            f"{ZetaDir}/DebugTreeMap.cpp",
         ]))
     )
 
@@ -423,7 +456,7 @@ def builder_add(builder):
         f"{ZetaDir}/DynamicVector.o",
         {
             f"{File}",
-            f"{ZetaDir}/DynamicVector.h",
+            f"{ZetaDir}/DynamicVector.c",
         },
         lambda : os.system(" ".join([
             cc,
@@ -927,6 +960,9 @@ if __name__ == "__main__":
 
     non_built, built = builder.build(GetABSPath(args.target), args.rebuild)
 
+    ybeg = "\033[93m"
+    yend = "\033[0m"
+
     print("success")
-    print("non_built: ", non_built)
-    print("built: ", built)
+    print(f"{ybeg}not_built:{yend} {non_built}")
+    print(f"{ybeg}    built:{yend} {built}")

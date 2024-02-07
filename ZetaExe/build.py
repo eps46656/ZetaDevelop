@@ -414,6 +414,40 @@ def builder_add(builder):
     )
 
     builder.add(
+        f"{ZetaExeDir}/test_dv.cpp",
+        {
+            f"{File}",
+            f"{ZetaDir}/DynamicVector.h",
+            f"{ZetaDir}/utils.h",
+        },
+        lambda : 0
+    )
+
+    builder.add(
+        f"{ZetaExeDir}/test_dv.exe",
+        {
+            f"{File}",
+            f"{ZetaDir}/DebugTreeMap.o",
+            f"{ZetaDir}/DynamicVector.o",
+            f"{ZetaDir}/MultiLevelEntryTable.o",
+            f"{ZetaDir}/utils.o",
+            f"{ZetaExeDir}/test_dv.cpp",
+        },
+        lambda : os.system(" ".join([
+            cppc,
+            f"--output {ZetaExeDir}/test_dv.exe",
+            *cppargs,
+
+            f"{ZetaDir}/DebugTreeMap.o",
+            f"{ZetaDir}/DynamicVector.o",
+            f"{ZetaDir}/MultiLevelEntryTable.o",
+            f"{ZetaDir}/utils.o",
+
+            f"{ZetaExeDir}/test_dv.cpp",
+        ]))
+    )
+
+    builder.add(
         f"{ZetaExeDir}/test_elf.cpp",
         {
             f"{File}",
@@ -627,6 +661,37 @@ def builder_add(builder):
             f"{ZetaDir}/random.o",
             f"{ZetaDir}/SlabAllocator.o",
             f"{ZetaExeDir}/test_slab.c",
+        ]))
+    )
+
+    builder.add(
+        f"{ZetaExeDir}/test_mlet.cpp",
+        {
+            f"{File}",
+            f"{ZetaDir}/MultiLevelEntryTable.h",
+        },
+        lambda : 0
+    )
+
+    builder.add(
+        f"{ZetaExeDir}/test_mlet.exe",
+        {
+            f"{File}",
+            f"{ZetaDir}/DebugTreeMap.o",
+            f"{ZetaDir}/MultiLevelEntryTable.o",
+            f"{ZetaDir}/utils.o",
+
+            f"{ZetaExeDir}/test_mlet.cpp",
+        },
+        lambda : os.system(" ".join([
+            cppc,
+            f"--output {ZetaExeDir}/test_mlet.exe",
+            *cppargs,
+            f"{ZetaDir}/DebugTreeMap.o",
+            f"{ZetaDir}/MultiLevelEntryTable.o",
+            f"{ZetaDir}/utils.o",
+
+            f"{ZetaExeDir}/test_mlet.cpp",
         ]))
     )
 
@@ -909,6 +974,9 @@ if __name__ == "__main__":
 
     non_built, built = builder.build(GetABSPath(args.target), args.rebuild)
 
+    ybeg = "\033[93m"
+    yend = "\033[0m"
+
     print("success")
-    print("non_built: ", non_built)
-    print("built: ", built)
+    print(f"{ybeg}not_built:{yend} {non_built}")
+    print(f"{ybeg}    built:{yend} {built}")

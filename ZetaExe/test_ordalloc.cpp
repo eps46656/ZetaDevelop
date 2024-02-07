@@ -1,6 +1,7 @@
 #include <iostream>
 #include <map>
 #include <random>
+
 #include "../Zeta/DebugTreeMap.h"
 #include "../Zeta/OrdAllocator.h"
 
@@ -20,7 +21,7 @@ void CheckNoCross(const std::map<size_t, size_t>& m) {
     auto end = m.end();
 
     while (nxt_iter != end) {
-        ZETA_DEBUG_ASSERT(iter->first + iter->second <= nxt_iter->first);
+        ZETA_DebugAssert(iter->first + iter->second <= nxt_iter->first);
 
         iter = nxt_iter;
         ++nxt_iter;
@@ -30,7 +31,7 @@ void CheckNoCross(const std::map<size_t, size_t>& m) {
 void PrintTM(const std::map<size_t, size_t>& m) {
     std::cout << "{\n";
 
-    for (auto iter{m.begin()}, end{m.end()}; iter != end; ++iter) {
+    for (auto iter{ m.begin() }, end{ m.end() }; iter != end; ++iter) {
         std::cout << "\t( " << iter->first << ", " << iter->second << " )\n";
     }
 
@@ -45,17 +46,23 @@ void* MyAlloc(size_t size) {
     size_t m_beg = (uintptr_t)ptr;
     size_t m_end = m_beg + size;
 
-    auto iter = req_ptr_size_tm.insert({m_beg, size}).first;
+    ZETA_DebugAssert(m_beg % allocator.align == 0);
+
+    ZETA_DebugAssert((uintptr_t)allocator.ptr <= m_beg);
+    ZETA_DebugAssert(m_end <=
+                     (uintptr_t)ZETA_OffsetPtr(allocator.ptr, allocator.size));
+
+    auto iter = req_ptr_size_tm.insert({ m_beg, size }).first;
 
     if (iter != req_ptr_size_tm.begin()) {
-        auto pre_iter{std::prev(iter)};
-        ZETA_DEBUG_ASSERT(pre_iter->first + pre_iter->second <= m_beg);
+        auto pre_iter{ std::prev(iter) };
+        ZETA_DebugAssert(pre_iter->first + pre_iter->second <= m_beg);
     }
 
-    auto nxt_iter{std::next(iter)};
+    auto nxt_iter{ std::next(iter) };
 
     if (nxt_iter != req_ptr_size_tm.end()) {
-        ZETA_DEBUG_ASSERT(m_end <= nxt_iter->first);
+        ZETA_DebugAssert(m_end <= nxt_iter->first);
     }
 
     return ptr;
@@ -65,45 +72,47 @@ void MyFree(void* ptr) {
     Zeta_OrdAllocator_Deallocate(&allocator, ptr);
     size_t b = req_ptr_size_tm.erase((uintptr_t)ptr);
 
-    ZETA_DEBUG_ASSERT(b);
+    ZETA_DebugAssert(b);
 }
 
 void CheckAllocator(bool_t print_state) {
-    void* ptr_size_tm_ = DebugTreeMap_Create();
+    void* ptr_size_tm_ = Zeta_DebugTreeMap_Create();
 
     std::map<size_t, size_t>& ptr_size_tm =
         *static_cast<std::map<size_t, size_t>*>(ptr_size_tm_);
 
     Zeta_OrdAllocator_Check(&allocator, print_state, ptr_size_tm_);
 
-    PrintTM(ptr_size_tm);
+    // PrintTM(ptr_size_tm);
 
     CheckNoCross(ptr_size_tm);
 
-    for (auto iter{req_ptr_size_tm.begin()}, end{req_ptr_size_tm.end()};
+    for (auto iter{ req_ptr_size_tm.begin() }, end{ req_ptr_size_tm.end() };
          iter != end; ++iter) {
         auto jter = ptr_size_tm.find(iter->first);
 
-        ZETA_DEBUG_ASSERT(jter != ptr_size_tm.end());
-        ZETA_DEBUG_ASSERT(iter->second <= jter->second);
+        ZETA_DebugAssert(jter != ptr_size_tm.end());
+        ZETA_DebugAssert(iter->second <= jter->second);
     }
 
-    for (auto iter{ptr_size_tm.begin()}, end{ptr_size_tm.end()}; iter != end;
-         ++iter) {
+    for (auto iter{ ptr_size_tm.begin() }, end{ ptr_size_tm.end() };
+         iter != end; ++iter) {
         auto jter = req_ptr_size_tm.find(iter->first);
 
-        ZETA_DEBUG_ASSERT(jter != ptr_size_tm.end());
-        ZETA_DEBUG_ASSERT(jter->second <= iter->second);
+        ZETA_DebugAssert(jter != ptr_size_tm.end());
+        ZETA_DebugAssert(jter->second <= iter->second);
     }
 }
 
 int main() {
     unsigned int seed = time(NULL);
 
-    ZETA_PRINT_VAR("%d", seed);
+    ZETA_PrintVar("%d", seed);
 
-    std::mt19937_64 en{seed};
-    std::uniform_int_distribution<size_t> dist{0, ZETA_MAXOF(size_t)};
+    std::mt19937_64 en{ seed };
+    std::uniform_int_distribution<size_t> size_generator{ 16, 2 * 1024 };
+    std::uniform_int_distribution<size_t> idx_generator{ 0,
+                                                         ZETA_maxof(size_t) };
 
     allocator.ptr = mem;
     allocator.align = 16;
@@ -112,13 +121,29 @@ int main() {
 
     Zeta_OrdAllocator_Init(&allocator);
 
-    CheckAllocator(true);
+    ZETA_DebugAssert(mem <= allocator.ptr);
+    ZETA_DebugAssert(allocator.size <= sizeof(mem));
+
+    CheckAllocator(false);
 
     std::vector<void*> ptrs;
 
-    for (int i = 24; i <= 600; i += 32) { ptrs.push_back(MyAlloc(i)); }
-    for (int i = 24; i <= 600; i += 32) { ptrs.push_back(MyAlloc(i)); }
-    for (int i = 24; i <= 600; i += 32) { ptrs.push_back(MyAlloc(i)); }
+    for (int test_i = 0; test_i < 50; ++test_i) {
+        size_t size = size_generator(en);
+
+        ptrs.push_back(MyAlloc(size));
+    }
+
+    CheckAllocator(false);
+
+    for (int test_i = 0; test_i < 40; ++test_i) {
+        size_t idx = idx_generator(en) % ptrs.size();
+
+        MyFree(ptrs[idx]);
+
+        ptrs[idx] = ptrs.back();
+        ptrs.pop_back();
+    }
 
     CheckAllocator(false);
 

@@ -1,4 +1,5 @@
 #include "SHA256.h"
+
 #include "utils.h"
 
 typedef unsigned _BitInt(32) word_t;
@@ -14,7 +15,7 @@ void Zeta_SHA256_Hash(byte_t* dst, const byte_t* data, size_t size) {
 
 void Zeta_SHA256Hasher_Init(void* hasher_) {
     Zeta_SHA256Hasher* hasher = hasher_;
-    ZETA_DEBUG_ASSERT(hasher != NULL);
+    ZETA_DebugAssert(hasher != NULL);
 
     hasher->hs[0] = 0x6A09E667;
     hasher->hs[1] = 0xBB67AE85;
@@ -30,13 +31,13 @@ void Zeta_SHA256Hasher_Init(void* hasher_) {
 
 size_t Zeta_SHA256Hasher_GetSize(void* hasher_) {
     Zeta_SHA256Hasher* hasher = hasher_;
-    ZETA_DEBUG_ASSERT(hasher != NULL);
+    ZETA_DebugAssert(hasher != NULL);
     return hasher->size;
 }
 
 size_t Zeta_SHA256Hasher_GetResultSize(void* hasher_) {
     Zeta_SHA256Hasher* hasher = hasher_;
-    ZETA_DEBUG_ASSERT(hasher != NULL);
+    ZETA_DebugAssert(hasher != NULL);
     return 32;
 }
 
@@ -54,7 +55,8 @@ static void HashChunk_(word_t* hs, const byte_t* data) {
         0xC24B8B70, 0xC76C51A3, 0xD192E819, 0xD6990624, 0xF40E3585, 0x106AA070,
         0x19A4C116, 0x1E376C08, 0x2748774C, 0x34B0BCB5, 0x391C0CB3, 0x4ED8AA4A,
         0x5B9CCA4F, 0x682E6FF3, 0x748F82EE, 0x78A5636F, 0x84C87814, 0x8CC70208,
-        0x90BEFFFA, 0xA4506CEB, 0xBEF9A3F7, 0xC67178F2};
+        0x90BEFFFA, 0xA4506CEB, 0xBEF9A3F7, 0xC67178F2
+    };
 
     word_t w[64];
 
@@ -109,12 +111,12 @@ static void HashChunk_(word_t* hs, const byte_t* data) {
 
 void Zeta_SHA256Hasher_GetResult(void* hasher_, byte_t* dst) {
     Zeta_SHA256Hasher* hasher = hasher_;
-    ZETA_DEBUG_ASSERT(hasher != NULL);
+    ZETA_DebugAssert(hasher != NULL);
 
-    ZETA_DEBUG_ASSERT(dst != NULL);
+    ZETA_DebugAssert(dst != NULL);
 
     size_t cur_size = hasher->size;
-    ZETA_DEBUG_ASSERT(0 <= cur_size);
+    ZETA_DebugAssert(0 <= cur_size);
 
     Zeta_SHA256Hasher tmp_hasher;
     Zeta_MemCopy(sizeof(Zeta_SHA256Hasher), (byte_t*)&tmp_hasher,
@@ -134,7 +136,7 @@ void Zeta_SHA256Hasher_GetResult(void* hasher_, byte_t* dst) {
 
     Zeta_SHA256Hasher_Rotate(&tmp_hasher, buffer, buffer_i);
 
-    ZETA_DEBUG_ASSERT(tmp_hasher.size % 64 == 0);
+    ZETA_DebugAssert(tmp_hasher.size % 64 == 0);
 
     for (int i = 0; i < 8; ++i) {
         printf("%08x", tmp_hasher.hs[i]);
@@ -146,15 +148,15 @@ void Zeta_SHA256Hasher_GetResult(void* hasher_, byte_t* dst) {
 
 void Zeta_SHA256Hasher_Rotate(void* hasher_, const byte_t* data, size_t size) {
     Zeta_SHA256Hasher* hasher = hasher_;
-    ZETA_DEBUG_ASSERT(hasher != NULL);
+    ZETA_DebugAssert(hasher != NULL);
 
     if (size == 0) { return; }
 
-    ZETA_DEBUG_ASSERT(data != NULL);
-    ZETA_DEBUG_ASSERT(0 <= size);
+    ZETA_DebugAssert(data != NULL);
+    ZETA_DebugAssert(0 <= size);
 
     size_t cur_size = hasher->size;
-    ZETA_DEBUG_ASSERT(0 <= cur_size);
+    ZETA_DebugAssert(0 <= cur_size);
 
     for (; 0 < size; ++data, --size) {
         hasher->last_chunk[cur_size % 64] = data[0];

@@ -1,5 +1,6 @@
 
 #include <stdio.h>
+
 #include "../Zeta/CRC.h"
 #include "../Zeta/utils.h"
 
@@ -43,10 +44,10 @@ int main() {
         Zeta_CRCHasher_Rotate(&hasher, &tmp, 1, 1);
     }
 
-    ZETA_PRINT_VAR("%08x", (ull)hasher.reg);
-    ZETA_PRINT_VAR("%08x", 0xFFFFFFFF ^ (ull)hasher.reg);
-    ZETA_PRINT_VAR("%08x", Reverse((ull)hasher.reg));
-    ZETA_PRINT_VAR("%08x", Reverse(0xFFFFFFFF ^ (ull)hasher.reg));
+    ZETA_PrintVar("%08x", (ull)hasher.reg);
+    ZETA_PrintVar("%08x", 0xFFFFFFFF ^ (ull)hasher.reg);
+    ZETA_PrintVar("%08x", Reverse((ull)hasher.reg));
+    ZETA_PrintVar("%08x", Reverse(0xFFFFFFFF ^ (ull)hasher.reg));
 
     // b5123644174b7ba1d1101bb2157a5802acc664c037d52c2852aadf3f1dea905a
     // b5123644174b7ba1d1101bb2157a5802acc664c037d52c2852aadf3f1dea905a

@@ -1,16 +1,17 @@
 #include "RBTree.h"
+
 #include "utils.h"
 
-static void *Insert_(void *context, void *(*GetP)(void *context, void *n),
-                     void *(*GetD)(void *context, void *n),
-                     void *(*GetE)(void *context, void *n),
-                     int (*GetColor)(void *context, void *n),
-                     void (*ReverseColor)(void *context, void *n),
-                     void (*AttachD)(void *context, void *n, void *m),
-                     void (*AttachE)(void *context, void *n, void *m),
-                     void (*RotateD)(void *context, void *n),
-                     void (*RotateE)(void *context, void *n), void *n,
-                     void *m) {
+static void* Insert_(void* context, void* (*GetP)(void* context, void* n),
+                     void* (*GetD)(void* context, void* n),
+                     void* (*GetE)(void* context, void* n),
+                     int (*GetColor)(void* context, void* n),
+                     void (*ReverseColor)(void* context, void* n),
+                     void (*AttachD)(void* context, void* n, void* m),
+                     void (*AttachE)(void* context, void* n, void* m),
+                     void (*RotateD)(void* context, void* n),
+                     void (*RotateE)(void* context, void* n), void* n,
+                     void* m) {
     if (n == NULL) {
         if (GetColor(context, m) == 1) { ReverseColor(context, m); }
         return m;
@@ -18,8 +19,8 @@ static void *Insert_(void *context, void *(*GetP)(void *context, void *n),
 
     if (GetColor(context, m) == 0) { ReverseColor(context, m); }
 
-    void *root = Zeta_GetMostLink(context, GetP, n);
-    void *nd = GetD(context, n);
+    void* root = Zeta_GetMostLink(context, GetP, n);
+    void* nd = GetD(context, n);
 
     if (nd == NULL) {
         AttachD(context, n, m);
@@ -29,7 +30,7 @@ static void *Insert_(void *context, void *(*GetP)(void *context, void *n),
     }
 
     for (n = m;;) {
-        void *np = GetP(context, n);
+        void* np = GetP(context, n);
 
         if (np == NULL) {
             ReverseColor(context, n);
@@ -38,16 +39,16 @@ static void *Insert_(void *context, void *(*GetP)(void *context, void *n),
 
         if (GetColor(context, np) == 0) { break; }
 
-        void *ng = GetP(context, np);
+        void* ng = GetP(context, np);
 
         if (ng == NULL) {
             ReverseColor(context, np);
             break;
         }
 
-        void *(*GetY)(void *context, void *n);
-        void (*RotateX)(void *context, void *n);
-        void (*RotateY)(void *context, void *n);
+        void* (*GetY)(void* context, void* n);
+        void (*RotateX)(void* context, void* n);
+        void (*RotateY)(void* context, void* n);
 
         if (GetD(context, ng) == np) {
             GetY = GetE;
@@ -59,7 +60,7 @@ static void *Insert_(void *context, void *(*GetP)(void *context, void *n),
             RotateY = RotateD;
         }
 
-        void *nu = GetY(context, ng);
+        void* nu = GetY(context, ng);
 
         if (GetColor(context, nu) == 1) {
             ReverseColor(context, np);
@@ -71,10 +72,7 @@ static void *Insert_(void *context, void *(*GetP)(void *context, void *n),
 
         if (GetY(context, np) == n) {
             RotateX(context, np);
-
-            void *n_tmp = n;
-            n = np;
-            np = n_tmp;
+            ZETA_Swap(n, np);
         }
 
         ReverseColor(context, np);
@@ -86,22 +84,22 @@ static void *Insert_(void *context, void *(*GetP)(void *context, void *n),
     return Zeta_GetMostLink(context, GetP, root);
 }
 
-void *Zeta_RBTree_InsertL(const Zeta_RBTreeNodeOpr *rbtn_opr, void *n,
-                          void *m) {
-    ZETA_DEBUG_ASSERT(rbtn_opr != NULL);
-    ZETA_DEBUG_ASSERT(rbtn_opr->GetP != NULL);
-    ZETA_DEBUG_ASSERT(rbtn_opr->GetL != NULL);
-    ZETA_DEBUG_ASSERT(rbtn_opr->GetR != NULL);
-    ZETA_DEBUG_ASSERT(rbtn_opr->GetColor != NULL);
-    ZETA_DEBUG_ASSERT(rbtn_opr->ReverseColor != NULL);
-    ZETA_DEBUG_ASSERT(rbtn_opr->AttachL != NULL);
-    ZETA_DEBUG_ASSERT(rbtn_opr->AttachR != NULL);
-    ZETA_DEBUG_ASSERT(rbtn_opr->RotateL != NULL);
-    ZETA_DEBUG_ASSERT(rbtn_opr->RotateR != NULL);
-    ZETA_DEBUG_ASSERT(m != NULL);
-    ZETA_DEBUG_ASSERT(rbtn_opr->GetP(rbtn_opr->context, m) == NULL);
-    ZETA_DEBUG_ASSERT(rbtn_opr->GetL(rbtn_opr->context, m) == NULL);
-    ZETA_DEBUG_ASSERT(rbtn_opr->GetR(rbtn_opr->context, m) == NULL);
+void* Zeta_RBTree_InsertL(const Zeta_RBTreeNodeOpr* rbtn_opr, void* n,
+                          void* m) {
+    ZETA_DebugAssert(rbtn_opr != NULL);
+    ZETA_DebugAssert(rbtn_opr->GetP != NULL);
+    ZETA_DebugAssert(rbtn_opr->GetL != NULL);
+    ZETA_DebugAssert(rbtn_opr->GetR != NULL);
+    ZETA_DebugAssert(rbtn_opr->GetColor != NULL);
+    ZETA_DebugAssert(rbtn_opr->ReverseColor != NULL);
+    ZETA_DebugAssert(rbtn_opr->AttachL != NULL);
+    ZETA_DebugAssert(rbtn_opr->AttachR != NULL);
+    ZETA_DebugAssert(rbtn_opr->RotateL != NULL);
+    ZETA_DebugAssert(rbtn_opr->RotateR != NULL);
+    ZETA_DebugAssert(m != NULL);
+    ZETA_DebugAssert(rbtn_opr->GetP(rbtn_opr->context, m) == NULL);
+    ZETA_DebugAssert(rbtn_opr->GetL(rbtn_opr->context, m) == NULL);
+    ZETA_DebugAssert(rbtn_opr->GetR(rbtn_opr->context, m) == NULL);
 
     return Insert_(rbtn_opr->context, rbtn_opr->GetP, rbtn_opr->GetL,
                    rbtn_opr->GetR, rbtn_opr->GetColor, rbtn_opr->ReverseColor,
@@ -109,22 +107,22 @@ void *Zeta_RBTree_InsertL(const Zeta_RBTreeNodeOpr *rbtn_opr, void *n,
                    rbtn_opr->RotateR, n, m);
 }
 
-void *Zeta_RBTree_InsertR(const Zeta_RBTreeNodeOpr *rbtn_opr, void *n,
-                          void *m) {
-    ZETA_DEBUG_ASSERT(rbtn_opr != NULL);
-    ZETA_DEBUG_ASSERT(rbtn_opr->GetP != NULL);
-    ZETA_DEBUG_ASSERT(rbtn_opr->GetL != NULL);
-    ZETA_DEBUG_ASSERT(rbtn_opr->GetR != NULL);
-    ZETA_DEBUG_ASSERT(rbtn_opr->GetColor != NULL);
-    ZETA_DEBUG_ASSERT(rbtn_opr->ReverseColor != NULL);
-    ZETA_DEBUG_ASSERT(rbtn_opr->AttachL != NULL);
-    ZETA_DEBUG_ASSERT(rbtn_opr->AttachR != NULL);
-    ZETA_DEBUG_ASSERT(rbtn_opr->RotateL != NULL);
-    ZETA_DEBUG_ASSERT(rbtn_opr->RotateR != NULL);
-    ZETA_DEBUG_ASSERT(m != NULL);
-    ZETA_DEBUG_ASSERT(rbtn_opr->GetP(rbtn_opr->context, m) == NULL);
-    ZETA_DEBUG_ASSERT(rbtn_opr->GetL(rbtn_opr->context, m) == NULL);
-    ZETA_DEBUG_ASSERT(rbtn_opr->GetR(rbtn_opr->context, m) == NULL);
+void* Zeta_RBTree_InsertR(const Zeta_RBTreeNodeOpr* rbtn_opr, void* n,
+                          void* m) {
+    ZETA_DebugAssert(rbtn_opr != NULL);
+    ZETA_DebugAssert(rbtn_opr->GetP != NULL);
+    ZETA_DebugAssert(rbtn_opr->GetL != NULL);
+    ZETA_DebugAssert(rbtn_opr->GetR != NULL);
+    ZETA_DebugAssert(rbtn_opr->GetColor != NULL);
+    ZETA_DebugAssert(rbtn_opr->ReverseColor != NULL);
+    ZETA_DebugAssert(rbtn_opr->AttachL != NULL);
+    ZETA_DebugAssert(rbtn_opr->AttachR != NULL);
+    ZETA_DebugAssert(rbtn_opr->RotateL != NULL);
+    ZETA_DebugAssert(rbtn_opr->RotateR != NULL);
+    ZETA_DebugAssert(m != NULL);
+    ZETA_DebugAssert(rbtn_opr->GetP(rbtn_opr->context, m) == NULL);
+    ZETA_DebugAssert(rbtn_opr->GetL(rbtn_opr->context, m) == NULL);
+    ZETA_DebugAssert(rbtn_opr->GetR(rbtn_opr->context, m) == NULL);
 
     return Insert_(rbtn_opr->context, rbtn_opr->GetP, rbtn_opr->GetR,
                    rbtn_opr->GetL, rbtn_opr->GetColor, rbtn_opr->ReverseColor,
@@ -132,8 +130,8 @@ void *Zeta_RBTree_InsertR(const Zeta_RBTreeNodeOpr *rbtn_opr, void *n,
                    rbtn_opr->RotateL, n, m);
 }
 
-static void ExtractBalance_(const Zeta_RBTreeNodeOpr *rbtn_opr, void *n) {
-    void *context = rbtn_opr->context;
+static void ExtractBalance_(const Zeta_RBTreeNodeOpr* rbtn_opr, void* n) {
+    void* context = rbtn_opr->context;
 
     for (;;) {
         if (rbtn_opr->GetColor(context, n) == 1) {
@@ -141,13 +139,13 @@ static void ExtractBalance_(const Zeta_RBTreeNodeOpr *rbtn_opr, void *n) {
             break;
         }
 
-        void *np = rbtn_opr->GetP(context, n);
+        void* np = rbtn_opr->GetP(context, n);
         if (np == NULL) { break; }
 
-        void *(*GetD)(void *context, void *n);
-        void *(*GetE)(void *context, void *n);
-        void (*RotateD)(void *context, void *n);
-        void (*RotateE)(void *context, void *n);
+        void* (*GetD)(void* context, void* n);
+        void* (*GetE)(void* context, void* n);
+        void (*RotateD)(void* context, void* n);
+        void (*RotateE)(void* context, void* n);
 
         if (rbtn_opr->GetL(context, np) == n) {
             GetD = rbtn_opr->GetL;
@@ -161,7 +159,7 @@ static void ExtractBalance_(const Zeta_RBTreeNodeOpr *rbtn_opr, void *n) {
             RotateE = rbtn_opr->RotateL;
         }
 
-        void *ns = GetE(context, np);
+        void* ns = GetE(context, np);
 
         if (rbtn_opr->GetColor(context, ns) == 1) {
             rbtn_opr->ReverseColor(context, np);
@@ -170,8 +168,8 @@ static void ExtractBalance_(const Zeta_RBTreeNodeOpr *rbtn_opr, void *n) {
             ns = GetE(context, np);
         }
 
-        void *nsd = GetD(context, ns);
-        void *nse = GetE(context, ns);
+        void* nsd = GetD(context, ns);
+        void* nse = GetE(context, ns);
 
         if (rbtn_opr->GetColor(context, nsd) == 0 &&
             rbtn_opr->GetColor(context, nse) == 0) {
@@ -201,20 +199,20 @@ static void ExtractBalance_(const Zeta_RBTreeNodeOpr *rbtn_opr, void *n) {
     }
 }
 
-void *Zeta_RBTree_Extract(const Zeta_RBTreeNodeOpr *rbtn_opr, void *n) {
-    ZETA_DEBUG_ASSERT(n != NULL);
+void* Zeta_RBTree_Extract(const Zeta_RBTreeNodeOpr* rbtn_opr, void* n) {
+    ZETA_DebugAssert(n != NULL);
 
-    void *context = rbtn_opr->context;
+    void* context = rbtn_opr->context;
 
-    void *root;
+    void* root;
 
-    void *nl = rbtn_opr->GetL(context, n);
-    void *nr = rbtn_opr->GetR(context, n);
+    void* nl = rbtn_opr->GetL(context, n);
+    void* nr = rbtn_opr->GetR(context, n);
 
     if (nl != NULL && nr != NULL) {
         int ran = Zeta_SimpleHash((size_t)nl ^ (size_t)nr) % 2;
 
-        void *m = ran ? Zeta_GetMostLink(context, rbtn_opr->GetL, nr)
+        void* m = ran ? Zeta_GetMostLink(context, rbtn_opr->GetL, nr)
                       : Zeta_GetMostLink(context, rbtn_opr->GetR, nl);
 
         rbtn_opr->Swap(context, n, m);
@@ -245,28 +243,28 @@ void *Zeta_RBTree_Extract(const Zeta_RBTreeNodeOpr *rbtn_opr, void *n) {
     return root;
 }
 
-size_t Zeta_RBTree_Check(const Zeta_RBTreeNodeOpr *rbtn_opr, void *n) {
+size_t Zeta_RBTree_Check(const Zeta_RBTreeNodeOpr* rbtn_opr, void* n) {
     if (n == NULL) { return 0; }
 
-    void *context = rbtn_opr->context;
+    void* context = rbtn_opr->context;
 
-    void *nl = rbtn_opr->GetL(context, n);
-    void *nr = rbtn_opr->GetR(context, n);
+    void* nl = rbtn_opr->GetL(context, n);
+    void* nr = rbtn_opr->GetR(context, n);
 
-    if (nl != NULL) { ZETA_ASSERT(rbtn_opr->GetP(context, nl) == n); }
-    if (nr != NULL) { ZETA_ASSERT(rbtn_opr->GetP(context, nr) == n); }
+    if (nl != NULL) { ZETA_Assert(rbtn_opr->GetP(context, nl) == n); }
+    if (nr != NULL) { ZETA_Assert(rbtn_opr->GetP(context, nr) == n); }
 
     size_t lbh = Zeta_RBTree_Check(rbtn_opr, nl);
     size_t rbh = Zeta_RBTree_Check(rbtn_opr, nr);
 
-    ZETA_ASSERT(lbh == rbh);
+    ZETA_Assert(lbh == rbh);
 
     int nc = rbtn_opr->GetColor(context, n);
 
     if (nc == 0) { return lbh + 1; }
 
-    ZETA_ASSERT(rbtn_opr->GetColor(context, nl) == 0);
-    ZETA_ASSERT(rbtn_opr->GetColor(context, nr) == 0);
+    ZETA_Assert(rbtn_opr->GetColor(context, nl) == 0);
+    ZETA_Assert(rbtn_opr->GetColor(context, nr) == 0);
 
     return lbh;
 }

@@ -9,7 +9,7 @@ void Zeta_SlabAllocator_Init(void* sa_) {
 }
 
 int Zeta_SlabAllocator_GetMaxSize(size_t page_size, int num) {
-    ZETA_DEBUG_ASSERT(0 < num);
+    ZETA_DebugAssert(1 <= num);
 
     size_t header_size =
         sizeof(Zeta_SlabAllocator_Slab) - sizeof(Zeta_SlabAllocator_Unit);
@@ -23,7 +23,7 @@ int Zeta_SlabAllocator_GetMaxSize(size_t page_size, int num) {
 }
 
 int Zeta_SlabAllocator_GetMaxNum(size_t page_size, int size) {
-    ZETA_DEBUG_ASSERT(0 < size);
+    ZETA_DebugAssert(1 <= size);
 
     size = (size + alignof(void*) - 1) / alignof(void*) * alignof(void*);
 
@@ -38,8 +38,8 @@ int Zeta_SlabAllocator_GetMaxNum(size_t page_size, int size) {
 }
 
 size_t Zeta_SlabAllocator_GetPageSize(int size, int num) {
-    ZETA_DEBUG_ASSERT(0 < size);
-    ZETA_DEBUG_ASSERT(0 < num);
+    ZETA_DebugAssert(1 <= size);
+    ZETA_DebugAssert(1 <= num);
 
     size = (size + alignof(void*) - 1) / alignof(void*) * alignof(void*);
 
@@ -51,21 +51,21 @@ void Zeta_SlabAllocator_Entrust(void* sa_, int num_of_types, const int* sizes,
                                 const int* nums, Zeta_Allocator* allocator) {
     Zeta_SlabAllocator* sa = sa_;
 
-    ZETA_DEBUG_ASSERT(sa != NULL);
+    ZETA_DebugAssert(sa != NULL);
 
-    ZETA_DEBUG_ASSERT(0 < num_of_types);
-    ZETA_DEBUG_ASSERT(num_of_types <= Zeta_SlabAllocator_max_num_of_types);
+    ZETA_DebugAssert(1 <= num_of_types);
+    ZETA_DebugAssert(num_of_types <= Zeta_SlabAllocator_max_num_of_types);
 
     for (int i = 0; i < num_of_types; ++i) {
-        ZETA_DEBUG_ASSERT(0 < sizes[i]);
-        ZETA_DEBUG_ASSERT(0 < nums[i]);
+        ZETA_DebugAssert(1 <= sizes[i]);
+        ZETA_DebugAssert(1 <= nums[i]);
     }
 
     for (int i = 1; i < num_of_types; ++i) {
-        ZETA_DEBUG_ASSERT(sizes[i - 1] < sizes[i]);
+        ZETA_DebugAssert(sizes[i - 1] < sizes[i]);
     }
 
-    ZETA_DEBUG_ASSERT(allocator != NULL);
+    ZETA_DebugAssert(allocator != NULL);
 
     sa->num_of_types = num_of_types;
 
@@ -100,7 +100,7 @@ static int GetTypeIdx_(int num_of_types, const int* sizes, size_t size) {
 
 size_t Zeta_SlabAllocator_Query(void* sa_, size_t size) {
     Zeta_SlabAllocator* sa = sa_;
-    ZETA_DEBUG_ASSERT(sa != NULL);
+    ZETA_DebugAssert(sa != NULL);
 
     if (size == 0) { return 0; }
 
@@ -113,15 +113,15 @@ size_t Zeta_SlabAllocator_Query(void* sa_, size_t size) {
 void* Zeta_SlabAllocator_Allocate(void* sa_, size_t size) {
     Zeta_SlabAllocator* sa = sa_;
 
-    ZETA_DEBUG_ASSERT(sa != NULL);
-    ZETA_DEBUG_ASSERT(sa->allocator != NULL);
-    ZETA_DEBUG_ASSERT(sa->allocator->Allocate != NULL);
+    ZETA_DebugAssert(sa != NULL);
+    ZETA_DebugAssert(sa->allocator != NULL);
+    ZETA_DebugAssert(sa->allocator->Allocate != NULL);
 
     if (size == 0) { return NULL; }
 
     int type_i = GetTypeIdx_(sa->num_of_types, sa->sizes, size);
 
-    ZETA_PRINT_VAR("%d", type_i);
+    ZETA_PrintVar("%d", type_i);
 
     if (type_i == sa->num_of_types) { return NULL; }
 
@@ -135,7 +135,7 @@ void* Zeta_SlabAllocator_Allocate(void* sa_, size_t size) {
     if (slab_list_head == slab_k_n) {
         alloc_new_slab = 1;
     } else {
-        slab_k = ZETA_FROM_MEM(Zeta_SlabAllocator_Slab, n, slab_k_n);
+        slab_k = ZETA_GetStructFromMem(Zeta_SlabAllocator_Slab, n, slab_k_n);
         if (slab_k->ptr == NULL) { alloc_new_slab = 1; }
     }
 
@@ -182,14 +182,14 @@ void* Zeta_SlabAllocator_Allocate(void* sa_, size_t size) {
 void Zeta_SlabAllocator_Deallocate(void* sa_, void* ptr) {
     Zeta_SlabAllocator* sa = sa_;
 
-    ZETA_DEBUG_ASSERT(sa != NULL);
-    ZETA_DEBUG_ASSERT(sa->allocator != NULL);
-    ZETA_DEBUG_ASSERT(sa->allocator->Deallocate != NULL);
+    ZETA_DebugAssert(sa != NULL);
+    ZETA_DebugAssert(sa->allocator != NULL);
+    ZETA_DebugAssert(sa->allocator->Deallocate != NULL);
 
     if (ptr == NULL) { return; }
 
     Zeta_SlabAllocator_Unit* unit =
-        ZETA_FROM_MEM(Zeta_SlabAllocator_Unit, data[0], ptr);
+        ZETA_GetStructFromMem(Zeta_SlabAllocator_Unit, data[0], ptr);
 
     Zeta_SlabAllocator_Slab* slab_k = unit->ptr;
 
@@ -217,8 +217,8 @@ void Zeta_SlabAllocator_Deallocate(void* sa_, void* ptr) {
 void Zeta_SlabAllocator_DeployAllocator(void* sa_, Zeta_Allocator* dst) {
     Zeta_SlabAllocator* sa = sa_;
 
-    ZETA_DEBUG_ASSERT(sa != NULL);
-    ZETA_DEBUG_ASSERT(dst != NULL);
+    ZETA_DebugAssert(sa != NULL);
+    ZETA_DebugAssert(dst != NULL);
 
     dst->context = sa;
 

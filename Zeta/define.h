@@ -15,10 +15,21 @@
 #endif
 #endif
 
-#if defined(__cplusplus)
-#define EXTERN_C extern "C"
+#define TRUE (0 == 0)
+#define FALSE (0 != 0)
+
+#define ZETA_StaticAssert(cond) _Static_assert(cond, "")
+
+#if defined(DEBUG)
+#define ZETA_debug 1
+#define ZETA_DebugAssert(cond) ZETA_Assert(cond)
 #else
-#define EXTERN_C
+#define ZETA_debug 0
+#define ZETA_DebugAssert(cond) \
+    if (cond) {                \
+    } else {                   \
+    }                          \
+    ZETA_StaticAssert(TRUE)
 #endif
 
 typedef unsigned char byte_t;
@@ -37,35 +48,34 @@ typedef unsigned _BitInt(32) u32_t;
 typedef unsigned _BitInt(64) u64_t;
 typedef unsigned _BitInt(128) u128_t;
 
-#define ZETA_PRINT_POS printf("print pos at %s:%d\n", __FILE__, __LINE__);
+#define ZETA_PrintVar(formater, d) \
+    printf("%s:%d\t\t%s = " formater "\n", __FILE__, __LINE__, #d, d)
 
-#define ZETA_UNUSED(x) ((void)(x))
+#define ZETA_PrintPos ZETA_PrintVar("%s", "print pos")
 
-#define ZETA_STATIC_ASSERT(cond) _Static_assert(cond, "");
+#define ZETA_Unused(x) ((void)(x))
 
-#define ZETA_ASSERT(cond)                                      \
+#define ZETA_Assert(cond)                                      \
     if (cond) {                                                \
     } else {                                                   \
         printf("debug assert at %s:%d\n", __FILE__, __LINE__); \
         exit(0);                                               \
-    }
+    }                                                          \
+    ZETA_StaticAssert(TRUE)
 
-#if defined(DEBUG)
-#define ZETA_DEBUG 1
-#define ZETA_DEBUG_ASSERT(cond) ZETA_ASSERT(cond)
+#if defined(__cplusplus)
+#define ZETA_extern_c_beg \
+    extern "C" {          \
+    ZETA_StaticAssert(TRUE)
+#define ZETA_extern_c_end \
+    }                     \
+    ZETA_StaticAssert(TRUE)
 #else
-#define ZETA_DEBUG 0
-#define ZETA_DEBUG_ASSERT(cond) \
-    if (cond) {                 \
-    } else {                    \
-    }
+#define ZETA_extern_c_beg ZETA_StaticAssert(TRUE)
+#define ZETA_extern_c_end ZETA_StaticAssert(TRUE)
 #endif
 
-#define ZETA_PRINT_VAR(formater, d)                                           \
-    printf("print var at %s:%d\n    %s = " formater "\n", __FILE__, __LINE__, \
-           #d, d);
-
-#define ZETA_MINOF(type)                     \
+#define ZETA_minof(type)                     \
     _Generic((type)0,                        \
                                              \
         char: CHAR_MIN,                      \
@@ -110,7 +120,7 @@ typedef unsigned _BitInt(128) u128_t;
                                              \
         s128_t: ((s128_t)(-((s128_t)1 << 127))))
 
-#define ZETA_MAXOF(type)                        \
+#define ZETA_maxof(type)                        \
     _Generic((type)0,                           \
                                                 \
         char: CHAR_MAX,                         \
@@ -155,17 +165,20 @@ typedef unsigned _BitInt(128) u128_t;
                                                 \
         s128_t: ((s128_t)(((s128_t)1 << 127) - 1)))
 
-#define ZETA_SIGNED(type) (ZETA_MINOF(type) < 0)
+#define ZETA_IsSigned(type) (ZETA_minof(type) < 0)
 
-#define ZETA_ADDR_OFFSET(ptr, offset) \
-    ((void *)(intptr_t)((intptr_t)(void *)(ptr) + offset))
+#define ZETA_OffsetPtr(ptr, offset) \
+    ((void*)(intptr_t)((intptr_t)(void*)(ptr) + offset))
 
-#define ZETA_FROM_MEM(type, mem, ptr) \
-    ((type *)(ZETA_ADDR_OFFSET(ptr, -offsetof(type, mem))))
+#define ZETA_GetStructFromMem(type, mem, ptr) \
+    ((type*)(ZETA_OffsetPtr(ptr, -offsetof(type, mem))))
 
-#define ZETA_SWAP(x, y)      \
+#define ZETA_Swap(x, y)      \
     {                        \
         typeof(x) tmp = (x); \
         (x) = (y);           \
         (y) = tmp;           \
-    }
+    }                        \
+    ZETA_StaticAssert(TRUE)
+
+#define ZETA_max_mod_under_size_t (ZETA_maxof(size_t) / 2 + 1)

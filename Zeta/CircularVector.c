@@ -2,99 +2,101 @@
 
 #include "CircularVector.h"
 
-void Zeta_CircularVector_Init(void *cv_) {
-    Zeta_CircularVector *cv = cv_;
-    ZETA_DEBUG_ASSERT(cv != NULL);
+void Zeta_CircularVector_Init(void* cv_) {
+    Zeta_CircularVector* cv = cv_;
+    ZETA_DebugAssert(cv != NULL);
 
     cv->vec = NULL;
     cv->offset = 0;
     cv->size = 0;
 }
 
-void Zeta_CircularVector_Check(void *cv_) {
-    Zeta_CircularVector *cv = cv_;
-    ZETA_DEBUG_ASSERT(cv != NULL);
+void Zeta_CircularVector_Check(void* cv_) {
+    Zeta_CircularVector* cv = cv_;
+    ZETA_DebugAssert(cv != NULL);
 
-    Zeta_Vector *vec = cv->vec;
+    Zeta_Vector* vec = cv->vec;
 
     if (cv->vec == NULL) {
-        ZETA_DEBUG_ASSERT(cv->offset == 0);
-        ZETA_DEBUG_ASSERT(cv->size == 0);
+        ZETA_DebugAssert(cv->offset == 0);
+        ZETA_DebugAssert(cv->size == 0);
         return;
     }
 
-    ZETA_DEBUG_ASSERT(vec->GetSize != NULL);
+    ZETA_DebugAssert(vec->GetSize != NULL);
 
     size_t capacity = vec->GetSize(vec->context);
     size_t offset = cv->offset;
     size_t size = cv->size;
 
-    ZETA_DEBUG_ASSERT(0 <= offset);
-    ZETA_DEBUG_ASSERT(offset < capacity);
-    ZETA_DEBUG_ASSERT(size <= capacity);
+    ZETA_DebugAssert(0 <= offset);
+    ZETA_DebugAssert(offset < capacity);
+    ZETA_DebugAssert(size <= capacity);
+    ZETA_DebugAssert(capacity <= ZETA_max_mod_under_size_t);
 }
 
-void *Zeta_CircularVector_GetVector(void *cv_) {
-    Zeta_CircularVector *cv = cv_;
-    ZETA_DEBUG_ASSERT(cv != NULL);
+void* Zeta_CircularVector_GetVector(void* cv_) {
+    Zeta_CircularVector* cv = cv_;
+    ZETA_DebugAssert(cv != NULL);
     return cv->vec;
 }
 
-size_t Zeta_CircularVector_GetWidth(void *cv) {
-    Zeta_CircularVector *cv = cv_;
-    ZETA_DEBUG_ASSERT(cv != NULL);
+size_t Zeta_CircularVector_GetWidth(void* cv) {
+    Zeta_CircularVector* cv = cv_;
+    ZETA_DebugAssert(cv != NULL);
 
-    Zeta_Vector *vec = cv->vec;
-    ZETA_DEBUG_ASSERT(vec->GetWidth != NULL);
+    Zeta_Vector* vec = cv->vec;
+    ZETA_DebugAssert(vec->GetWidth != NULL);
 
     return vec->GetWidth(vec->context);
 }
 
-size_t Zeta_CircularVector_GetOffset(void *cv_) {
-    Zeta_CircularVector *cv = cv_;
-    ZETA_DEBUG_ASSERT(cv != NULL);
+size_t Zeta_CircularVector_GetOffset(void* cv_) {
+    Zeta_CircularVector* cv = cv_;
+    ZETA_DebugAssert(cv != NULL);
     return cv->offset;
 }
 
-size_t Zeta_CircularVector_GetSize(void *cv_) {
-    Zeta_CircularVector *cv = cv_;
-    ZETA_DEBUG_ASSERT(cv != NULL);
+size_t Zeta_CircularVector_GetSize(void* cv_) {
+    Zeta_CircularVector* cv = cv_;
+    ZETA_DebugAssert(cv != NULL);
     return cv->size;
 }
 
-size_t Zeta_CircularVector_GetCapacity(void *cv_) {
-    Zeta_CircularVector *cv = cv_;
-    ZETA_DEBUG_ASSERT(cv != NULL);
+size_t Zeta_CircularVector_GetCapacity(void* cv_) {
+    Zeta_CircularVector* cv = cv_;
+    ZETA_DebugAssert(cv != NULL);
 
     if (cv->vec == NULL) { return 0; }
 
-    Zeta_Vector *vec = cv->vec;
-    ZETA_DEBUG_ASSERT(vec->GetSize != NULL);
+    Zeta_Vector* vec = cv->vec;
+    ZETA_DebugAssert(vec->GetSize != NULL);
 
     return vec->GetSize(vec->context);
 }
 
-void Zeta_CircularVector_Entrust(void *cv_, void *vec, size_t size,
+void Zeta_CircularVector_Entrust(void* cv_, void* vec, size_t size,
                                  size_t offset) {
-    Zeta_CircularVector *cv = cv_;
-    ZETA_DEBUG_ASSERT(cv != NULL);
+    Zeta_CircularVector* cv = cv_;
+    ZETA_DebugAssert(cv != NULL);
 
     if (vec == NULL) {
-        ZETA_DEBUG_ASSERT(offset == 0);
-        ZETA_DEBUG_ASSERT(size == 0);
+        ZETA_DebugAssert(offset == 0);
+        ZETA_DebugAssert(size == 0);
 
         cv->vec = NULL;
         cv->offset = 0;
         cv->size = 0;
     } else {
-        Zeta_Vector *vec = cv->vec;
-        ZETA_DEBUG_ASSERT(vec->GetSize != NULL);
+        Zeta_Vector* vec = cv->vec;
+        ZETA_DebugAssert(vec->GetSize != NULL);
 
         size_t capacity = vec->GetSize(vec->context);
 
-        ZETA_DEBUG_ASSERT(0 <= offset);
-        ZETA_DEBUG_ASSERT(offset < capacity);
-        ZETA_DEBUG_ASSERT(size <= capacity);
+        ZETA_DebugAssert(0 <= offset);
+        ZETA_DebugAssert(offset < capacity);
+        ZETA_DebugAssert(size <= capacity);
+        ZETA_DebugAssert(capacity <= ZETA_max_mod_under_size_t);
 
         cv->vec = vec;
         cv->offset = offset;
@@ -102,51 +104,52 @@ void Zeta_CircularVector_Entrust(void *cv_, void *vec, size_t size,
     }
 }
 
-void *Zeta_CircularVector_Access(void *cv_, size_t idx) {
-    Zeta_CircularVector *cv = cv_;
-    ZETA_DEBUG_ASSERT(cv != NULL);
+void* Zeta_CircularVector_Access(void* cv_, size_t idx) {
+    Zeta_CircularVector* cv = cv_;
+    ZETA_DebugAssert(cv != NULL);
 
-    Zeta_Vector *vec = cv->vec;
-    ZETA_DEBUG_ASSERT(vec != NULL);
-    ZETA_DEBUG_ASSERT(vec->GetSize != NULL);
+    Zeta_Vector* vec = cv->vec;
+    ZETA_DebugAssert(vec != NULL);
+    ZETA_DebugAssert(vec->GetSize != NULL);
 
     size_t capacity = vec->GetSize(vec->context);
     size_t offset = cv->offset;
     size_t size = cv->size;
 
-    ZETA_DEBUG_ASSERT(0 <= offset);
-    ZETA_DEBUG_ASSERT(offset < capacity);
-    ZETA_DEBUG_ASSERT(size <= capacity);
+    ZETA_DebugAssert(0 <= offset);
+    ZETA_DebugAssert(offset < capacity);
+    ZETA_DebugAssert(size <= capacity);
+    ZETA_DebugAssert(capacity <= ZETA_max_mod_under_size_t);
 
-    ZETA_DEBUG_ASSERT(0 <= idx)
-    ZETA_DEBUG_ASSERT(idx < size);
-    ZETA_DEBUG_ASSERT(vec->Access != NULL);
+    ZETA_DebugAssert(0 <= idx) ZETA_DebugAssert(idx < size);
+    ZETA_DebugAssert(vec->Access != NULL);
 
     return vec->Access(vec->context, (offset + idx) % capacity);
 }
 
-void *Zeta_CircularVector_Insert(void *cv_, size_t idx) {
-    Zeta_CircularVector *cv = cv_;
-    ZETA_DEBUG_ASSERT(cv != NULL);
+void* Zeta_CircularVector_Insert(void* cv_, size_t idx) {
+    Zeta_CircularVector* cv = cv_;
+    ZETA_DebugAssert(cv != NULL);
 
-    Zeta_Vector *vec = cv->vec;
-    ZETA_DEBUG_ASSERT(vec != NULL);
-    ZETA_DEBUG_ASSERT(vec->GetWidth != NULL);
-    ZETA_DEBUG_ASSERT(vec->GetSize != NULL);
+    Zeta_Vector* vec = cv->vec;
+    ZETA_DebugAssert(vec != NULL);
+    ZETA_DebugAssert(vec->GetWidth != NULL);
+    ZETA_DebugAssert(vec->GetSize != NULL);
 
     size_t capacity = vec->GetSize(vec->context);
     size_t offset = cv->offset;
     size_t size = cv->size;
 
-    ZETA_DEBUG_ASSERT(0 <= offset);
-    ZETA_DEBUG_ASSERT(offset < capacity);
-    ZETA_DEBUG_ASSERT(size < capacity);
+    ZETA_DebugAssert(0 <= offset);
+    ZETA_DebugAssert(offset < capacity);
+    ZETA_DebugAssert(size < capacity);
+    ZETA_DebugAssert(capacity <= ZETA_max_mod_under_size_t);
 
-    ZETA_DEBUG_ASSERT(0 <= idx);
-    ZETA_DEBUG_ASSERT(idx <= size);
+    ZETA_DebugAssert(0 <= idx);
+    ZETA_DebugAssert(idx <= size);
 
     size_t width = vec->GetWidth(vec->context);
-    ZETA_DEBUG_ASSERT(width != ZETA_MAXOF(size_t));
+    ZETA_DebugAssert(width != ZETA_maxof(size_t));
 
     size_t hold_idx;
 
@@ -174,39 +177,40 @@ void *Zeta_CircularVector_Insert(void *cv_, size_t idx) {
     return Zeta_CircularVector_Access(cv, idx);
 }
 
-void *Zeta_CircularVector_PushL(void *cv_) {
+void* Zeta_CircularVector_PushL(void* cv_) {
     return Zeta_CircularVector_Insert(cv_, 0);
 }
 
-void *Zeta_CircularVector_PushR(void *cv_) {
-    Zeta_CircularVector *cv = cv_;
-    ZETA_DEBUG_ASSERT(cv != NULL);
+void* Zeta_CircularVector_PushR(void* cv_) {
+    Zeta_CircularVector* cv = cv_;
+    ZETA_DebugAssert(cv != NULL);
 
     return Zeta_CircularVector_Insert(cv, cv->size);
 }
 
-void Zeta_CircularVector_Erase(void *cv_, size_t idx) {
-    Zeta_CircularVector *cv = cv_;
-    ZETA_DEBUG_ASSERT(cv != NULL);
+void Zeta_CircularVector_Erase(void* cv_, size_t idx) {
+    Zeta_CircularVector* cv = cv_;
+    ZETA_DebugAssert(cv != NULL);
 
-    Zeta_Vector *vec = cv->vec;
-    ZETA_DEBUG_ASSERT(vec != NULL);
-    ZETA_DEBUG_ASSERT(vec->GetWidth != NULL);
-    ZETA_DEBUG_ASSERT(vec->GetSize != NULL);
+    Zeta_Vector* vec = cv->vec;
+    ZETA_DebugAssert(vec != NULL);
+    ZETA_DebugAssert(vec->GetWidth != NULL);
+    ZETA_DebugAssert(vec->GetSize != NULL);
 
     size_t capacity = vec->GetSize(vec->context);
     size_t offset = cv->offset;
     size_t size = cv->size;
 
-    ZETA_DEBUG_ASSERT(0 <= offset);
-    ZETA_DEBUG_ASSERT(offset < capacity);
-    ZETA_DEBUG_ASSERT(size <= capacity);
+    ZETA_DebugAssert(0 <= offset);
+    ZETA_DebugAssert(offset < capacity);
+    ZETA_DebugAssert(size <= capacity);
+    ZETA_DebugAssert(capacity <= ZETA_max_mod_under_size_t);
 
-    ZETA_DEBUG_ASSERT(0 <= idx);
-    ZETA_DEBUG_ASSERT(idx < size);
+    ZETA_DebugAssert(0 <= idx);
+    ZETA_DebugAssert(idx < size);
 
     size_t width = vec->GetWidth(vec->context);
-    ZETA_DEBUG_ASSERT(width != ZETA_MAXOF(size_t));
+    ZETA_DebugAssert(width != ZETA_maxof(size_t));
 
     if (idx < size - 1 - idx) {
         if (0 < width) {
@@ -230,21 +234,35 @@ void Zeta_CircularVector_Erase(void *cv_, size_t idx) {
     }
 }
 
-void Zeta_CircularVector_PopL(void *cv) { Zeta_CircularVector_Erase(cv, 0); }
+void Zeta_CircularVector_PopL(void* cv) { Zeta_CircularVector_Erase(cv, 0); }
 
-void Zeta_CircularVector_PopR(void *cv) {
-    Zeta_CircularVector *cv = cv_;
-    ZETA_DEBUG_ASSERT(cv != NULL);
-    ZETA_DEBUG_ASSERT(0 < cv->size);
+void Zeta_CircularVector_PopR(void* cv) {
+    Zeta_CircularVector* cv = cv_;
+    ZETA_DebugAssert(cv != NULL);
+    ZETA_DebugAssert(1 <= cv->size);
 
     Zeta_CircularVector_Erase(cv, cv->size - 1);
 }
 
-void Zeta_CircularVector_ToVector(void *cv_, Zeta_Vector *dst) {
-    Zeta_CircularVector *cv = cv_;
-    ZETA_DEBUG_ASSERT(cv != NULL);
+void Zeta_CircularVector_EraseAll(void* cv_, void (*Callback)(void* ptr)) {
+    Zeta_CircularVector* cv = cv_;
+    ZETA_DebugAssert(cv != NULL);
 
-    ZETA_DEBUG_ASSERT(dst != NULL);
+    if (Callback != NULL) {
+        for (size_t i = 0; i < cv->size; ++i) {
+            Callback(Zeta_CircularVector_Access(cv, i));
+        }
+    }
+
+    cv->offset = 0;
+    cv->size = 0;
+}
+
+void Zeta_CircularVector_ToVector(void* cv_, Zeta_Vector* dst) {
+    Zeta_CircularVector* cv = cv_;
+    ZETA_DebugAssert(cv != NULL);
+
+    ZETA_DebugAssert(dst != NULL);
 
     dst->context = cv;
     dst->GetWidth = Zeta_CircularVector_GetWidth;

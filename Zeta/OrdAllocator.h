@@ -4,6 +4,8 @@
 #include "OrdDoublyLinkedNode.h"
 #include "OrdRBTreeNode.h"
 
+ZETA_extern_c_beg;
+
 /*
 
 // for vacumm
@@ -61,11 +63,14 @@ state =
 
 */
 
-#define Zeta_OrdAllocator_max_num_of_slab_level 64
+#define ZETA_OrdAllocator_max_num_of_slab_level 64
 
 typedef struct Zeta_OrdAllocator Zeta_OrdAllocator;
 
 struct Zeta_OrdAllocator {
+    /**
+     * The begining of managed memory block.
+     */
     void* ptr;
 
     /**
@@ -79,34 +84,69 @@ struct Zeta_OrdAllocator {
      */
     size_t size;
 
+    Zeta_OrdRBTreeNode* sn_root;
+
     /**
-     * The number of slab level, should not less than 1 or larger than
-     * Zeta_OrdAllocator_max_num_of_slab_level.
+     * The number of slab level, should not less than 0 or larger than
+     * Zeta_OrdAllocator_max_num_of_slab_level - 1. Fill 0 means not using slab.
+     * Fill a negative number to invoke auto configiration when initializing.
      */
     int num_of_slab_level;
 
     /**
-     * The width(byte) of units for each slab level.
+     * The width(byte) of units for each slab level. If a negative value is
+     * filled in num_of_slab_level. This field will be auto configured when
+     * initializing.
      */
-    int slab_widths[Zeta_OrdAllocator_max_num_of_slab_level];
+    int slab_widths[ZETA_OrdAllocator_max_num_of_slab_level];
 
     /**
-     * The number of units in a slab block for each slab level.
+     * The number of units in a slab block for each slab level. If a negative
+     * value is filled in num_of_slab_level. This field will be auto
+     * configured when initializing.
      */
-    int slab_sizes[Zeta_OrdAllocator_max_num_of_slab_level];
+    int slab_sizes[ZETA_OrdAllocator_max_num_of_slab_level];
 
-    Zeta_OrdRBTreeNode* sn_root;
+    /**
+     * The minimum number of units should be reserved before returning the slab
+     * for each level. If a negative value is filled in num_of_slab_level. This
+     * field will be auto configured when initializing.
+     */
+    int slab_resvs[ZETA_OrdAllocator_max_num_of_slab_level];
 
     /**
      * The list heads of slab list for each slab level.
      */
     Zeta_OrdDoublyLinkedNode
-        slab_list_heads[Zeta_OrdAllocator_max_num_of_slab_level];
+        slab_list_heads[ZETA_OrdAllocator_max_num_of_slab_level];
 };
 
-EXTERN_C void Zeta_OrdAllocator_Init(void* ord_allocator);
+/**
+ * @brief Initialize the ord allocator
+ *
+ * @param ord_allocator The target ord allocator.
+ */
+void Zeta_OrdAllocator_Init(void* ord_allocator);
 
-EXTERN_C void* Zeta_OrdAllocator_Allocate(void* ord_allocator, size_t size);
+/**
+ * @brief Return the actual size of allocated memory if request size of memory
+ * with Allocate.
+ *
+ * @param ord_allocator The target ord allocator.
+ * @param size The size(byte) of allocated memory should at least occupied at
+ * least size of bytes.
+ */
+size_t Zeta_OrdAllocator_Query(void* ord_allocator, size_t size);
+
+/**
+ * @brief Allocate a continuous memory from managed memory block, then return
+ * its pointer. If allocation failed, return NULL.
+ *
+ * @param ord_allocator The target ord allocator.
+ * @param size The size(byte) of allocated memory should at least occupied at
+ * least size of bytes.
+ */
+void* Zeta_OrdAllocator_Allocate(void* ord_allocator, size_t size);
 
 /**
  * @brief Deallocate the target memory block. The memory block should be
@@ -116,10 +156,11 @@ EXTERN_C void* Zeta_OrdAllocator_Allocate(void* ord_allocator, size_t size);
  * block.
  * @param ptr The target memory block.
  */
-EXTERN_C void Zeta_OrdAllocator_Deallocate(void* ord_allocator, void* ptr);
+void Zeta_OrdAllocator_Deallocate(void* ord_allocator, void* ptr);
 
-EXTERN_C void Zeta_OrdAllocator_Check(void* ord_allocator, bool_t print_state,
-                                      void* dst_ptr_size_ht);
+void Zeta_OrdAllocator_Check(void* ord_allocator, bool_t print_state,
+                             void* dst_ptr_size_ht);
 
-EXTERN_C void Zeta_OrdAllocator_ToAllocator(void* ord_allocator,
-                                            Zeta_Allocator* dst);
+void Zeta_OrdAllocator_ToAllocator(void* ord_allocator, Zeta_Allocator* dst);
+
+ZETA_extern_c_end;

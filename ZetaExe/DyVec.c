@@ -10,12 +10,12 @@ struct DyVec {
 };
 
 void* StdAllocate(void* context, size_t size) {
-    ZETA_UNUSED(context);
+    ZETA_Unused(context);
     return malloc(size);
 }
 
 void StdDeallocate(void* context, void* ptr) {
-    ZETA_UNUSED(context);
+    ZETA_Unused(context);
     free(ptr);
 }
 
@@ -29,7 +29,7 @@ Zeta_Allocator std_allocator = {
 
 void DyVec_Init(void* dy_vec_) {
     DyVec* dyvec = dy_vec_;
-    ZETA_DEBUG_ASSERT(dyvec != NULL);
+    ZETA_DebugAssert(dyvec != NULL);
 
     dyvec->dv.width = sizeof(data_t);
 
@@ -61,37 +61,37 @@ void* DyVec_Create() {
 
 size_t DyVec_GetSize(void* dy_vec_) {
     DyVec* dyvec = dy_vec_;
-    ZETA_DEBUG_ASSERT(dyvec != NULL);
+    ZETA_DebugAssert(dyvec != NULL);
 
     return dyvec->dv.size;
 }
 
 data_t DyVec_GetVal(void* dy_vec_, size_t idx) {
     DyVec* dyvec = dy_vec_;
-    ZETA_DEBUG_ASSERT(dyvec != NULL);
+    ZETA_DebugAssert(dyvec != NULL);
 
     return *(data_t*)Zeta_DynamicVector_Access(&dyvec->dv, idx);
 }
 
 void DyVec_SetVal(void* dy_vec_, size_t idx, data_t val) {
     DyVec* dyvec = dy_vec_;
-    ZETA_DEBUG_ASSERT(dyvec != NULL);
+    ZETA_DebugAssert(dyvec != NULL);
 
     *(data_t*)Zeta_DynamicVector_Access(&dyvec->dv, idx) = val;
 }
 
 void DyVec_Insert(void* dy_vec_, size_t idx, data_t val) {
     DyVec* dyvec = dy_vec_;
-    ZETA_DEBUG_ASSERT(dyvec != NULL);
+    ZETA_DebugAssert(dyvec != NULL);
 
     *(data_t*)Zeta_DynamicVector_Insert(&dyvec->dv, idx) = val;
 }
 
 void DyVec_Erase(void* dy_vec_, size_t idx) {
     DyVec* dyvec = dy_vec_;
-    ZETA_DEBUG_ASSERT(dyvec != NULL);
+    ZETA_DebugAssert(dyvec != NULL);
 
     Zeta_DynamicVector_Erase(&dyvec->dv, idx);
 }
 
-void DyVec_Check(void* dy_vec_) { ZETA_UNUSED(dy_vec_); }
+void DyVec_Check(void* dy_vec_) { ZETA_Unused(dy_vec_); }

@@ -1,4 +1,5 @@
 #include "FileSystemFAT32.h"
+
 #include "utils.h"
 
 #define READ(dst, len)                      \
@@ -7,8 +8,8 @@
 
 const byte_t* Zeta_FileSystem_FAT32_ReadBPB(Zeta_FileSystem_FAT32_BPB* dst,
                                             const byte_t* data) {
-    ZETA_DEBUG_ASSERT(dst != NULL);
-    ZETA_DEBUG_ASSERT(data != NULL);
+    ZETA_DebugAssert(dst != NULL);
+    ZETA_DebugAssert(data != NULL);
 
     for (int i = 0; i < 8; ++i) { dst->jmp_boot[i] = data[i]; }
     data += 3;
