@@ -9,7 +9,7 @@ void Zeta_SlabAllocator_Init(void* sa_) {
 }
 
 int Zeta_SlabAllocator_GetMaxSize(size_t page_size, int num) {
-    ZETA_DebugAssert(1 <= num);
+    ZETA_DebugAssert(0 < num);
 
     size_t header_size =
         sizeof(Zeta_SlabAllocator_Slab) - sizeof(Zeta_SlabAllocator_Unit);
@@ -23,7 +23,7 @@ int Zeta_SlabAllocator_GetMaxSize(size_t page_size, int num) {
 }
 
 int Zeta_SlabAllocator_GetMaxNum(size_t page_size, int size) {
-    ZETA_DebugAssert(1 <= size);
+    ZETA_DebugAssert(0 < size);
 
     size = (size + alignof(void*) - 1) / alignof(void*) * alignof(void*);
 
@@ -38,8 +38,8 @@ int Zeta_SlabAllocator_GetMaxNum(size_t page_size, int size) {
 }
 
 size_t Zeta_SlabAllocator_GetPageSize(int size, int num) {
-    ZETA_DebugAssert(1 <= size);
-    ZETA_DebugAssert(1 <= num);
+    ZETA_DebugAssert(0 < size);
+    ZETA_DebugAssert(0 < num);
 
     size = (size + alignof(void*) - 1) / alignof(void*) * alignof(void*);
 
@@ -53,12 +53,12 @@ void Zeta_SlabAllocator_Entrust(void* sa_, int num_of_types, const int* sizes,
 
     ZETA_DebugAssert(sa != NULL);
 
-    ZETA_DebugAssert(1 <= num_of_types);
+    ZETA_DebugAssert(0 < num_of_types);
     ZETA_DebugAssert(num_of_types <= Zeta_SlabAllocator_max_num_of_types);
 
     for (int i = 0; i < num_of_types; ++i) {
-        ZETA_DebugAssert(1 <= sizes[i]);
-        ZETA_DebugAssert(1 <= nums[i]);
+        ZETA_DebugAssert(0 < sizes[i]);
+        ZETA_DebugAssert(0 < nums[i]);
     }
 
     for (int i = 1; i < num_of_types; ++i) {

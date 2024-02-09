@@ -98,13 +98,13 @@ void Zeta_OrdAllocator_Init(void* ord_allocator_) {
     size_t head_size = sizeof(Zeta_OrdAllocator_Head);
 
     size_t align = ord_allocator->align;
-    ZETA_DebugAssert(1 <= align);
+    ZETA_DebugAssert(0 < align);
 
     align = Zeta_GetLCM(head_align, align);
 
     ord_allocator->align = align;
 
-    ZETA_DebugAssert(ord_allocator->ptr != 0);
+    ZETA_DebugAssert(ord_allocator->ptr != NULL);
     ZETA_DebugAssert(0 <= ord_allocator->size);
 
     size_t beg = (uintptr_t)ord_allocator->ptr;
@@ -153,8 +153,8 @@ void Zeta_OrdAllocator_Init(void* ord_allocator_) {
             size_t cur_width = ord_allocator->slab_widths[level_i];
             size_t cur_size = ord_allocator->slab_sizes[level_i];
 
-            ZETA_DebugAssert(1 <= cur_width);
-            ZETA_DebugAssert(1 <= cur_size);
+            ZETA_DebugAssert(0 < cur_width);
+            ZETA_DebugAssert(0 < cur_size);
 
             width_size_pairs[level_i].width = Zeta_FindNextConMod(
                 cur_width, align - sizeof(void*) % align, align);
@@ -796,8 +796,8 @@ void Zeta_OrdAllocator_Check(void* ord_allocator_, bool_t print_state,
         size_t slab_width = ord_allocator->slab_widths[level_i];
         size_t slab_size = ord_allocator->slab_sizes[level_i];
 
-        ZETA_DebugAssert(1 <= slab_width);
-        ZETA_DebugAssert(1 <= slab_size);
+        ZETA_DebugAssert(0 < slab_width);
+        ZETA_DebugAssert(0 < slab_size);
 
         ZETA_DebugAssert((slab_width + sizeof(void*)) % align == 0);
 

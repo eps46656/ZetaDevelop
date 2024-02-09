@@ -2,7 +2,7 @@
 #include <unordered_map>
 #include <vector>
 
-#include "../Zeta/MultiLevelEntryTable.h"
+#include "../Zeta/MultiLevelVector.h"
 
 struct StdAllocator {
     std::unordered_map<void*, size_t> ptr_size;
@@ -35,16 +35,16 @@ void StdDeallocate(void* sa_, void* ptr) {
     free(ptr);
 }
 
-StdAllocator mlet_allocator;
+StdAllocator mlv_allocator;
 
-Zeta_Allocator mlet_allocator_i = {
-    .context = &mlet_allocator,
+Zeta_Allocator mlv_allocator_i = {
+    .context = &mlv_allocator,
     .Query = StdQuery,
     .Allocate = StdAllocate,
     .Deallocate = StdDeallocate,
 };
 
-Zeta_MultiLevelEntryTable mlet;
+Zeta_MultiLevelVector mlv;
 
 std::vector<void*> vet;
 
@@ -60,8 +60,8 @@ void* KULL = (void*)~0;
 size_t GetIdx(const size_t* idxes) {
     size_t idx = idxes[0];
 
-    for (int level_i = 1; level_i < mlet.level; ++level_i) {
-        idx = idx * mlet.branch_nums[level_i] + idxes[level_i];
+    for (int level_i = 1; level_i < mlv.level; ++level_i) {
+        idx = idx * mlv.branch_nums[level_i] + idxes[level_i];
     }
 
     return idx;
@@ -70,29 +70,29 @@ size_t GetIdx(const size_t* idxes) {
 void GetIdxes(size_t* dst, size_t idx) {
     size_t origin_idx = idx;
 
-    for (int level_i = mlet.level - 1; 0 <= level_i; --level_i) {
-        dst[level_i] = idx % mlet.branch_nums[level_i];
-        idx /= mlet.branch_nums[level_i];
+    for (int level_i = mlv.level - 1; 0 <= level_i; --level_i) {
+        dst[level_i] = idx % mlv.branch_nums[level_i];
+        idx /= mlv.branch_nums[level_i];
     }
 
     ZETA_DebugAssert(origin_idx == GetIdx(dst));
 }
 
 void* MLETGetVal(size_t idx) {
-    size_t idxes[ZETA_MultiLevelEntryTable_max_level];
+    size_t idxes[ZETA_MultiLevelVector_max_level];
     GetIdxes(idxes, idx);
-    void** p = Zeta_MultiLevelEntryTable_Access(&mlet, idxes);
+    void** p = Zeta_MultiLevelVector_Access(&mlv, idxes);
     return p == NULL ? NULL : *p;
 }
 
 void MLETSetVal(size_t idx, void* val) {
-    size_t idxes[ZETA_MultiLevelEntryTable_max_level];
+    size_t idxes[ZETA_MultiLevelVector_max_level];
     GetIdxes(idxes, idx);
 
     if (val == NULL) {
-        Zeta_MultiLevelEntryTable_Erase(&mlet, idxes);
+        Zeta_MultiLevelVector_Erase(&mlv, idxes);
     } else {
-        *Zeta_MultiLevelEntryTable_Insert(&mlet, idxes) = val;
+        *Zeta_MultiLevelVector_Insert(&mlv, idxes) = val;
     }
 }
 
@@ -102,7 +102,7 @@ size_t MLETFindPrevCri(size_t idx, bool_t included) {
         --idx;
     }
 
-    for (++idx; 1 <= idx--;) {
+    for (++idx; 0 < idx--;) {
         if (MLETGetVal(idx) != NULL) { return idx; }
     }
 
@@ -110,7 +110,7 @@ size_t MLETFindPrevCri(size_t idx, bool_t included) {
 }
 
 size_t MLETFindNextCri(size_t idx, bool_t included) {
-    size_t capacity = Zeta_MultiLevelEntryTable_GetCapacity(&mlet);
+    size_t capacity = Zeta_MultiLevelVector_GetCapacity(&mlv);
 
     if (!included) {
         if (idx == capacity - 1) { return ZETA_maxof(size_t); }
@@ -126,26 +126,24 @@ size_t MLETFindNextCri(size_t idx, bool_t included) {
 }
 
 size_t MLETFindPrev(size_t idx, bool_t included) {
-    size_t idxes[ZETA_MultiLevelEntryTable_max_level];
+    size_t idxes[ZETA_MultiLevelVector_max_level];
     GetIdxes(idxes, idx);
 
-    void** p =
-        Zeta_MultiLevelEntryTable_FindPrevNotNull(&mlet, idxes, included);
+    void** p = Zeta_MultiLevelVector_FindPrevNotNull(&mlv, idxes, included);
 
     return p == NULL ? ZETA_maxof(size_t) : GetIdx(idxes);
 }
 
 size_t MLETFindNext(size_t idx, bool_t included) {
-    size_t idxes[ZETA_MultiLevelEntryTable_max_level];
+    size_t idxes[ZETA_MultiLevelVector_max_level];
     GetIdxes(idxes, idx);
 
-    void** p =
-        Zeta_MultiLevelEntryTable_FindNextNotNull(&mlet, idxes, included);
+    void** p = Zeta_MultiLevelVector_FindNextNotNull(&mlv, idxes, included);
 
     return p == NULL ? ZETA_maxof(size_t) : GetIdx(idxes);
 }
 
-void MLETEraseAll() { Zeta_MultiLevelEntryTable_EraseAll(&mlet); }
+void MLETEraseAll() { Zeta_MultiLevelVector_EraseAll(&mlv); }
 
 void SyncSetVal(size_t idx, void* val) {
     vet[idx] = val;
@@ -153,7 +151,7 @@ void SyncSetVal(size_t idx, void* val) {
 }
 
 void SyncEraseAll() {
-    size_t capacity = Zeta_MultiLevelEntryTable_GetCapacity(&mlet);
+    size_t capacity = Zeta_MultiLevelVector_GetCapacity(&mlv);
 
     vet.resize(0);
     vet.resize(capacity, NULL);
@@ -164,7 +162,7 @@ void SyncEraseAll() {
 void Check() {
     size_t capacity = vet.size();
 
-    ZETA_DebugAssert(Zeta_MultiLevelEntryTable_IsClean(&mlet));
+    ZETA_DebugAssert(Zeta_MultiLevelVector_IsClean(&mlv));
 
     for (size_t i = 0; i < capacity; ++i) {
         ZETA_DebugAssert(MLETGetVal(i) == vet[i]);
@@ -179,20 +177,20 @@ int main1() {
 
     rand_en.seed(seed);
 
-    mlet.level = 6;
-    mlet.branch_nums[0] = 4;
-    mlet.branch_nums[1] = 3;
-    mlet.branch_nums[2] = 4;
-    mlet.branch_nums[3] = 6;
-    mlet.branch_nums[4] = 5;
-    mlet.branch_nums[5] = 2;
-    mlet.allocator = &mlet_allocator_i;
+    mlv.level = 6;
+    mlv.branch_nums[0] = 4;
+    mlv.branch_nums[1] = 3;
+    mlv.branch_nums[2] = 4;
+    mlv.branch_nums[3] = 6;
+    mlv.branch_nums[4] = 5;
+    mlv.branch_nums[5] = 2;
+    mlv.allocator = &mlv_allocator_i;
 
-    Zeta_MultiLevelEntryTable_Init(&mlet);
+    Zeta_MultiLevelVector_Init(&mlv);
 
     Check();
 
-    size_t capacity = Zeta_MultiLevelEntryTable_GetCapacity(&mlet);
+    size_t capacity = Zeta_MultiLevelVector_GetCapacity(&mlv);
 
     ZETA_PrintVar("%llu", capacity);
     vet.resize(capacity, NULL);
@@ -224,7 +222,7 @@ int main1() {
 
         SyncEraseAll();
 
-        ZETA_DebugAssert(mlet_allocator.ptr_size.empty());
+        ZETA_DebugAssert(mlv_allocator.ptr_size.empty());
     }
 
     Check();

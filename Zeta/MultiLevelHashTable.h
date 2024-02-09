@@ -1,6 +1,6 @@
 #pragma once
 
-#include "MultiLevelEntryTable.h"
+#include "MultiLevelVector.h"
 
 ZETA_extern_c_beg;
 
@@ -15,7 +15,7 @@ struct Zeta_MultiLevelHashTableNode {
 typedef struct Zeta_MultiLevelHashTable Zeta_MultiLevelHashTable;
 
 struct Zeta_MultiLevelHashTable {
-    Zeta_MultiLevelEntryTable* mlet;
+    Zeta_MultiLevelVector* mlv;
 };
 
 /* initialize the mlhtn */

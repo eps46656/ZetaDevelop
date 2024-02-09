@@ -48,6 +48,8 @@ typedef unsigned _BitInt(32) u32_t;
 typedef unsigned _BitInt(64) u64_t;
 typedef unsigned _BitInt(128) u128_t;
 
+typedef s32_t unichar_t;
+
 #define ZETA_PrintVar(formater, d) \
     printf("%s:%d\t\t%s = " formater "\n", __FILE__, __LINE__, #d, d)
 

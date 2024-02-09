@@ -77,10 +77,10 @@ std::uniform_int_distribution<int> val_generator{ -64 * 1024 * 1024,
 
 std::uniform_int_distribution<size_t> size_generator{ 0, ZETA_maxof(size_t) };
 
-StdAllocator mlet_allocator;
+StdAllocator mlv_allocator;
 
-Zeta_Allocator mlet_allocator_i = {
-    .context = &mlet_allocator,
+Zeta_Allocator mlv_allocator_i = {
+    .context = &mlv_allocator,
     .Query = StdQuery,
     .Allocate = StdAllocate,
     .Deallocate = StdDeallocate,
@@ -159,19 +159,19 @@ void Check() {
 
     Zeta_DebugTreeMap* tm = (Zeta_DebugTreeMap*)Zeta_DebugTreeMap_Create();
 
-    Zeta_MultiLevelEntryTable_GetAllPages(&dv.mlet, tm);
+    Zeta_MultiLevelVector_GetAllPages(&dv.mlv, tm);
 
     std::map<Zeta_DebugTreeMap_key_t, Zeta_DebugTreeMap_val_t>* m =
         (std::map<Zeta_DebugTreeMap_key_t, Zeta_DebugTreeMap_val_t>*)(tm);
 
     for (auto iter{ m->begin() }, end{ m->end() }; iter != end; ++iter) {
         ZETA_DebugAssert(
-            mlet_allocator.ptr_size.find((void*)(uintptr_t)iter->first) !=
-            mlet_allocator.ptr_size.end());
+            mlv_allocator.ptr_size.find((void*)(uintptr_t)iter->first) !=
+            mlv_allocator.ptr_size.end());
     }
 
-    for (auto iter{ mlet_allocator.ptr_size.begin() },
-         end{ mlet_allocator.ptr_size.end() };
+    for (auto iter{ mlv_allocator.ptr_size.begin() },
+         end{ mlv_allocator.ptr_size.end() };
          iter != end; ++iter) {
         ZETA_DebugAssert(m->find((uintptr_t)iter->first) != m->end());
     }
@@ -185,13 +185,13 @@ int main() {
 
     dv.width = sizeof(val_t);
     dv.cluster_capacity = 8;
-    dv.mlet.level = -1;
-    dv.mlet.allocator = &mlet_allocator_i;
+    dv.mlv.level = -1;
+    dv.mlv.allocator = &mlv_allocator_i;
     dv.allocator = &cluster_allocator_i;
 
     Zeta_DynamicVector_Init(&dv);
 
-    ZETA_PrintVar("%d", dv.mlet.level);
+    ZETA_PrintVar("%d", dv.mlv.level);
 
     // for()
 
@@ -213,7 +213,7 @@ int main() {
         Check();
     }
 
-    ZETA_PrintVar("%llu", mlet_allocator.ptr_size.size());
+    ZETA_PrintVar("%llu", mlv_allocator.ptr_size.size());
     ZETA_PrintVar("%llu", cluster_allocator.ptr_size.size());
 
     std::cout << "ok\n";

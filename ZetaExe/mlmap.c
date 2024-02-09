@@ -16,7 +16,7 @@ typedef struct MLMap MLMap;
 
 struct MLMap {
     size_t size;
-    Zeta_MultiLevelEntryTable mlet;
+    Zeta_MultiLevelVector mlv;
     Zeta_MultiLevelHashTable mlht;
 };
 
@@ -41,23 +41,23 @@ size_t SimpleHashKey(mlmap_key_t key) {
 void MLMap_Init(void* mlmap_) {
     MLMap* mlmap = mlmap_;
 
-    Zeta_MultiLevelEntryTable* mlet = &mlmap->mlet;
+    Zeta_MultiLevelVector* mlv = &mlmap->mlv;
     Zeta_MultiLevelHashTable* mlht = &mlmap->mlht;
 
     mlmap->size = 0;
 
-    Zeta_MultiLevelEntryTable_Init(mlet);
+    Zeta_MultiLevelVector_Init(mlv);
     Zeta_MultiLevelHashTable_Init(mlht);
 
-    mlet->level = 3;
-    mlet->branch_nums[0] = 256;
-    mlet->branch_nums[1] = 256;
-    mlet->branch_nums[2] = 256;
-    mlet->allocator = malloc(sizeof(Zeta_Allocator));
-    mlet->allocator->Allocate = MLMap_Allocate;
-    mlet->allocator->Deallocate = MLMap_Deallocate;
+    mlv->level = 3;
+    mlv->branch_nums[0] = 256;
+    mlv->branch_nums[1] = 256;
+    mlv->branch_nums[2] = 256;
+    mlv->allocator = malloc(sizeof(Zeta_Allocator));
+    mlv->allocator->Allocate = MLMap_Allocate;
+    mlv->allocator->Deallocate = MLMap_Deallocate;
 
-    mlht->mlet = mlet;
+    mlht->mlv = mlv;
 }
 
 void* MLMap_Create() {

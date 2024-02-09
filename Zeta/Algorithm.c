@@ -232,7 +232,7 @@ void Zeta_KthElement(Zeta_Vector* vec, size_t beg, size_t mid, size_t end,
     void* vec_context = vec->context;
 
     size_t width = vec->GetWidth(vec_context);
-    ZETA_DebugAssert(1 <= width);
+    ZETA_DebugAssert(0 < width);
 
     size_t size = vec->GetSize(vec_context);
 
@@ -290,7 +290,7 @@ void Zeta_Sort(Zeta_Vector* vec, size_t beg, size_t end, void* cmper_context,
     void* vec_context = vec->context;
 
     size_t width = vec->GetWidth(vec_context);
-    ZETA_DebugAssert(1 <= width);
+    ZETA_DebugAssert(0 < width);
 
     size_t size = vec->GetSize(vec_context);
 

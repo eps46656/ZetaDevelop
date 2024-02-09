@@ -239,7 +239,7 @@ void Zeta_CircularVector_PopL(void* cv) { Zeta_CircularVector_Erase(cv, 0); }
 void Zeta_CircularVector_PopR(void* cv) {
     Zeta_CircularVector* cv = cv_;
     ZETA_DebugAssert(cv != NULL);
-    ZETA_DebugAssert(1 <= cv->size);
+    ZETA_DebugAssert(0 < cv->size);
 
     Zeta_CircularVector_Erase(cv, cv->size - 1);
 }

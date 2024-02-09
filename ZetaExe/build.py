@@ -307,7 +307,7 @@ def builder_add(builder):
         f"{ZetaExeDir}/mlmap.so",
         {
             f"{File}",
-            f"{ZetaDir}/MultiLevelEntryTable.o",
+            f"{ZetaDir}/MultiLevelVector.o",
             f"{ZetaDir}/MultiLevelHashTable.o",
             f"{ZetaDir}/utils.o",
             f"{ZetaExeDir}/mlmap.c",
@@ -319,7 +319,7 @@ def builder_add(builder):
             *cargs,
             f"-shared",
             f"-fPIC",
-            f"{ZetaDir}/MultiLevelEntryTable.o",
+            f"{ZetaDir}/MultiLevelVector.o",
             f"{ZetaDir}/MultiLevelHashTable.o",
             f"{ZetaDir}/utils.o",
             f"{ZetaExeDir}/mlmap.c",
@@ -342,7 +342,7 @@ def builder_add(builder):
         f"{ZetaExeDir}/test_hashtable.exe",
         {
             f"{File}",
-            f"{ZetaDir}/MultiLevelEntryTable.o",
+            f"{ZetaDir}/MultiLevelVector.o",
             f"{ZetaDir}/MultiLevelHashTable.o",
             f"{ZetaDir}/utils.o",
             f"{ZetaExeDir}/test_hashtable.c",
@@ -352,7 +352,7 @@ def builder_add(builder):
             f"--output {ZetaExeDir}/test_hashtable.exe",
             f"-c",
             *cargs,
-            f"{ZetaDir}/MultiLevelEntryTable.o",
+            f"{ZetaDir}/MultiLevelVector.o",
             f"{ZetaDir}/MultiLevelHashTable.o",
             f"{ZetaDir}/utils.o",
             f"{ZetaExeDir}/test_hashtable.c",
@@ -429,7 +429,7 @@ def builder_add(builder):
             f"{File}",
             f"{ZetaDir}/DebugTreeMap.o",
             f"{ZetaDir}/DynamicVector.o",
-            f"{ZetaDir}/MultiLevelEntryTable.o",
+            f"{ZetaDir}/MultiLevelVector.o",
             f"{ZetaDir}/utils.o",
             f"{ZetaExeDir}/test_dv.cpp",
         },
@@ -440,7 +440,7 @@ def builder_add(builder):
 
             f"{ZetaDir}/DebugTreeMap.o",
             f"{ZetaDir}/DynamicVector.o",
-            f"{ZetaDir}/MultiLevelEntryTable.o",
+            f"{ZetaDir}/MultiLevelVector.o",
             f"{ZetaDir}/utils.o",
 
             f"{ZetaExeDir}/test_dv.cpp",
@@ -604,7 +604,7 @@ def builder_add(builder):
         {
             f"{File}",
             f"{ZetaDir}/DynamicVector.o",
-            f"{ZetaDir}/MultiLevelEntryTable.o",
+            f"{ZetaDir}/MultiLevelVector.o",
             f"{ZetaDir}/utils.o",
             f"{ZetaExeDir}/DyVec.c",
         },
@@ -616,7 +616,7 @@ def builder_add(builder):
             f"-shared",
             f"-fPIC",
             f"{ZetaDir}/DynamicVector.o",
-            f"{ZetaDir}/MultiLevelEntryTable.o",
+            f"{ZetaDir}/MultiLevelVector.o",
             f"{ZetaDir}/utils.o",
             f"{ZetaExeDir}/DyVec.c",
         ]))
@@ -665,33 +665,33 @@ def builder_add(builder):
     )
 
     builder.add(
-        f"{ZetaExeDir}/test_mlet.cpp",
+        f"{ZetaExeDir}/test_mlv.cpp",
         {
             f"{File}",
-            f"{ZetaDir}/MultiLevelEntryTable.h",
+            f"{ZetaDir}/MultiLevelVector.h",
         },
         lambda : 0
     )
 
     builder.add(
-        f"{ZetaExeDir}/test_mlet.exe",
+        f"{ZetaExeDir}/test_mlv.exe",
         {
             f"{File}",
             f"{ZetaDir}/DebugTreeMap.o",
-            f"{ZetaDir}/MultiLevelEntryTable.o",
+            f"{ZetaDir}/MultiLevelVector.o",
             f"{ZetaDir}/utils.o",
 
-            f"{ZetaExeDir}/test_mlet.cpp",
+            f"{ZetaExeDir}/test_mlv.cpp",
         },
         lambda : os.system(" ".join([
             cppc,
-            f"--output {ZetaExeDir}/test_mlet.exe",
+            f"--output {ZetaExeDir}/test_mlv.exe",
             *cppargs,
             f"{ZetaDir}/DebugTreeMap.o",
-            f"{ZetaDir}/MultiLevelEntryTable.o",
+            f"{ZetaDir}/MultiLevelVector.o",
             f"{ZetaDir}/utils.o",
 
-            f"{ZetaExeDir}/test_mlet.cpp",
+            f"{ZetaExeDir}/test_mlv.cpp",
         ]))
     )
 

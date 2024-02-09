@@ -38,17 +38,17 @@ void DyVec_Init(void* dy_vec_) {
     dyvec->dv.offset = 0;
     dyvec->dv.size = 0;
 
-    dyvec->dv.mlet.level = 5;
+    dyvec->dv.mlv.level = 5;
 
-    dyvec->dv.mlet.branch_nums[0] = 64;
-    dyvec->dv.mlet.branch_nums[1] = 256;
-    dyvec->dv.mlet.branch_nums[2] = 256;
-    dyvec->dv.mlet.branch_nums[3] = 512;
-    dyvec->dv.mlet.branch_nums[4] = 512;
+    dyvec->dv.mlv.branch_nums[0] = 64;
+    dyvec->dv.mlv.branch_nums[1] = 256;
+    dyvec->dv.mlv.branch_nums[2] = 256;
+    dyvec->dv.mlv.branch_nums[3] = 512;
+    dyvec->dv.mlv.branch_nums[4] = 512;
 
-    dyvec->dv.mlet.root = NULL;
+    dyvec->dv.mlv.root = NULL;
 
-    dyvec->dv.mlet.allocator = &std_allocator;
+    dyvec->dv.mlv.allocator = &std_allocator;
 
     dyvec->dv.allocator = &std_allocator;
 }

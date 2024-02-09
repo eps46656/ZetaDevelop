@@ -2,7 +2,7 @@
 
 #include "Allocator.h"
 #include "CircularVector.h"
-#include "MultiLevelEntryTable.h"
+#include "MultiLevelVector.h"
 #include "Vector.h"
 
 ZETA_extern_c_beg;
@@ -26,7 +26,7 @@ struct Zeta_DynamicVector {
     size_t size;
 
     /** The multi level entry table to provide large entry space. */
-    Zeta_MultiLevelEntryTable mlet;
+    Zeta_MultiLevelVector mlv;
 
     /** The allocator to allocate cluster. */
     Zeta_Allocator* allocator;

@@ -1,9 +1,9 @@
 #include "MultiLevelHashTable.h"
 
-static void GetIdxes_(size_t* dst_idxes, Zeta_MultiLevelEntryTable* mlet,
+static void GetIdxes_(size_t* dst_idxes, Zeta_MultiLevelVector* mlv,
                       size_t hash_code) {
-    size_t level = mlet->level;
-    size_t* branch_nums = mlet->branch_nums;
+    size_t level = mlv->level;
+    size_t* branch_nums = mlv->branch_nums;
 
     for (size_t level_i = 0; level_i < level; ++level_i) {
         dst_idxes[level_i] = hash_code % branch_nums[level_i];
@@ -23,19 +23,19 @@ void Zeta_MultiLevelHashTable_Init(void* mlht_) {
     Zeta_MultiLevelHashTable* mlht = mlht_;
     ZETA_DebugAssert(mlht != NULL);
 
-    mlht->mlet = NULL;
+    mlht->mlv = NULL;
 }
 
 void* Zeta_MultiLevelHashTable_GetFirst(void* mlht_) {
     Zeta_MultiLevelHashTable* mlht = mlht_;
     ZETA_DebugAssert(mlht != NULL);
 
-    Zeta_MultiLevelEntryTable* mlet = mlht->mlet;
+    Zeta_MultiLevelVector* mlv = mlht->mlv;
 
-    size_t idxes[ZETA_MultiLevelEntryTable_max_level];
-    GetIdxes_(idxes, mlet, 0);
+    size_t idxes[ZETA_MultiLevelVector_max_level];
+    GetIdxes_(idxes, mlv, 0);
 
-    void** n = Zeta_MultiLevelEntryTable_FindNextNotNull(mlet, idxes, 1);
+    void** n = Zeta_MultiLevelVector_FindNextNotNull(mlv, idxes, 1);
 
     return n == NULL ? NULL : *n;
 }
@@ -50,12 +50,12 @@ void* Zeta_MultiLevelHashTable_GetNext(void* mlht_, void* mlhtn_) {
     Zeta_MultiLevelHashTableNode* nxt_mlhtn = mlhtn->next;
     if (nxt_mlhtn != NULL) { return nxt_mlhtn; }
 
-    Zeta_MultiLevelEntryTable* mlet = mlht->mlet;
+    Zeta_MultiLevelVector* mlv = mlht->mlv;
 
-    size_t idxes[ZETA_MultiLevelEntryTable_max_level];
-    GetIdxes_(idxes, mlet, mlhtn->hash_code);
+    size_t idxes[ZETA_MultiLevelVector_max_level];
+    GetIdxes_(idxes, mlv, mlhtn->hash_code);
 
-    void** n = Zeta_MultiLevelEntryTable_FindNextNotNull(mlet, idxes, 0);
+    void** n = Zeta_MultiLevelVector_FindNextNotNull(mlv, idxes, 0);
 
     return n == NULL ? NULL : *n;
 }
@@ -69,13 +69,13 @@ void Zeta_MultiLevelHashTable_Insert(void* mlht_, void* mlhtn_) {
     ZETA_DebugAssert(mlhtn->prev == NULL);
     ZETA_DebugAssert(mlhtn->next == NULL);
 
-    Zeta_MultiLevelEntryTable* mlet = mlht->mlet;
-    ZETA_DebugAssert(mlet != NULL);
+    Zeta_MultiLevelVector* mlv = mlht->mlv;
+    ZETA_DebugAssert(mlv != NULL);
 
-    size_t idxes[ZETA_MultiLevelEntryTable_max_level];
-    GetIdxes_(idxes, mlet, mlhtn->hash_code);
+    size_t idxes[ZETA_MultiLevelVector_max_level];
+    GetIdxes_(idxes, mlv, mlhtn->hash_code);
 
-    void** n = Zeta_MultiLevelEntryTable_Insert(mlht->mlet, idxes);
+    void** n = Zeta_MultiLevelVector_Insert(mlht->mlv, idxes);
 
     Zeta_MultiLevelHashTableNode* head_mlhtn = *n;
     *n = mlhtn;
@@ -93,13 +93,13 @@ void Zeta_MultiLevelHashTable_Extract(void* mlht_, void* mlhtn_) {
     Zeta_MultiLevelHashTableNode* mlhtn = mlhtn_;
     ZETA_DebugAssert(mlhtn != NULL);
 
-    Zeta_MultiLevelEntryTable* mlet = mlht->mlet;
-    ZETA_DebugAssert(mlet != NULL);
+    Zeta_MultiLevelVector* mlv = mlht->mlv;
+    ZETA_DebugAssert(mlv != NULL);
 
-    size_t idxes[ZETA_MultiLevelEntryTable_max_level];
-    GetIdxes_(idxes, mlet, mlhtn->hash_code);
+    size_t idxes[ZETA_MultiLevelVector_max_level];
+    GetIdxes_(idxes, mlv, mlhtn->hash_code);
 
-    void** n = Zeta_MultiLevelEntryTable_Insert(mlht->mlet, idxes);
+    void** n = Zeta_MultiLevelVector_Insert(mlht->mlv, idxes);
 
     ZETA_DebugAssert(n != NULL);
 
@@ -124,7 +124,7 @@ void Zeta_MultiLevelHashTable_Extract(void* mlht_, void* mlhtn_) {
 
     if (prev_mlhtn == NULL) {
         if (next_mlhtn == NULL) {
-            Zeta_MultiLevelEntryTable_Erase(mlht->mlet, idxes);
+            Zeta_MultiLevelVector_Erase(mlht->mlv, idxes);
         } else {
             *n = next_mlhtn;
             next_mlhtn->prev = NULL;
@@ -143,13 +143,13 @@ void* Zeta_MultiLevelHashTable_Find(void* mlht_, size_t hash_code) {
     Zeta_MultiLevelHashTable* mlht = mlht_;
     ZETA_DebugAssert(mlht != NULL);
 
-    Zeta_MultiLevelEntryTable* mlet = mlht->mlet;
-    ZETA_DebugAssert(mlet != NULL);
+    Zeta_MultiLevelVector* mlv = mlht->mlv;
+    ZETA_DebugAssert(mlv != NULL);
 
-    size_t idxes[ZETA_MultiLevelEntryTable_max_level];
-    GetIdxes_(idxes, mlet, hash_code);
+    size_t idxes[ZETA_MultiLevelVector_max_level];
+    GetIdxes_(idxes, mlv, hash_code);
 
-    void** n = Zeta_MultiLevelEntryTable_Insert(mlht->mlet, idxes);
+    void** n = Zeta_MultiLevelVector_Insert(mlht->mlv, idxes);
 
     if (n == NULL) { return NULL; }
 

@@ -437,7 +437,7 @@ def builder_add(builder):
             f"{File}",
             f"{ZetaDir}/Allocator.h",
             f"{ZetaDir}/CircularVector.h",
-            f"{ZetaDir}/MultiLevelEntryTable.h",
+            f"{ZetaDir}/MultiLevelVector.h",
             f"{ZetaDir}/Vector.h",
         },
         lambda : 0
@@ -468,7 +468,7 @@ def builder_add(builder):
     )
 
     builder.add(
-        f"{ZetaDir}/MultiLevelEntryTable.h",
+        f"{ZetaDir}/MultiLevelVector.h",
         {
             f"{File}",
             f"{ZetaDir}/define.h",
@@ -477,26 +477,26 @@ def builder_add(builder):
     )
 
     builder.add(
-        f"{ZetaDir}/MultiLevelEntryTable.c",
+        f"{ZetaDir}/MultiLevelVector.c",
         {
             f"{File}",
-            f"{ZetaDir}/MultiLevelEntryTable.h",
+            f"{ZetaDir}/MultiLevelVector.h",
         },
         lambda : 0
     )
 
     builder.add(
-        f"{ZetaDir}/MultiLevelEntryTable.o",
+        f"{ZetaDir}/MultiLevelVector.o",
         {
             f"{File}",
-            f"{ZetaDir}/MultiLevelEntryTable.c",
+            f"{ZetaDir}/MultiLevelVector.c",
         },
         lambda : os.system(" ".join([
             cc,
-            f"--output {ZetaDir}/MultiLevelEntryTable.o",
+            f"--output {ZetaDir}/MultiLevelVector.o",
             f"-c",
             *cargs,
-            f"{ZetaDir}/MultiLevelEntryTable.c",
+            f"{ZetaDir}/MultiLevelVector.c",
         ]))
     )
 
@@ -504,7 +504,7 @@ def builder_add(builder):
         f"{ZetaDir}/MultiLevelHashTable.h",
         {
             f"{File}",
-            f"{ZetaDir}/MultiLevelEntryTable.h",
+            f"{ZetaDir}/MultiLevelVector.h",
         },
         lambda : 0
     )
@@ -901,6 +901,39 @@ def builder_add(builder):
             f"-c",
             *cargs,
             f"{ZetaDir}/SlabAllocator.c",
+        ]))
+    )
+
+    builder.add(
+        f"{ZetaDir}/UTF8.h",
+        {
+            f"{File}",
+            f"{ZetaDir}/define.h",
+        },
+        lambda : 0
+    )
+
+    builder.add(
+        f"{ZetaDir}/UTF8.c",
+        {
+            f"{File}",
+            f"{ZetaDir}/UTF8.h",
+        },
+        lambda : 0
+    )
+
+    builder.add(
+        f"{ZetaDir}/UTF8.o",
+        {
+            f"{File}",
+            f"{ZetaDir}/UTF8.c",
+        },
+        lambda : os.system(" ".join([
+            cc,
+            f"--output {ZetaDir}/UTF8.o",
+            f"-c",
+            *cargs,
+            f"{ZetaDir}/UTF8.c",
         ]))
     )
 

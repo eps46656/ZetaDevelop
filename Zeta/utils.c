@@ -161,7 +161,7 @@ if b != 0
 size_t Zeta_GetMulMod(size_t x, size_t y, size_t mod) {
     ZETA_DebugAssert(0 <= x);
     ZETA_DebugAssert(0 <= y);
-    ZETA_DebugAssert(1 <= mod);
+    ZETA_DebugAssert(0 < mod);
 
     x %= mod;
     y %= mod;
@@ -188,7 +188,7 @@ size_t Zeta_GetMulMod(size_t x, size_t y, size_t mod) {
 
 size_t Zeta_GetPowerMod(size_t base, size_t exp, size_t mod) {
     ZETA_DebugAssert(0 <= exp);
-    ZETA_DebugAssert(1 <= mod);
+    ZETA_DebugAssert(0 < mod);
 
     if (mod == 1) { return 0; }
 
@@ -204,7 +204,7 @@ size_t Zeta_GetPowerMod(size_t base, size_t exp, size_t mod) {
 }
 
 size_t Zeta_FindNextConMod(size_t beg, size_t target, size_t mod) {
-    ZETA_DebugAssert(1 <= mod);
+    ZETA_DebugAssert(0 < mod);
     return beg + (target + mod - beg % mod) % mod;
 }
 
