@@ -12,4 +12,8 @@ struct Zeta_Vector {
     size_t (*GetSize)(void* context);
 
     void* (*Access)(void* context, size_t idx);
+
+    void* (*Insert)(void* context, size_t idx);
+
+    void (*Erase)(void* context, size_t idx);
 };

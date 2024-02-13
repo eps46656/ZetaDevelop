@@ -59,7 +59,7 @@ size_t Zeta_DynamicVector_GetSize(void* dv_) {
 }
 
 static void GetIdxes_(Zeta_DynamicVector* dv, size_t* idxes, size_t idx) {
-    const int level = dv->mlv.level;
+    int level = dv->mlv.level;
 
     for (int level_i = level - 1; 0 <= level_i; --level_i) {
         size_t branch_num = dv->mlv.branch_nums[level_i];

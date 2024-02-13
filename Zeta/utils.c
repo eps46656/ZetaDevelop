@@ -1,7 +1,10 @@
 #include "utils.h"
 
-void Zeta_MemCopy(size_t size, byte_t* dst, byte_t* src) {
+void Zeta_MemCopy(size_t size, void* dst_, const void* src_) {
     ZETA_DebugAssert(0 <= size);
+
+    unsigned char* dst = dst_;
+    const unsigned char* src = src_;
 
     if (dst == src) { return; }
 
@@ -12,15 +15,22 @@ void Zeta_MemCopy(size_t size, byte_t* dst, byte_t* src) {
     }
 }
 
-void Zeta_MemSwap(size_t size, byte_t* x, byte_t* y) {
+void Zeta_MemSwap(size_t size, void* x_, void* y_) {
     ZETA_DebugAssert(0 <= size);
+
+    unsigned char* x = x_;
+    unsigned char* y = y_;
 
     if (x == y) { return; }
 
     for (size_t i = 0; i < size; ++i) { ZETA_Swap(x[i], y[i]); }
 }
 
-byte_t* Zeta_MemRotate(byte_t* beg, byte_t* mid, byte_t* end) {
+void* Zeta_MemRotate(void* beg_, void* mid_, void* end_) {
+    unsigned char* beg = beg_;
+    unsigned char* mid = mid_;
+    unsigned char* end = end_;
+
     ZETA_DebugAssert(beg != NULL);
     ZETA_DebugAssert(mid != NULL);
     ZETA_DebugAssert(end != NULL);
@@ -34,7 +44,7 @@ byte_t* Zeta_MemRotate(byte_t* beg, byte_t* mid, byte_t* end) {
     ptrdiff_t a = mid - beg;
     ptrdiff_t b = end - mid;
 
-    byte_t* ret = beg + b;
+    unsigned char* ret = beg + b;
 
     while (0 < a && 0 < b) {
         ptrdiff_t r = b % a;
@@ -120,6 +130,19 @@ size_t Zeta_GetGCD(size_t x, size_t y) {
 
 size_t Zeta_GetLCM(size_t x, size_t y) {
     return x == 0 || y == 0 ? x + y : x / Zeta_GetGCD(x, y) * y;
+}
+
+size_t Zeta_GetPower(size_t base, size_t exp) {
+    ZETA_DebugAssert(0 <= exp);
+
+    size_t ret = 1;
+
+    for (; 0 < exp; exp /= 2) {
+        if (exp % 2 == 1) { ret *= base; }
+        base *= base;
+    }
+
+    return ret;
 }
 
 /*

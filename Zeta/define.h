@@ -1,18 +1,16 @@
 #pragma once
 
-#include <limits.h>
-#include <stdalign.h>
-#include <stddef.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include "limits.h"
+#include "stdbool.h"
+#include "stddef.h"
+#include "stdint.h"
+#include "stdio.h"
+#include "stdlib.h"
 
-#if !defined(bool_t)
 #if defined(__cplusplus)
 #define bool_t bool
 #else
 #define bool_t _Bool
-#endif
 #endif
 
 #define TRUE (0 == 0)
@@ -100,7 +98,7 @@ typedef s32_t unichar_t;
                                              \
         unsigned long int: 0,                \
                                              \
-        unsigned long long int: 0            \
+        unsigned long long int: 0,           \
                                              \
         u8_t: ((u8_t)0),                     \
                                              \
@@ -169,11 +167,15 @@ typedef s32_t unichar_t;
 
 #define ZETA_IsSigned(type) (ZETA_minof(type) < 0)
 
+/*
 #define ZETA_OffsetPtr(ptr, offset) \
-    ((void*)(intptr_t)((intptr_t)(void*)(ptr) + offset))
+    ((void*)(uintptr_t)((uintptr_t)(void*)(ptr)offset))
+*/
+
+#define ZETA_OffsetPtr(exp) ((void*)(uintptr_t)((uintptr_t)(void*)exp))
 
 #define ZETA_GetStructFromMem(type, mem, ptr) \
-    ((type*)(ZETA_OffsetPtr(ptr, -offsetof(type, mem))))
+    ((type*)ZETA_OffsetPtr(ptr - offsetof(type, mem)))
 
 #define ZETA_Swap(x, y)      \
     {                        \
@@ -184,3 +186,6 @@ typedef s32_t unichar_t;
     ZETA_StaticAssert(TRUE)
 
 #define ZETA_max_mod_under_size_t (ZETA_maxof(size_t) / 2 + 1)
+
+ZETA_StaticAssert(ZETA_minof(byte_t) <= 0);
+ZETA_StaticAssert(255 <= ZETA_maxof(byte_t));

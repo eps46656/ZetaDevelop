@@ -37,6 +37,10 @@ void Zeta_RawVector_Entrust(void* rv, void* data, diff_t stride, size_t size);
 
 void* Zeta_RawVector_Access(void* rv, size_t idx);
 
+void* Zeta_RawVector_Insert(void* rv, size_t idx);
+
+void Zeta_RawVector_Erase(void* rv, size_t idx);
+
 void Zeta_RawVector_ToVector(void* rv, Zeta_Vector* vec);
 
 ZETA_extern_c_end;

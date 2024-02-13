@@ -1,21 +1,10 @@
 #include <fstream>
 #include <iostream>
 #include <string>
+#include <unordered_map>
 #include <vector>
 
-#include "../Zeta/define.h"
-
-typedef unsigned char byte_t;
-
-typedef _BitInt(16) s16_t;
-typedef _BitInt(32) s32_t;
-typedef _BitInt(64) s64_t;
-typedef _BitInt(128) s128_t;
-
-typedef unsigned _BitInt(16) u16_t;
-typedef unsigned _BitInt(32) u32_t;
-typedef unsigned _BitInt(64) u64_t;
-typedef unsigned _BitInt(128) u128_t;
+#include "../Zeta/utils.h"
 
 typedef unsigned long long ull;
 
@@ -23,33 +12,13 @@ typedef unsigned long long ull;
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 
-size_t ReadLittleEndian(const byte_t* data, int length) {
-    ZETA_DebugAssert(0 <= length);
-    ZETA_DebugAssert((size_t)length <= sizeof(size_t));
-
-    size_t ret = 0;
-
-    for (int i = 0; i < length; ++i) { ret |= (size_t)data[i] << (8 * i); }
-
-    return ret;
-}
-
-size_t ReadBigEndian(const byte_t* data, int length) {
-    ZETA_DebugAssert(0 <= length);
-    ZETA_DebugAssert((size_t)length <= sizeof(size_t));
-
-    size_t ret = 0;
-
-    for (int i = length; 0 < i--;) { ret |= (size_t)data[i] << (8 * i); }
-
-    return ret;
-}
-
-#define READ(x, l)             \
-    {                          \
-        x = ReadFunc(data, l); \
-        data += l;             \
-    }
+#define READ(x, l)                              \
+    {                                           \
+        ZETA_DebugAssert(data + l <= data_end); \
+        x = ReadFunc(data, l);                  \
+        data += l;                              \
+    }                                           \
+    ZETA_StaticAssert(TRUE)
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
@@ -118,13 +87,57 @@ struct ELF_SectionHeader {
     u64_t sh_entsize;
 };
 
-struct ELF_Headers {
-    //
+struct ELF_Symbol {
+    u64_t st_name;
+    unsigned char st_info;
+    unsigned char st_other;
+    u64_t st_shndx;
+    u64_t st_value;
+    u64_t st_size;
+};
 
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+
+struct ELF_Program {
+    ELF_ProgramHeader header;
+
+    const byte_t* data;
+    const byte_t* data_end;
+};
+
+struct ELF_Section {
+    ELF_SectionHeader header;
+
+    std::string name;
+
+    const byte_t* data;
+    const byte_t* data_end;
+};
+
+struct ELF {
     ELF_Header header;
 
-    // std::vector<ELF_ProgramHeader>
+    std::vector<ELF_Program> progs;
+    std::vector<ELF_Section> sects;
+
+    ELF_Section* shstr;
 };
+
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+
+const byte_t* ReadStr(std::string& dst, const byte_t* str_beg,
+                      const byte_t* str_end) {
+    for (;; ++str_beg) {
+        ZETA_DebugAssert(str_beg < str_end);
+        char c = str_beg[0];
+        if (c == '\0') { return str_beg + 1; }
+        dst.push_back(c);
+    }
+}
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
@@ -255,18 +268,41 @@ void ELF_PrintHeader(ELF_Header* header) {
     printf("e_shstrndx: %llu\n", (ull)header->e_shstrndx);
 }
 
+void ELF_PrintProgramHeader(ELF_ProgramHeader* prog_header) {
+    const char* p_type_str;
+
+    switch (prog_header->p_type) {
+        TMP(p_type_str, 0x00000000, "PT_NULL");
+        TMP(p_type_str, 0x00000001, "PT_LOAD");
+        TMP(p_type_str, 0x00000002, "PT_DYNAMIC");
+        TMP(p_type_str, 0x00000003, "PT_INTERP");
+        TMP(p_type_str, 0x00000004, "PT_NOTE");
+        TMP(p_type_str, 0x00000005, "PT_SHLIB");
+        TMP(p_type_str, 0x00000006, "PT_PHDR");
+        TMP(p_type_str, 0x00000007, "PT_TLS");
+        TMP(p_type_str, 0x60000000, "PT_LOOS");
+        TMP(p_type_str, 0x6FFFFFFF, "PT_HIOS");
+        TMP(p_type_str, 0x70000000, "PT_LOPROC");
+        default: p_type_str = "Unknown"; break;
+    }
+
+    printf("p_type: %X (%s)\n", prog_header->p_type, p_type_str);
+}
+
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 
-void ELF_ReadHeader(ELF_Header* dst, const byte_t* data) {
-    size_t (*ReadFunc)(const byte_t* data, int width) = ReadLittleEndian;
+void ELF_ReadHeader(ELF_Header* dst, const byte_t* data,
+                    const byte_t* data_end) {
+    size_t (*ReadFunc)(const byte_t* data, int length) = Zeta_ReadLittleEndian;
 
     dst->ei_mag[0] = data[0];
     dst->ei_mag[1] = data[1];
     dst->ei_mag[2] = data[2];
     dst->ei_mag[3] = data[3];
     data += 4;
+    ZETA_DebugAssert(data <= data_end);
 
     READ(dst->ei_class, 1);
     ZETA_DebugAssert(dst->ei_class == 1 || dst->ei_class == 2);
@@ -276,13 +312,14 @@ void ELF_ReadHeader(ELF_Header* dst, const byte_t* data) {
     READ(dst->ei_data, 1);
     ZETA_DebugAssert(dst->ei_data == 1 || dst->ei_data == 2);
 
-    if (dst->ei_data == 2) { ReadFunc = ReadBigEndian; }
+    if (dst->ei_data == 2) { ReadFunc = Zeta_ReadBigEndian; }
 
     READ(dst->ei_version, 1);
     READ(dst->ei_osabi, 1);
     READ(dst->ei_abiversion, 1);
 
     data += 7;
+    ZETA_DebugAssert(data <= data_end);
 
     READ(dst->e_type, 2);
     READ(dst->e_machine, 2);
@@ -306,11 +343,13 @@ void ELF_ReadHeader(ELF_Header* dst, const byte_t* data) {
 }
 
 void ELF_ReadProgramHeader(ELF_ProgramHeader* dst, ELF_Header* header,
-                           const byte_t* data) {
-    size_t (*ReadFunc)(const byte_t* data, int width) =
-        header->ei_data == 0 ? ReadLittleEndian : ReadBigEndian;
+                           const byte_t* data, const byte_t* data_end) {
+    ZETA_DebugAssert(data <= data_end);
 
-    int length = header->ei_class == 0 ? 4 : 8;
+    size_t (*ReadFunc)(const byte_t* data, int width) =
+        header->ei_data == 1 ? Zeta_ReadLittleEndian : Zeta_ReadBigEndian;
+
+    int length = header->ei_class == 1 ? 4 : 8;
 
     READ(dst->p_type, 4);
 
@@ -328,11 +367,13 @@ void ELF_ReadProgramHeader(ELF_ProgramHeader* dst, ELF_Header* header,
 }
 
 void ELF_ReadSectionHeader(ELF_SectionHeader* dst, ELF_Header* header,
-                           const byte_t* data) {
-    size_t (*ReadFunc)(const byte_t* data, int width) =
-        header->ei_data == 0 ? ReadLittleEndian : ReadBigEndian;
+                           const byte_t* data, const byte_t* data_end) {
+    ZETA_DebugAssert(data <= data_end);
 
-    int length = header->ei_class == 0 ? 4 : 8;
+    size_t (*ReadFunc)(const byte_t* data, int width) =
+        header->ei_data == 1 ? Zeta_ReadLittleEndian : Zeta_ReadBigEndian;
+
+    int length = header->ei_class == 1 ? 4 : 8;
 
     READ(dst->sh_name, 4);
     READ(dst->sh_type, 4);
@@ -350,38 +391,179 @@ void ELF_ReadSectionHeader(ELF_SectionHeader* dst, ELF_Header* header,
     READ(dst->sh_entsize, length);
 }
 
+void ELF_ReadSymbol(ELF_Symbol* dst, ELF_Header* heaer, const byte_t* src,
+                    const byte_t* src_end) {
+    ZETA_DebugAssert(src <= src_end);
+
+    size_t (*ReadFunc)(const byte_t* data, int width) =
+        header->ei_data == 1 ? Zeta_ReadLittleEndian : Zeta_ReadBigEndian;
+
+    int length = header->ei_class == 1 ? 4 : 8;
+
+    READ(dst->st_name, length);
+
+    if (length == 4) {
+        READ(dst->st_value, length);
+        READ(dst->st_size, length);
+    }
+
+    READ(dst->st_info, 1);
+    READ(dst->st_other, 1);
+    READ(dst->st_shndx, length);
+
+    if (length == 8) {
+        READ(dst->st_value, length);
+        READ(dst->st_size, length);
+    }
+}
+
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 
-int main() {
+void ELF_Read(ELF* elf, const byte_t* data, const byte_t* data_end) {
+    ZETA_DebugAssert(data <= data_end);
+
+    ELF_ReadHeader(&elf->header, data, data_end);
+
+    elf->progs.resize(elf->header.e_phnum);
+
+    for (int i = 0; i < elf->header.e_phnum; ++i) {
+        ELF_ReadProgramHeader(
+            &elf->progs[i].header, &elf->header,
+            data + elf->header.e_phoff + elf->header.e_phentsize * i, data_end);
+
+        const byte_t* prog_data = data + elf->progs[i].header.p_offset;
+        const byte_t* prog_data_end = prog_data + elf->progs[i].header.p_filesz;
+
+        ZETA_DebugAssert(prog_data_end <= data_end);
+
+        elf->progs[i].data = prog_data;
+        elf->progs[i].data_end = prog_data_end;
+    }
+
+    elf->sects.resize(elf->header.e_shnum);
+
+    for (int i = 0; i < elf->header.e_shnum; ++i) {
+        ELF_ReadSectionHeader(
+            &elf->sects[i].header, &elf->header,
+            data + elf->header.e_shoff + elf->header.e_shentsize * i, data_end);
+
+        const byte_t* sect_data = data + elf->sects[i].header.sh_offset;
+        const byte_t* sect_data_end = sect_data + elf->sects[i].header.sh_size;
+
+        printf("%d: %p -> %p\n", i, sect_data, sect_data_end);
+
+        ZETA_DebugAssert(sect_data_end <= data_end);
+
+        elf->sects[i].data = sect_data;
+        elf->sects[i].data_end = sect_data_end;
+    }
+
+    size_t e_shstrndx = elf->header.e_shstrndx;
+
+    ZETA_DebugAssert(0 <= e_shstrndx);
+    ZETA_DebugAssert(e_shstrndx < elf->header.e_shnum);
+
+    elf->shstr = &elf->sects[e_shstrndx];
+
+    ZETA_PrintVar("%d", e_shstrndx);
+    ZETA_PrintVar("%p", elf->shstr->data);
+    ZETA_PrintVar("%p", elf->shstr->data_end);
+
+    for (const byte_t *iter = elf->shstr->data, *end = elf->shstr->data_end;
+         iter != end; ++iter) {
+        std::cout << *(const char*)iter;
+    }
+
+    printf("\n");
+
+    for (int i = 0; i < elf->header.e_shnum; ++i) {
+        ReadStr(elf->sects[i].name,
+                elf->shstr->data + elf->sects[i].header.sh_name,
+                elf->shstr->data_end);
+
+        printf("%d: %s\n", i, elf->sects[i].name.c_str());
+    }
+
+    std::unordered_map<std::string, size_t> name_to_idx;
+
+    for (size_t i = 0; i < elf->header.e_shnum; ++i) {
+        bool_t b = name_to_idx.insert({ elf->sects[i].name, i }).second;
+        ZETA_DebugAssert(b);
+    }
+}
+
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+
+int main1() {
     std::fstream iofs{ "./test_2.elf", std::ios::in | std::ios::binary };
 
-    std::vector<byte_t> data;
-    while (iofs) { data.push_back((byte_t)iofs.get()); }
+    std::vector<byte_t> data_v;
+    while (iofs) { data_v.push_back((byte_t)iofs.get()); }
 
-    ZETA_PrintVar("%zu\n", data.size());
+    ZETA_PrintVar("%zu\n", data_v.size());
+
+    const byte_t* data = data_v.data();
+    const byte_t* data_end = data_v.data() + data_v.size();
 
     ELF_Header header;
 
-    ELF_ReadHeader(&header, data.data());
+    ELF_ReadHeader(&header, data, data_end);
 
     ELF_PrintHeader(&header);
 
-    return 0;
+    // return 0;
 
     std::vector<ELF_ProgramHeader> prog_headers;
     prog_headers.resize(header.e_phnum);
 
     for (int i = 0; i < header.e_phnum; ++i) {
-        ELF_ReadProgramHeader(
-            &prog_headers[i], &header,
-            data.data() + header.e_phoff + header.e_phentsize * i);
+        ELF_ReadProgramHeader(&prog_headers[i], &header,
+                              data + header.e_phoff + header.e_phentsize * i,
+                              data_end);
 
-        ZETA_PrintVar("%llu", (ull)prog_headers[i].p_type);
+        ELF_PrintProgramHeader(&prog_headers[i]);
+
+        // ZETA_PrintVar("%llx", (ull)prog_headers[i].p_type);
+    }
+
+    std::vector<ELF_SectionHeader> sect_headers;
+    sect_headers.resize(header.e_shnum);
+
+    for (int i = 0; i < header.e_shnum; ++i) {
+        ELF_ReadSectionHeader(&sect_headers[i], &header,
+                              data + header.e_shoff + header.e_shentsize * i,
+                              data_end);
+
+        ZETA_PrintVar("%llx", (ull)sect_headers[i].sh_type);
     }
 
     printf("ok\n");
 
     return 0;
 }
+
+int main2() {
+    std::fstream iofs{ "./test_2.elf", std::ios::in | std::ios::binary };
+
+    std::vector<byte_t> data_v;
+    while (iofs) { data_v.push_back((byte_t)iofs.get()); }
+
+    ZETA_PrintVar("%zu\n", data_v.size());
+
+    const byte_t* data = data_v.data();
+    const byte_t* data_end = data_v.data() + data_v.size();
+
+    ELF elf;
+
+    ELF_Read(&elf, data, data_end);
+
+    printf("ok\n");
+
+    return 0;
+}
+
+int main() { return main2(); }

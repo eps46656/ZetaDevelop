@@ -459,19 +459,14 @@ def builder_add(builder):
         f"{ZetaExeDir}/test_elf.exe",
         {
             f"{File}",
+            f"{ZetaDir}/utils.o",
             f"{ZetaExeDir}/test_elf.cpp",
         },
         lambda : os.system(" ".join([
-            "clang++",
+            cppc,
             f"--output {ZetaExeDir}/test_elf.exe",
-
-            "--verbose",
-            "-std=c++17",
-
-            "-m64",
-            "-Wall",
-            "-Wextra",
-
+            *cppargs,
+            f"{ZetaDir}/utils.o",
             f"{ZetaExeDir}/test_elf.cpp",
         ]))
     )
@@ -530,6 +525,35 @@ def builder_add(builder):
             *cargs,
             f"{ZetaExeDir}/FileIO.s",
             f"{ZetaExeDir}/test_io.c",
+        ]))
+    )
+
+    builder.add(
+        f"{ZetaExeDir}/test_lru.cpp",
+        {
+            f"{File}",
+            f"{ZetaDir}/LRUCacheManager.h",
+        },
+        lambda : 0
+    )
+
+    builder.add(
+        f"{ZetaExeDir}/test_lru.exe",
+        {
+            f"{File}",
+            f"{ZetaDir}/LRUCacheManager.o",
+            f"{ZetaDir}/OrdDoublyLinkedNode.o",
+            f"{ZetaDir}/utils.o",
+            f"{ZetaExeDir}/test_lru.cpp",
+        },
+        lambda : os.system(" ".join([
+            cppc,
+            f"--output {ZetaExeDir}/test_lru.exe",
+            *cppargs,
+            f"{ZetaDir}/LRUCacheManager.o",
+            f"{ZetaDir}/OrdDoublyLinkedNode.o",
+            f"{ZetaDir}/utils.o",
+            f"{ZetaExeDir}/test_lru.cpp",
         ]))
     )
 

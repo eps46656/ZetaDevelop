@@ -50,7 +50,7 @@ void* MyAlloc(size_t size) {
 
     ZETA_DebugAssert((uintptr_t)allocator.ptr <= m_beg);
     ZETA_DebugAssert(m_end <=
-                     (uintptr_t)ZETA_OffsetPtr(allocator.ptr, allocator.size));
+                     (uintptr_t)ZETA_OffsetPtr(allocator.ptr + allocator.size));
 
     auto iter = req_ptr_size_tm.insert({ m_beg, size }).first;
 

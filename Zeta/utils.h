@@ -11,7 +11,7 @@ ZETA_extern_c_beg;
  * @param dst The pointer points to destination byte array.
  * @param src The pointer points to source byte array.
  */
-void Zeta_MemCopy(size_t size, byte_t* dst, byte_t* src);
+void Zeta_MemCopy(size_t size, void* dst, const void* src);
 
 /**
  * @brief Swap byte array between dst and src
@@ -20,7 +20,7 @@ void Zeta_MemCopy(size_t size, byte_t* dst, byte_t* src);
  * @param dst The pointer points to destination byte array.
  * @param src The pointer points to source byte array.
  */
-void Zeta_MemSwap(size_t size, byte_t* x, byte_t* y);
+void Zeta_MemSwap(size_t size, void* x, void* y);
 
 /**
  * @brief Rotate the bytes in [beg, end). mid should always in [beg, end].
@@ -35,7 +35,7 @@ void Zeta_MemSwap(size_t size, byte_t* x, byte_t* y);
  *
  * @return The new pivot after rotation.
  */
-byte_t* Zeta_MemRotate(byte_t* beg, byte_t* mid, byte_t* end);
+void* Zeta_MemRotate(void* beg, void* mid, void* end);
 
 /**
  * @brief Read little endian stored length bytes occupying integer from data.
@@ -82,6 +82,16 @@ size_t Zeta_SimpleHash(size_t x);
 size_t Zeta_GetGCD(size_t x, size_t y);
 
 size_t Zeta_GetLCM(size_t x, size_t y);
+
+/**
+ * @brief Calculate base^exp.
+ *
+ * @param base The base of base^exp.
+ * @param exp The exp of base^exp.
+ *
+ * @return base^exp.
+ */
+size_t Zeta_GetPower(size_t base, size_t exp);
 
 /**
  * @brief Calculate base^exp % mod.

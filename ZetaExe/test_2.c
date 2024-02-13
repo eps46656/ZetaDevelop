@@ -1,9 +1,15 @@
 #include "../Zeta/define.h"
 
+// #pragma clang section bss = ".ZetaHeap"
+
+int global_x __attribute__((section(".ZetaHeap")));
+
 int main() {
     printf("Hello World.\n");
 
-    void* x = NULL;
+    //
+
+    printf("%p", &global_x);
 
     return 0;
 }

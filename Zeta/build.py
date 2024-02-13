@@ -501,6 +501,73 @@ def builder_add(builder):
     )
 
     builder.add(
+        f"{ZetaDir}/io.h",
+        {
+            f"{File}",
+            f"{ZetaDir}/Stream.h",
+        },
+        lambda : 0
+    )
+
+    builder.add(
+        f"{ZetaDir}/io.c",
+        {
+            f"{File}",
+            f"{ZetaDir}/io.h",
+        },
+        lambda : 0
+    )
+
+    builder.add(
+        f"{ZetaDir}/io.o",
+        {
+            f"{File}",
+            f"{ZetaDir}/io.c",
+        },
+        lambda : os.system(" ".join([
+            cc,
+            f"--output {ZetaDir}/io.o",
+            f"-c",
+            *cargs,
+            f"{ZetaDir}/io.c",
+        ]))
+    )
+
+    builder.add(
+        f"{ZetaDir}/LRUCacheManager.h",
+        {
+            f"{File}",
+            f"{ZetaDir}/MultiLevelVector.h",
+            f"{ZetaDir}/OrdDoublyLinkedNode.h",
+        },
+        lambda : 0
+    )
+
+    builder.add(
+        f"{ZetaDir}/LRUCacheManager.c",
+        {
+            f"{File}",
+            f"{ZetaDir}/LRUCacheManager.h",
+        },
+        lambda : 0
+    )
+
+    builder.add(
+        f"{ZetaDir}/LRUCacheManager.o",
+        {
+            f"{File}",
+            f"{ZetaDir}/LRUCacheManager.c",
+        },
+        lambda : os.system(" ".join([
+            cc,
+            f"--output {ZetaDir}/LRUCacheManager.o",
+            f"-c",
+            *cargs,
+            f"{ZetaDir}/LRUCacheManager.c",
+        ]))
+    )
+
+    builder.add(
         f"{ZetaDir}/MultiLevelHashTable.h",
         {
             f"{File}",
@@ -902,6 +969,15 @@ def builder_add(builder):
             *cargs,
             f"{ZetaDir}/SlabAllocator.c",
         ]))
+    )
+
+    builder.add(
+        f"{ZetaDir}/Stream.h",
+        {
+            f"{File}",
+            f"{ZetaDir}/define.h",
+        },
+        lambda : 0
     )
 
     builder.add(

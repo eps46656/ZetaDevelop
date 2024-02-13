@@ -57,8 +57,17 @@ void* Zeta_RawVector_Access(void* rv_, size_t idx) {
     ZETA_DebugAssert(0 <= idx);
     ZETA_DebugAssert(idx < rv->size);
 
-    return ZETA_OffsetPtr(rv->data, rv->stride * idx);
+    return ZETA_OffsetPtr(rv->data + rv->stride * idx);
 }
+
+void* Zeta_RawVector_Insert(void* rv_, size_t idx) {
+    Zeta_RawVector* rv = rv_;
+    ZETA_DebugAssert(rv != NULL);
+
+    return Zeta_RawVector_Access(rc, idx);
+}
+
+void Zeta_RawVector_Erase(void* rv_, size_t idx) {}
 
 void Zeta_RawVector_ToVector(void* rv_, Zeta_Vector* dst) {
     Zeta_RawVector* rv = rv_;
@@ -70,4 +79,6 @@ void Zeta_RawVector_ToVector(void* rv_, Zeta_Vector* dst) {
     dst->GetWidth = Zeta_RawVector_GetWidth;
     dst->GetSize = Zeta_RawVector_GetSize;
     dst->Access = Zeta_RawVector_Access;
+    dst->Insert = Zeta_RawVector_Insert;
+    dst->Erase = Zeta_RawVector_Erase;
 }
