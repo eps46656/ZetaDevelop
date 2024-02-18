@@ -14,7 +14,6 @@ static void CheckIdxes_(void* mlv_, size_t* idxes) {
         size_t branch_num = mlv->branch_nums[level_i];
         size_t idx = idxes[level_i];
 
-        ZETA_DebugAssert(0 <= idx);
         ZETA_DebugAssert(idx < branch_num);
     }
 }

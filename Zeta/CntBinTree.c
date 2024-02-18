@@ -2,7 +2,7 @@
 
 #include "utils.h"
 
-void Zeta_CntBinTree_Access(void** dst_n, size_t* dst_idx,
+void Zeta_CntBinTree_Access(void** dst_n, size_t* dst_tail_idx,
                             Zeta_CntBinTreeNodeOpr* cbtn_opr, void* n,
                             size_t idx) {
     ZETA_DebugAssert(cbtn_opr != NULL);
@@ -10,9 +10,8 @@ void Zeta_CntBinTree_Access(void** dst_n, size_t* dst_idx,
     ZETA_DebugAssert(cbtn_opr->GetR != NULL);
     ZETA_DebugAssert(cbtn_opr->GetAccSize != NULL);
     ZETA_DebugAssert(cbtn_opr->GetSize != NULL);
-    ZETA_DebugAssert(0 <= idx);
 
-    if (dst_n == NULL && dst_idx == NULL) { return; }
+    if (dst_n == NULL && dst_tail_idx == NULL) { return; }
 
     void* context = cbtn_opr->context;
 
@@ -20,7 +19,7 @@ void Zeta_CntBinTree_Access(void** dst_n, size_t* dst_idx,
 
     if (n_acc_size <= idx) {
         if (dst_n != NULL) { *dst_n = NULL; }
-        if (dst_idx != NULL) { *dst_idx = idx - n_acc_size; }
+        if (dst_tail_idx != NULL) { *dst_tail_idx = idx - n_acc_size; }
         return;
     }
 
@@ -43,7 +42,7 @@ void Zeta_CntBinTree_Access(void** dst_n, size_t* dst_idx,
     }
 
     if (dst_n != NULL) { *dst_n = n; }
-    if (dst_idx != NULL) { *dst_idx = idx; }
+    if (dst_tail_idx != NULL) { *dst_tail_idx = idx; }
 }
 
 void Zeta_CntBinTree_GetAccSize(size_t* dst_l_acc_size, size_t* dst_r_acc_size,

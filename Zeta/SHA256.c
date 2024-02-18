@@ -4,11 +4,11 @@
 
 typedef unsigned _BitInt(32) word_t;
 
-void Zeta_SHA256_Hash(byte_t* dst, const byte_t* data, size_t size) {
+void Zeta_SHA256_Hash(byte_t* dst, const byte_t* data, const byte_t* data_end) {
     Zeta_SHA256Hasher hasher;
     Zeta_SHA256Hasher_Init(&hasher);
 
-    Zeta_SHA256Hasher_Rotate(&hasher, data, size);
+    Zeta_SHA256Hasher_Rotate(&hasher, data, data_end);
 
     Zeta_SHA256Hasher_GetDigits(&hasher, dst);
 }
@@ -116,7 +116,6 @@ void Zeta_SHA256Hasher_GetResult(void* hasher_, byte_t* dst) {
     ZETA_DebugAssert(dst != NULL);
 
     size_t cur_size = hasher->size;
-    ZETA_DebugAssert(0 <= cur_size);
 
     Zeta_SHA256Hasher tmp_hasher;
     Zeta_MemCopy(sizeof(Zeta_SHA256Hasher), (byte_t*)&tmp_hasher,
@@ -134,32 +133,34 @@ void Zeta_SHA256Hasher_GetResult(void* hasher_, byte_t* dst) {
     Zeta_WriteBigEndian(buffer + buffer_i, 8 * cur_size, 8);
     buffer_i += 8;
 
-    Zeta_SHA256Hasher_Rotate(&tmp_hasher, buffer, buffer_i);
+    Zeta_SHA256Hasher_Rotate(&tmp_hasher, buffer, buffer + buffer_i);
 
     ZETA_DebugAssert(tmp_hasher.size % 64 == 0);
 
     for (int i = 0; i < 8; ++i) {
-        printf("%08x", tmp_hasher.hs[i]);
         Zeta_WriteBigEndian(dst + 4 * i, tmp_hasher.hs[i], 4);
     }
-
-    printf("\n");
 }
 
-void Zeta_SHA256Hasher_Rotate(void* hasher_, const byte_t* data, size_t size) {
+void Zeta_SHA256Hasher_Rotate(void* hasher_, const byte_t* data,
+                              const byte_t* data_end) {
     Zeta_SHA256Hasher* hasher = hasher_;
     ZETA_DebugAssert(hasher != NULL);
 
-    if (size == 0) { return; }
-
     ZETA_DebugAssert(data != NULL);
-    ZETA_DebugAssert(0 <= size);
+    ZETA_DebugAssert(data_end != NULL);
+    ZETA_DebugAssert(data <= data_end);
+
+    if (data == data_end) { return; }
 
     size_t cur_size = hasher->size;
-    ZETA_DebugAssert(0 <= cur_size);
 
-    for (; 0 < size; ++data, --size) {
-        hasher->last_chunk[cur_size % 64] = data[0];
+    for (; data < data_end; ++data) {
+        byte_t x = *data;
+        ZETA_DebugAssert(0 <= x);
+        ZETA_DebugAssert(x <= 255);
+
+        hasher->last_chunk[cur_size % 64] = x;
         ++cur_size;
 
         if (cur_size % 64 == 0) { HashChunk_(hasher->hs, hasher->last_chunk); }

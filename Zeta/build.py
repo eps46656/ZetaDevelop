@@ -358,6 +358,74 @@ def builder_add(builder):
     )
 
     builder.add(
+        f"{ZetaDir}/DiskPartGPT.h",
+        {
+            f"{File}",
+            f"{ZetaDir}/define.h",
+        },
+        lambda : 0
+    )
+
+    builder.add(
+        f"{ZetaDir}/DiskPartGPT.c",
+        {
+            f"{File}",
+            f"{ZetaDir}/DiskPartGPT.h",
+            f"{ZetaDir}/utils.h",
+        },
+        lambda : 0
+    )
+
+    builder.add(
+        f"{ZetaDir}/DiskPartGPT.o",
+        {
+            f"{File}",
+            f"{ZetaDir}/DiskPartGPT.c",
+        },
+        lambda : os.system(" ".join([
+            cc,
+            f"--output {ZetaDir}/DiskPartGPT.o",
+            f"-c",
+            *cargs,
+            f"{ZetaDir}/DiskPartGPT.c",
+        ]))
+    )
+
+    builder.add(
+        f"{ZetaDir}/DiskPartMBR.h",
+        {
+            f"{File}",
+            f"{ZetaDir}/define.h",
+        },
+        lambda : 0
+    )
+
+    builder.add(
+        f"{ZetaDir}/DiskPartMBR.c",
+        {
+            f"{File}",
+            f"{ZetaDir}/DiskPartMBR.h",
+            f"{ZetaDir}/utils.h",
+        },
+        lambda : 0
+    )
+
+    builder.add(
+        f"{ZetaDir}/DiskPartMBR.o",
+        {
+            f"{File}",
+            f"{ZetaDir}/DiskPartMBR.c",
+        },
+        lambda : os.system(" ".join([
+            cc,
+            f"--output {ZetaDir}/DiskPartMBR.o",
+            f"-c",
+            *cargs,
+            f"{ZetaDir}/DiskPartMBR.c",
+        ]))
+    )
+
+    builder.add(
         f"{ZetaDir}/define.h",
         {
             f"{File}",
@@ -366,7 +434,7 @@ def builder_add(builder):
     )
 
     builder.add(
-        f"{ZetaDir}/DiffDoublyLinkedNode.h",
+        f"{ZetaDir}/DiffLinkedListNode.h",
         {
             f"{File}",
             f"{ZetaDir}/define.h",
@@ -375,31 +443,31 @@ def builder_add(builder):
     )
 
     builder.add(
-        f"{ZetaDir}/DiffDoublyLinkedNode.c",
+        f"{ZetaDir}/DiffLinkedListNode.c",
         {
             f"{File}",
-            f"{ZetaDir}/DiffDoublyLinkedNode.h",
+            f"{ZetaDir}/DiffLinkedListNode.h",
         },
         lambda : 0
     )
 
     builder.add(
-        f"{ZetaDir}/DiffDoublyLinkedNode.o",
+        f"{ZetaDir}/DiffLinkedListNode.o",
         {
             f"{File}",
-            f"{ZetaDir}/DiffDoublyLinkedNode.c",
+            f"{ZetaDir}/DiffLinkedListNode.c",
         },
         lambda : os.system(" ".join([
             cc,
-            f"--output {ZetaDir}/DiffDoublyLinkedNode.o",
+            f"--output {ZetaDir}/DiffLinkedListNode.o",
             f"-c",
             *cargs,
-            f"{ZetaDir}/DiffDoublyLinkedNode.c",
+            f"{ZetaDir}/DiffLinkedListNode.c",
         ]))
     )
 
     builder.add(
-        f"{ZetaDir}/OrdDoublyLinkedNode.h",
+        f"{ZetaDir}/OrdLinkedListNode.h",
         {
             f"{File}",
             f"{ZetaDir}/define.h",
@@ -408,26 +476,26 @@ def builder_add(builder):
     )
 
     builder.add(
-        f"{ZetaDir}/OrdDoublyLinkedNode.c",
+        f"{ZetaDir}/OrdLinkedListNode.c",
         {
             f"{File}",
-            f"{ZetaDir}/OrdDoublyLinkedNode.h",
+            f"{ZetaDir}/OrdLinkedListNode.h",
         },
         lambda : 0
     )
 
     builder.add(
-        f"{ZetaDir}/OrdDoublyLinkedNode.o",
+        f"{ZetaDir}/OrdLinkedListNode.o",
         {
             f"{File}",
-            f"{ZetaDir}/OrdDoublyLinkedNode.c",
+            f"{ZetaDir}/OrdLinkedListNode.c",
         },
         lambda : os.system(" ".join([
             cc,
-            f"--output {ZetaDir}/OrdDoublyLinkedNode.o",
+            f"--output {ZetaDir}/OrdLinkedListNode.o",
             f"-c",
             *cargs,
-            f"{ZetaDir}/OrdDoublyLinkedNode.c",
+            f"{ZetaDir}/OrdLinkedListNode.c",
         ]))
     )
 
@@ -538,7 +606,7 @@ def builder_add(builder):
         {
             f"{File}",
             f"{ZetaDir}/MultiLevelVector.h",
-            f"{ZetaDir}/OrdDoublyLinkedNode.h",
+            f"{ZetaDir}/OrdLinkedListNode.h",
         },
         lambda : 0
     )
@@ -904,6 +972,105 @@ def builder_add(builder):
     )
 
     builder.add(
+        f"{ZetaDir}/RelCntRBTreeNode.h",
+        {
+            f"{File}",
+            f"{ZetaDir}/define.h",
+        },
+        lambda : 0
+    )
+
+    builder.add(
+        f"{ZetaDir}/RelCntRBTreeNode.c",
+        {
+            f"{File}",
+            f"{ZetaDir}/RelCntRBTreeNode.h",
+        },
+        lambda : 0
+    )
+
+    builder.add(
+        f"{ZetaDir}/RelCntRBTreeNode.o",
+        {
+            f"{File}",
+            f"{ZetaDir}/RelCntRBTreeNode.c",
+        },
+        lambda : os.system(" ".join([
+            cc,
+            f"--output {ZetaDir}/RelCntRBTreeNode.o",
+            f"-c",
+            *cargs,
+            f"{ZetaDir}/RelCntRBTreeNode.c",
+        ]))
+    )
+
+    builder.add(
+        f"{ZetaDir}/RelLinkedListNode.h",
+        {
+            f"{File}",
+            f"{ZetaDir}/define.h",
+        },
+        lambda : 0
+    )
+
+    builder.add(
+        f"{ZetaDir}/RelLinkedListNode.c",
+        {
+            f"{File}",
+            f"{ZetaDir}/RelLinkedListNode.h",
+        },
+        lambda : 0
+    )
+
+    builder.add(
+        f"{ZetaDir}/RelLinkedListNode.o",
+        {
+            f"{File}",
+            f"{ZetaDir}/RelLinkedListNode.c",
+        },
+        lambda : os.system(" ".join([
+            cc,
+            f"--output {ZetaDir}/RelLinkedListNode.o",
+            f"-c",
+            *cargs,
+            f"{ZetaDir}/RelLinkedListNode.c",
+        ]))
+    )
+
+    builder.add(
+        f"{ZetaDir}/RelRBTreeNode.h",
+        {
+            f"{File}",
+            f"{ZetaDir}/define.h",
+        },
+        lambda : 0
+    )
+
+    builder.add(
+        f"{ZetaDir}/RelRBTreeNode.c",
+        {
+            f"{File}",
+            f"{ZetaDir}/RelRBTreeNode.h",
+        },
+        lambda : 0
+    )
+
+    builder.add(
+        f"{ZetaDir}/RelRBTreeNode.o",
+        {
+            f"{File}",
+            f"{ZetaDir}/RelRBTreeNode.c",
+        },
+        lambda : os.system(" ".join([
+            cc,
+            f"--output {ZetaDir}/RelRBTreeNode.o",
+            f"-c",
+            *cargs,
+            f"{ZetaDir}/RelRBTreeNode.c",
+        ]))
+    )
+
+    builder.add(
         f"{ZetaDir}/SHA256.h",
         {
             f"{File}",
@@ -942,7 +1109,7 @@ def builder_add(builder):
         {
             f"{File}",
             f"{ZetaDir}/Allocator.h",
-            f"{ZetaDir}/OrdDoublyLinkedNode.h",
+            f"{ZetaDir}/OrdLinkedListNode.h",
         },
         lambda : 0
     )
@@ -981,6 +1148,30 @@ def builder_add(builder):
     )
 
     builder.add(
+        f"{ZetaDir}/Stream.c",
+        {
+            f"{File}",
+            f"{ZetaDir}/Stream.h",
+        },
+        lambda : 0
+    )
+
+    builder.add(
+        f"{ZetaDir}/Stream.o",
+        {
+            f"{File}",
+            f"{ZetaDir}/Stream.c",
+        },
+        lambda : os.system(" ".join([
+            cc,
+            f"--output {ZetaDir}/Stream.o",
+            f"-c",
+            *cargs,
+            f"{ZetaDir}/Stream.c",
+        ]))
+    )
+
+    builder.add(
         f"{ZetaDir}/UTF8.h",
         {
             f"{File}",
@@ -1010,6 +1201,39 @@ def builder_add(builder):
             f"-c",
             *cargs,
             f"{ZetaDir}/UTF8.c",
+        ]))
+    )
+
+    builder.add(
+        f"{ZetaDir}/UTF16.h",
+        {
+            f"{File}",
+            f"{ZetaDir}/define.h",
+        },
+        lambda : 0
+    )
+
+    builder.add(
+        f"{ZetaDir}/UTF16.c",
+        {
+            f"{File}",
+            f"{ZetaDir}/UTF16.h",
+        },
+        lambda : 0
+    )
+
+    builder.add(
+        f"{ZetaDir}/UTF16.o",
+        {
+            f"{File}",
+            f"{ZetaDir}/UTF16.c",
+        },
+        lambda : os.system(" ".join([
+            cc,
+            f"--output {ZetaDir}/UTF16.o",
+            f"-c",
+            *cargs,
+            f"{ZetaDir}/UTF16.c",
         ]))
     )
 

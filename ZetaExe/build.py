@@ -484,14 +484,42 @@ def builder_add(builder):
         f"{ZetaExeDir}/test_utf8.exe",
         {
             f"{File}",
+            f"{ZetaDir}/UTF8.o",
+            f"{ZetaDir}/utils.o",
             f"{ZetaExeDir}/test_utf8.c",
         },
         lambda : os.system(" ".join([
             cc,
             f"--output {ZetaExeDir}/test_utf8.exe",
+            *cargs,
+            f"{ZetaDir}/UTF8.o",
+            f"{ZetaDir}/utils.o",
+            f"{ZetaExeDir}/test_utf8.c",
+        ]))
+    )
+
+    builder.add(
+        f"{ZetaExeDir}/test_stdio.c",
+        {
+            f"{File}",
+            f"{ZetaDir}/define.h"
+            f"{ZetaDir}/Stream.h"
+        },
+        lambda : 0
+    )
+
+    builder.add(
+        f"{ZetaExeDir}/test_stdio.exe",
+        {
+            f"{File}",
+            f"{ZetaExeDir}/test_stdio.c",
+        },
+        lambda : os.system(" ".join([
+            cc,
+            f"--output {ZetaExeDir}/test_stdio.exe",
             f"-c",
             *cargs,
-            f"{ZetaExeDir}/test_utf8.c",
+            f"{ZetaExeDir}/test_stdio.c",
         ]))
     )
 
@@ -542,7 +570,7 @@ def builder_add(builder):
         {
             f"{File}",
             f"{ZetaDir}/LRUCacheManager.o",
-            f"{ZetaDir}/OrdDoublyLinkedNode.o",
+            f"{ZetaDir}/OrdLinkedListNode.o",
             f"{ZetaDir}/utils.o",
             f"{ZetaExeDir}/test_lru.cpp",
         },
@@ -551,7 +579,7 @@ def builder_add(builder):
             f"--output {ZetaExeDir}/test_lru.exe",
             *cppargs,
             f"{ZetaDir}/LRUCacheManager.o",
-            f"{ZetaDir}/OrdDoublyLinkedNode.o",
+            f"{ZetaDir}/OrdLinkedListNode.o",
             f"{ZetaDir}/utils.o",
             f"{ZetaExeDir}/test_lru.cpp",
         ]))
@@ -665,7 +693,7 @@ def builder_add(builder):
             f"{File}",
             f"{ZetaDir}/utils.o",
             f"{ZetaDir}/Algorithm.o",
-            f"{ZetaDir}/DoublyLinkedNode.o",
+            f"{ZetaDir}/LinkedListNode.o",
             f"{ZetaDir}/PoolAllocator.o",
             f"{ZetaDir}/RawVector.o",
             f"{ZetaDir}/random.o",
@@ -679,7 +707,7 @@ def builder_add(builder):
             *cargs,
             f"{ZetaDir}/utils.o",
             f"{ZetaDir}/Algorithm.o",
-            f"{ZetaDir}/DoublyLinkedNode.o",
+            f"{ZetaDir}/LinkedListNode.o",
             f"{ZetaDir}/PoolAllocator.o",
             f"{ZetaDir}/RawVector.o",
             f"{ZetaDir}/random.o",
@@ -768,10 +796,10 @@ def builder_add(builder):
             f"{ZetaDir}/Algorithm.o",
             f"{ZetaDir}/DebugTreeMap.o",
             f"{ZetaDir}/OrdAllocator.o",
-            f"{ZetaDir}/OrdDoublyLinkedNode.o",
-            f"{ZetaDir}/OrdRBTreeNode.o",
             f"{ZetaDir}/RawVector.o",
             f"{ZetaDir}/RBTree.o",
+            f"{ZetaDir}/RelLinkedListNode.o",
+            f"{ZetaDir}/RelRBTreeNode.o",
             f"{ZetaDir}/utils.o",
 
             f"{ZetaExeDir}/test_ordalloc.cpp",
@@ -783,10 +811,10 @@ def builder_add(builder):
             f"{ZetaDir}/Algorithm.o",
             f"{ZetaDir}/DebugTreeMap.o",
             f"{ZetaDir}/OrdAllocator.o",
-            f"{ZetaDir}/OrdDoublyLinkedNode.o",
-            f"{ZetaDir}/OrdRBTreeNode.o",
             f"{ZetaDir}/RawVector.o",
             f"{ZetaDir}/RBTree.o",
+            f"{ZetaDir}/RelLinkedListNode.o",
+            f"{ZetaDir}/RelRBTreeNode.o",
             f"{ZetaDir}/utils.o",
 
             f"{ZetaExeDir}/test_ordalloc.cpp",
@@ -832,6 +860,44 @@ def builder_add(builder):
             f"{File}",
         },
         lambda : 0
+    )
+
+    builder.add(
+        f"{ZetaExeDir}/test_cntrbt.cpp",
+        {
+            f"{File}",
+            f"{ZetaDir}/CntBinTree.h",
+            f"{ZetaDir}/RBTree.h",
+            f"{ZetaDir}/RelCntRBTreeNode.h",
+            f"{ZetaDir}/utils.h",
+        },
+        lambda : 0
+    )
+
+    builder.add(
+        f"{ZetaExeDir}/test_cntrbt.exe",
+        {
+            f"{File}",
+            f"{ZetaDir}/BinTree.o",
+            f"{ZetaDir}/CntBinTree.o",
+            f"{ZetaDir}/RBTree.o",
+            f"{ZetaDir}/RelCntRBTreeNode.o",
+            f"{ZetaDir}/utils.o",
+
+            f"{ZetaExeDir}/test_cntrbt.cpp",
+        },
+        lambda : os.system(" ".join([
+            cppc,
+            f"--output {ZetaExeDir}/test_cntrbt.exe",
+            *cppargs,
+            f"{ZetaDir}/BinTree.o",
+            f"{ZetaDir}/CntBinTree.o",
+            f"{ZetaDir}/RBTree.o",
+            f"{ZetaDir}/RelCntRBTreeNode.o",
+            f"{ZetaDir}/utils.o",
+
+            f"{ZetaExeDir}/test_cntrbt.cpp",
+        ]))
     )
 
     builder.add(

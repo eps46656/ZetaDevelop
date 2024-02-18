@@ -1,5 +1,5 @@
 
-#include "../Zeta/define.h"
+#include "../Zeta/UTF8.h"
 
 #define BIN_PATTERN "%c%c%c%c%c%c%c%c"
 
@@ -11,78 +11,6 @@
 
 typedef unsigned long long ull;
 
-byte_t* Zeta_UTF8_Encode(byte_t* dst, u32_t c);
-byte_t* Zeta_UTF8_Decode(u32_t* dst, byte_t* data, size_t length);
-
-byte_t* Zeta_UTF8_Encode(byte_t* dst, u32_t c) {
-    ZETA_DebugAssert(dst != NULL);
-
-    if ((u32_t)0x80000000 <= c) { return NULL; }
-
-    if (c <= (u32_t)0x7F) {
-        dst[0] = (byte_t)c;
-        return dst + 1;
-    }
-
-    byte_t tmp[6];
-
-    for (int i = 2;; ++i) {
-        tmp[i - 2] = (byte_t)((u32_t)0b10000000 | (c & (u32_t)0b00111111));
-
-        c >>= 6;
-
-        if (c < ((u32_t)1 << (7 - i))) {
-            tmp[i - 1] = (byte_t)((((u32_t)0xFF00 >> i) & (u32_t)0xFF) | c);
-
-            for (; 0 <= --i; ++dst) { dst[0] = tmp[i]; }
-
-            return dst;
-        }
-    }
-}
-
-byte_t* Zeta_UTF8_Decode(u32_t* dst, byte_t* data, size_t size) {
-    ZETA_DebugAssert(dst != NULL);
-    ZETA_DebugAssert(data != NULL);
-
-    if (size == 0) { return NULL; }
-
-    byte_t* data_end = data + size;
-
-    u32_t x = data[0];
-
-    if (x < (u32_t)0x80) {
-        dst[0] = x;
-        return data + 1;
-    }
-
-    if (x < 0b11000000) { return NULL; }
-
-    u32_t ret = 0;
-
-    ++data;
-
-    for (int i = 2;; ++i) {
-        if (data == data_end) { return NULL; }
-
-        u32_t k = data[0];
-        ++data;
-
-        if ((k & (u32_t)0b11000000) != 0b10000000) { return NULL; }
-
-        ret = (ret << 6) | (k & (u32_t)0b00111111);
-
-        if (x <= (((u32_t)0xFF7F >> i) & (u32_t)0xFF)) {
-            ret |= (x & ((u32_t)0x7F >> i)) << (6 * (i - 1));
-            break;
-        }
-    }
-
-    *dst = ret;
-
-    return data;
-}
-
 void Print(byte_t* b, size_t size) {
     for (size_t i = 0; i < size; ++i) {
         byte_t x = b[i];
@@ -93,54 +21,54 @@ void Print(byte_t* b, size_t size) {
 }
 
 int main() {
-    size_t size = 1;
+    size_t size = 32 * 1024;
 
     size_t beg = 2147483648;
     size_t end = beg + size;
 
-    u32_t* data_uni = malloc(sizeof(u32_t) * size);
+    ZETA_PrintVar("%llu", 0x7FFFFFFF);
 
-    u32_t* data_uni_re = malloc(sizeof(u32_t) * size);
-    u32_t* data_uni_re_iter = data_uni_re;
+    printf("%llu\n", 0x7FFFFFFF);
 
-    byte_t* data_utf8 = malloc(sizeof(byte_t) * size * 6);
-    byte_t* data_utf8_iter = data_utf8;
+    if (0x7FFFFFFFull + 1 < end) { end = 0x7FFFFFFFull + 1; }
 
-    printf("end = %llu\n", (ull)end);
+    ZETA_PrintVar("%llu", (ull)end);
+
+    unichar_t* data_uni = malloc(sizeof(u32_t) * size);
+
+    unichar_t* data_uni_re = malloc(sizeof(u32_t) * size);
+    unichar_t* data_uni_re_beg = data_uni_re;
+    unichar_t* data_uni_re_end = data_uni_re + size;
+
+    byte_t* data_utf8 = malloc(sizeof(byte_t) * (size * 6 + 1));
+    byte_t* data_utf8_beg = data_utf8;
+    byte_t* data_utf8_end = data_utf8 + (size * 6 + 1);
 
     for (size_t i = 0; i < size; ++i) { data_uni[i] = beg + i; }
 
-    /*
-    for (size_t i = 0; i < size; ++i) {
-        printf("%llu ", (unsigned long long)data_uni[i]);
-    }
+    Zeta_UTF8_EncodeRet en_ret = Zeta_UTF8_Encode(data_utf8_beg, data_utf8_end,
+                                                  data_uni, data_uni + size);
 
-    printf("\n");
-    */
+    ZETA_DebugAssert(en_ret.success);
+    ZETA_DebugAssert(en_ret.nxt_dst != data_utf8_end);
+    ZETA_DebugAssert(en_ret.nxt_src == data_uni + size);
 
-    for (size_t i = 0; i < size; ++i) {
-        data_utf8_iter = Zeta_UTF8_Encode(data_utf8_iter, data_uni[i]);
-    }
+    ZETA_PrintVar("%lld", en_ret.nxt_dst - data_utf8_beg);
 
-    // Print(data_utf8, data_utf8_iter - data_utf8);
+    byte_t* data_utf8_mid = en_ret.nxt_dst;
 
-    byte_t* data_utf8_end = data_utf8_iter;
-    data_utf8_iter = data_utf8;
+    Zeta_UTF8_DecodeRet de_ret = Zeta_UTF8_Decode(
+        data_uni_re_beg, data_uni_re_end, data_utf8_beg, data_utf8_mid);
 
-    while (data_utf8_iter != data_utf8_end) {
-        data_utf8_iter = Zeta_UTF8_Decode(data_uni_re_iter, data_utf8_iter,
-                                          data_utf8_end - data_utf8_iter);
-        ++data_uni_re_iter;
-    }
+    ZETA_DebugAssert(de_ret.success);
+    ZETA_DebugAssert(de_ret.nxt_dst == data_uni_re_end);
+    ZETA_DebugAssert(de_ret.nxt_src == data_utf8_mid);
 
     // printf("size re = %llu\n", (ull)(data_uni_re_iter - data_uni_re));
 
     /*
     for (size_t i = 0; i < size; ++i) { printf("%llu ", (ull)data_uni_re[i]); }
     */
-
-    ZETA_DebugAssert(data_uni_re + size == data_uni_re_iter);
-    ZETA_DebugAssert(0 == 0);
 
     for (size_t i = 0; i < size; ++i) {
         ZETA_DebugAssert(data_uni[i] == data_uni_re[i]);

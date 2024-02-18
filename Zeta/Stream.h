@@ -4,9 +4,6 @@
 
 ZETA_extern_c_beg;
 
-#define ZETA_Stream_type_byte 0
-#define ZETA_Stream_type_unichar 1
-
 typedef struct Zeta_Stream Zeta_Stream;
 
 struct Zeta_Stream {
@@ -26,5 +23,7 @@ struct Zeta_Stream {
 
     void (*Write)(void* context, const void* data);
 };
+
+void Zeta_StreamTransfer(Zeta_Stream* dst, Zeta_Stream* src);
 
 ZETA_extern_c_end;

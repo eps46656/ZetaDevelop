@@ -29,7 +29,6 @@ void Zeta_CircularVector_Check(void* cv_) {
     size_t offset = cv->offset;
     size_t size = cv->size;
 
-    ZETA_DebugAssert(0 <= offset);
     ZETA_DebugAssert(offset < capacity);
     ZETA_DebugAssert(size <= capacity);
     ZETA_DebugAssert(capacity <= ZETA_max_mod_under_size_t);
@@ -93,7 +92,6 @@ void Zeta_CircularVector_Entrust(void* cv_, void* vec, size_t size,
 
         size_t capacity = vec->GetSize(vec->context);
 
-        ZETA_DebugAssert(0 <= offset);
         ZETA_DebugAssert(offset < capacity);
         ZETA_DebugAssert(size <= capacity);
         ZETA_DebugAssert(capacity <= ZETA_max_mod_under_size_t);
@@ -116,12 +114,11 @@ void* Zeta_CircularVector_Access(void* cv_, size_t idx) {
     size_t offset = cv->offset;
     size_t size = cv->size;
 
-    ZETA_DebugAssert(0 <= offset);
     ZETA_DebugAssert(offset < capacity);
     ZETA_DebugAssert(size <= capacity);
     ZETA_DebugAssert(capacity <= ZETA_max_mod_under_size_t);
 
-    ZETA_DebugAssert(0 <= idx) ZETA_DebugAssert(idx < size);
+    ZETA_DebugAssert(idx < size);
     ZETA_DebugAssert(vec->Access != NULL);
 
     return vec->Access(vec->context, (offset + idx) % capacity);
@@ -140,16 +137,14 @@ void* Zeta_CircularVector_Insert(void* cv_, size_t idx) {
     size_t offset = cv->offset;
     size_t size = cv->size;
 
-    ZETA_DebugAssert(0 <= offset);
     ZETA_DebugAssert(offset < capacity);
     ZETA_DebugAssert(size < capacity);
     ZETA_DebugAssert(capacity <= ZETA_max_mod_under_size_t);
 
-    ZETA_DebugAssert(0 <= idx);
     ZETA_DebugAssert(idx <= size);
 
     size_t width = vec->GetWidth(vec->context);
-    ZETA_DebugAssert(width != ZETA_maxof(size_t));
+    ZETA_DebugAssert(0 < width);
 
     size_t hold_idx;
 
@@ -201,16 +196,14 @@ void Zeta_CircularVector_Erase(void* cv_, size_t idx) {
     size_t offset = cv->offset;
     size_t size = cv->size;
 
-    ZETA_DebugAssert(0 <= offset);
     ZETA_DebugAssert(offset < capacity);
     ZETA_DebugAssert(size <= capacity);
     ZETA_DebugAssert(capacity <= ZETA_max_mod_under_size_t);
 
-    ZETA_DebugAssert(0 <= idx);
     ZETA_DebugAssert(idx < size);
 
     size_t width = vec->GetWidth(vec->context);
-    ZETA_DebugAssert(width != ZETA_maxof(size_t));
+    ZETA_DebugAssert(0 < width);
 
     if (idx < size - 1 - idx) {
         if (0 < width) {

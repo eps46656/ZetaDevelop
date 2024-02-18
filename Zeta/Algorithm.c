@@ -26,7 +26,7 @@ static void Zeta_Insertion_(Zeta_Vector* vec, size_t i, void* cmper_context,
 
     if (cmper(cmper_context, prev_ref, ref) <= 0) { return; }
 
-    byte_t tmp[max_tmp_width];
+    char tmp[max_tmp_width];
 
     Zeta_MemCopy(width, tmp, ref);
     Zeta_MemCopy(width, ref, prev_ref);
@@ -236,7 +236,6 @@ void Zeta_KthElement(Zeta_Vector* vec, size_t beg, size_t mid, size_t end,
 
     size_t size = vec->GetSize(vec_context);
 
-    ZETA_DebugAssert(0 <= beg);
     ZETA_DebugAssert(beg <= mid);
     ZETA_DebugAssert(mid <= end);
     ZETA_DebugAssert(end <= size);
@@ -294,7 +293,6 @@ void Zeta_Sort(Zeta_Vector* vec, size_t beg, size_t end, void* cmper_context,
 
     size_t size = vec->GetSize(vec_context);
 
-    ZETA_DebugAssert(0 <= beg);
     ZETA_DebugAssert(beg <= end);
     ZETA_DebugAssert(end <= size);
 

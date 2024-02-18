@@ -21,21 +21,27 @@ byte_t ByteReverse_(byte_t x) {
     return ret;
 }
 
-void Zeta_CRCHasher_Rotate(void* hasher_, const byte_t* data, size_t size,
-                           int reverse) {
+void Zeta_CRCHasher_Rotate(void* hasher_, const byte_t* data,
+                           const byte_t* data_end, int reverse) {
     Zeta_CRCHasher* hasher = hasher_;
     ZETA_DebugAssert(hasher != NULL);
 
-    ZETA_DebugAssert(0 <= size);
+    ZETA_DebugAssert(data != NULL);
+    ZETA_DebugAssert(data_end != NULL);
+    ZETA_DebugAssert(data <= data_end);
 
     unsigned _BitInt(64) div = hasher->div;
     unsigned _BitInt(64) reg = hasher->reg;
 
-    for (; 0 < size; ++data, --size) {
+    for (; data < data_end; ++data) {
+        byte_t x = data[0];
+        ZETA_DebugAssert(0 <= x);
+        ZETA_DebugAssert(x <= 255);
+
         if (reverse) {
-            reg ^= ByteReverse_(data[0]);
+            reg ^= ByteReverse_(x);
         } else {
-            reg ^= data[0];
+            reg ^= x;
         }
 
         for (int i = 0; i < 8; ++i) {

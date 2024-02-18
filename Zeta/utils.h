@@ -45,7 +45,7 @@ void* Zeta_MemRotate(void* beg, void* mid, void* end);
  *
  * @return The read integer
  */
-size_t Zeta_ReadLittleEndian(const byte_t* data, int length);
+size_t Zeta_ReadLittleEndian(const byte_t* data, unsigned int length);
 
 /**
  * @brief Write an integer to data in little endian occupying length bytes.
@@ -54,7 +54,7 @@ size_t Zeta_ReadLittleEndian(const byte_t* data, int length);
  * @param x The target integer.
  * @param length The number of bytes the integer occupied.
  */
-void Zeta_WriteLittleEndian(byte_t* dst, size_t x, int length);
+void Zeta_WriteLittleEndian(byte_t* dst, size_t x, unsigned int length);
 
 /**
  * @brief Read big endian stored length bytes occupying integer from data.
@@ -64,7 +64,7 @@ void Zeta_WriteLittleEndian(byte_t* dst, size_t x, int length);
  *
  * @return The read integer
  */
-size_t Zeta_ReadBigEndian(const byte_t* data, int length);
+size_t Zeta_ReadBigEndian(const byte_t* data, unsigned int length);
 
 /**
  * @brief Write an integer to data in big endian occupying length bytes.
@@ -73,7 +73,7 @@ size_t Zeta_ReadBigEndian(const byte_t* data, int length);
  * @param x The target integer.
  * @param length The number of bytes the integer occupied.
  */
-void Zeta_WriteBigEndian(byte_t* dst, size_t x, int length);
+void Zeta_WriteBigEndian(byte_t* dst, size_t x, unsigned int length);
 
 size_t Zeta_SimpleRandom(size_t x);
 

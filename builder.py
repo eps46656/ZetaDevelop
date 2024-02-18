@@ -159,7 +159,7 @@ class Builder:
             print(f"{ybeg}building:{yend} {unit}")
             rc = self.callbacks[unit]()
 
-            assert rc == 0, f"error happened when building {ybeg}{unit}{ybeg}"
+            assert rc == 0, f"error happened when building {unit}"
 
             assert os.path.exists(unit), \
                    f"unit {unit} does not exist after built"

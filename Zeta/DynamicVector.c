@@ -75,7 +75,6 @@ void* Access_(Zeta_DynamicVector* dv_, size_t idx) {
     ZETA_DebugAssert(0 < dv->width);
     ZETA_DebugAssert(0 < dv->cluster_capacity);
 
-    ZETA_DebugAssert(0 <= idx);
     ZETA_DebugAssert(idx < dv->size);
 
     size_t mlv_capacity = Zeta_MultiLevelVector_GetCapacity(&dv->mlv);
@@ -93,7 +92,7 @@ void* Access_(Zeta_DynamicVector* dv_, size_t idx) {
 
     void** cluster = Zeta_MultiLevelVector_Access(&dv->mlv, idxes);
 
-    return ZETA_OffsetPtr(*cluster, dv->width * cluster_j);
+    return ZETA_UINT_TO_Ptr(ZETA_PTR_TO_UINT(*cluster) + dv->width * cluster_j);
 }
 
 void* Zeta_DynamicVector_Access(void* dv, size_t idx) {
@@ -121,11 +120,9 @@ void* Zeta_DynamicVector_Insert(void* dv_, size_t idx) {
     size_t capacity = dv->cluster_capacity * mlv_capacity;
     ZETA_DebugAssert(capacity <= ZETA_max_mod_under_size_t);
 
-    ZETA_DebugAssert(0 <= dv->offset);
     ZETA_DebugAssert(dv->offset < capacity);
     ZETA_DebugAssert(dv->size < capacity);
 
-    ZETA_DebugAssert(0 <= idx);
     ZETA_DebugAssert(idx <= dv->size);
 
     size_t hole_idx;
@@ -186,11 +183,9 @@ void Zeta_DynamicVector_Erase(void* dv_, size_t idx) {
     size_t capacity = dv->cluster_capacity * mlv_capacity;
     ZETA_DebugAssert(capacity <= ZETA_max_mod_under_size_t);
 
-    ZETA_DebugAssert(0 <= dv->offset);
     ZETA_DebugAssert(dv->offset < capacity);
     ZETA_DebugAssert(dv->size < capacity);
 
-    ZETA_DebugAssert(0 <= idx);
     ZETA_DebugAssert(idx < dv->size);
 
     if (idx < dv->size - 1 - idx) {  // l move

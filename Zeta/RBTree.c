@@ -20,11 +20,11 @@ static void* Insert_(void* context, void* (*GetP)(void* context, void* n),
     if (GetColor(context, m) == 0) { ReverseColor(context, m); }
 
     void* root = Zeta_GetMostLink(context, GetP, n);
+
     void* nd = GetD(context, n);
 
     if (nd == NULL) {
         AttachD(context, n, m);
-
     } else {
         AttachE(context, Zeta_GetMostLink(context, GetE, nd), m);
     }
@@ -243,7 +243,7 @@ void* Zeta_RBTree_Extract(const Zeta_RBTreeNodeOpr* rbtn_opr, void* n) {
     return root;
 }
 
-size_t Zeta_RBTree_Check(const Zeta_RBTreeNodeOpr* rbtn_opr, void* n) {
+static size_t Check_(const Zeta_RBTreeNodeOpr* rbtn_opr, void* n) {
     if (n == NULL) { return 0; }
 
     void* context = rbtn_opr->context;
@@ -254,8 +254,8 @@ size_t Zeta_RBTree_Check(const Zeta_RBTreeNodeOpr* rbtn_opr, void* n) {
     if (nl != NULL) { ZETA_Assert(rbtn_opr->GetP(context, nl) == n); }
     if (nr != NULL) { ZETA_Assert(rbtn_opr->GetP(context, nr) == n); }
 
-    size_t lbh = Zeta_RBTree_Check(rbtn_opr, nl);
-    size_t rbh = Zeta_RBTree_Check(rbtn_opr, nr);
+    size_t lbh = Check_(rbtn_opr, nl);
+    size_t rbh = Check_(rbtn_opr, nr);
 
     ZETA_Assert(lbh == rbh);
 
@@ -267,4 +267,18 @@ size_t Zeta_RBTree_Check(const Zeta_RBTreeNodeOpr* rbtn_opr, void* n) {
     ZETA_Assert(rbtn_opr->GetColor(context, nr) == 0);
 
     return lbh;
+}
+
+void Zeta_RBTree_Check(const Zeta_RBTreeNodeOpr* rbtn_opr, void* n) {
+    ZETA_DebugAssert(rbtn_opr != NULL);
+    ZETA_DebugAssert(rbtn_opr->GetP != NULL);
+    ZETA_DebugAssert(rbtn_opr->GetL != NULL);
+    ZETA_DebugAssert(rbtn_opr->GetR != NULL);
+    ZETA_DebugAssert(rbtn_opr->GetColor != NULL);
+
+    if (n == NULL) { return; }
+
+    ZETA_DebugAssert(rbtn_opr->GetP(rbtn_opr->context, n) == NULL);
+
+    Check_(rbtn_opr, n);
 }

@@ -1,41 +1,43 @@
-#include "OrdDoublyLinkedNode.h"
+#include "RelLinkedListNode.h"
 
 static void* GetL_(void* n_) {
-    Zeta_OrdDoublyLinkedNode* n = n_;
+    Zeta_RelLinkedListNode* n = n_;
     ZETA_DebugAssert(n != NULL);
-    return n->l;
+
+    return ZETA_UINT_TO_PTR(ZETA_PTR_TO_UINT(n) + n->l);
 }
 
 static void* GetR_(void* n_) {
-    Zeta_OrdDoublyLinkedNode* n = n_;
+    Zeta_RelLinkedListNode* n = n_;
     ZETA_DebugAssert(n != NULL);
-    return n->r;
+
+    return ZETA_UINT_TO_PTR(ZETA_PTR_TO_UINT(n) + n->r);
 }
 
 static void SetL_(void* n_, void* l) {
-    Zeta_OrdDoublyLinkedNode* n = n_;
+    Zeta_RelLinkedListNode* n = n_;
     ZETA_DebugAssert(n != NULL);
 
-    n->l = l;
+    n->l = ZETA_PTR_TO_UINT(l) - ZETA_PTR_TO_UINT(n);
 }
 
 static void SetR_(void* n_, void* r) {
-    Zeta_OrdDoublyLinkedNode* n = n_;
+    Zeta_RelLinkedListNode* n = n_;
     ZETA_DebugAssert(n != NULL);
 
-    n->r = r;
+    n->r = ZETA_PTR_TO_UINT(r) - ZETA_PTR_TO_UINT(n);
 }
 
-void Zeta_OrdDoublyLinkedNode_Init(void* n) {
+void Zeta_RelLinkedListNode_Init(void* n) {
     SetL_(n, n);
     SetR_(n, n);
 }
 
-void* Zeta_OrdDoublyLinkedNode_GetL(void* n) { return GetL_(n); }
+void* Zeta_RelLinkedListNode_GetL(void* n) { return GetL_(n); }
 
-void* Zeta_OrdDoublyLinkedNode_GetR(void* n) { return GetR_(n); }
+void* Zeta_RelLinkedListNode_GetR(void* n) { return GetR_(n); }
 
-void Zeta_OrdDoublyLinkedNode_InsertL(void* n, void* m) {
+void Zeta_RelLinkedListNode_InsertL(void* n, void* m) {
     ZETA_DebugAssert(n != NULL);
     ZETA_DebugAssert(m != NULL);
     ZETA_DebugAssert(GetL_(m) == m);
@@ -49,7 +51,7 @@ void Zeta_OrdDoublyLinkedNode_InsertL(void* n, void* m) {
     SetR_(nl, m);
 }
 
-void Zeta_OrdDoublyLinkedNode_InsertR(void* n, void* m) {
+void Zeta_RelLinkedListNode_InsertR(void* n, void* m) {
     ZETA_DebugAssert(n != NULL);
     ZETA_DebugAssert(m != NULL);
     ZETA_DebugAssert(GetL_(m) == m);
@@ -63,7 +65,7 @@ void Zeta_OrdDoublyLinkedNode_InsertR(void* n, void* m) {
     SetL_(nr, m);
 }
 
-void Zeta_OrdDoublyLinkedNode_Extract(void* n) {
+void Zeta_RelLinkedListNode_Extract(void* n) {
     ZETA_DebugAssert(n != NULL);
 
     void* nl = GetL_(n);

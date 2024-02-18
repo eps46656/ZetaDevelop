@@ -1,7 +1,7 @@
 #pragma once
 
 #include "Allocator.h"
-#include "DoublyLinkedNode.h"
+#include "LinkedListNode.h"
 
 #define ZETA_SlabAllocator_max_num_of_types ZETA_maxof(u8_t)
 
@@ -10,7 +10,7 @@
 SlabLayout {
     Zeta_SlabAllocator_SlabHead {
         int div_t;
-        Zeta_DoublyLinkedNode* n;
+        Zeta_LinkedListNode* n;
         void * ptr;
     }
 
@@ -59,7 +59,7 @@ typedef struct Zeta_SlabAllocator_Slab Zeta_SlabAllocator_Slab;
 
 struct Zeta_SlabAllocator_Slab {
     u8_t type_i;
-    Zeta_DoublyLinkedNode n;
+    Zeta_LinkedListNode n;
     void* ptr;
 
     Zeta_SlabAllocator_Unit units[1];
@@ -72,7 +72,7 @@ struct Zeta_SlabAllocator {
     int sizes[Zeta_SlabAllocator_max_num_of_types];
     int nums[Zeta_SlabAllocator_max_num_of_types];
 
-    Zeta_DoublyLinkedNode slab_list_heads[Zeta_SlabAllocator_max_num_of_types];
+    Zeta_LinkedListNode slab_list_heads[Zeta_SlabAllocator_max_num_of_types];
 
     Zeta_Allocator* allocator;
 };

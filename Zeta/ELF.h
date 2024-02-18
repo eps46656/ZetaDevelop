@@ -40,7 +40,7 @@ typedef struct Zeta_ELF_Ret Zeta_ELF_Ret;
 struct Zeta_ELF_Ret {
     int rc;
     byte_t* nxt_dst;
-    const byte_t* nxt_src;
+    const byte_t* nxt_data;
 };
 
 typedef struct Zeta_ELF_Header Zeta_ELF_Header;
@@ -112,13 +112,13 @@ struct Zeta_ELF_SectionHeader {
     u64_t sh_entsize;
 };
 
-int Zeta_ELF_ReadHeader(Zeta_ELF_Header* dst, const byte_t* src,
-                        const byte_t* src_end);
+int Zeta_ELF_ReadHeader(Zeta_ELF_Header* dst, const byte_t* data,
+                        const byte_t* data_end);
 
-void Zeta_ELF_ReadProgramHeader(Zeta_ELF_ProgramHeader* dst, const byte_t* src,
-                                const byte_t* src_end);
+void Zeta_ELF_ReadProgramHeader(Zeta_ELF_ProgramHeader* dst, const byte_t* data,
+                                const byte_t* data_end);
 
-void Zeta_ELF_ReadSectionHeader(Zeta_ELF_SectionHeader* dst, const byte_t* src,
-                                const byte_t* src_end);
+void Zeta_ELF_ReadSectionHeader(Zeta_ELF_SectionHeader* dst, const byte_t* data,
+                                const byte_t* data_end);
 
 ZETA_extern_c_end;

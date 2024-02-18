@@ -41,16 +41,19 @@ void PrintTM(const std::map<size_t, size_t>& m) {
 void* MyAlloc(size_t size) {
     if (size == 0) { return NULL; }
 
+    ZETA_PrintPos;
+
     void* ptr = Zeta_OrdAllocator_Allocate(&allocator, size);
 
-    size_t m_beg = (uintptr_t)ptr;
+    ZETA_PrintPos;
+
+    size_t m_beg = ZETA_PTR_TO_UINT(ptr);
     size_t m_end = m_beg + size;
 
     ZETA_DebugAssert(m_beg % allocator.align == 0);
 
-    ZETA_DebugAssert((uintptr_t)allocator.ptr <= m_beg);
-    ZETA_DebugAssert(m_end <=
-                     (uintptr_t)ZETA_OffsetPtr(allocator.ptr + allocator.size));
+    ZETA_DebugAssert(ZETA_PTR_TO_UINT(allocator.ptr) <= m_beg);
+    ZETA_DebugAssert(m_end <= ZETA_PTR_TO_UINT(allocator.ptr) + allocator.size);
 
     auto iter = req_ptr_size_tm.insert({ m_beg, size }).first;
 
@@ -69,8 +72,11 @@ void* MyAlloc(size_t size) {
 }
 
 void MyFree(void* ptr) {
+    ZETA_PrintPos;
     Zeta_OrdAllocator_Deallocate(&allocator, ptr);
+    ZETA_PrintPos;
     size_t b = req_ptr_size_tm.erase((uintptr_t)ptr);
+    ZETA_PrintPos;
 
     ZETA_DebugAssert(b);
 }
@@ -124,7 +130,11 @@ int main() {
     ZETA_DebugAssert(mem <= allocator.ptr);
     ZETA_DebugAssert(allocator.size <= sizeof(mem));
 
-    CheckAllocator(false);
+    ZETA_PrintPos;
+
+    CheckAllocator(true);
+
+    ZETA_PrintPos;
 
     std::vector<void*> ptrs;
 
@@ -134,18 +144,30 @@ int main() {
         ptrs.push_back(MyAlloc(size));
     }
 
+    ZETA_PrintPos;
+
     CheckAllocator(false);
+
+    ZETA_PrintPos;
 
     for (int test_i = 0; test_i < 40; ++test_i) {
         size_t idx = idx_generator(en) % ptrs.size();
 
+        ZETA_PrintPos;
+
         MyFree(ptrs[idx]);
+
+        ZETA_PrintPos;
 
         ptrs[idx] = ptrs.back();
         ptrs.pop_back();
     }
 
+    ZETA_PrintPos;
+
     CheckAllocator(false);
+
+    ZETA_PrintPos;
 
     // Zeta_OrdAllocator_Check(&allocator, 1, ptr_size_tm);
 

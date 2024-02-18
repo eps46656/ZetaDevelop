@@ -296,8 +296,8 @@ void Zeta_OrdCntRBTreeNode_Swap(void* context, void* n_, void* m_) {
 
     ZETA_Swap(n->acc_size, m->acc_size);
 
-    if (np != NULL) { SetSize_(np, n_size); }
-    if (mp != NULL) { SetSize_(mp, m_size); }
+    SetSize_(n, n_size);
+    SetSize_(m, m_size);
 }
 
 void Zeta_OrdCntRBTreeNode_RotateL(void* context, void* n_) {

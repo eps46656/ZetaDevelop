@@ -1,12 +1,13 @@
 #include "utils.h"
 
 void Zeta_MemCopy(size_t size, void* dst_, const void* src_) {
-    ZETA_DebugAssert(0 <= size);
-
     unsigned char* dst = dst_;
     const unsigned char* src = src_;
 
     if (dst == src) { return; }
+
+    ZETA_DebugAssert(dst != NULL);
+    ZETA_DebugAssert(src != NULL);
 
     if (src < dst && dst < src + size) {
         for (size_t i = size; 0 < i--;) { dst[i] = src[i]; }
@@ -16,12 +17,13 @@ void Zeta_MemCopy(size_t size, void* dst_, const void* src_) {
 }
 
 void Zeta_MemSwap(size_t size, void* x_, void* y_) {
-    ZETA_DebugAssert(0 <= size);
-
     unsigned char* x = x_;
     unsigned char* y = y_;
 
     if (x == y) { return; }
+
+    ZETA_DebugAssert(x != NULL);
+    ZETA_DebugAssert(y != NULL);
 
     for (size_t i = 0; i < size; ++i) { ZETA_Swap(x[i], y[i]); }
 }
@@ -60,41 +62,45 @@ void* Zeta_MemRotate(void* beg_, void* mid_, void* end_) {
     return ret;
 }
 
-size_t Zeta_ReadLittleEndian(const byte_t* data, int length) {
-    ZETA_DebugAssert(0 <= length);
-    ZETA_DebugAssert((size_t)length <= sizeof(size_t));
+size_t Zeta_ReadLittleEndian(const byte_t* data, unsigned int length) {
+    ZETA_DebugAssert(data != NULL);
+    ZETA_DebugAssert(length <= sizeof(size_t));
 
     size_t ret = 0;
 
-    for (int i = length - 1; 0 <= i; --i) { ret = ret * 256 + (size_t)data[i]; }
+    for (unsigned int i = length; 1 <= --i;) {
+        ret = ret * (size_t)256 + (size_t)data[i];
+    }
 
     return ret;
 }
 
-void Zeta_WriteLittleEndian(byte_t* dst, size_t x, int length) {
-    ZETA_DebugAssert(0 <= length);
+void Zeta_WriteLittleEndian(byte_t* dst, size_t x, unsigned int length) {
+    ZETA_DebugAssert(dst != NULL);
 
-    for (int i = 0; i < length; ++i) {
+    for (unsigned int i = 0; i < length; ++i) {
         dst[i] = x % 256;
         x /= 256;
     }
 }
 
-size_t Zeta_ReadBigEndian(const byte_t* data, int length) {
-    ZETA_DebugAssert(0 <= length);
-    ZETA_DebugAssert((size_t)length <= sizeof(size_t));
+size_t Zeta_ReadBigEndian(const byte_t* data, unsigned int length) {
+    ZETA_DebugAssert(data != NULL);
+    ZETA_DebugAssert(length <= sizeof(size_t));
 
     size_t ret = 0;
 
-    for (int i = 0; i < length; ++i) { ret = ret * 256 + (size_t)data[i]; }
+    for (unsigned int i = 0; i < length; ++i) {
+        ret = ret * (size_t)256 + (size_t)data[i];
+    }
 
     return ret;
 }
 
-void Zeta_WriteBigEndian(byte_t* dst, size_t x, int length) {
-    ZETA_DebugAssert(0 <= length);
+void Zeta_WriteBigEndian(byte_t* dst, size_t x, unsigned int length) {
+    ZETA_DebugAssert(dst != NULL);
 
-    for (int i = length - 1; 0 <= i; --i) {
+    for (unsigned int i = length; 1 <= i--;) {
         dst[i] = x % 256;
         x /= 256;
     }
@@ -110,12 +116,21 @@ size_t Zeta_SimpleRandom(size_t x) {
     return ((x * a + c) >> 16) & mask;
 }
 
+/*
 size_t Zeta_SimpleHash(size_t x) {
     for (size_t i = ZETA_maxof(size_t); 0 < i; i >>= 16) {
         x = ((x >> 16) ^ x) * 0x45D9F3B;
     }
 
     x = (x >> 16) ^ x;
+    return x;
+} */
+
+size_t Zeta_SimpleHash(size_t x_) {
+    u64_t x = x_;
+    x = (x ^ (x >> 30)) * (u64_t)0xbf58476d1ce4e5b9;
+    x = (x ^ (x >> 27)) * (u64_t)0x94d049bb133111eb;
+    x = x ^ (x >> 31);
     return x;
 }
 
@@ -133,8 +148,6 @@ size_t Zeta_GetLCM(size_t x, size_t y) {
 }
 
 size_t Zeta_GetPower(size_t base, size_t exp) {
-    ZETA_DebugAssert(0 <= exp);
-
     size_t ret = 1;
 
     for (; 0 < exp; exp /= 2) {
@@ -182,8 +195,6 @@ if b != 0
 */
 
 size_t Zeta_GetMulMod(size_t x, size_t y, size_t mod) {
-    ZETA_DebugAssert(0 <= x);
-    ZETA_DebugAssert(0 <= y);
     ZETA_DebugAssert(0 < mod);
 
     x %= mod;
@@ -193,11 +204,7 @@ size_t Zeta_GetMulMod(size_t x, size_t y, size_t mod) {
 
     ZETA_DebugAssert(mod <= ZETA_max_mod_under_size_t);
 
-    if (x < y) {
-        size_t tmp = x;
-        x = y;
-        y = tmp;
-    }
+    if (x < y) { ZETA_Swap(x, y); }
 
     size_t ret = 0;
 
@@ -210,7 +217,6 @@ size_t Zeta_GetMulMod(size_t x, size_t y, size_t mod) {
 }
 
 size_t Zeta_GetPowerMod(size_t base, size_t exp, size_t mod) {
-    ZETA_DebugAssert(0 <= exp);
     ZETA_DebugAssert(0 < mod);
 
     if (mod == 1) { return 0; }

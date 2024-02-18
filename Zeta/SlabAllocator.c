@@ -75,7 +75,7 @@ void Zeta_SlabAllocator_Entrust(void* sa_, int num_of_types, const int* sizes,
     }
 
     for (int i = 0; i < Zeta_SlabAllocator_max_num_of_types; ++i) {
-        Zeta_DoublyLinkedNode_Init(sa->slab_list_heads + i);
+        Zeta_LinkedListNode_Init(sa->slab_list_heads + i);
     }
 
     sa->allocator = allocator;
@@ -126,7 +126,7 @@ void* Zeta_SlabAllocator_Allocate(void* sa_, size_t size) {
     if (type_i == sa->num_of_types) { return NULL; }
 
     void* slab_list_head = sa->slab_list_heads + type_i;
-    void* slab_k_n = Zeta_DoublyLinkedNode_GetR(slab_list_head);
+    void* slab_k_n = Zeta_LinkedListNode_GetR(slab_list_head);
 
     Zeta_SlabAllocator_Slab* slab_k;
 
@@ -135,7 +135,7 @@ void* Zeta_SlabAllocator_Allocate(void* sa_, size_t size) {
     if (slab_list_head == slab_k_n) {
         alloc_new_slab = 1;
     } else {
-        slab_k = ZETA_GetStructFromMem(Zeta_SlabAllocator_Slab, n, slab_k_n);
+        slab_k = ZETA_GetStructFromMember(Zeta_SlabAllocator_Slab, n, slab_k_n);
         if (slab_k->ptr == NULL) { alloc_new_slab = 1; }
     }
 
@@ -149,8 +149,8 @@ void* Zeta_SlabAllocator_Allocate(void* sa_, size_t size) {
         slab_k_n = &slab_k->n;
 
         slab_k->type_i = type_i;
-        Zeta_DoublyLinkedNode_Init(slab_k_n);
-        Zeta_DoublyLinkedNode_InsertR(slab_list_head, slab_k_n);
+        Zeta_LinkedListNode_Init(slab_k_n);
+        Zeta_LinkedListNode_InsertR(slab_list_head, slab_k_n);
 
         slab_k->ptr = slab_k->units;
 
@@ -172,8 +172,8 @@ void* Zeta_SlabAllocator_Allocate(void* sa_, size_t size) {
     slab_k->ptr = ret_nxt_unit;
 
     if (slab_k->ptr == NULL) {
-        Zeta_DoublyLinkedNode_Extract(slab_k_n);
-        Zeta_DoublyLinkedNode_InsertL(slab_list_head, slab_k_n);
+        Zeta_LinkedListNode_Extract(slab_k_n);
+        Zeta_LinkedListNode_InsertL(slab_list_head, slab_k_n);
     }
 
     return ret_unit->data;
@@ -189,7 +189,7 @@ void Zeta_SlabAllocator_Deallocate(void* sa_, void* ptr) {
     if (ptr == NULL) { return; }
 
     Zeta_SlabAllocator_Unit* unit =
-        ZETA_GetStructFromMem(Zeta_SlabAllocator_Unit, data[0], ptr);
+        ZETA_GetStructFromMember(Zeta_SlabAllocator_Unit, data[0], ptr);
 
     Zeta_SlabAllocator_Slab* slab_k = unit->ptr;
 
@@ -198,15 +198,15 @@ void Zeta_SlabAllocator_Deallocate(void* sa_, void* ptr) {
 
     int type_i = slab_k->type_i;
 
-    Zeta_DoublyLinkedNode* slab_list_head = sa->slab_list_heads + type_i;
+    Zeta_LinkedListNode* slab_list_head = sa->slab_list_heads + type_i;
 
-    Zeta_DoublyLinkedNode_Extract(&slab_k->n);
+    Zeta_LinkedListNode_Extract(&slab_k->n);
 
     int num = sa->nums[type_i];
 
     for (int i = 0; i < num; ++i) {
         if (slab_k->units[i].ptr == slab_k) {
-            Zeta_DoublyLinkedNode_InsertL(slab_list_head, &slab_k->n);
+            Zeta_LinkedListNode_InsertL(slab_list_head, &slab_k->n);
             return;
         }
     }

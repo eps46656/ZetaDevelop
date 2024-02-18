@@ -125,7 +125,7 @@ val_t GPList_GetVal(void* gpl_, void* n) {
     ZETA_DebugAssert(gpl->lb != n);
     ZETA_DebugAssert(gpl->rb != n);
 
-    return ZETA_GetStructFromMem(GPListNode, n, n)->val;
+    return ZETA_GetStructFromMember(GPListNode, n, n)->val;
 }
 
 void GPList_SetVal(void* gpl_, void* n, val_t val) {
@@ -135,7 +135,7 @@ void GPList_SetVal(void* gpl_, void* n, val_t val) {
     ZETA_DebugAssert(gpl->lb != n);
     ZETA_DebugAssert(gpl->rb != n);
 
-    ZETA_GetStructFromMem(GPListNode, n, n)->val = val;
+    ZETA_GetStructFromMember(GPListNode, n, n)->val = val;
 }
 
 void* GPList_GetL(void* gpl_, void* n) {
@@ -201,7 +201,7 @@ void GPList_Erase(void* gpl_, void* n) {
     ZETA_DebugAssert(gpl->rb != n);
 
     gpl->root = Zeta_RBTree_Extract(&rbtn_opr, n);
-    free(ZETA_GetStructFromMem(GPListNode, n, n));
+    free(ZETA_GetStructFromMember(GPListNode, n, n));
 }
 
 void GPList_Check(void* gpl_) {

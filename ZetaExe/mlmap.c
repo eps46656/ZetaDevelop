@@ -98,7 +98,7 @@ void* MLMap_Find(void* mlmap_, mlmap_key_t key) {
         Zeta_MultiLevelHashTable_Find(mlht, hash_code);
 
     while (mlhtn != NULL) {
-        MLMapNode* mlmapn = ZETA_GetStructFromMem(MLMapNode, mlhtn, mlhtn);
+        MLMapNode* mlmapn = ZETA_GetStructFromMember(MLMapNode, mlhtn, mlhtn);
         if (key == mlmapn->key) { return mlmapn; }
         mlhtn = Zeta_MultiLevelHashTable_FindNext(mlhtn);
     }
@@ -114,7 +114,7 @@ void* MLMap_FindNext(void* mlmapn_, mlmap_key_t key) {
     mlhtn = Zeta_MultiLevelHashTable_FindNext(mlhtn);
 
     while (mlhtn != NULL) {
-        MLMapNode* mlmapn = ZETA_GetStructFromMem(MLMapNode, mlhtn, mlhtn);
+        MLMapNode* mlmapn = ZETA_GetStructFromMember(MLMapNode, mlhtn, mlhtn);
         if (key == mlmapn->key) { return mlmapn; }
         mlhtn = Zeta_MultiLevelHashTable_FindNext(mlhtn);
     }

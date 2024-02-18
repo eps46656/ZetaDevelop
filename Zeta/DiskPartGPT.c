@@ -2,79 +2,119 @@
 
 #include "utils.h"
 
-ZETA_StaticAssert(4 <= sizeof(size_t))
+#define READ(dst, l)                          \
+    {                                         \
+        dst = Zeta_ReadLittleEndian(data, 4); \
+        data += l;                            \
+    }                                         \
+    ZETA_StaticAssert(TRUE)
 
-    typedef struct Zeta_DiskPart_GPTHeader Zeta_DiskPart_GPTHeader;
+#define WRITE(data, l)                        \
+    {                                         \
+        Zeta_WriteLittleEndian(dst, data, 4); \
+        dst += l;                             \
+    }                                         \
+    ZETA_StaticAssert(TRUE)
 
-struct Zeta_DiskPart_GPTHeader {
-    char sign[8];
-
-    size_t revision_num;
-    size_t size_of_header;
-
-    size_t crc32_of_header;
-
-    size_t zero_reserved;
-
-    size_t cur_lba;
-    size_t backup_lba;
-
-    size_t usable_lba_beg;
-    size_t usable_lba_end;
-
-    size_t guid;
-
-    size_t lba_beg_of_part_entries;
-    size_t num_of_part_entries;
-    size_t size_of_part_entries;
-    size_t crc32_of_part_entries;
-};
-
-const byte_t* Zeta_DiskPart_GPT_ReadHeader(Zeta_DiskPart_GPTHeader* dst,
+const byte_t* Zeta_DiskPart_GPT_ReadHeader(Zeta_DiskPart_GPT_Header* dst,
                                            const byte_t* data) {
-    for (int i = 0; i < 8; ++i, ++data) { dst->sign[i] = data[0]; }
+    ZETA_DebugAssert(dst != NULL);
+    ZETA_DebugAssert(data != NULL);
 
-    dst->revision_num = Zeta_ReadLittleEndian(data, 4);
-    data += 4;
+    const char sign[] = "EFI PART";
 
-    dst->size_of_header = Zeta_ReadLittleEndian(data, 4);
-    data += 4;
+    for (int i = 0; i < 8; ++i, ++data) {
+        if (sign[i] != *data) { return NULL; }
+    }
 
-    dst->crc32_of_header = Zeta_ReadLittleEndian(data, 4);
-    data += 4;
+    READ(dst->revision_num, 4);
+    READ(dst->header_size, 4);
+    READ(dst->header_crc32, 4);
 
-    dst->zero_reserved = Zeta_ReadLittleEndian(data, 4);
-    data += 4;
+    for (int i = 0; i < 4; ++i, ++data) {
+        if (*data != 0) { return 0; }
+    }
 
-    dst->cur_lba = Zeta_ReadLittleEndian(data, 8);
-    data += 8;
+    READ(dst->cur_lba, 8);
+    READ(dst->backup_lba, 8);
 
-    dst->backup_lba = Zeta_ReadLittleEndian(data, 8);
-    data += 8;
+    READ(dst->first_usable, 8);
+    READ(dst->last_usable, 8);
 
-    dst->usable_lba_beg = Zeta_ReadLittleEndian(data, 8);
-    data += 8;
+    for (int i = 0; i < 16; ++i, ++data) { dst->disk_guid[i] = *data; }
 
-    dst->usable_lba_end = Zeta_ReadLittleEndian(data, 8);
-    data += 8;
+    READ(dst->part_entries_beg, 8);
+    READ(dst->part_entries_num, 4);
+    READ(dst->part_entry_size, 4);
+    READ(dst->part_entries_crc32, 4);
 
-    dst->guid_l = Zeta_ReadLittleEndian(data, 8);
-    data += 8;
-
-    dst->lba_beg_of_part_entries = Zeta_ReadLittleEndian(data, 8);
-    data += 8;
-
-    dst->num_of_part_entries = Zeta_ReadLittleEndian(data, 4);
-    data += 4;
-
-    dst->size_of_part_entries = Zeta_ReadLittleEndian(data, 4);
-    data += 4;
-
-    dst->crc32_of_part_entries = Zeta_ReadLittleEndian(data, 4);
-    data += 4;
+    return data;
 }
 
-const byte_t* Zeta_DiskPart_GPT_PartEntry(Zeta_DiskPart_PartEntry* dst,
-                                          const byte_t* data) {
-    //
+byte_t* Zeta_DiskPart_GPT_WriteHeader(byte_t* dst,
+                                      Zeta_DiskPart_GPT_Header* header) {
+    ZETA_DebugAssert(dst != NULL);
+    ZETA_DebugAssert(header != NULL);
+
+    const char sign[] = "EFI PART";
+
+    for (int i = 0; i < 8; ++i, ++dst) { *dst = sign[i]; }
+
+    WRITE(header->revision_num, 4);
+    WRITE(header->header_size, 4);
+    WRITE(header->header_crc32, 4);
+
+    for (int i = 0; i < 8; ++i, ++dst) { *dst = 0; }
+
+    WRITE(header->cur_lba, 8);
+    WRITE(header->backup_lba, 8);
+
+    WRITE(header->first_usable, 8);
+    WRITE(header->last_usable, 8);
+
+    for (int i = 0; i < 16; ++i, ++dst) { *dst = header->disk_guid[i]; }
+
+    WRITE(header->part_entries_beg, 8);
+    WRITE(header->part_entries_num, 4);
+    WRITE(header->part_entry_size, 4);
+    WRITE(header->part_entries_crc32, 4);
+
+    return dst;
+}
+
+const byte_t* Zeta_DiskPart_GPT_ReadPartEntry(Zeta_DiskPart_GPT_PartEntry* dst,
+                                              const byte_t* data) {
+    ZETA_DebugAssert(dst != NULL);
+    ZETA_DebugAssert(data != NULL);
+
+    for (int i = 0; i < 16; ++i, ++data) { dst->type_guid[i] = *data; }
+
+    for (int i = 0; i < 16; ++i, ++data) { dst->part_guid[i] = *data; }
+
+    READ(dst->first_lba, 8);
+    READ(dst->last_lba, 8);
+
+    READ(dst->flags, 8);
+
+    for (int i = 0; i < 72; ++i, ++data) { dst->name[i] = *data; }
+
+    return data;
+}
+
+byte_t* Zeta_DiskPart_GPT_WritePartEntry(
+    byte_t* dst, Zeta_DiskPart_GPT_PartEntry* part_entry) {
+    ZETA_DebugAssert(dst != NULL);
+    ZETA_DebugAssert(part_entry != NULL);
+
+    for (int i = 0; i < 16; ++i, ++dst) { *dst = part_entry->type_guid[i]; }
+    for (int i = 0; i < 16; ++i, ++dst) { *dst = part_entry->part_guid[i]; }
+
+    WRITE(part_entry->first_lba, 8);
+    WRITE(part_entry->last_lba, 8);
+
+    WRITE(part_entry->flags, 8);
+
+    for (int i = 0; i < 72; ++i, ++dst) { *dst = part_entry->name[i]; }
+
+    return dst;
 }

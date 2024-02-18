@@ -26,7 +26,6 @@ Zeta_DebugDeque_val_t* Zeta_DebugDeque_Access(void* dd_, size_t idx) {
     Zeta_DebugDeque* dd = (Zeta_DebugDeque*)dd_;
     ZETA_DebugAssert(dd != NULL);
 
-    ZETA_DebugAssert(0 <= idx);
     ZETA_DebugAssert(idx < dd->deque.size());
 
     return &dd->deque[idx];
@@ -36,7 +35,6 @@ Zeta_DebugDeque_val_t* Zeta_DebugDeque_Insert(void* dd_, size_t idx) {
     Zeta_DebugDeque* dd = (Zeta_DebugDeque*)dd_;
     ZETA_DebugAssert(dd != NULL);
 
-    ZETA_DebugAssert(0 <= idx);
     ZETA_DebugAssert(idx <= dd->deque.size());
 
     auto iter{ dd->deque.insert(dd->deque.begin() + idx, NULL) };
@@ -62,7 +60,6 @@ void Zeta_DebugDeque_Erase(void* dd_, size_t idx) {
     Zeta_DebugDeque* dd = (Zeta_DebugDeque*)dd_;
     ZETA_DebugAssert(dd != NULL);
 
-    ZETA_DebugAssert(0 <= idx);
     ZETA_DebugAssert(idx < dd->deque.size());
 
     dd->deque.erase(dd->deque.begin() + idx);

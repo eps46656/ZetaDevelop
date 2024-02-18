@@ -2,111 +2,120 @@
 
 #include "utils.h"
 
-typedef struct DecodeRet DecodeRet;
+static byte_t* EncodeChar_(byte_t* dst, unichar_t data_) {
+    if (data_ < 0) { return NULL; }
 
-struct DecodeRet {
-    int state;
-    unichar_t dst;
-    const byte_t* nxt_src;
-};
+    u32_t data = data_;
 
-static byte_t* EncodeChar_(byte_t* dst, unichar_t src_) {
-    if (src_ < 0) { return NULL; }
+    if (0x7FFFFFFF < data) { return NULL; }
 
-    u32_t src = src_;
-
-    if (0x80000000 <= src) { return NULL; }
-
-    if (src < 0b10000000) {
-        dst[0] = (byte_t)src;
+    if (data <= 0b01111111) {
+        *dst = data;
         return dst + 1;
     }
 
+    u32_t ub = 0b00011111;
+    u32_t lead = 0b111111000000;
+
     byte_t tmp[6];
+    byte_t* tmp_p = tmp;
 
-    u32_t ub = 0b00100000;
-    u32_t mask = 0b111111000000;
+    for (;; ub /= 2, lead /= 2) {
+        *(tmp_p++) = 0b10000000 + data % 0b01000000;
+        data /= 0b01000000;
 
-    for (int i = 2;; ++i, ub /= 2, mask /= 2) {
-        tmp[i - 2] = (byte_t)(0b10000000 + src % 0b01000000);
-
-        src /= 0b01000000;
-
-        if (src < ub) {
-            tmp[i - 1] = (byte_t)(mask % 0b100000000 + src);
-
-            for (; 0 <= --i; ++dst) { dst[0] = tmp[i]; }
-
+        if (data <= ub) {
+            *(dst++) = lead % 0b100000000 + data;
+            // *(tmp_p++) = lead % 0b100000000 + data;
+            while (tmp < tmp_p) { *(dst++) = *(--tmp_p); }
             return dst;
         }
     }
 }
 
-int Zeta_UTF8_Encode(Zeta_Stream* dst, Zeta_Stream* src) {
-    ZETA_DebugAssert(dst != NULL);
-    ZETA_DebugAssert(src != NULL);
-
-    void* dst_context = dst->context;
-
-    void (*DstWrite)(void* context, const void* data) = dst->Write;
-    ZETA_DebugAssert(DstWrite != NULL);
-
-    void* src_context = src->context;
-
-    bool_t (*SrcIsEmpty)(void* context) = src->IsEmpty;
-    const void* (*SrcPeek)(void* context) = src->Peek;
-    void (*SrcRead)(void* context) = src->Read;
-
-    ZETA_DebugAssert(SrcIsEmpty != NULL);
-    ZETA_DebugAssert(SrcPeek != NULL);
-    ZETA_DebugAssert(SrcRead != NULL);
+size_t Zeta_UTF8_GetEncodeSize(const unichar_t* data,
+                               const unichar_t* data_end) {
+    ZETA_DebugAssert(data != NULL);
+    ZETA_DebugAssert(data_end != NULL);
+    ZETA_DebugAssert(data <= data_end);
 
     byte_t tmp[6];
 
-    while (!SrcIsEmpty(src_context)) {
-        byte_t* tmp_p =
-            EncodeChar_(tmp, *(const unichar_t*)SrcPeek(src_context));
+    size_t ret = 0;
 
-        if (tmp_p == NULL) { return 1; }
-
-        SrcRead(src_context);
-
-        for (byte_t* i = tmp; i < tmp_p; ++i) { DstWrite(dst_context, i); }
+    for (; data < data_end; ++data) {
+        byte_t* tmp_p = EncodeChar_(tmp, data[0]);
+        if (tmp_p == NULL) { return ZETA_maxof(size_t); }
+        ret += tmp_p - tmp;
     }
 
-    return 0;
+    return ret;
 }
 
-static bool_t DecodeChar_(unichar_t* dst, Zeta_Stream* src) {
-    void* src_context = src->context;
+Zeta_UTF8_EncodeRet Zeta_UTF8_Encode(byte_t* dst, byte_t* dst_end,
+                                     const unichar_t* data,
+                                     const unichar_t* data_end) {
+    ZETA_DebugAssert(dst != NULL);
+    ZETA_DebugAssert(dst_end != NULL);
+    ZETA_DebugAssert(dst <= dst_end);
 
-    bool_t (*IsEmpty)(void* context) = src->IsEmpty;
-    const void* (*Peek)(void* context) = src->Peek;
-    void (*Read)(void* context) = src->Read;
-    void (*Unread)(void* context, const void* data) = src->Unread;
+    ZETA_DebugAssert(data != NULL);
+    ZETA_DebugAssert(data_end != NULL);
+    ZETA_DebugAssert(data <= data_end);
 
-    ZETA_DebugAssert(IsEmpty != NULL);
-    ZETA_DebugAssert(Peek != NULL);
-    ZETA_DebugAssert(Read != NULL);
-    ZETA_DebugAssert(Unread != NULL);
+    byte_t tmp[6];
 
-    unichar_t tmp[6];
-    tmp[0] = *(const unichar_t*)Peek(src_context);
+    for (; data < data_end; ++data) {
+        byte_t* tmp_p = EncodeChar_(tmp, data[0]);
 
-    u32_t x = tmp[0];
+        if (tmp_p == NULL) {
+            return (Zeta_UTF8_EncodeRet){ .success = FALSE,
+                                          .nxt_dst = dst,
+                                          .nxt_data = data };
+        }
 
-    if (x < 0) { return FALSE; }
+        diff_t tmp_size = tmp_p - tmp;
+
+        if (dst_end - dst < tmp_size) {
+            return (Zeta_UTF8_EncodeRet){
+                .success = TRUE,
+                .nxt_dst = dst,
+                .nxt_data = data,
+            };
+        }
+
+        Zeta_MemCopy(tmp_size, dst, tmp);
+        dst += tmp_size;
+    }
+
+    return (Zeta_UTF8_EncodeRet){
+        .success = TRUE,
+        .nxt_dst = dst,
+        .nxt_data = data,
+    };
+}
+
+static const byte_t* DecodeChar_(unichar_t* dst, const byte_t* data,
+                                 const byte_t* data_end) {
+    unichar_t x = data[0];
+
+    if (data[0] < 0) {
+        ZETA_DebugAssert(FALSE);
+        return NULL;
+    }
 
     if (x < 0b10000000) {
         dst[0] = x;
-        Read(src_context);
-        return TRUE;
+        return data + 1;
     }
 
-    if (x < 0b11000000 || 0b11111101 < x) { return FALSE; }
+    if (x < 0b11000000 || 0b11111101 < x) {
+        ZETA_DebugAssert(FALSE);
+        return NULL;
+    }
 
-    size_t width;
-    u32_t ret;
+    int width;
+    unichar_t ret;
 
     if (0b11111100 <= x) {
         width = 6;
@@ -125,58 +134,85 @@ static bool_t DecodeChar_(unichar_t* dst, Zeta_Stream* src) {
         ret = x % 0b00100000;
     }
 
-    Read(src_context);
-    unichar_t* tmp_p = tmp + 1;
+    if (data_end - data < width) { return data; }
 
-    for (unsigned int i = 1; i < width; ++i) {
-        if (IsEmpty(src_context)) { goto FAILED_RET; }
+    ++data;
 
-        *tmp_p = *(const unichar_t*)Peek(src_context);
+    for (int i = 1; i < width; ++i, ++data) {
+        unichar_t k = data[0];
 
-        u32_t k = *tmp_p;
+        ZETA_DebugAssert(0 <= k);
+        ZETA_DebugAssert(k / 0b01000000 == 0b10);
 
-        if (k < 0 || k / 0b01000000 != 0b10) { goto FAILED_RET; }
-
-        Read(src_context);
-        ++tmp_p;
+        if (k < 0 || k / 0b01000000 != 0b10) {
+            ZETA_DebugAssert(FALSE);
+            return NULL;
+        }
 
         ret = ret * 0b01000000 + k % 0b01000000;
     }
 
     *dst = ret;
 
-    return TRUE;
-
-FAILED_RET:;
-
-    while (tmp_p != tmp) {
-        --tmp_p;
-        Unread(src_context, tmp_p);
-    }
-
-    return FALSE;
+    return data;
 }
 
-int Zeta_UTF8_Decode(Zeta_Stream* dst, Zeta_Stream* src) {
-    ZETA_DebugAssert(dst != NULL);
-    ZETA_DebugAssert(src != NULL);
+size_t Zeta_UTF8_GetDecodeSize(const byte_t* data, const byte_t* data_end) {
+    ZETA_DebugAssert(data != NULL);
+    ZETA_DebugAssert(data_end != NULL);
+    ZETA_DebugAssert(data <= data_end);
 
-    void* dst_context = dst->context;
+    size_t ret = 0;
 
-    void (*DstWrite)(void* context, const void* data) = dst->Write;
-    ZETA_DebugAssert(DstWrite != NULL);
+    unichar_t dst;
 
-    void* src_context = src->context;
-
-    bool_t (*SrcIsEmpty)(void* context) = src->IsEmpty;
-    ZETA_DebugAssert(SrcIsEmpty != NULL);
-
-    unichar_t tmp;
-
-    while (!SrcIsEmpty(src_context)) {
-        if (!DecodeChar_(&tmp, src)) { return 1; }
-        DstWrite(dst_context, &tmp);
+    while (data < data_end) {
+        const byte_t* nxt_data = DecodeChar_(&dst, data, data_end);
+        if (nxt_data == NULL) { return ZETA_maxof(size_t); }
+        data = nxt_data;
+        ++ret;
     }
 
-    return 0;
+    return ret;
+}
+
+Zeta_UTF8_DecodeRet Zeta_UTF8_Decode(unichar_t* dst, unichar_t* dst_end,
+                                     const byte_t* data,
+                                     const byte_t* data_end) {
+    ZETA_DebugAssert(dst != NULL);
+    ZETA_DebugAssert(dst_end != NULL);
+    ZETA_DebugAssert(dst <= dst_end);
+
+    ZETA_DebugAssert(data != NULL);
+    ZETA_DebugAssert(data_end != NULL);
+    ZETA_DebugAssert(data <= data_end);
+
+    while (dst < dst_end && data < data_end) {
+        const byte_t* nxt_data = DecodeChar_(dst, data, data_end);
+
+        if (nxt_data == NULL) {
+            return (Zeta_UTF8_DecodeRet){
+                .success = FALSE,
+                .nxt_dst = dst,
+                .nxt_data = data,
+            };
+        }
+
+        if (data == nxt_data) {
+            return (Zeta_UTF8_DecodeRet){
+                .success = TRUE,
+                .nxt_dst = dst,
+                .nxt_data = data,
+            };
+        }
+
+        ++dst;
+        data = nxt_data;
+    }
+
+    return (Zeta_UTF8_DecodeRet){
+        .success = TRUE,
+        .nxt_dst = dst,
+        .nxt_data = data,
+    };
 }

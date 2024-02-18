@@ -4,7 +4,7 @@
 
 ZETA_extern_c_beg;
 
-    typedef struct Zeta_CntBinTreeNodeOpr Zeta_CntBinTreeNodeOpr;
+typedef struct Zeta_CntBinTreeNodeOpr Zeta_CntBinTreeNodeOpr;
 
 struct Zeta_CntBinTreeNodeOpr {
     void* context;
@@ -18,7 +18,7 @@ struct Zeta_CntBinTreeNodeOpr {
     void (*SetSize)(void* context, void* n, size_t size);
 };
 
-void Zeta_CntBinTree_Access(void** dst_n, size_t* dst_idx,
+void Zeta_CntBinTree_Access(void** dst_n, size_t* dst_tail_idx,
                             Zeta_CntBinTreeNodeOpr* cbtn_opr, void* n,
                             size_t idx);
 

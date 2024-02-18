@@ -2,14 +2,14 @@
 
 #include "CacheManager.h"
 #include "MultiLevelVector.h"
-#include "OrdDoublyLinkedNode.h"
+#include "OrdLinkedListNode.h"
 
 ZETA_extern_c_beg;
 
 typedef struct Zeta_LRUCacheManager Zeta_LRUCacheManager;
 
 struct Zeta_LRUCacheManager {
-    Zeta_OrdDoublyLinkedNode ln_list_head;
+    Zeta_OrdLinkedListNode ln_list_head;
     Zeta_Allocator* allocator;
 };
 

@@ -14,13 +14,8 @@ struct Zeta_BinTreeNodeAccessor {
     void* (*GetR)(void* context, void* n);
 };
 
-void* Zeta_BinTree_StepL(Zeta_BinTreeNodeAccessor* bt_accessor, void* n);
+void* Zeta_BinTree_StepL(const Zeta_BinTreeNodeAccessor* btn_accessor, void* n);
 
-void* Zeta_BinTree_StepR(Zeta_BinTreeNodeAccessor* bt_accessor, void* n);
-
-void* Zeta_BinTree_FindFirst(Zeta_BinTreeNodeAccessor* bt_accessor, void* root,
-                             void* target, void* cmp_context,
-                             int (*Compare)(void* cmp_context, void* x,
-                                            void* y));
+void* Zeta_BinTree_StepR(const Zeta_BinTreeNodeAccessor* btn_accessor, void* n);
 
 ZETA_extern_c_end;

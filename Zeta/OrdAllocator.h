@@ -1,8 +1,8 @@
 #pragma once
 
 #include "Allocator.h"
-#include "OrdDoublyLinkedNode.h"
-#include "OrdRBTreeNode.h"
+#include "RelLinkedListNode.h"
+#include "RelRBTreeNode.h"
 
 ZETA_extern_c_beg;
 
@@ -84,7 +84,7 @@ struct Zeta_OrdAllocator {
      */
     size_t size;
 
-    Zeta_OrdRBTreeNode* sn_root;
+    Zeta_RelRBTreeNode* sn_root;
 
     /**
      * The number of slab level, should not less than 0 or larger than
@@ -117,7 +117,7 @@ struct Zeta_OrdAllocator {
     /**
      * The list heads of slab list for each slab level.
      */
-    Zeta_OrdDoublyLinkedNode
+    Zeta_RelLinkedListNode
         slab_list_heads[ZETA_OrdAllocator_max_num_of_slab_level];
 };
 
