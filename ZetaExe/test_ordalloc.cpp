@@ -7,7 +7,7 @@
 
 typedef long long unsigned llu;
 
-byte_t mem[16 * 1024 * 1024];
+byte_t mem[128 * 1024 * 1024];
 
 Zeta_OrdAllocator allocator;
 
@@ -41,19 +41,17 @@ void PrintTM(const std::map<size_t, size_t>& m) {
 void* MyAlloc(size_t size) {
     if (size == 0) { return NULL; }
 
-    ZETA_PrintPos;
-
     void* ptr = Zeta_OrdAllocator_Allocate(&allocator, size);
 
-    ZETA_PrintPos;
+    ZETA_DebugAssert(ptr != NULL);
 
     size_t m_beg = ZETA_PTR_TO_UINT(ptr);
     size_t m_end = m_beg + size;
 
     ZETA_DebugAssert(m_beg % allocator.align == 0);
 
-    ZETA_DebugAssert(ZETA_PTR_TO_UINT(allocator.ptr) <= m_beg);
-    ZETA_DebugAssert(m_end <= ZETA_PTR_TO_UINT(allocator.ptr) + allocator.size);
+    ZETA_DebugAssert(ZETA_PTR_TO_UINT(allocator.data_beg) <= m_beg);
+    ZETA_DebugAssert(m_end <= ZETA_PTR_TO_UINT(allocator.data_end));
 
     auto iter = req_ptr_size_tm.insert({ m_beg, size }).first;
 
@@ -72,11 +70,9 @@ void* MyAlloc(size_t size) {
 }
 
 void MyFree(void* ptr) {
-    ZETA_PrintPos;
     Zeta_OrdAllocator_Deallocate(&allocator, ptr);
-    ZETA_PrintPos;
+
     size_t b = req_ptr_size_tm.erase((uintptr_t)ptr);
-    ZETA_PrintPos;
 
     ZETA_DebugAssert(b);
 }
@@ -110,7 +106,7 @@ void CheckAllocator(bool_t print_state) {
     }
 }
 
-int main() {
+void main1() {
     unsigned int seed = time(NULL);
 
     ZETA_PrintVar("%d", seed);
@@ -120,58 +116,57 @@ int main() {
     std::uniform_int_distribution<size_t> idx_generator{ 0,
                                                          ZETA_maxof(size_t) };
 
-    allocator.ptr = mem;
+    allocator.mem = mem;
     allocator.align = 16;
     allocator.size = sizeof(mem);
     allocator.num_of_slab_level = -1;
 
     Zeta_OrdAllocator_Init(&allocator);
 
-    ZETA_DebugAssert(mem <= allocator.ptr);
-    ZETA_DebugAssert(allocator.size <= sizeof(mem));
-
-    ZETA_PrintPos;
-
     CheckAllocator(true);
-
-    ZETA_PrintPos;
 
     std::vector<void*> ptrs;
 
-    for (int test_i = 0; test_i < 50; ++test_i) {
+    ZETA_PrintPos;
+
+    for (int test_i = 0; test_i < 2000; ++test_i) {
         size_t size = size_generator(en);
 
         ptrs.push_back(MyAlloc(size));
+
+        CheckAllocator(false);
     }
 
-    ZETA_PrintPos;
+    for (int _ = 0; _ < 100; ++_) {
+        for (int test_i = 0; test_i < 1000; ++test_i) {
+            size_t size = size_generator(en);
 
-    CheckAllocator(false);
+            ptrs.push_back(MyAlloc(size));
 
-    ZETA_PrintPos;
-
-    for (int test_i = 0; test_i < 40; ++test_i) {
-        size_t idx = idx_generator(en) % ptrs.size();
+            CheckAllocator(false);
+        }
 
         ZETA_PrintPos;
 
-        MyFree(ptrs[idx]);
+        for (int test_i = 0; test_i < 1000; ++test_i) {
+            size_t idx = idx_generator(en) % ptrs.size();
 
-        ZETA_PrintPos;
+            MyFree(ptrs[idx]);
 
-        ptrs[idx] = ptrs.back();
-        ptrs.pop_back();
+            ptrs[idx] = ptrs.back();
+            ptrs.pop_back();
+
+            CheckAllocator(false);
+        }
     }
-
-    ZETA_PrintPos;
-
-    CheckAllocator(false);
-
-    ZETA_PrintPos;
 
     // Zeta_OrdAllocator_Check(&allocator, 1, ptr_size_tm);
 
     // DebugTreeMap_Print(ptr_size_tm);
+}
+
+int main() {
+    main1();
 
     printf("ok\n");
 

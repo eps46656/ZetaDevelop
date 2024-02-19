@@ -33,8 +33,6 @@ size_t Zeta_RawVector_GetWidth(void* rv);
 
 size_t Zeta_RawVector_GetSize(void* rv);
 
-void Zeta_RawVector_Entrust(void* rv, void* data, diff_t stride, size_t size);
-
 void* Zeta_RawVector_Access(void* rv, size_t idx);
 
 void* Zeta_RawVector_Insert(void* rv, size_t idx);

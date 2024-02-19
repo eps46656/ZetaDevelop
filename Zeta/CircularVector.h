@@ -6,7 +6,7 @@ ZETA_extern_c_beg;
 
 #define ZETA_CircularVector_max_capacity (ZETA_maxof(size_t) / 2 + 1)
 
-    typedef struct Zeta_CircularVector Zeta_CircularVector;
+typedef struct Zeta_CircularVector Zeta_CircularVector;
 
 struct Zeta_CircularVector {
     Zeta_Vector* vec;
@@ -32,6 +32,10 @@ void Zeta_CircularVector_Entrust(void* cv, void* vec, size_t size,
                                  size_t offset);
 
 void* Zeta_CircularVector_Access(void* cv, size_t idx);
+
+void* Zeta_CircularVector_PeekL(void* cv);
+
+void* Zeta_CircularVector_PeekR(void* cv);
 
 void* Zeta_CircularVector_Insert(void* cv_, size_t idx);
 

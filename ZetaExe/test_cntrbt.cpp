@@ -221,7 +221,6 @@ void main1() {
     ZETA_PrintPos;
 
     for (int _ = 0; _ < 5; ++_) {
-        /*
         for (int i = 0, end = idx_generator(en) % 100 + 20; i < end; ++i) {
             Insert(idx_generator(en) % (vec.size() + 1), size_generator(en));
             Check();
@@ -235,7 +234,6 @@ void main1() {
             Erase(idx_generator(en) % vec.size());
             Check();
         }
-        */
 
         for (int i = 0, end = vec.size() * 2; i < end; ++i) {
             int idx = idx_generator(en) % (size_sum * 2);

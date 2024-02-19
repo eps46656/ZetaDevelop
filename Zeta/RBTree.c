@@ -210,7 +210,10 @@ void* Zeta_RBTree_Extract(const Zeta_RBTreeNodeOpr* rbtn_opr, void* n) {
     void* nr = rbtn_opr->GetR(context, n);
 
     if (nl != NULL && nr != NULL) {
-        int ran = Zeta_SimpleHash((size_t)nl ^ (size_t)nr) % 2;
+        int ran =
+            Zeta_SimpleHash(ZETA_PTR_TO_UINT(nl) ^ ZETA_PTR_TO_UINT(nr)) % 2;
+
+        ZETA_PrintVar("%d", ran);
 
         void* m = ran ? Zeta_GetMostLink(context, rbtn_opr->GetL, nr)
                       : Zeta_GetMostLink(context, rbtn_opr->GetR, nl);

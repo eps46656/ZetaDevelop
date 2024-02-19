@@ -1,16 +1,20 @@
 #include "RawVector.h"
 
-void Zeta_RawVector_Init(void* rv_) { Zeta_RawVector_Entrust(rv_, 0, 0, 0); }
+void Zeta_RawVector_Init(void* rv_) {
+    Zeta_RawVector* rv = rv_;
+    ZETA_DebugAssert(rv != NULL);
+
+    rv->data = NULL;
+    rv->width = 0;
+    rv->stride = 0;
+    rv->size = 0;
+}
 
 void Zeta_RawVector_Check(void* rv_) {
     Zeta_RawVector* rv = rv_;
     ZETA_DebugAssert(rv != NULL);
 
-    if (rv->data == NULL) {
-        ZETA_DebugAssert(rv->size == 0);
-    } else {
-        ZETA_DebugAssert(0 <= rv->size);
-    }
+    if (rv->data == NULL) { ZETA_DebugAssert(rv->size == 0); }
 }
 
 void* Zeta_RawVector_GetData(void* rv_) {
@@ -37,24 +41,10 @@ size_t Zeta_RawVector_GetSize(void* rv_) {
     return rv->size;
 }
 
-void Zeta_RawVector_Entrust(void* rv_, void* data, diff_t stride, size_t size) {
-    Zeta_RawVector* rv = rv_;
-    ZETA_DebugAssert(rv != NULL);
-
-    ZETA_DebugAssert(0 <= size);
-
-    if (data == NULL) { ZETA_DebugAssert(size == 0); }
-
-    rv->data = data;
-    rv->stride = stride;
-    rv->size = size;
-}
-
 void* Zeta_RawVector_Access(void* rv_, size_t idx) {
     Zeta_RawVector* rv = rv_;
     ZETA_DebugAssert(rv != NULL);
 
-    ZETA_DebugAssert(0 <= idx);
     ZETA_DebugAssert(idx < rv->size);
 
     return ZETA_UINT_TO_PTR(ZETA_PTR_TO_UINT(rv->data) + rv->stride * idx);
@@ -71,7 +61,6 @@ void Zeta_RawVector_Erase(void* rv_, size_t idx) {
     Zeta_RawVector* rv = rv_;
     ZETA_DebugAssert(rv != NULL);
 
-    ZETA_DebugAssert(0 <= idx);
     ZETA_DebugAssert(idx < rv->size);
 }
 

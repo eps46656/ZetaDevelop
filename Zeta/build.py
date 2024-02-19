@@ -1071,6 +1071,48 @@ def builder_add(builder):
     )
 
     builder.add(
+        f"{ZetaDir}/SegList.h",
+        {
+            f"{File}",
+            f"{ZetaDir}/Allocator.h",
+            f"{ZetaDir}/RelCntRBTreeNode.h",
+            f"{ZetaDir}/Vector.h",
+        },
+        lambda : 0
+    )
+
+    builder.add(
+        f"{ZetaDir}/SegList.c",
+        {
+            f"{File}",
+            f"{ZetaDir}/SegList.h",
+
+            f"{ZetaDir}/BinTree.h",
+            f"{ZetaDir}/CircularVector.h",
+            f"{ZetaDir}/CntBinTree.h",
+            f"{ZetaDir}/RBTree.h",
+            f"{ZetaDir}/RawVector.h",
+            f"{ZetaDir}/utils.h",
+        },
+        lambda : 0
+    )
+
+    builder.add(
+        f"{ZetaDir}/SegList.o",
+        {
+            f"{File}",
+            f"{ZetaDir}/SegList.c",
+        },
+        lambda : os.system(" ".join([
+            cc,
+            f"--output {ZetaDir}/SegList.o",
+            f"-c",
+            *cargs,
+            f"{ZetaDir}/SegList.c",
+        ]))
+    )
+
+    builder.add(
         f"{ZetaDir}/SHA256.h",
         {
             f"{File}",
