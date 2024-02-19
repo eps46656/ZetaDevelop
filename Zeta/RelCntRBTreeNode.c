@@ -132,6 +132,7 @@ size_t Zeta_RelCntRBTreeNode_GetSize(void* context, void* n) {
 static void SetSize_(void* n_, size_t size) {
     Zeta_RelCntRBTreeNode* n = n_;
     ZETA_DebugAssert(n != NULL);
+
     AddDiffSize_(n, size - GetSize_(n));
 }
 

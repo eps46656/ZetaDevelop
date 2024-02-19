@@ -71,7 +71,7 @@ struct Zeta_OrdAllocator {
     /**
      * The begining of managed memory block.
      */
-    void* ptr;
+    void* mem;
 
     /**
      * The alignment of each alloated memory block, should always be a factory
@@ -83,6 +83,9 @@ struct Zeta_OrdAllocator {
      * The size(byte) of managed memory block.
      */
     size_t size;
+
+    void* data_beg;
+    void* data_end;
 
     Zeta_RelRBTreeNode* sn_root;
 
@@ -117,8 +120,7 @@ struct Zeta_OrdAllocator {
     /**
      * The list heads of slab list for each slab level.
      */
-    Zeta_RelLinkedListNode
-        slab_list_heads[ZETA_OrdAllocator_max_num_of_slab_level];
+    Zeta_RelLinkedListNode* slab_list_heads;
 };
 
 /**

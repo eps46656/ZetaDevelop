@@ -47,9 +47,9 @@ def builder_add(builder):
     ]
 
     if debug:
-        cargs += ["-g", "-D DEBUG"]
+        cargs += ["-O3", "-g", "-D DEBUG"]
 
-        cppargs += ["-g", "-D DEBUG"]
+        cppargs += ["-O3", "-g", "-D DEBUG"]
     else:
         cargs += ["-O3"]
 
