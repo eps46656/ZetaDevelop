@@ -161,8 +161,8 @@ void Check() {
 
     Zeta_MultiLevelVector_GetAllPages(&dv.mlv, tm);
 
-    std::map<Zeta_DebugTreeMap_key_t, Zeta_DebugTreeMap_val_t>* m =
-        (std::map<Zeta_DebugTreeMap_key_t, Zeta_DebugTreeMap_val_t>*)(tm);
+    std::map<size_t, size_t>* m =
+        (std::map<size_t, size_t>*)(tm);
 
     for (auto iter{ m->begin() }, end{ m->end() }; iter != end; ++iter) {
         ZETA_DebugAssert(

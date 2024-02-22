@@ -33,11 +33,11 @@ size_t Zeta_RawVector_GetWidth(void* rv);
 
 size_t Zeta_RawVector_GetSize(void* rv);
 
+void* Zeta_RawVector_PeekL(void* rv);
+
+void* Zeta_RawVector_PeekR(void* rv);
+
 void* Zeta_RawVector_Access(void* rv, size_t idx);
-
-void* Zeta_RawVector_Insert(void* rv, size_t idx);
-
-void Zeta_RawVector_Erase(void* rv, size_t idx);
 
 void Zeta_RawVector_ToVector(void* rv, Zeta_Vector* vec);
 

@@ -1,8 +1,12 @@
 
-#include <unordered_set>
+#include <map>
+
+#include "../Zeta/define.h"
+
+#define RECORDS FALSE
 
 struct StdAllocator {
-    std::unordered_map<void*, size_t> ptr_size;
+    std::map<size_t, size_t> records;
 };
 
 size_t StdAllocator_Query(void* sa_, size_t size) {
@@ -17,7 +21,10 @@ void* StdAllocator_Allocate(void* sa_, size_t size) {
     if (size == 0) { return NULL; }
 
     void* ptr = malloc(size);
-    sa->ptr_size.insert({ ptr, size });
+
+#if RECORDS
+    sa->records.insert({ ZETA_PTR_TO_UINT(ptr), size });
+#endif
 
     return ptr;
 }
@@ -28,8 +35,10 @@ void StdAllocator_Deallocate(void* sa_, void* ptr) {
 
     if (ptr == NULL) { return; }
 
-    bool_t b = sa->ptr_size.erase(ptr) != 0;
+#if RECORDS
+    bool_t b = sa->records.erase(ZETA_PTR_TO_UINT(ptr)) != 0;
     ZETA_DebugAssert(b);
+#endif
 
     free(ptr);
 }

@@ -16,7 +16,7 @@ INCLUDE_DIRS = [
 ]
 
 def builder_add(builder):
-    debug = True
+    debug = False
 
     cc = "clang"
 
@@ -1071,7 +1071,7 @@ def builder_add(builder):
     )
 
     builder.add(
-        f"{ZetaDir}/SegList.h",
+        f"{ZetaDir}/SegVector.h",
         {
             f"{File}",
             f"{ZetaDir}/Allocator.h",
@@ -1082,10 +1082,10 @@ def builder_add(builder):
     )
 
     builder.add(
-        f"{ZetaDir}/SegList.c",
+        f"{ZetaDir}/SegVector.c",
         {
             f"{File}",
-            f"{ZetaDir}/SegList.h",
+            f"{ZetaDir}/SegVector.h",
 
             f"{ZetaDir}/BinTree.h",
             f"{ZetaDir}/CircularVector.h",
@@ -1098,17 +1098,17 @@ def builder_add(builder):
     )
 
     builder.add(
-        f"{ZetaDir}/SegList.o",
+        f"{ZetaDir}/SegVector.o",
         {
             f"{File}",
-            f"{ZetaDir}/SegList.c",
+            f"{ZetaDir}/SegVector.c",
         },
         lambda : os.system(" ".join([
             cc,
-            f"--output {ZetaDir}/SegList.o",
+            f"--output {ZetaDir}/SegVector.o",
             f"-c",
             *cargs,
-            f"{ZetaDir}/SegList.c",
+            f"{ZetaDir}/SegVector.c",
         ]))
     )
 

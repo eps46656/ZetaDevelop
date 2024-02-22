@@ -102,6 +102,24 @@ void Zeta_CircularVector_Entrust(void* cv_, void* vec, size_t size,
     }
 }
 
+void* Zeta_CircularVector_PeekL(void* cv_) {
+    Zeta_CircularVector* cv = cv_;
+    ZETA_DebugAssert(cv != NULL);
+
+    ZETA_DebugAssert(0 < cv->size);
+
+    return Zeta_CircularVector_Access(cv, 0);
+}
+
+void* Zeta_CircularVector_PeekR(void* cv_) {
+    Zeta_CircularVector* cv = cv_;
+    ZETA_DebugAssert(cv != NULL);
+
+    ZETA_DebugAssert(0 < cv->size);
+
+    return Zeta_CircularVector_Access(cv, cv->size - 1);
+}
+
 void* Zeta_CircularVector_Access(void* cv_, size_t idx) {
     Zeta_CircularVector* cv = cv_;
     ZETA_DebugAssert(cv != NULL);
@@ -124,22 +142,15 @@ void* Zeta_CircularVector_Access(void* cv_, size_t idx) {
     return vec->Access(vec->context, (offset + idx) % capacity);
 }
 
-void* Zeta_CircularVector_PeekL(void* cv_) {
-    Zeta_CircularVector* cv = cv_;
-    ZETA_DebugAssert(cv != NULL);
-
-    ZETA_DebugAssert(0 < cv->size);
-
-    return Zeta_CircularVector_Access(cv, 0);
+void* Zeta_CircularVector_PushL(void* cv_) {
+    return Zeta_CircularVector_Insert(cv_, 0);
 }
 
-void* Zeta_CircularVector_PeekR(void* cv_) {
+void* Zeta_CircularVector_PushR(void* cv_) {
     Zeta_CircularVector* cv = cv_;
     ZETA_DebugAssert(cv != NULL);
 
-    ZETA_DebugAssert(0 < cv->size);
-
-    return Zeta_CircularVector_Access(cv, cv->size - 1);
+    return Zeta_CircularVector_Insert(cv, cv->size);
 }
 
 void* Zeta_CircularVector_Insert(void* cv_, size_t idx) {
@@ -187,15 +198,22 @@ void* Zeta_CircularVector_Insert(void* cv_, size_t idx) {
     return Zeta_CircularVector_Access(cv, idx);
 }
 
-void* Zeta_CircularVector_PushL(void* cv_) {
-    return Zeta_CircularVector_Insert(cv_, 0);
-}
-
-void* Zeta_CircularVector_PushR(void* cv_) {
+void Zeta_CircularVector_PopL(void* cv_) {
     Zeta_CircularVector* cv = cv_;
     ZETA_DebugAssert(cv != NULL);
 
-    return Zeta_CircularVector_Insert(cv, cv->size);
+    ZETA_DebugAssert(0 < cv->size);
+
+    Zeta_CircularVector_Erase(cv, 0);
+}
+
+void Zeta_CircularVector_PopR(void* cv_) {
+    Zeta_CircularVector* cv = cv_;
+    ZETA_DebugAssert(cv != NULL);
+
+    ZETA_DebugAssert(0 < cv->size);
+
+    Zeta_CircularVector_Erase(cv, cv->size - 1);
 }
 
 void Zeta_CircularVector_Erase(void* cv_, size_t idx) {
@@ -237,24 +255,6 @@ void Zeta_CircularVector_Erase(void* cv_, size_t idx) {
     }
 }
 
-void Zeta_CircularVector_PopL(void* cv_) {
-    Zeta_CircularVector* cv = cv_;
-    ZETA_DebugAssert(cv != NULL);
-
-    ZETA_DebugAssert(0 < cv->size);
-
-    Zeta_CircularVector_Erase(cv, 0);
-}
-
-void Zeta_CircularVector_PopR(void* cv_) {
-    Zeta_CircularVector* cv = cv_;
-    ZETA_DebugAssert(cv != NULL);
-
-    ZETA_DebugAssert(0 < cv->size);
-
-    Zeta_CircularVector_Erase(cv, cv->size - 1);
-}
-
 void Zeta_CircularVector_EraseAll(void* cv_, void (*Callback)(void* ptr)) {
     Zeta_CircularVector* cv = cv_;
     ZETA_DebugAssert(cv != NULL);
@@ -278,5 +278,13 @@ void Zeta_CircularVector_ToVector(void* cv_, Zeta_Vector* dst) {
     dst->context = cv;
     dst->GetWidth = Zeta_CircularVector_GetWidth;
     dst->GetSize = Zeta_CircularVector_GetSize;
+    dst->PeekL = Zeta_CircularVector_PeekL;
+    dst->PeekR = Zeta_CircularVector_PeekR;
     dst->Access = Zeta_CircularVector_Access;
+    dst->PushL = Zeta_CircularVector_PushL;
+    dst->PushR = Zeta_CircularVector_PushR;
+    dst->Insert = Zeta_CircularVector_Insert;
+    dst->PopL = Zeta_CircularVector_PopL;
+    dst->PopR = Zeta_CircularVector_PopR;
+    dst->Erase = Zeta_CircularVector_Erase;
 }
