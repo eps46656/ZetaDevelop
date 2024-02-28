@@ -2,18 +2,20 @@
 
 #include "utils.h"
 
-#define READ(dst, length)                          \
-    {                                              \
-        dst = Zeta_ReadLittleEndian(data, length); \
-        data += length;                            \
-    }                                              \
+#define ASSERT_RET(cond)           \
+    if (!(cond)) { goto ERR_RET; } \
     ZETA_StaticAssert(TRUE)
 
-#define WRITE(length, val)                        \
-    {                                             \
-        Zeta_WriteLittleEndian(dst, length, val); \
-        dst += length;                            \
-    }                                             \
+#define READ(dst, length)                      \
+    ASSERT_RET(length <= data_end - data);     \
+    dst = Zeta_ReadLittleEndian(data, length); \
+    data += length;                            \
+    ZETA_StaticAssert(TRUE)
+
+#define WRITE(val, length)                    \
+    ASSERT_RET(length <= dst_end - dst);      \
+    Zeta_WriteLittleEndian(dst, val, length); \
+    dst += length;                            \
     ZETA_StaticAssert(TRUE)
 
 byte_t const* Zeta_DiskPartGPT_ReadHeader(Zeta_DiskPartGPT_Header* dst,
@@ -27,17 +29,13 @@ byte_t const* Zeta_DiskPartGPT_ReadHeader(Zeta_DiskPartGPT_Header* dst,
 
     char const sign[] = "EFI PART";
 
-    for (int i = 0; i < 8; ++i, ++data) {
-        if (sign[i] != *data) { return NULL; }
-    }
+    for (int i = 0; i < 8; ++i, ++data) { ASSERT_RET(*data == sign[i]); }
 
     READ(dst->revision_num, 4);
     READ(dst->header_size, 4);
     READ(dst->header_crc32, 4);
 
-    for (int i = 0; i < 4; ++i, ++data) {
-        if (*data != 0) { return NULL; }
-    }
+    for (int i = 0; i < 4; ++i, ++data) { ASSERT_RET(*data == 0); }
 
     READ(dst->cur_lba, 8);
     READ(dst->bk_lba, 8);
@@ -53,6 +51,9 @@ byte_t const* Zeta_DiskPartGPT_ReadHeader(Zeta_DiskPartGPT_Header* dst,
     READ(dst->crc32_of_part_entries, 4);
 
     return data;
+
+ERR_RET:
+    return NULL;
 }
 
 byte_t* Zeta_DiskPartGPT_WriteHeader(byte_t* dst, byte_t* dst_end,
@@ -67,26 +68,29 @@ byte_t* Zeta_DiskPartGPT_WriteHeader(byte_t* dst, byte_t* dst_end,
 
     for (int i = 0; i < 8; ++i, ++dst) { *dst = sign[i]; }
 
-    WRITE(4, header->revision_num);
-    WRITE(4, header->header_size);
-    WRITE(4, header->header_crc32);
+    WRITE(header->revision_num, 4);
+    WRITE(header->header_size, 4);
+    WRITE(header->header_crc32, 4);
 
     for (int i = 0; i < 8; ++i, ++dst) { *dst = 0; }
 
-    WRITE(8, header->cur_lba);
-    WRITE(8, header->bk_lba);
+    WRITE(header->cur_lba, 8);
+    WRITE(header->bk_lba, 8);
 
-    WRITE(8, header->first_usable);
-    WRITE(8, header->last_usable);
+    WRITE(header->first_usable, 8);
+    WRITE(header->last_usable, 8);
 
     for (int i = 0; i < 16; ++i, ++dst) { *dst = header->disk_guid[i]; }
 
-    WRITE(8, header->beg_of_part_entries);
-    WRITE(4, header->num_of_part_entries);
-    WRITE(4, header->size_of_part_entry);
-    WRITE(4, header->crc32_of_part_entries);
+    WRITE(header->beg_of_part_entries, 8);
+    WRITE(header->num_of_part_entries, 4);
+    WRITE(header->size_of_part_entry, 4);
+    WRITE(header->crc32_of_part_entries, 4);
 
     return dst;
+
+ERR_RET:
+    return NULL;
 }
 
 byte_t const* Zeta_DiskPartGPT_ReadPartEntry(Zeta_DiskPartGPT_PartEntry* dst,
@@ -110,6 +114,9 @@ byte_t const* Zeta_DiskPartGPT_ReadPartEntry(Zeta_DiskPartGPT_PartEntry* dst,
     for (int i = 0; i < 72; ++i, ++data) { dst->name[i] = *data; }
 
     return data;
+
+ERR_RET:
+    return NULL;
 }
 
 byte_t* Zeta_DiskPartGPT_WritePartEntry(
@@ -123,12 +130,15 @@ byte_t* Zeta_DiskPartGPT_WritePartEntry(
     for (int i = 0; i < 16; ++i, ++dst) { *dst = part_entry->type_guid[i]; }
     for (int i = 0; i < 16; ++i, ++dst) { *dst = part_entry->part_guid[i]; }
 
-    WRITE(8, part_entry->beg);
-    WRITE(8, part_entry->end - 1);
+    WRITE(part_entry->beg, 8);
+    WRITE(part_entry->end - 1, 8);
 
-    WRITE(8, part_entry->flags);
+    WRITE(part_entry->flags, 8);
 
     for (int i = 0; i < 72; ++i, ++dst) { *dst = part_entry->name[i]; }
 
     return dst;
+
+ERR_RET:
+    return NULL;
 }

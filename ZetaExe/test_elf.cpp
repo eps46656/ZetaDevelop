@@ -295,7 +295,7 @@ void ELF_PrintProgramHeader(ELF_ProgramHeader* prog_header) {
 
 void ELF_ReadHeader(ELF_Header* dst, byte_t const* data,
                     byte_t const* data_end) {
-    size_t (*ReadFunc)(byte_t const* data, unsigned int length) =
+    u128_t (*ReadFunc)(byte_t const* data, unsigned int length) =
         Zeta_ReadLittleEndian;
 
     dst->ei_mag[0] = data[0];
@@ -347,7 +347,7 @@ void ELF_ReadProgramHeader(ELF_ProgramHeader* dst, ELF_Header* header,
                            byte_t const* data, byte_t const* data_end) {
     ZETA_DebugAssert(data <= data_end);
 
-    size_t (*ReadFunc)(byte_t const* data, unsigned int length) =
+    u128_t (*ReadFunc)(byte_t const* data, unsigned int length) =
         header->ei_data == 1 ? Zeta_ReadLittleEndian : Zeta_ReadBigEndian;
 
     int length = header->ei_class == 1 ? 4 : 8;
@@ -371,7 +371,7 @@ void ELF_ReadSectionHeader(ELF_SectionHeader* dst, ELF_Header* header,
                            byte_t const* data, byte_t const* data_end) {
     ZETA_DebugAssert(data <= data_end);
 
-    size_t (*ReadFunc)(byte_t const* data, unsigned int length) =
+    u128_t (*ReadFunc)(byte_t const* data, unsigned int length) =
         header->ei_data == 1 ? Zeta_ReadLittleEndian : Zeta_ReadBigEndian;
 
     int length = header->ei_class == 1 ? 4 : 8;
@@ -396,7 +396,7 @@ void ELF_ReadSymbol(ELF_Symbol* dst, ELF_Header* header, byte_t const* data,
                     byte_t const* data_end) {
     ZETA_DebugAssert(data <= data_end);
 
-    size_t (*ReadFunc)(byte_t const* data, unsigned int length) =
+    u128_t (*ReadFunc)(byte_t const* data, unsigned int length) =
         header->ei_data == 1 ? Zeta_ReadLittleEndian : Zeta_ReadBigEndian;
 
     int length = header->ei_class == 1 ? 4 : 8;
@@ -561,6 +561,11 @@ int main2() {
     ELF elf;
 
     ELF_Read(&elf, data, data_end);
+
+    printf("%lld\n", elf.header.ei_mag[0]);
+    printf("%lld\n", elf.header.ei_mag[1]);
+    printf("%lld\n", elf.header.ei_mag[2]);
+    printf("%lld\n", elf.header.ei_mag[3]);
 
     printf("ok\n");
 

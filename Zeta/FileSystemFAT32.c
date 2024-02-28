@@ -3,58 +3,26 @@
 #include "Disk.h"
 #include "utils.h"
 
-#define BAD_CLUSTER 0xFFFFFF7
+#define UNUSED_CLUSTER (0)
 
-#define UNUSED_CLUSTER
+#define BAD_CLUSTER (0x0FFFFFF7)
 
-#define READ(dst, len)                             \
-    {                                              \
-        dst = Zeta_ReadLittleEndian(data, length); \
-        data += length;                            \
-    }                                              \
-    ZETA_StaticAccert(TRUE)
+#define EOF_CLUSTER (0x0FFFFFFF)
 
-typedef struct Header Header;
+#define ASSERT_RET(cond)           \
+    if (!(cond)) { goto ERR_RET; } \
+    ZETA_StaticAssert(TRUE)
 
-struct Header {
-    u64_t base_lba;
+#define READ(dst, length)                      \
+    dst = Zeta_ReadLittleEndian(data, length); \
+    data += length;                            \
+    ZETA_StaticAssert(TRUE)
 
-    byte_t media;
-
-    byte_t jmp_boot[3];
-
-    byte_t oem_name[8];
-
-    u32_t num_of_reserved_secs;
-
-    u32_t bytes_per_sec;
-
-    u32_t secs_per_clus;
-
-    u32_t secs_per_trk;
-
-    u32_t num_of_secs;
-
-    u32_t size_of_fat;
-
-    u32_t num_of_fats;
-
-    unsigned int num_of_heads;
-
-    unsigned int num_of_hidden_secs;
-
-    u64_t root_clus;
-
-    unsigned int num_of_root_entries;
-
-    u32_t vol_id;
-
-    byte_t vol_lab[11];
-};
-
-bool_t ReadHeader_(Header* dst, byte_t const* data) {
+bool_t ReadHeader_(Zeta_FileSystemFAT32_Header* dst, byte_t const* data) {
     ZETA_DebugAssert(dst != NULL);
     ZETA_DebugAssert(data != NULL);
+
+    byte_t const* data_end = data + 512;
 
     for (int i = 0; i < 3; ++i) { dst->jmp_boot[i] = data[i]; }
     data += 3;
@@ -70,7 +38,7 @@ bool_t ReadHeader_(Header* dst, byte_t const* data) {
         case 2048:
         case 4096: break;
 
-        default: return FALSE;
+        default: goto ERR_RET;
     }
 
     READ(dst->secs_per_clus, 1);
@@ -85,22 +53,22 @@ bool_t ReadHeader_(Header* dst, byte_t const* data) {
         case 64:
         case 128: break;
 
-        default: return FALSE;
+        default: goto ERR_RET;
     }
 
     READ(dst->num_of_reserved_secs, 2);
-    if (dst->num_of_reserved_secs == 0) { return FALSE; }
+    ASSERT_RET(dst->num_of_reserved_secs != 0);
 
     READ(dst->num_of_fats, 1);
-    if (dst->num_of_fats == 0) { return FALSE; }
+    ASSERT_RET(dst->num_of_fats != 0);
 
-    unsigned int root_ent_cnt;
+    u32_t root_ent_cnt;
     READ(root_ent_cnt, 2);
-    if (root_ent_cnt != 0) { return FALSE; }
+    ASSERT_RET(root_ent_cnt == 0);
 
     u32_t num_of_secs_16;
     READ(num_of_secs_16, 2);
-    if (num_of_secs_16 != 0 && 0x10000 <= num_of_secs_16) { return FALSE; }
+    ASSERT_RET(num_of_secs_16 == 0 && num_of_secs_16 < 0x10000);
 
     READ(dst->media, 1);
 
@@ -115,7 +83,7 @@ bool_t ReadHeader_(Header* dst, byte_t const* data) {
         case 0xFE:
         case 0xFF: break;
 
-        default: return FALSE;
+        default: goto ERR_RET;
     }
 
     u32_t size_of_fat_16;
@@ -129,16 +97,16 @@ bool_t ReadHeader_(Header* dst, byte_t const* data) {
 
     u32_t num_of_secs_32;
     READ(num_of_secs_32, 4);
-    if (num_of_secs_32 != 0 && num_of_secs_32 < 0x10000) { return FALSE; }
+    ASSERT_RET(num_of_secs_32 == 0 || 0x10000 <= num_of_secs_32);
 
-    if ((num_of_secs_16 == 0) == (num_of_secs_32 == 0)) { return FALSE; }
+    ASSERT_RET((num_of_secs_16 == 0) != (num_of_secs_32 == 0));
 
     dst->num_of_secs = num_of_secs_16 + num_of_secs_32;
 
     u32_t size_of_fat_32;
     READ(size_of_fat_32, 4);
 
-    if ((size_of_fat_16 == 0) == (size_of_fat_32 == 0)) { return FALSE; }
+    ASSERT_RET((size_of_fat_16 == 0) != (size_of_fat_32 == 0));
 
     dst->size_of_fat = size_of_fat_16 + size_of_fat_32;
 
@@ -152,16 +120,17 @@ bool_t ReadHeader_(Header* dst, byte_t const* data) {
 
     READ(dst->bk_boot_sec, 2);
 
+    // padding
     data += 12;
 
     READ(dst->drv_num, 1);
 
     data += 1;
 
-    unsigned int boot_sig;
+    u32_t boot_sig;
     READ(boot_sig, 1);
 
-    // unsigned int check_boot_sig = 0;
+    ZETA_Unused(boot_sig);
 
     READ(dst->vol_id, 4);
 
@@ -173,13 +142,26 @@ bool_t ReadHeader_(Header* dst, byte_t const* data) {
 
     data += 420;
 
-    if (data[0] != 0x55 || data[1] != 0xAA) { return FALSE; }
+    ASSERT_RET(data[0] == 0x55 && data[1] == 0xAA);
+    data += 2;
+
+    return data;
+
+ERR_RET:
+    return FALSE;
 }
 
-void GetFATEntry_(Header* header, size_t fat_idx, size_t entry_num,
-                  Zeta_Disk* disk) {
-    ZETA_DebugAsssert(header != NULL);
-    ZETA_DebugAsssert(disk != NULL);
+static bool_t IsUnusedCluster_(size_t val) { return val == UNUSED_CLUSTER; }
+
+static bool_t IsBadCluster_(size_t val) { return val == BAD_CLUSTER; }
+
+static bool_t IsEOFCluster_(size_t val) {
+    return 0x0FFFFFF8 <= val && val <= 0x0FFFFFFF;
+}
+
+static size_t GetFATEntryIdx_(Zeta_FileSystemFAT32_Header* header,
+                              size_t fat_idx, size_t entry_num) {
+    ZETA_DebugAssert(header != NULL);
 
     ZETA_DebugAssert(fat_idx < header->num_of_fats);
 
@@ -187,46 +169,55 @@ void GetFATEntry_(Header* header, size_t fat_idx, size_t entry_num,
     ZETA_DebugAssert(2 <= entry_num);
     ZETA_DebugAssert(entry_num < num_of_enties + 2);
 
-    size_t sec_off = (entry_num - 2) / (header->bytes_per_sec / 4);
-    size_t entry_off = (entry_num - 2) % (header->bytes_per_sec / 4);
-
-    size_t sec_lba = header->base_lba + header->num_of_reserved_secs +
-                     header->size_of_fat * fat_idx + sec_off;
-
-    byte_t* buff = disk->ReadSec(disk->context, sec_lba);
-
-    Zeta_Disk_Sec sec = disk->Access(disk->context, sec_lba);
-    if ((u32_t)sec.flag & ZETA_Disk_Sec_Flag_read == 0) { return FALSE; }
-
-    u32_t ret = Zeta_ReadLittleEndian(buff + entry_off * 4, 4);
+    size_t ret = header->base_idx +
+                 header->bytes_per_sec * (header->num_of_reserved_secs +
+                                          header->size_of_fat * fat_idx) +
+                 (entry_num - 2) * 4;
 
     return ret;
 }
 
-bool_t SetFATEntry_(Header* header, size_t fat_idx, size_t entry_num,
-                    size_t val, Zeta_Disk* disk) {
-    ZETA_DebugAsssert(header != NULL);
-    ZETA_DebugAsssert(disk != NULL);
+static size_t GetFATEntry_(Zeta_FileSystemFAT32_Header* header, size_t fat_idx,
+                           size_t entry_num, Zeta_Disk* disk) {
+    ZETA_DebugAssert(header != NULL);
+    ZETA_DebugAssert(disk != NULL);
 
-    ZETA_DebugAssert(fat_idx < header->num_of_fats);
+    size_t idx = GetFATEntryIdx_(header, fat_idx, entry_num);
+
+    byte_t tmp[4];
+    disk->Read(disk->context, idx, idx + 4, tmp);
+
+    return Zeta_ReadLittleEndian(tmp, 4);
+}
+
+static bool_t SetFATEntry_(Zeta_FileSystemFAT32_Header* header, size_t fat_idx,
+                           size_t entry_num, size_t val, Zeta_Disk* disk) {
+    ZETA_DebugAssert(header != NULL);
+    ZETA_DebugAssert(disk != NULL);
+
+    size_t idx = GetFATEntryIdx_(header, fat_idx, entry_num);
 
     size_t num_of_enties = header->bytes_per_sec * header->size_of_fat / 4;
-    ZETA_DebugAssert(2 <= entry_num);
-    ZETA_DebugAssert(entry_num < num_of_enties + 2);
 
-    size_t sec_off = (entry_num - 2) / (header->bytes_per_sec / 4);
-    size_t entry_off = (entry_num - 2) % (header->bytes_per_sec / 4);
+    u32_t const M = 0x10000000;
 
-    size_t sec_lba = header->base_lba + header->num_of_reserved_secs +
-                     header->size_of_fat * fat_idx + sec_off;
+    ZETA_DebugAssert(val < 0x10000000);
 
-    byte_t* buff = disk->ReadSec(disk->context, sec_lba);
+    if (!IsUnusedCluster_(val) && !IsBadCluster_(val) && !IsEOFCluster_(val)) {
+        ZETA_DebugAssert(2 <= val);
+        ZETA_DebugAssert(val < num_of_enties + 2);
+    }
 
-    Zeta_Disk_Sec sec = disk->Access(disk->context, sec_lba);
-    if ((u32_t)sec.flag & ZETA_Disk_Sec_Flag_write == 0) { return FALSE; }
+    byte_t tmp[4];
+    disk->Read(disk->context, idx, idx + 4, tmp);
 
-    Zeta_WriteLittleEndian(sec.data + entry_off * 4, val, 4);
+    u32_t cur_val = Zeta_ReadLittleEndian(tmp, 4);
+    u32_t nxt_val = cur_val / M * M + val;
 
-    sec.flag = (u32_t)sec.flag | ZETA_Disk_Sec_Flag_dirty;
-    disk->SetFlag(disk->context, sec_lba, sec.flag);
+    if (cur_val != nxt_val) {
+        Zeta_WriteLittleEndian(tmp, 4, nxt_val);
+        disk->Write(disk->context, idx, idx + 4, tmp);
+    }
+
+    return TRUE;
 }

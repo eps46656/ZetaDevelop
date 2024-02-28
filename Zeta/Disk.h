@@ -20,7 +20,7 @@ struct Zeta_Disk {
 
     size_t (*GetSize)(void* context);
 
-    void (*Read)(void* context, byte_t* dst, size_t beg, size_t end);
+    void (*Read)(void* context, size_t beg, size_t end, byte_t* dst);
 
-    void (*Write)(void* context, size_t beg, size_t end, byte_t const* data);
+    void (*Write)(void* context, size_t beg, size_t end, byte_t const* src);
 };

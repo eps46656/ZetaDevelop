@@ -27,7 +27,8 @@ byte_t const* Zeta_DiskPartMBR_ReadMBR(Zeta_DiskPartMBR_MBR* dst,
                                        byte_t const* data,
                                        byte_t const* data_end);
 
-byte_t* Zeta_DiskPartMBR_WriteMBR(byte_t* dst, Zeta_DiskInfo const* disk_info,
+byte_t* Zeta_DiskPartMBR_WriteMBR(byte_t* dst, byte_t* dst_end,
+                                  Zeta_DiskInfo const* disk_info,
                                   Zeta_DiskPartMBR_MBR* mbr);
 
 ZETA_extern_c_end;

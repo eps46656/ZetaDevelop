@@ -271,40 +271,6 @@ def builder_add(builder):
     )
 
     builder.add(
-        f"{ZetaDir}/DebugTreeMap.h",
-        {
-            f"{File}",
-            f"{ZetaDir}/define.h",
-        },
-        lambda : 0
-    )
-
-    builder.add(
-        f"{ZetaDir}/DebugTreeMap.cpp",
-        {
-            f"{File}",
-            f"{ZetaDir}/DebugTreeMap.h",
-        },
-        lambda : 0
-    )
-
-    builder.add(
-        f"{ZetaDir}/DebugTreeMap.o",
-        {
-            f"{File}",
-            f"{ZetaDir}/DebugTreeMap.cpp",
-        },
-        lambda : os.system(" ".join([
-            cppc,
-            f"--output {ZetaDir}/DebugTreeMap.o",
-            *cppargs,
-            f"-c",
-            f"-fPIC",
-            f"{ZetaDir}/DebugTreeMap.cpp",
-        ]))
-    )
-
-    builder.add(
         f"{ZetaDir}/DebugHashTable.h",
         {
             f"{File}",
@@ -355,6 +321,58 @@ def builder_add(builder):
 
             f"{ZetaDir}/DebugHashTable.cpp",
         ]))
+    )
+
+    builder.add(
+        f"{ZetaDir}/DebugTreeMap.h",
+        {
+            f"{File}",
+            f"{ZetaDir}/define.h",
+        },
+        lambda : 0
+    )
+
+    builder.add(
+        f"{ZetaDir}/DebugTreeMap.cpp",
+        {
+            f"{File}",
+            f"{ZetaDir}/DebugTreeMap.h",
+        },
+        lambda : 0
+    )
+
+    builder.add(
+        f"{ZetaDir}/DebugTreeMap.o",
+        {
+            f"{File}",
+            f"{ZetaDir}/DebugTreeMap.cpp",
+        },
+        lambda : os.system(" ".join([
+            cppc,
+            f"--output {ZetaDir}/DebugTreeMap.o",
+            *cppargs,
+            f"-c",
+            f"-fPIC",
+            f"{ZetaDir}/DebugTreeMap.cpp",
+        ]))
+    )
+
+    builder.add(
+        f"{ZetaDir}/Deque.h",
+        {
+            f"{File}",
+            f"{ZetaDir}/define.h",
+        },
+        lambda : 0
+    )
+
+    builder.add(
+        f"{ZetaDir}/Disk.h",
+        {
+            f"{File}",
+            f"{ZetaDir}/define.h",
+        },
+        lambda : 0
     )
 
     builder.add(
@@ -501,6 +519,40 @@ def builder_add(builder):
     )
 
     builder.add(
+        f"{ZetaDir}/ELF.h",
+        {
+            f"{File}",
+            f"{ZetaDir}/define.h",
+        },
+        lambda : 0
+    )
+
+    builder.add(
+        f"{ZetaDir}/ELF.c",
+        {
+            f"{File}",
+            f"{ZetaDir}/ELF.h",
+            f"{ZetaDir}/utils.h",
+        },
+        lambda : 0
+    )
+
+    builder.add(
+        f"{ZetaDir}/ELF.o",
+        {
+            f"{File}",
+            f"{ZetaDir}/ELF.c",
+        },
+        lambda : os.system(" ".join([
+            cc,
+            f"--output {ZetaDir}/ELF.o",
+            f"-c",
+            *cargs,
+            f"{ZetaDir}/ELF.c",
+        ]))
+    )
+
+    builder.add(
         f"{ZetaDir}/OrdLinkedListNode.h",
         {
             f"{File}",
@@ -566,6 +618,39 @@ def builder_add(builder):
             f"-c",
             *cargs,
             f"{ZetaDir}/DynamicVector.c",
+        ]))
+    )
+
+    builder.add(
+        f"{ZetaDir}/FileSystemFAT32.h",
+        {
+            f"{File}",
+            f"{ZetaDir}/Disk.h",
+        },
+        lambda : 0
+    )
+
+    builder.add(
+        f"{ZetaDir}/FileSystemFAT32.c",
+        {
+            f"{File}",
+            f"{ZetaDir}/FileSystemFAT32.h",
+        },
+        lambda : 0
+    )
+
+    builder.add(
+        f"{ZetaDir}/FileSystemFAT32.o",
+        {
+            f"{File}",
+            f"{ZetaDir}/FileSystemFAT32.c",
+        },
+        lambda : os.system(" ".join([
+            cc,
+            f"--output {ZetaDir}/FileSystemFAT32.o",
+            f"-c",
+            *cargs,
+            f"{ZetaDir}/FileSystemFAT32.c",
         ]))
     )
 
@@ -1261,6 +1346,7 @@ def builder_add(builder):
         {
             f"{File}",
             f"{ZetaDir}/UTF8.h",
+            f"{ZetaDir}/utils.h",
         },
         lambda : 0
     )

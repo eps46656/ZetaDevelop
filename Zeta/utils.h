@@ -45,7 +45,7 @@ void* Zeta_MemRotate(void* beg, void* mid, void* end);
  *
  * @return The read integer
  */
-size_t Zeta_ReadLittleEndian(byte_t const* data, unsigned int length);
+u128_t Zeta_ReadLittleEndian(byte_t const* data, unsigned int length);
 
 /**
  * @brief Write an integer to data in little endian occupying length bytes.
@@ -54,7 +54,7 @@ size_t Zeta_ReadLittleEndian(byte_t const* data, unsigned int length);
  * @param length The number of bytes the integer occupied.
  * @param val The target integer.
  */
-void Zeta_WriteLittleEndian(byte_t* dst, unsigned int length, size_t val);
+u128_t Zeta_WriteLittleEndian(byte_t* dst, u128_t val, unsigned int length);
 
 /**
  * @brief Read big endian stored length bytes occupying integer from data.
@@ -64,7 +64,7 @@ void Zeta_WriteLittleEndian(byte_t* dst, unsigned int length, size_t val);
  *
  * @return The read integer
  */
-size_t Zeta_ReadBigEndian(byte_t const* data, unsigned int length);
+u128_t Zeta_ReadBigEndian(byte_t const* data, unsigned int length);
 
 /**
  * @brief Write an integer to data in big endian occupying length bytes.
@@ -73,15 +73,15 @@ size_t Zeta_ReadBigEndian(byte_t const* data, unsigned int length);
  * @param length The number of bytes the integer occupied.
  * @param val The target integer.
  */
-void Zeta_WriteBigEndian(byte_t* dst, unsigned int length, size_t val);
+u128_t Zeta_WriteBigEndian(byte_t* dst, u128_t val, unsigned int length);
 
-size_t Zeta_SimpleRandom(size_t x);
+u128_t Zeta_SimpleRandom(u128_t x);
 
-size_t Zeta_SimpleHash(size_t x);
+u128_t Zeta_SimpleHash(u128_t x);
 
-size_t Zeta_GetGCD(size_t x, size_t y);
+u128_t Zeta_GetGCD(u128_t x, u128_t y);
 
-size_t Zeta_GetLCM(size_t x, size_t y);
+u128_t Zeta_GetLCM(u128_t x, u128_t y);
 
 /**
  * @brief Calculate base^exp.
@@ -91,7 +91,7 @@ size_t Zeta_GetLCM(size_t x, size_t y);
  *
  * @return base^exp.
  */
-size_t Zeta_GetPower(size_t base, size_t exp);
+u128_t Zeta_GetPower(u128_t base, u128_t exp);
 
 /**
  * @brief Calculate base^exp % mod.
@@ -102,9 +102,9 @@ size_t Zeta_GetPower(size_t base, size_t exp);
  *
  * @return base^exp % mod.
  */
-size_t Zeta_GetPowerMod(size_t base, size_t exp, size_t mod);
+u128_t Zeta_GetPowerMod(u128_t base, u128_t exp, u128_t mod);
 
-size_t Zeta_FindNextConMod(size_t beg, size_t target, size_t mod);
+u128_t Zeta_FindNextConMod(u128_t beg, u128_t target, u128_t mod);
 
 void* Zeta_GetMostLink(void* context, void* (*GetLink)(void* context, void* n),
                        void* n);

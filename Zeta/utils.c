@@ -62,79 +62,67 @@ void* Zeta_MemRotate(void* beg_, void* mid_, void* end_) {
     return ret;
 }
 
-size_t Zeta_ReadLittleEndian(byte_t const* data, unsigned int length) {
+u128_t Zeta_ReadLittleEndian(byte_t const* data, unsigned int length) {
     ZETA_DebugAssert(data != NULL);
-    ZETA_DebugAssert(length <= sizeof(size_t));
+    ZETA_DebugAssert(length <= sizeof(u128_t));
 
-    size_t ret = 0;
+    u128_t ret = 0;
 
-    for (unsigned int i = length; 0 < i--;) {
-        ret = ret * (size_t)256 + (size_t)data[i];
-    }
+    for (unsigned int i = length; 0 < i--;) { ret = ret * 256 + data[i]; }
 
     return ret;
 }
 
-void Zeta_WriteLittleEndian(byte_t* dst, unsigned int length, size_t val) {
+u128_t Zeta_WriteLittleEndian(byte_t* dst, u128_t val, unsigned int length) {
     ZETA_DebugAssert(dst != NULL);
 
     for (unsigned int i = 0; i < length; ++i) {
         dst[i] = val % 256;
         val /= 256;
     }
+
+    return val;
 }
 
-size_t Zeta_ReadBigEndian(byte_t const* data, unsigned int length) {
+u128_t Zeta_ReadBigEndian(byte_t const* data, unsigned int length) {
     ZETA_DebugAssert(data != NULL);
-    ZETA_DebugAssert(length <= sizeof(size_t));
+    ZETA_DebugAssert(length <= sizeof(u128_t));
 
-    size_t ret = 0;
+    u128_t ret = 0;
 
-    for (unsigned int i = 0; i < length; ++i) {
-        ret = ret * (size_t)256 + (size_t)data[i];
-    }
+    for (unsigned int i = 0; i < length; ++i) { ret = ret * 256 + data[i]; }
 
     return ret;
 }
 
-void Zeta_WriteBigEndian(byte_t* dst, unsigned int length, size_t val) {
+u128_t Zeta_WriteBigEndian(byte_t* dst, u128_t val, unsigned int length) {
     ZETA_DebugAssert(dst != NULL);
 
     for (unsigned int i = length; 0 < i--;) {
         dst[i] = val % 256;
         val /= 256;
     }
+
+    return val;
 }
 
-size_t Zeta_SimpleRandom(size_t x) {
-    ZETA_DebugAssert(32 <= CHAR_BIT * sizeof(size_t));
-
-    size_t mask = 0xFFFF;  // 2^16 - 1
-    size_t a = 25214903917;
-    size_t c = 11;
+u128_t Zeta_SimpleRandom(u128_t x) {
+    u128_t mask = 0xFFFF;  // 2^16 - 1
+    u128_t a = 25214903917;
+    u128_t c = 11;
 
     return ((x * a + c) >> 16) & mask;
 }
 
-/*
-size_t Zeta_SimpleHash(size_t x) {
-    for (size_t i = ZETA_maxof(size_t); 0 < i; i >>= 16) {
-        x = ((x >> 16) ^ x) * 0x45D9F3B;
-    }
-
-    x = (x >> 16) ^ x;
-    return x;
-} */
-
-size_t Zeta_SimpleHash(size_t x_) {
-    u64_t x = x_;
-    x = (x ^ (x >> 30)) * (u64_t)0xbf58476d1ce4e5b9;
-    x = (x ^ (x >> 27)) * (u64_t)0x94d049bb133111eb;
+u128_t Zeta_SimpleHash(u128_t x_) {
+    u128_t x = x_;
+    x = (x ^ (x >> 30)) * (u128_t)0xbf58476d1ce4e5b9;
+    x = (x ^ (x >> 27)) * (u128_t)0x94d049bb133111eb;
     x = x ^ (x >> 31);
     return x;
 }
 
-size_t Zeta_GetGCD(size_t x, size_t y) {
+u128_t Zeta_GetGCD(u128_t x, u128_t y) {
     for (;;) {
         if (x == 0) { return x + y; }
         y %= x;
@@ -143,12 +131,12 @@ size_t Zeta_GetGCD(size_t x, size_t y) {
     }
 }
 
-size_t Zeta_GetLCM(size_t x, size_t y) {
+u128_t Zeta_GetLCM(u128_t x, u128_t y) {
     return x == 0 || y == 0 ? x + y : x / Zeta_GetGCD(x, y) * y;
 }
 
-size_t Zeta_GetPower(size_t base, size_t exp) {
-    size_t ret = 1;
+u128_t Zeta_GetPower(u128_t base, u128_t exp) {
+    u128_t ret = 1;
 
     for (; 0 < exp; exp /= 2) {
         if (exp % 2 == 1) { ret *= base; }
@@ -194,19 +182,17 @@ if b != 0
 
 */
 
-size_t Zeta_GetMulMod(size_t x, size_t y, size_t mod) {
+u128_t Zeta_GetMulMod(u128_t x, u128_t y, u128_t mod) {
     ZETA_DebugAssert(0 < mod);
 
     x %= mod;
     y %= mod;
 
-    if (x == 0 || y <= ZETA_maxof(size_t) / x) { return (x * y) % mod; }
-
-    ZETA_DebugAssert(mod <= ZETA_max_mod_under_size_t);
+    if (x == 0 || y <= ZETA_maxof(u128_t) / x) { return (x * y) % mod; }
 
     if (x < y) { ZETA_Swap(x, y); }
 
-    size_t ret = 0;
+    u128_t ret = 0;
 
     for (; 0 < y; y /= 2) {
         if (y % 2 == 1) { ret = (ret + x) % mod; }
@@ -216,13 +202,13 @@ size_t Zeta_GetMulMod(size_t x, size_t y, size_t mod) {
     return ret;
 }
 
-size_t Zeta_GetPowerMod(size_t base, size_t exp, size_t mod) {
+u128_t Zeta_GetPowerMod(u128_t base, u128_t exp, u128_t mod) {
     ZETA_DebugAssert(0 < mod);
 
     if (mod == 1) { return 0; }
 
     base %= mod;
-    size_t ret = 1;
+    u128_t ret = 1;
 
     for (; 0 < exp; exp /= 2) {
         if (exp % 2 == 1) { ret = Zeta_GetMulMod(ret, base, mod); }
@@ -232,7 +218,7 @@ size_t Zeta_GetPowerMod(size_t base, size_t exp, size_t mod) {
     return ret;
 }
 
-size_t Zeta_FindNextConMod(size_t beg, size_t target, size_t mod) {
+u128_t Zeta_FindNextConMod(u128_t beg, u128_t target, u128_t mod) {
     ZETA_DebugAssert(0 < mod);
     return beg + (target + mod - beg % mod) % mod;
 }
