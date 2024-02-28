@@ -7,7 +7,7 @@ void Zeta_StreamTransfer(Zeta_Stream* dst, Zeta_Stream* src) {
     void* src_context = src->context;
 
     bool_t (*SrcIsEmpty)(void* context) = src->IsEmpty;
-    const void* (*SrcPeek)(void* context) = src->Peek;
+    void const* (*SrcPeek)(void* context) = src->Peek;
     void (*SrcRead)(void* context) = src->Read;
 
     ZETA_DebugAssert(SrcIsEmpty != NULL);
@@ -16,7 +16,7 @@ void Zeta_StreamTransfer(Zeta_Stream* dst, Zeta_Stream* src) {
 
     void* dst_context = dst->context;
 
-    void (*DstWrite)(void* context, const void* data) = dst->Write;
+    void (*DstWrite)(void* context, void const* data) = dst->Write;
 
     ZETA_DebugAssert(DstWrite != NULL);
 

@@ -1,9 +1,9 @@
 #include "Algorithm.h"
 
 static void Zeta_Insertion_(Zeta_Vector* vec, size_t i, void* cmper_context,
-                            int (*cmper)(void* cmper_context, const void* x,
-                                         const void* y)) {
-    const size_t max_tmp_width = 64;
+                            int (*cmper)(void* cmper_context, void const* x,
+                                         void const* y)) {
+    size_t const max_tmp_width = 64;
 
     void* vec_context = vec->context;
 
@@ -47,8 +47,8 @@ static void Zeta_Insertion_(Zeta_Vector* vec, size_t i, void* cmper_context,
 
 static void Zeta_InsertionSort_(Zeta_Vector* vec, size_t beg, size_t end,
                                 void* cmper_context,
-                                int (*cmper)(void* cmper_context, const void* x,
-                                             const void* y)) {
+                                int (*cmper)(void* cmper_context, void const* x,
+                                             void const* y)) {
     void* vec_context = vec->context;
 
     size_t width = vec->GetWidth(vec_context);
@@ -70,12 +70,12 @@ static void Zeta_InsertionSort_(Zeta_Vector* vec, size_t beg, size_t end,
     }
 }
 
-static const size_t Zeta_InsertionSort_Threshold = 32;
+static size_t const Zeta_InsertionSort_Threshold = 32;
 
 static size_t Zeta_Partition_(Zeta_Vector* vec, size_t beg, size_t end,
                               void* cmper_context,
-                              int (*cmper)(void* cmper_context, const void* x,
-                                           const void* y)) {
+                              int (*cmper)(void* cmper_context, void const* x,
+                                           void const* y)) {
     void* vec_context = vec->context;
 
     size_t width = vec->GetWidth(vec_context);
@@ -114,7 +114,7 @@ static size_t Zeta_Partition_(Zeta_Vector* vec, size_t beg, size_t end,
 
 static size_t Zeta_SimplePartition_(
     Zeta_Vector* vec, size_t beg, size_t end, void* cmper_context,
-    int (*cmper)(void* cmper_context, const void* x, const void* y)) {
+    int (*cmper)(void* cmper_context, void const* x, void const* y)) {
     size_t size = end - beg;
 
     if (size <= Zeta_InsertionSort_Threshold) {
@@ -142,12 +142,12 @@ static size_t Zeta_SimplePartition_(
 
 static void Zeta_KthElement_(Zeta_Vector* vec, size_t beg, size_t mid,
                              size_t end, void* cmper_context,
-                             int (*cmper)(void* cmper_context, const void* x,
-                                          const void* y));
+                             int (*cmper)(void* cmper_context, void const* x,
+                                          void const* y));
 
 static size_t Zeta_PrettyPartition_(
     Zeta_Vector* vec, size_t beg, size_t end, void* cmper_context,
-    int (*cmper)(void* cmper_context, const void* x, const void* y)) {
+    int (*cmper)(void* cmper_context, void const* x, void const* y)) {
     size_t size = end - beg;
 
     if (size <= Zeta_InsertionSort_Threshold) {
@@ -159,7 +159,7 @@ static size_t Zeta_PrettyPartition_(
 
     size_t width = vec->GetWidth(vec_context);
 
-    const size_t group_size = 5;
+    size_t const group_size = 5;
 
     size_t group_num = size / group_size;
 
@@ -185,8 +185,8 @@ static size_t Zeta_PrettyPartition_(
 
 static void Zeta_KthElement_(Zeta_Vector* vec, size_t beg, size_t mid,
                              size_t end, void* cmper_context,
-                             int (*cmper)(void* cmper_context, const void* x,
-                                          const void* y)) {
+                             int (*cmper)(void* cmper_context, void const* x,
+                                          void const* y)) {
     size_t size = end - beg;
     size_t chance = size * 4;
 
@@ -223,8 +223,8 @@ static void Zeta_KthElement_(Zeta_Vector* vec, size_t beg, size_t mid,
 
 void Zeta_KthElement(Zeta_Vector* vec, size_t beg, size_t mid, size_t end,
                      void* cmper_context,
-                     int (*cmper)(void* cmper_context, const void* x,
-                                  const void* y)) {
+                     int (*cmper)(void* cmper_context, void const* x,
+                                  void const* y)) {
     ZETA_DebugAssert(vec != NULL);
     ZETA_DebugAssert(vec->GetSize != NULL);
     ZETA_DebugAssert(vec->Access != NULL);
@@ -247,8 +247,8 @@ void Zeta_KthElement(Zeta_Vector* vec, size_t beg, size_t mid, size_t end,
 
 void Zeta_Sort_(size_t chance, Zeta_Vector* vec, size_t beg, size_t end,
                 void* cmper_context,
-                int (*cmper)(void* cmper_context, const void* x,
-                             const void* y)) {
+                int (*cmper)(void* cmper_context, void const* x,
+                             void const* y)) {
     for (;;) {
         size_t size = end - beg;
 
@@ -280,8 +280,8 @@ void Zeta_Sort_(size_t chance, Zeta_Vector* vec, size_t beg, size_t end,
 }
 
 void Zeta_Sort(Zeta_Vector* vec, size_t beg, size_t end, void* cmper_context,
-               int (*cmper)(void* cmper_context, const void* x,
-                            const void* y)) {
+               int (*cmper)(void* cmper_context, void const* x,
+                            void const* y)) {
     ZETA_DebugAssert(vec != NULL);
     ZETA_DebugAssert(vec->GetSize != NULL);
     ZETA_DebugAssert(vec->Access != NULL);

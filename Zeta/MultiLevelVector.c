@@ -114,7 +114,7 @@ void** Zeta_MultiLevelVector_FindLastNotNull(void* mlv_, size_t* idxes) {
     return Zeta_MultiLevelVector_FindPrevNotNull(mlv, idxes, TRUE);
 }
 
-static void** FindPrevNotNull_(int level, const size_t* branch_nums,
+static void** FindPrevNotNull_(int level, size_t const* branch_nums,
                                size_t* idxes, void* page) {
     size_t branch_num = branch_nums[0];
 
@@ -162,7 +162,7 @@ static void** FindPrevNotNull_(int level, const size_t* branch_nums,
     return NULL;
 }
 
-static void** FindNextNotNull_(int level, const size_t* branch_nums,
+static void** FindNextNotNull_(int level, size_t const* branch_nums,
                                size_t* idxes, void* page) {
     size_t branch_num = branch_nums[0];
 
@@ -356,7 +356,7 @@ void Zeta_MultiLevelVector_Erase(void* mlv_, size_t* idxes) {
     mlv->root = NULL;
 }
 
-static void EraseAll_(int level, const size_t* branch_nums, void* page,
+static void EraseAll_(int level, size_t const* branch_nums, void* page,
                       void* allocator_context,
                       void (*Deallocate)(void* context, void* ptr)) {
     size_t branch_num = branch_nums[0];
@@ -398,7 +398,7 @@ void Zeta_MultiLevelVector_EraseAll(void* mlv_) {
     mlv->root = NULL;
 }
 
-static bool_t IsClean_(int level, const size_t* branch_nums, void* page) {
+static bool_t IsClean_(int level, size_t const* branch_nums, void* page) {
     size_t branch_num = branch_nums[0];
 
     if (level == 1) {
@@ -432,7 +432,7 @@ bool_t Zeta_MultiLevelVector_IsClean(void* mlv_) {
     return n == NULL || IsClean_(mlv->level, mlv->branch_nums, n);
 }
 
-static bool_t Clear_(int level, const size_t* branch_nums, void* page,
+static bool_t Clear_(int level, size_t const* branch_nums, void* page,
                      void* allocator_context,
                      void (*Deallocate)(void* context, void* ptr)) {
     size_t branch_num = branch_nums[0];
@@ -487,7 +487,7 @@ void Zeta_MultiLevelVector_Clear(void* mlv_) {
 }
 
 static void GetAllPages_(Zeta_DebugTreeMap* dst, int level,
-                         const size_t* branch_nums, void* page) {
+                         size_t const* branch_nums, void* page) {
     Zeta_DebugTreeMap_Insert(dst, (size_t)(uintptr_t)page);
 
     if (level == 0) { return; }

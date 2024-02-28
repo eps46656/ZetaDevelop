@@ -21,7 +21,7 @@ void* StepD_(void* context, void* (*GetP)(void* context, void* n),
     }
 }
 
-void* Zeta_BinTree_StepL(const Zeta_BinTreeNodeAccessor* btn_accessor,
+void* Zeta_BinTree_StepL(Zeta_BinTreeNodeAccessor const* btn_accessor,
                          void* n) {
     ZETA_DebugAssert(btn_accessor != NULL);
 
@@ -29,7 +29,7 @@ void* Zeta_BinTree_StepL(const Zeta_BinTreeNodeAccessor* btn_accessor,
                   btn_accessor->GetR, n);
 }
 
-void* Zeta_BinTree_StepR(const Zeta_BinTreeNodeAccessor* btn_accessor,
+void* Zeta_BinTree_StepR(Zeta_BinTreeNodeAccessor const* btn_accessor,
                          void* n) {
     ZETA_DebugAssert(btn_accessor != NULL);
 

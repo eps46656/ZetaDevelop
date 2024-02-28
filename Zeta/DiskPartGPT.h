@@ -6,57 +6,57 @@ ZETA_extern_c_beg;
 
 #define ZETA_GPT_max_num_of_partition 128
 
-#define Zeta_DiskPart_GPT_size_of_Header 92
+#define Zeta_DiskPartGPT_size_of_Header 92
 
-typedef struct Zeta_DiskPart_GPT_Header Zeta_DiskPart_GPT_Header;
+typedef struct Zeta_DiskPartGPT_Header Zeta_DiskPartGPT_Header;
 
-struct Zeta_DiskPart_GPT_Header {
-    char sign[8];
-
-    size_t revision_num;
-    size_t header_size;
+struct Zeta_DiskPartGPT_Header {
+    u32_t revision_num;
+    u32_t header_size;
     u32_t header_crc32;
 
     u64_t cur_lba;
-    u64_t backup_lba;
+    u64_t bk_lba;
 
     u64_t first_usable;
     u64_t last_usable;
 
     byte_t disk_guid[16];
 
-    u64_t part_entries_beg;
-    u64_t part_entries_num;
-    u64_t part_entry_size;
-    u64_t part_entries_crc32;
+    u64_t beg_of_part_entries;
+    u64_t num_of_part_entries;
+    u64_t size_of_part_entry;
+    u64_t crc32_of_part_entries;
 };
 
-#define Zeta_DiskPart_GPT_size_of_PartEntry 128
+#define Zeta_DiskPartGPT_size_of_PartEntry 128
 
-typedef struct Zeta_DiskPart_GPT_PartEntry Zeta_DiskPart_GPT_PartEntry;
+typedef struct Zeta_DiskPartGPT_PartEntry Zeta_DiskPartGPT_PartEntry;
 
-struct Zeta_DiskPart_GPT_PartEntry {
+struct Zeta_DiskPartGPT_PartEntry {
     byte_t type_guid[16];
     byte_t part_guid[16];
 
-    u64_t first_lba;
-    u64_t last_lba;
+    u64_t beg;
+    u64_t end;
 
     u64_t flags;
 
     byte_t name[72];
 };
 
-const byte_t* Zeta_DiskPart_GPT_ReadHeader(Zeta_DiskPart_GPT_Header* dst,
-                                           const byte_t* data);
+byte_t const* Zeta_DiskPartGPT_ReadHeader(Zeta_DiskPartGPT_Header* dst,
+                                          byte_t const* data,
+                                          byte_t const* data_end);
 
-byte_t* Zeta_DiskPart_GPT_WriteHeader(byte_t* dst,
-                                      Zeta_DiskPart_GPT_Header* header);
+byte_t* Zeta_DiskPartGPT_WriteHeader(byte_t* dst, byte_t* dst_end,
+                                     Zeta_DiskPartGPT_Header* header);
 
-const byte_t* Zeta_DiskPart_GPT_ReadPartEntry(Zeta_DiskPart_GPT_PartEntry* dst,
-                                              const byte_t* data);
+byte_t const* Zeta_DiskPartGPT_ReadPartEntry(Zeta_DiskPartGPT_PartEntry* dst,
+                                             byte_t const* data,
+                                             byte_t const* data_end);
 
-byte_t* Zeta_DiskPart_GPT_WritePartEntry(
-    byte_t* dst, Zeta_DiskPart_GPT_PartEntry* part_entry);
+byte_t* Zeta_DiskPartGPT_WritePartEntry(byte_t* dst, byte_t* dst_end,
+                                        Zeta_DiskPartGPT_PartEntry* part_entry);
 
 ZETA_extern_c_end;

@@ -11,7 +11,7 @@
 int main() {
     size_t page_size = 4 * 1024;
 
-    const int max_type = Zeta_SlabAllocator_max_num_of_types;
+    int const max_type = Zeta_SlabAllocator_max_num_of_types;
 
     int sizes[max_type];
     int nums[max_type];

@@ -1,9 +1,9 @@
 #include "io.h"
 
 static void IntToStr_(Zeta_Stream* dst, u128_t x, unichar_t sign_char, int base,
-                      const unichar_t* chars, size_t width,
+                      unichar_t const* chars, size_t width,
                       unichar_t padding_char) {
-    const int TMP_SIZE = 128 + 32;
+    int const TMP_SIZE = 128 + 32;
 
     unichar_t tmp[TMP_SIZE];
     unichar_t* tmp_p = tmp;
@@ -25,7 +25,7 @@ static void IntToStr_(Zeta_Stream* dst, u128_t x, unichar_t sign_char, int base,
 
     void* dst_context = dst->context;
 
-    void (*Write)(void* context, const void* data) = dst->Write;
+    void (*Write)(void* context, void const* data) = dst->Write;
     ZETA_DebugAssert(Write != NULL);
 
     for (size_t cur_width = tmp_p - tmp; cur_width < width; ++cur_width) {
@@ -107,7 +107,7 @@ void Zeta_UIntToHexStr(Zeta_Stream* dst, u128_t x, bool_t sign,
               width, padding_char);
 }
 
-void Zeta_PtrToHexStr(Zeta_Stream* dst, const void* x, bool_t uppercase,
+void Zeta_PtrToHexStr(Zeta_Stream* dst, void const* x, bool_t uppercase,
                       size_t width, unichar_t padding_char) {
     return Zeta_UIntToHexStr(dst, (uintptr_t)x, FALSE, uppercase, width,
                              padding_char);

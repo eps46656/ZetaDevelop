@@ -8,7 +8,7 @@ void Zeta_FileCache_Init(void* fc) {
     // FileCache
 }
 
-void Zeta_FileCache_Open(void* fc, const char* filename) {
+void Zeta_FileCache_Open(void* fc, char const* filename) {
     //
 
     //

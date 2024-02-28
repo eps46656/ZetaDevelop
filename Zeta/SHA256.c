@@ -4,7 +4,7 @@
 
 typedef unsigned _BitInt(32) word_t;
 
-void Zeta_SHA256_Hash(byte_t* dst, const byte_t* data, const byte_t* data_end) {
+void Zeta_SHA256_Hash(byte_t* dst, byte_t const* data, byte_t const* data_end) {
     Zeta_SHA256Hasher hasher;
     Zeta_SHA256Hasher_Init(&hasher);
 
@@ -43,8 +43,8 @@ size_t Zeta_SHA256Hasher_GetResultSize(void* hasher_) {
 
 static word_t RRotate_(word_t x, int k) { return (x >> k) | (x << (32 - k)); }
 
-static void HashChunk_(word_t* hs, const byte_t* data) {
-    const word_t k[] = {
+static void HashChunk_(word_t* hs, byte_t const* data) {
+    word_t const k[] = {
         0x428A2F98, 0x71374491, 0xB5C0FBCF, 0xE9B5DBA5, 0x3956C25B, 0x59F111F1,
         0x923F82A4, 0xAB1C5ED5, 0xD807AA98, 0x12835B01, 0x243185BE, 0x550C7DC3,
         0x72BE5D74, 0x80DEB1FE, 0x9BDC06A7, 0xC19BF174, 0xE49B69C1, 0xEFBE4786,
@@ -142,8 +142,8 @@ void Zeta_SHA256Hasher_GetResult(void* hasher_, byte_t* dst) {
     }
 }
 
-void Zeta_SHA256Hasher_Rotate(void* hasher_, const byte_t* data,
-                              const byte_t* data_end) {
+void Zeta_SHA256Hasher_Rotate(void* hasher_, byte_t const* data,
+                              byte_t const* data_end) {
     Zeta_SHA256Hasher* hasher = hasher_;
     ZETA_DebugAssert(hasher != NULL);
 

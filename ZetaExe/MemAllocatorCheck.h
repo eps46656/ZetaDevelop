@@ -1,7 +1,7 @@
 #include <map>
 
-bool CheckFullContains(const std::map<size_t, size_t>& allocator_records,
-                       const std::map<size_t, size_t>& user_records) {
+bool CheckFullContains(std::map<size_t, size_t> const& allocator_records,
+                       std::map<size_t, size_t> const& user_records) {
     for (auto iter{ user_records.begin() }, end{ user_records.end() };
          iter != end; ++iter) {
         auto iter_b{ allocator_records.find(iter->first) };

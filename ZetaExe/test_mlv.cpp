@@ -57,7 +57,7 @@ std::uniform_int_distribution<int> val_generator{ -64 * 1024 * 1024,
 
 void* KULL = (void*)~0;
 
-size_t GetIdx(const size_t* idxes) {
+size_t GetIdx(size_t const* idxes) {
     size_t idx = idxes[0];
 
     for (int level_i = 1; level_i < mlv.level; ++level_i) {

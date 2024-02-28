@@ -472,6 +472,44 @@ def builder_add(builder):
     )
 
     builder.add(
+        f"{ZetaExeDir}/test_usb.cpp",
+        {
+            f"{File}",
+            f"{ZetaDir}/DiskInfo.h",
+            f"{ZetaDir}/DiskPartGPT.h",
+            f"{ZetaDir}/DiskPartMBR.h",
+            f"{ZetaDir}/define.h"
+        },
+        lambda : 0
+    )
+
+    builder.add(
+        f"{ZetaExeDir}/test_usb.exe",
+        {
+            f"{File}",
+            f"{ZetaDir}/utils.o",
+            f"{ZetaDir}/DiskInfo.o",
+            f"{ZetaDir}/DiskPartGPT.o",
+            f"{ZetaDir}/DiskPartMBR.o",
+            f"{ZetaDir}/UTF16.o",
+            f"{ZetaDir}/UTF8.o",
+            f"{ZetaExeDir}/test_usb.cpp",
+        },
+        lambda : os.system(" ".join([
+            cppc,
+            f"--output {ZetaExeDir}/test_usb.exe",
+            *cppargs,
+            f"{ZetaDir}/utils.o",
+            f"{ZetaDir}/DiskInfo.o",
+            f"{ZetaDir}/DiskPartGPT.o",
+            f"{ZetaDir}/DiskPartMBR.o",
+            f"{ZetaDir}/UTF16.o",
+            f"{ZetaDir}/UTF8.o",
+            f"{ZetaExeDir}/test_usb.cpp",
+        ]))
+    )
+
+    builder.add(
         f"{ZetaExeDir}/test_utf8.c",
         {
             f"{File}",

@@ -58,7 +58,7 @@ RX Thread_Create_(RX stack, void (*func)()) __attribute__((sysv_abi));
 void Thread_Frame_() __attribute__((sysv_abi));
 
 void Thread_Create(Thread* thread, void (*func)()) {
-    const size_t stack_size = 16 * 1024 * 1024;
+    size_t const stack_size = 16 * 1024 * 1024;
 
     thread->stack =
         Thread_Create_((RX)(uintptr_t)malloc(stack_size) + stack_size, func);
@@ -103,7 +103,7 @@ void Func2() {
 
 void Func3() { printf("func3\n"); }
 
-void PrintPCB(const PCB* pcb) {
+void PrintPCB(PCB const* pcb) {
     printf("rax\t%lld\t%llu\n", pcb->rax, pcb->rax);
     printf("rbx\t%lld\t%llu\n", pcb->rbx, pcb->rbx);
     printf("rcx\t%lld\t%llu\n", pcb->rcx, pcb->rcx);

@@ -12,7 +12,7 @@ struct Data {
     int y;
 };
 
-bool operator==(const Data& a, const Data& b) {
+bool operator==(Data const& a, Data const& b) {
     return a.x == b.x && a.y == b.y;
 }
 
@@ -31,7 +31,7 @@ void Data_Deinit(void* context, void* data_) {
 
 using val_t = Data;
 
-void PrintVal(const val_t& val) {
+void PrintVal(val_t const& val) {
     std::cout << "( " << val.x << ", " << val.y << " )";
     // std::cout << val;
 }
@@ -103,7 +103,7 @@ val_t* DvAccess(size_t idx) {
     return (val_t*)Zeta_DynamicVector_Access(&dv, idx);
 }
 
-val_t* DvInsert(size_t idx, const val_t& val) {
+val_t* DvInsert(size_t idx, val_t const& val) {
     void* val_p = Zeta_DynamicVector_Insert(&dv, idx);
     Zeta_MemCopy(sizeof(val_t), (byte_t*)val_p, (byte_t*)(void*)&val);
     return (val_t*)val_p;
@@ -132,7 +132,7 @@ void DvPrint() {
     std::cout << " }\n";
 }
 
-void SyncInsert(size_t idx, const val_t& val) {
+void SyncInsert(size_t idx, val_t const& val) {
     de.insert(de.begin() + idx, val);
     DvInsert(idx, val);
 }
@@ -161,8 +161,7 @@ void Check() {
 
     Zeta_MultiLevelVector_GetAllPages(&dv.mlv, tm);
 
-    std::map<size_t, size_t>* m =
-        (std::map<size_t, size_t>*)(tm);
+    std::map<size_t, size_t>* m = (std::map<size_t, size_t>*)(tm);
 
     for (auto iter{ m->begin() }, end{ m->end() }; iter != end; ++iter) {
         ZETA_DebugAssert(

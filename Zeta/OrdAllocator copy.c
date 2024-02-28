@@ -1,7 +1,6 @@
-#include "OrdAllocator.h"
-
 #include "Algorithm.h"
 #include "DebugTreeMap.h"
+#include "OrdAllocator.h"
 #include "RBTree.h"
 #include "RawVector.h"
 #include "utils.h"
@@ -87,11 +86,11 @@ struct WidthSizePair {
     size_t size;
 };
 
-static int CompareWidthSizePair(void* context, const void* x_, const void* y_) {
+static int CompareWidthSizePair(void* context, void const* x_, void const* y_) {
     ZETA_Unused(context);
 
-    const WidthSizePair* x = x_;
-    const WidthSizePair* y = y_;
+    WidthSizePair const* x = x_;
+    WidthSizePair const* y = y_;
 
     if (x->width < y->width) { return -1; }
     if (y->width < x->width) { return 1; }
@@ -300,7 +299,7 @@ static Zeta_OrdAllocator_Head* Allocate_(Zeta_OrdAllocator* ord_allocator,
     Zeta_OrdAllocator_Head* r_head =
         GetHeadFromHN_(Zeta_RelLinkedListNode_GetR(&l_head->hn));
 
-    const Zeta_RBTreeNodeOpr rbtn_opr = {
+    Zeta_RBTreeNodeOpr const rbtn_opr = {
         .context = NULL,
 
         .GetP = Zeta_RelRBTreeNode_GetP,
@@ -361,7 +360,7 @@ static Zeta_OrdAllocator_Head* Deallocate_(Zeta_OrdAllocator* ord_allocator,
     Zeta_OrdAllocator_Head* r_head =
         GetHeadFromHN_(Zeta_RelLinkedListNode_GetR(&m_head->hn));
 
-    const Zeta_RBTreeNodeOpr rbtn_opr = {
+    Zeta_RBTreeNodeOpr const rbtn_opr = {
         .context = NULL,
 
         .GetP = Zeta_RelRBTreeNode_GetP,

@@ -33,7 +33,7 @@ struct Zeta_SHA256Hasher {
  * @param data The target data.
  * @param data_end The end of the target data.
  */
-void Zeta_SHA256_Hash(byte_t* dst, const byte_t* data, const byte_t* data_end);
+void Zeta_SHA256_Hash(byte_t* dst, byte_t const* data, byte_t const* data_end);
 
 /**
  * @brief Initialize the hasher
@@ -75,7 +75,7 @@ void Zeta_SHA256Hasher_GetResult(void* hasher, byte_t* dst);
  * @param data The target data.
  * @param data_end The end of the target data.
  */
-void Zeta_SHA256Hasher_Rotate(void* hasher, const byte_t* data,
-                              const byte_t* data_end);
+void Zeta_SHA256Hasher_Rotate(void* hasher, byte_t const* data,
+                              byte_t const* data_end);
 
 ZETA_extern_c_end;

@@ -21,9 +21,9 @@ bool_t Zeta_StdOutStream_IsEmpty(void* context) {
     return FALSE;
 }
 
-bool_t Zeta_StdOutStream_Write(void* os_, const void* data_) {
+bool_t Zeta_StdOutStream_Write(void* os_, void const* data_) {
     Zeta_StdOutStream* os = os_;
-    const byte_t* data = data_;
+    byte_t const* data = data_;
 
     int buffer_i = os->buffer_i;
     int buffer_size = os->buffer_size;

@@ -2,11 +2,11 @@
 
 //
 
-extern void __stdcall syscall__write_(unsigned int fd, const char* data,
+extern void __stdcall syscall__write_(unsigned int fd, char const* data,
                                       size_t data_len);
 
 int main() {
-    const char str[] = "Hello World\n";
+    char const str[] = "Hello World\n";
 
     syscall__write_(fileno(stdout), str, sizeof(str) / sizeof(char));
 

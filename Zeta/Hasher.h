@@ -33,5 +33,5 @@ struct Zeta_Hasher {
      *
      * @param context The context of hasher.
      */
-    void (*Rotate)(void* context, const byte_t* data, size_t size);
+    void (*Rotate)(void* context, byte_t const* data, size_t size);
 };

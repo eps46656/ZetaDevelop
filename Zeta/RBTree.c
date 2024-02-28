@@ -84,7 +84,7 @@ static void* Insert_(void* context, void* (*GetP)(void* context, void* n),
     return Zeta_GetMostLink(context, GetP, root);
 }
 
-void* Zeta_RBTree_InsertL(const Zeta_RBTreeNodeOpr* rbtn_opr, void* n,
+void* Zeta_RBTree_InsertL(Zeta_RBTreeNodeOpr const* rbtn_opr, void* n,
                           void* m) {
     ZETA_DebugAssert(rbtn_opr != NULL);
     ZETA_DebugAssert(rbtn_opr->GetP != NULL);
@@ -107,7 +107,7 @@ void* Zeta_RBTree_InsertL(const Zeta_RBTreeNodeOpr* rbtn_opr, void* n,
                    rbtn_opr->RotateR, n, m);
 }
 
-void* Zeta_RBTree_InsertR(const Zeta_RBTreeNodeOpr* rbtn_opr, void* n,
+void* Zeta_RBTree_InsertR(Zeta_RBTreeNodeOpr const* rbtn_opr, void* n,
                           void* m) {
     ZETA_DebugAssert(rbtn_opr != NULL);
     ZETA_DebugAssert(rbtn_opr->GetP != NULL);
@@ -130,7 +130,7 @@ void* Zeta_RBTree_InsertR(const Zeta_RBTreeNodeOpr* rbtn_opr, void* n,
                    rbtn_opr->RotateL, n, m);
 }
 
-static void ExtractBalance_(const Zeta_RBTreeNodeOpr* rbtn_opr, void* n) {
+static void ExtractBalance_(Zeta_RBTreeNodeOpr const* rbtn_opr, void* n) {
     void* context = rbtn_opr->context;
 
     for (;;) {
@@ -199,7 +199,7 @@ static void ExtractBalance_(const Zeta_RBTreeNodeOpr* rbtn_opr, void* n) {
     }
 }
 
-void* Zeta_RBTree_Extract(const Zeta_RBTreeNodeOpr* rbtn_opr, void* n) {
+void* Zeta_RBTree_Extract(Zeta_RBTreeNodeOpr const* rbtn_opr, void* n) {
     ZETA_DebugAssert(n != NULL);
 
     void* context = rbtn_opr->context;
@@ -244,7 +244,7 @@ void* Zeta_RBTree_Extract(const Zeta_RBTreeNodeOpr* rbtn_opr, void* n) {
     return root;
 }
 
-static size_t Check_(const Zeta_RBTreeNodeOpr* rbtn_opr, void* n) {
+static size_t Check_(Zeta_RBTreeNodeOpr const* rbtn_opr, void* n) {
     if (n == NULL) { return 0; }
 
     void* context = rbtn_opr->context;
@@ -270,7 +270,7 @@ static size_t Check_(const Zeta_RBTreeNodeOpr* rbtn_opr, void* n) {
     return lbh;
 }
 
-void Zeta_RBTree_Check(const Zeta_RBTreeNodeOpr* rbtn_opr, void* n) {
+void Zeta_RBTree_Check(Zeta_RBTreeNodeOpr const* rbtn_opr, void* n) {
     ZETA_DebugAssert(rbtn_opr != NULL);
     ZETA_DebugAssert(rbtn_opr->GetP != NULL);
     ZETA_DebugAssert(rbtn_opr->GetL != NULL);

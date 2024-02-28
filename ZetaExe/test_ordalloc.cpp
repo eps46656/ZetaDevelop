@@ -13,7 +13,7 @@ Zeta_OrdAllocator allocator;
 
 std::map<size_t, size_t> req_ptr_size_tm;
 
-void CheckNoCross(const std::map<size_t, size_t>& m) {
+void CheckNoCross(std::map<size_t, size_t> const& m) {
     if (m.empty()) { return; }
 
     auto iter = m.begin();
@@ -28,7 +28,7 @@ void CheckNoCross(const std::map<size_t, size_t>& m) {
     }
 }
 
-void PrintTM(const std::map<size_t, size_t>& m) {
+void PrintTM(std::map<size_t, size_t> const& m) {
     std::cout << "{\n";
 
     for (auto iter{ m.begin() }, end{ m.end() }; iter != end; ++iter) {

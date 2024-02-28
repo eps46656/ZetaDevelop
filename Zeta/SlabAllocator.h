@@ -85,8 +85,8 @@ int Zeta_SlabAllocator_GetMaxNum(size_t page_size, int size);
 
 size_t Zeta_SlabAllocator_GetPageSize(int size, int num);
 
-void Zeta_SlabAllocator_Entrust(void* sa, int num_of_types, const int* sizes,
-                                const int* nums, Zeta_Allocator* allocator);
+void Zeta_SlabAllocator_Entrust(void* sa, int num_of_types, int const* sizes,
+                                int const* nums, Zeta_Allocator* allocator);
 
 size_t Zeta_SlabAllocator_Query(void* sa, size_t size);
 

@@ -14,7 +14,7 @@ struct UTF16_EncodeRet {
     bool_t success;
 
     byte_t* nxt_dst;
-    const unichar_t* nxt_data;
+    unichar_t const* nxt_data;
 };
 
 typedef struct UTF16_DecodeRet UTF16_DecodeRet;
@@ -27,7 +27,7 @@ struct UTF16_DecodeRet {
     bool_t success;
 
     unichar_t* nxt_dst;
-    const byte_t* nxt_data;
+    byte_t const* nxt_data;
 };
 
 /**
@@ -39,13 +39,13 @@ struct UTF16_DecodeRet {
  *
  * @return The size(bytes) of encoded data.
  */
-size_t Zeta_UTF16_GetEncodeSize(const unichar_t* data,
-                                const unichar_t* data_end,
+size_t Zeta_UTF16_GetEncodeSize(unichar_t const* data,
+                                unichar_t const* data_end,
                                 bool_t little_endian);
 
 UTF16_EncodeRet Zeta_UTF16_Encode(byte_t* dst, byte_t* dst_end,
-                                  const unichar_t* data,
-                                  const unichar_t* data_end,
+                                  unichar_t const* data,
+                                  unichar_t const* data_end,
                                   bool_t little_endian);
 
 /**
@@ -55,11 +55,11 @@ UTF16_EncodeRet Zeta_UTF16_Encode(byte_t* dst, byte_t* dst_end,
  * @param data The source data.
  * @param data_end The end of source data.
  */
-size_t Zeta_UTF16_GetDecodeSize(const byte_t* data, const byte_t* data_end,
+size_t Zeta_UTF16_GetDecodeSize(byte_t const* data, byte_t const* data_end,
                                 bool_t little_endian);
 
 UTF16_DecodeRet Zeta_UTF16_Decode(unichar_t* dst, unichar_t* dst_end,
-                                  const byte_t* data, const byte_t* data_end,
+                                  byte_t const* data, byte_t const* data_end,
                                   bool_t little_endian);
 
 ZETA_extern_c_end;

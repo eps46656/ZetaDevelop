@@ -11,7 +11,7 @@ ZETA_extern_c_beg;
  * @param dst The pointer points to destination byte array.
  * @param src The pointer points to source byte array.
  */
-void Zeta_MemCopy(size_t size, void* dst, const void* src);
+void Zeta_MemCopy(size_t size, void* dst, void const* src);
 
 /**
  * @brief Swap byte array between dst and src
@@ -45,16 +45,16 @@ void* Zeta_MemRotate(void* beg, void* mid, void* end);
  *
  * @return The read integer
  */
-size_t Zeta_ReadLittleEndian(const byte_t* data, unsigned int length);
+size_t Zeta_ReadLittleEndian(byte_t const* data, unsigned int length);
 
 /**
  * @brief Write an integer to data in little endian occupying length bytes.
  *
  * @param dst The destination byte array.
- * @param x The target integer.
  * @param length The number of bytes the integer occupied.
+ * @param val The target integer.
  */
-void Zeta_WriteLittleEndian(byte_t* dst, size_t x, unsigned int length);
+void Zeta_WriteLittleEndian(byte_t* dst, unsigned int length, size_t val);
 
 /**
  * @brief Read big endian stored length bytes occupying integer from data.
@@ -64,16 +64,16 @@ void Zeta_WriteLittleEndian(byte_t* dst, size_t x, unsigned int length);
  *
  * @return The read integer
  */
-size_t Zeta_ReadBigEndian(const byte_t* data, unsigned int length);
+size_t Zeta_ReadBigEndian(byte_t const* data, unsigned int length);
 
 /**
  * @brief Write an integer to data in big endian occupying length bytes.
  *
  * @param dst The destination byte array.
- * @param x The target integer.
  * @param length The number of bytes the integer occupied.
+ * @param val The target integer.
  */
-void Zeta_WriteBigEndian(byte_t* dst, size_t x, unsigned int length);
+void Zeta_WriteBigEndian(byte_t* dst, unsigned int length, size_t val);
 
 size_t Zeta_SimpleRandom(size_t x);
 

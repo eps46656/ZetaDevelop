@@ -15,9 +15,9 @@ struct Zeta_Deque {
 
     void* (*PeekR)(void* context);
 
-    void (*PushL)(void* context, const void* x);
+    void (*PushL)(void* context, void const* x);
 
-    void (*PushR)(void* context, const void* x);
+    void (*PushR)(void* context, void const* x);
 
     void (*PopL)(void* context);
 

@@ -47,8 +47,8 @@ size_t Zeta_SlabAllocator_GetPageSize(int size, int num) {
            (sizeof(void*) + size) * num;
 }
 
-void Zeta_SlabAllocator_Entrust(void* sa_, int num_of_types, const int* sizes,
-                                const int* nums, Zeta_Allocator* allocator) {
+void Zeta_SlabAllocator_Entrust(void* sa_, int num_of_types, int const* sizes,
+                                int const* nums, Zeta_Allocator* allocator) {
     Zeta_SlabAllocator* sa = sa_;
 
     ZETA_DebugAssert(sa != NULL);
@@ -81,7 +81,7 @@ void Zeta_SlabAllocator_Entrust(void* sa_, int num_of_types, const int* sizes,
     sa->allocator = allocator;
 }
 
-static int GetTypeIdx_(int num_of_types, const int* sizes, size_t size) {
+static int GetTypeIdx_(int num_of_types, int const* sizes, size_t size) {
     int type_lb = 0;
     int type_rb = num_of_types;
 

@@ -6,11 +6,11 @@
 
 typedef long long int lli;
 
-int Comparer(void* context, const void* x, const void* y) {
+int Comparer(void* context, void const* x, void const* y) {
     ZETA_Unused(context);
 
-    lli x_val = *(const lli*)(x);
-    lli y_val = *(const lli*)(y);
+    lli x_val = *(lli const*)(x);
+    lli y_val = *(lli const*)(y);
 
     if (x_val < y_val) { return -1; }
     if (y_val < x_val) { return 1; }

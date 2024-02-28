@@ -33,8 +33,8 @@ static byte_t* EncodeChar_(byte_t* dst, unichar_t data_) {
     }
 }
 
-size_t Zeta_UTF8_GetEncodeSize(const unichar_t* data,
-                               const unichar_t* data_end) {
+size_t Zeta_UTF8_GetEncodeSize(unichar_t const* data,
+                               unichar_t const* data_end) {
     ZETA_DebugAssert(data != NULL);
     ZETA_DebugAssert(data_end != NULL);
     ZETA_DebugAssert(data <= data_end);
@@ -53,8 +53,8 @@ size_t Zeta_UTF8_GetEncodeSize(const unichar_t* data,
 }
 
 Zeta_UTF8_EncodeRet Zeta_UTF8_Encode(byte_t* dst, byte_t* dst_end,
-                                     const unichar_t* data,
-                                     const unichar_t* data_end) {
+                                     unichar_t const* data,
+                                     unichar_t const* data_end) {
     ZETA_DebugAssert(dst != NULL);
     ZETA_DebugAssert(dst_end != NULL);
     ZETA_DebugAssert(dst <= dst_end);
@@ -95,8 +95,8 @@ Zeta_UTF8_EncodeRet Zeta_UTF8_Encode(byte_t* dst, byte_t* dst_end,
     };
 }
 
-static const byte_t* DecodeChar_(unichar_t* dst, const byte_t* data,
-                                 const byte_t* data_end) {
+static byte_t const* DecodeChar_(unichar_t* dst, byte_t const* data,
+                                 byte_t const* data_end) {
     unichar_t x = data[0];
 
     if (data[0] < 0) {
@@ -157,7 +157,7 @@ static const byte_t* DecodeChar_(unichar_t* dst, const byte_t* data,
     return data;
 }
 
-size_t Zeta_UTF8_GetDecodeSize(const byte_t* data, const byte_t* data_end) {
+size_t Zeta_UTF8_GetDecodeSize(byte_t const* data, byte_t const* data_end) {
     ZETA_DebugAssert(data != NULL);
     ZETA_DebugAssert(data_end != NULL);
     ZETA_DebugAssert(data <= data_end);
@@ -167,7 +167,7 @@ size_t Zeta_UTF8_GetDecodeSize(const byte_t* data, const byte_t* data_end) {
     unichar_t dst;
 
     while (data < data_end) {
-        const byte_t* nxt_data = DecodeChar_(&dst, data, data_end);
+        byte_t const* nxt_data = DecodeChar_(&dst, data, data_end);
         if (nxt_data == NULL) { return ZETA_maxof(size_t); }
         data = nxt_data;
         ++ret;
@@ -177,8 +177,8 @@ size_t Zeta_UTF8_GetDecodeSize(const byte_t* data, const byte_t* data_end) {
 }
 
 Zeta_UTF8_DecodeRet Zeta_UTF8_Decode(unichar_t* dst, unichar_t* dst_end,
-                                     const byte_t* data,
-                                     const byte_t* data_end) {
+                                     byte_t const* data,
+                                     byte_t const* data_end) {
     ZETA_DebugAssert(dst != NULL);
     ZETA_DebugAssert(dst_end != NULL);
     ZETA_DebugAssert(dst <= dst_end);
@@ -188,7 +188,7 @@ Zeta_UTF8_DecodeRet Zeta_UTF8_Decode(unichar_t* dst, unichar_t* dst_end,
     ZETA_DebugAssert(data <= data_end);
 
     while (dst < dst_end && data < data_end) {
-        const byte_t* nxt_data = DecodeChar_(dst, data, data_end);
+        byte_t const* nxt_data = DecodeChar_(dst, data, data_end);
 
         if (nxt_data == NULL) {
             return (Zeta_UTF8_DecodeRet){

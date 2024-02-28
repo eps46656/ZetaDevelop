@@ -263,7 +263,7 @@ def builder_add(builder):
         },
         lambda : os.system(" ".join([
             cppc,
-            f"-o {ZetaDir}/DebugDeque.o",
+            f"--output {ZetaDir}/DebugDeque.o",
             *cppargs,
             f"-c",
             f"{ZetaDir}/DebugDeque.cpp",
@@ -296,7 +296,7 @@ def builder_add(builder):
         },
         lambda : os.system(" ".join([
             cppc,
-            f"-o {ZetaDir}/DebugTreeMap.o",
+            f"--output {ZetaDir}/DebugTreeMap.o",
             *cppargs,
             f"-c",
             f"-fPIC",
@@ -330,7 +330,7 @@ def builder_add(builder):
         },
         lambda : os.system(" ".join([
             cppc,
-            f"-o {ZetaDir}/DebugHashTable.o",
+            f"--output {ZetaDir}/DebugHashTable.o",
             *cppargs,
             f"-c",
             f"-fPIC",
@@ -354,6 +354,40 @@ def builder_add(builder):
             f"-fPIC",
 
             f"{ZetaDir}/DebugHashTable.cpp",
+        ]))
+    )
+
+    builder.add(
+        f"{ZetaDir}/DiskInfo.h",
+        {
+            f"{File}",
+            f"{ZetaDir}/define.h",
+        },
+        lambda : 0
+    )
+
+    builder.add(
+        f"{ZetaDir}/DiskInfo.c",
+        {
+            f"{File}",
+            f"{ZetaDir}/DiskPartGPT.h",
+            f"{ZetaDir}/utils.h",
+        },
+        lambda : 0
+    )
+
+    builder.add(
+        f"{ZetaDir}/DiskInfo.o",
+        {
+            f"{File}",
+            f"{ZetaDir}/DiskInfo.c",
+        },
+        lambda : os.system(" ".join([
+            cc,
+            f"--output {ZetaDir}/DiskInfo.o",
+            f"-c",
+            *cargs,
+            f"{ZetaDir}/DiskInfo.c",
         ]))
     )
 

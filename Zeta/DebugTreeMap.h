@@ -14,7 +14,7 @@ typedef struct Zeta_DebugTreeMap_KeyValPair Zeta_DebugTreeMap_KeyValPair;
 
 struct Zeta_DebugTreeMap_KeyValPair {
     bool_t b;
-    const size_t* key;
+    size_t const* key;
     size_t* val;
 };
 

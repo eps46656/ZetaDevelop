@@ -1,8 +1,8 @@
 #include "utils.h"
 
-void Zeta_MemCopy(size_t size, void* dst_, const void* src_) {
+void Zeta_MemCopy(size_t size, void* dst_, void const* src_) {
     unsigned char* dst = dst_;
-    const unsigned char* src = src_;
+    unsigned char const* src = src_;
 
     if (dst == src) { return; }
 
@@ -62,29 +62,29 @@ void* Zeta_MemRotate(void* beg_, void* mid_, void* end_) {
     return ret;
 }
 
-size_t Zeta_ReadLittleEndian(const byte_t* data, unsigned int length) {
+size_t Zeta_ReadLittleEndian(byte_t const* data, unsigned int length) {
     ZETA_DebugAssert(data != NULL);
     ZETA_DebugAssert(length <= sizeof(size_t));
 
     size_t ret = 0;
 
-    for (unsigned int i = length; 1 <= --i;) {
+    for (unsigned int i = length; 0 < i--;) {
         ret = ret * (size_t)256 + (size_t)data[i];
     }
 
     return ret;
 }
 
-void Zeta_WriteLittleEndian(byte_t* dst, size_t x, unsigned int length) {
+void Zeta_WriteLittleEndian(byte_t* dst, unsigned int length, size_t val) {
     ZETA_DebugAssert(dst != NULL);
 
     for (unsigned int i = 0; i < length; ++i) {
-        dst[i] = x % 256;
-        x /= 256;
+        dst[i] = val % 256;
+        val /= 256;
     }
 }
 
-size_t Zeta_ReadBigEndian(const byte_t* data, unsigned int length) {
+size_t Zeta_ReadBigEndian(byte_t const* data, unsigned int length) {
     ZETA_DebugAssert(data != NULL);
     ZETA_DebugAssert(length <= sizeof(size_t));
 
@@ -97,12 +97,12 @@ size_t Zeta_ReadBigEndian(const byte_t* data, unsigned int length) {
     return ret;
 }
 
-void Zeta_WriteBigEndian(byte_t* dst, size_t x, unsigned int length) {
+void Zeta_WriteBigEndian(byte_t* dst, unsigned int length, size_t val) {
     ZETA_DebugAssert(dst != NULL);
 
-    for (unsigned int i = length; 1 <= i--;) {
-        dst[i] = x % 256;
-        x /= 256;
+    for (unsigned int i = length; 0 < i--;) {
+        dst[i] = val % 256;
+        val /= 256;
     }
 }
 

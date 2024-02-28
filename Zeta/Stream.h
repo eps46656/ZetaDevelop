@@ -15,13 +15,13 @@ struct Zeta_Stream {
 
     bool_t (*IsEmpty)(void* context);
 
-    const void* (*Peek)(void* context);
+    void const* (*Peek)(void* context);
 
     void (*Read)(void* context);
 
-    void (*Unread)(void* context, const void* data);
+    void (*Unread)(void* context, void const* data);
 
-    void (*Write)(void* context, const void* data);
+    void (*Write)(void* context, void const* data);
 };
 
 void Zeta_StreamTransfer(Zeta_Stream* dst, Zeta_Stream* src);

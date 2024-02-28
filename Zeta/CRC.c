@@ -21,8 +21,8 @@ byte_t ByteReverse_(byte_t x) {
     return ret;
 }
 
-void Zeta_CRCHasher_Rotate(void* hasher_, const byte_t* data,
-                           const byte_t* data_end, int reverse) {
+void Zeta_CRCHasher_Rotate(void* hasher_, byte_t const* data,
+                           byte_t const* data_end, int reverse) {
     Zeta_CRCHasher* hasher = hasher_;
     ZETA_DebugAssert(hasher != NULL);
 
