@@ -72,18 +72,18 @@ void* Zeta_SlabAllocator_Allocate(void* sa_, size_t size) {
     Zeta_SlabAllocator* sa = sa_;
     ZETA_DebugAssert(sa != NULL);
 
-    if (size == 0 || sa->width < size) { return NULL; }
-
-    Zeta_RelLinkedListNode* hot_unit_head = &sa->hot_unit_head;
-
-    Zeta_RelLinkedListNode* hot_unit_n =
-        Zeta_RelLinkedListNode_GetR(hot_unit_head);
-
     size_t align = sa->align;
     size_t width = sa->width;
     size_t num = sa->num;
     size_t stride = width + sizeof(uintptr_t);
     size_t head_size = Zeta_FindNextConMod(sizeof(SlabHead_), 0, align);
+
+    if (size == 0 || width < size) { return NULL; }
+
+    Zeta_RelLinkedListNode* hot_unit_head = &sa->hot_unit_head;
+
+    Zeta_RelLinkedListNode* hot_unit_n =
+        Zeta_RelLinkedListNode_GetR(hot_unit_head);
 
     if (hot_unit_n == hot_unit_head) {
         Zeta_Allocator* allocator = sa->allocator;
@@ -96,7 +96,7 @@ void* Zeta_SlabAllocator_Allocate(void* sa_, size_t size) {
 
         Zeta_RelLinkedListNode_Init(&slab_head->n);
 
-        slab_head->num = num;
+        slab_head->num = num - 1;
 
         uintptr_t first_chunk = ZETA_PTR_TO_UINT(slab_head) + head_size;
         uintptr_t chunk = first_chunk;
@@ -107,8 +107,7 @@ void* Zeta_SlabAllocator_Allocate(void* sa_, size_t size) {
             Zeta_RelLinkedListNode_InsertL(ZETA_UINT_TO_PTR(hot_unit_head),
                                            ZETA_UINT_TO_PTR(chunk));
 
-            SetPtr_(ZETA_UINT_TO_PTR(chunk + width),
-                    ZETA_UINT_TO_PTR(slab_head));
+            SetPtr_(ZETA_UINT_TO_PTR(chunk + width), slab_head);
         }
 
         sa->num_of_vacant_units += num;
@@ -116,11 +115,13 @@ void* Zeta_SlabAllocator_Allocate(void* sa_, size_t size) {
         hot_unit_n = ZETA_UINT_TO_PTR(first_chunk);
     } else {
         uintptr_t* hot_unit_back_ptr =
-            ZETA_UINT_TO_PTR(ZETA_PTR_TO_UINT(hot_unit_n) + sa->width);
+            ZETA_UINT_TO_PTR(ZETA_PTR_TO_UINT(hot_unit_n) + width);
 
         SlabHead_* slab_head = GetPtr_(hot_unit_back_ptr);
 
         Zeta_RelLinkedListNode_Extract(&slab_head->n);
+
+        --slab_head->num;
     }
 
     Zeta_RelLinkedListNode_Extract(hot_unit_n);
@@ -170,7 +171,7 @@ void Zeta_SlabAllocator_Deallocate(void* sa_, void* ptr) {
     SlabHead_* vacant_slab_head =
         ZETA_GetStructFromMember(SlabHead_, n, vacant_slab_n);
 
-    size_t stride = sa->width + sizeof(uintptr_t);
+    size_t stride = width + sizeof(uintptr_t);
     size_t head_size = Zeta_FindNextConMod(sizeof(SlabHead_), 0, sa->align);
 
     Zeta_RelLinkedListNode_Extract(vacant_slab_n);

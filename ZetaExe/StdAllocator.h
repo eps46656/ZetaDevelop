@@ -3,11 +3,16 @@
 
 #include "../Zeta/define.h"
 
-#define RECORDS FALSE
+#define RECORDS TRUE
 
 struct StdAllocator {
     std::map<size_t, size_t> records;
 };
+
+size_t StdAllocator_GetAlign(void* sa_) {
+    ZETA_Unused(sa_);
+    return alignof(max_align_t);
+}
 
 size_t StdAllocator_Query(void* sa_, size_t size) {
     ZETA_Unused(sa_);
@@ -48,7 +53,7 @@ void StdAllocator_ToAllocator(void* sa_, Zeta_Allocator* dst) {
     ZETA_DebugAssert(sa != NULL);
 
     dst->context = sa;
-
+    dst->GetAlign = StdAllocator_GetAlign;
     dst->Query = StdAllocator_Query;
     dst->Allocate = StdAllocator_Allocate;
     dst->Deallocate = StdAllocator_Deallocate;
