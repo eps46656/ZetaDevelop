@@ -7,6 +7,8 @@ typedef struct Zeta_Allocator Zeta_Allocator;
 struct Zeta_Allocator {
     void* context;
 
+    size_t (*GetAlign)(void* context);
+
     size_t (*Query)(void* context, size_t size);
 
     void* (*Allocate)(void* context, size_t size);

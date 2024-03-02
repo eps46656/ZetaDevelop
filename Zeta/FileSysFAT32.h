@@ -2,9 +2,9 @@
 
 #include "Disk.h"
 
-typedef struct Zeta_FileSystemFAT32_Header Zeta_FileSystemFAT32_Header;
+typedef struct Zeta_FileSysFAT32_Header Zeta_FileSysFAT32_Header;
 
-struct Zeta_FileSystemFAT32_Header {
+struct Zeta_FileSysFAT32_Header {
     u64_t base_idx;
 
     byte_t jmp_boot[3];

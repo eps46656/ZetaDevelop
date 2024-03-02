@@ -118,8 +118,8 @@ void Zeta_SHA256Hasher_GetResult(void* hasher_, byte_t* dst) {
     size_t cur_size = hasher->size;
 
     Zeta_SHA256Hasher tmp_hasher;
-    Zeta_MemCopy(sizeof(Zeta_SHA256Hasher), (byte_t*)&tmp_hasher,
-                 (byte_t*)hasher);
+    Zeta_MemCopy((byte_t*)&tmp_hasher, (byte_t*)hasher,
+                 sizeof(Zeta_SHA256Hasher));
 
     byte_t buffer[64 + 8];
     buffer[0] = 0x80;

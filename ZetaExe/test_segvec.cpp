@@ -11,11 +11,11 @@ typedef unsigned int val_t;
 
 #define WIDTH sizeof(val_t)
 
-void SetVal(void* dst, val_t x) { Zeta_MemCopy(WIDTH, dst, &x); }
+void SetVal(void* dst, val_t x) { Zeta_MemCopy(dst, &x, WIDTH); }
 
 void PrintVal(void* x) {
     unsigned int xi;
-    Zeta_MemCopy(WIDTH, &xi, x);
+    Zeta_MemCopy(&xi, x, WIDTH);
     printf("%x\n", xi);
 }
 

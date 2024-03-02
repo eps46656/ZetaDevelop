@@ -186,13 +186,13 @@ void* Zeta_CircularVector_Insert(void* cv_, size_t idx) {
     }
 
     for (; hole_idx < idx; ++hole_idx) {
-        Zeta_MemCopy(width, Zeta_CircularVector_Access(cv, hole_idx),
-                     Zeta_CircularVector_Access(cv, hole_idx + 1));
+        Zeta_MemCopy(Zeta_CircularVector_Access(cv, hole_idx),
+                     Zeta_CircularVector_Access(cv, hole_idx + 1), width);
     }
 
     for (; idx < hole_idx; --hole_idx) {
-        Zeta_MemCopy(width, Zeta_CircularVector_Access(cv, hole_idx),
-                     Zeta_CircularVector_Access(cv, hole_idx - 1));
+        Zeta_MemCopy(Zeta_CircularVector_Access(cv, hole_idx),
+                     Zeta_CircularVector_Access(cv, hole_idx - 1), width);
     }
 
     return Zeta_CircularVector_Access(cv, idx);
@@ -239,16 +239,16 @@ void Zeta_CircularVector_Erase(void* cv_, size_t idx) {
 
     if (idx < size - 1 - idx) {
         for (size_t i = idx; 0 < i; --i) {
-            Zeta_MemCopy(width, Zeta_CircularVector_Access(cv, i),
-                         Zeta_CircularVector_Access(cv, i - 1));
+            Zeta_MemCopy(Zeta_CircularVector_Access(cv, i),
+                         Zeta_CircularVector_Access(cv, i - 1), width);
         }
 
         cv->offset = (offset + 1) % capacity;
         --cv->size;
     } else {
         for (size_t i = idx; i < size - 1; ++i) {
-            Zeta_MemCopy(width, Zeta_CircularVector_Access(cv, i),
-                         Zeta_CircularVector_Access(cv, i + 1));
+            Zeta_MemCopy(Zeta_CircularVector_Access(cv, i),
+                         Zeta_CircularVector_Access(cv, i + 1), width);
         }
 
         --cv->size;

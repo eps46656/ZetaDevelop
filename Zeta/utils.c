@@ -1,6 +1,6 @@
 #include "utils.h"
 
-void Zeta_MemCopy(size_t size, void* dst_, void const* src_) {
+void Zeta_MemCopy(void* dst_, void const* src_, size_t size) {
     unsigned char* dst = dst_;
     unsigned char const* src = src_;
 
@@ -16,7 +16,7 @@ void Zeta_MemCopy(size_t size, void* dst_, void const* src_) {
     }
 }
 
-void Zeta_MemSwap(size_t size, void* x_, void* y_) {
+void Zeta_MemSwap(void* x_, void* y_, size_t size) {
     unsigned char* x = x_;
     unsigned char* y = y_;
 

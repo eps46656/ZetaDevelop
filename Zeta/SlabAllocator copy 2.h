@@ -1,10 +1,7 @@
 #pragma once
 
 #include "Allocator.h"
-#include "DebugTreeMap.h"
 #include "RelLinkedListNode.h"
-
-ZETA_extern_c_beg;
 
 /*
 
@@ -23,14 +20,9 @@ struct Zeta_SlabAllocator {
     size_t width;
     size_t num;
 
+    Zeta_RelLinkedListNode slab_list_head;
+
     Zeta_Allocator* allocator;
-
-    size_t num_of_vacant_units;
-    size_t num_of_occupied_units;
-
-    Zeta_RelLinkedListNode vacant_slab_n_list_head;
-
-    Zeta_RelLinkedListNode hot_unit_head;
 };
 
 void Zeta_SlabAllocator_Init(void* sa);
@@ -44,8 +36,3 @@ void* Zeta_SlabAllocator_Allocate(void* sa, size_t size);
 void Zeta_SlabAllocator_Deallocate(void* sa, void* ptr);
 
 void Zeta_SlabAllocator_DeployAllocator(void* sa, Zeta_Allocator* dst);
-
-void Zeta_SlabAllocator_Check(void* sa, bool_t print_state,
-                              void* dst_ptr_size_tm);
-
-ZETA_extern_c_end;

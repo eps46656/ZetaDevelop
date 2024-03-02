@@ -17,6 +17,7 @@ void Zeta_DebugTreeMap_Destroy(void* tm_) {
     ZETA_DebugAssert(tm != NULL);
 
     tree_map_t* tree_map = (tree_map_t*)tm->tree_map;
+    ZETA_DebugAssert(tree_map != NULL);
 
     delete tree_map;
 
@@ -28,6 +29,7 @@ size_t Zeta_DebugTreeMap_GetSize(void* tm_) {
     ZETA_DebugAssert(tm != NULL);
 
     tree_map_t* tree_map = (tree_map_t*)tm->tree_map;
+    ZETA_DebugAssert(tree_map != NULL);
 
     return tree_map->size();
 }
@@ -37,6 +39,7 @@ Zeta_DebugTreeMap_KeyValPair Zeta_DebugTreeMap_Find(void* tm_, size_t key) {
     ZETA_DebugAssert(tm != NULL);
 
     tree_map_t* tree_map = (tree_map_t*)tm->tree_map;
+    ZETA_DebugAssert(tree_map != NULL);
 
     auto iter{ tree_map->find(key) };
 
@@ -51,6 +54,7 @@ Zeta_DebugTreeMap_KeyValPair Zeta_DebugTreeMap_Insert(void* tm_, size_t key) {
     ZETA_DebugAssert(tm != NULL);
 
     tree_map_t* tree_map = (tree_map_t*)tm->tree_map;
+    ZETA_DebugAssert(tree_map != NULL);
 
     auto iter_b{ tree_map->insert({ key, 0 }) };
 
@@ -62,6 +66,7 @@ bool_t Zeta_DebugTreeMap_Erase(void* tm_, size_t key) {
     ZETA_DebugAssert(tm != NULL);
 
     tree_map_t* tree_map = (tree_map_t*)tm->tree_map;
+    ZETA_DebugAssert(tree_map != NULL);
 
     return tree_map->erase(key) != 0;
 }
@@ -71,6 +76,7 @@ void Zeta_DebugTreeMap_EraseAll(void* tm_) {
     ZETA_DebugAssert(tm != NULL);
 
     tree_map_t* tree_map = (tree_map_t*)tm->tree_map;
+    ZETA_DebugAssert(tree_map != NULL);
 
     tree_map->clear();
 }
@@ -80,6 +86,7 @@ void Zeta_DebugTreeMap_Print(void* tm_) {
     ZETA_DebugAssert(tm != NULL);
 
     tree_map_t* tree_map = (tree_map_t*)tm->tree_map;
+    ZETA_DebugAssert(tree_map != NULL);
 
     std::cout << "{ ";
 

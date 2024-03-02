@@ -150,13 +150,13 @@ void* Zeta_DynamicVector_Insert(void* dv_, size_t idx) {
     }
 
     for (; hole_idx < idx; ++hole_idx) {
-        Zeta_MemCopy(dv->width, Access_(dv, hole_idx),
-                     Access_(dv, hole_idx + 1));
+        Zeta_MemCopy(Access_(dv, hole_idx), Access_(dv, hole_idx + 1),
+                     dv->width);
     }
 
     for (; idx < hole_idx; --hole_idx) {
-        Zeta_MemCopy(dv->width, Access_(dv, hole_idx),
-                     Access_(dv, hole_idx - 1));
+        Zeta_MemCopy(Access_(dv, hole_idx), Access_(dv, hole_idx - 1),
+                     dv->width);
     }
 
     return Access_(dv, idx);
@@ -190,7 +190,7 @@ void Zeta_DynamicVector_Erase(void* dv_, size_t idx) {
 
     if (idx < dv->size - 1 - idx) {  // l move
         for (; 0 < idx; --idx) {
-            Zeta_MemCopy(dv->width, Access_(dv, idx), Access_(dv, idx - 1));
+            Zeta_MemCopy(Access_(dv, idx), Access_(dv, idx - 1), dv->width);
         }
 
         size_t real_idx = (dv->offset + 0) % capacity;
@@ -211,7 +211,7 @@ void Zeta_DynamicVector_Erase(void* dv_, size_t idx) {
         --dv->size;
     } else {  // r move
         for (; idx < dv->size - 1; ++idx) {
-            Zeta_MemCopy(dv->width, Access_(dv, idx), Access_(dv, idx + 1));
+            Zeta_MemCopy(Access_(dv, idx), Access_(dv, idx + 1), dv->width);
         }
 
         size_t real_idx = (dv->offset + dv->size - 1) % capacity;

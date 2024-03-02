@@ -1,4 +1,4 @@
-#include "FileSystemFAT32.h"
+#include "FileSysFAT32.h"
 
 #include "Disk.h"
 #include "utils.h"
@@ -18,11 +18,48 @@
     data += length;                            \
     ZETA_StaticAssert(TRUE)
 
-bool_t ReadHeader_(Zeta_FileSystemFAT32_Header* dst, byte_t const* data) {
+typedef struct DirEntry DirEntry;
+
+struct DirEntry {
+    bool_t is_long_name;
+
+    union {
+        struct {
+            byte_t name[11];
+
+            u8_t attr;
+
+            u64_t first_clus_num;
+
+            s32_t crt_year;
+            u8_t crt_month;
+            u8_t crt_day;
+            u8_t crt_hour;
+            u8_t crt_min;
+            u8_t crt_sec;
+            u16_t crt_msec;
+
+            s32_t acc_year;
+            u8_t acc_month;
+            u8_t acc_day;
+
+            s32_t wrt_year;
+            u8_t wrt_month;
+            u8_t wrt_day;
+            u8_t wrt_hour;
+            u8_t wrt_min;
+            u8_t wrt_sec;
+        } content;
+
+        struct {
+            //
+        } long_name;
+    };
+};
+
+bool_t ReadHeader_(Zeta_FileSysFAT32_Header* dst, byte_t const* data) {
     ZETA_DebugAssert(dst != NULL);
     ZETA_DebugAssert(data != NULL);
-
-    byte_t const* data_end = data + 512;
 
     for (int i = 0; i < 3; ++i) { dst->jmp_boot[i] = data[i]; }
     data += 3;
@@ -151,38 +188,38 @@ ERR_RET:
     return FALSE;
 }
 
-static bool_t IsUnusedCluster_(size_t val) { return val == UNUSED_CLUSTER; }
+static bool_t IsUnusedCluster_(u32_t val) { return val == UNUSED_CLUSTER; }
 
-static bool_t IsBadCluster_(size_t val) { return val == BAD_CLUSTER; }
+static bool_t IsBadCluster_(u32_t val) { return val == BAD_CLUSTER; }
 
-static bool_t IsEOFCluster_(size_t val) {
+static bool_t IsEOFCluster_(u32_t val) {
     return 0x0FFFFFF8 <= val && val <= 0x0FFFFFFF;
 }
 
-static size_t GetFATEntryIdx_(Zeta_FileSystemFAT32_Header* header,
-                              size_t fat_idx, size_t entry_num) {
+static u64_t GetFATEntryIdx_(Zeta_FileSysFAT32_Header* header, size_t fat_idx,
+                             u32_t clus_num) {
     ZETA_DebugAssert(header != NULL);
 
     ZETA_DebugAssert(fat_idx < header->num_of_fats);
 
-    size_t num_of_enties = header->bytes_per_sec * header->size_of_fat / 4;
-    ZETA_DebugAssert(2 <= entry_num);
-    ZETA_DebugAssert(entry_num < num_of_enties + 2);
+    u32_t num_of_enties = header->bytes_per_sec * header->size_of_fat / 4;
+    ZETA_DebugAssert(2 <= clus_num);
+    ZETA_DebugAssert(clus_num < num_of_enties + 2);
 
-    size_t ret = header->base_idx +
-                 header->bytes_per_sec * (header->num_of_reserved_secs +
-                                          header->size_of_fat * fat_idx) +
-                 (entry_num - 2) * 4;
+    u64_t ret = header->base_idx +
+                (u64_t)header->bytes_per_sec * (header->num_of_reserved_secs +
+                                                header->size_of_fat * fat_idx) +
+                (u64_t)clus_num * 4;
 
     return ret;
 }
 
-static size_t GetFATEntry_(Zeta_FileSystemFAT32_Header* header, size_t fat_idx,
-                           size_t entry_num, Zeta_Disk* disk) {
+static size_t GetFATEntry_(Zeta_FileSysFAT32_Header* header, size_t fat_idx,
+                           u32_t clus_num, Zeta_Disk* disk) {
     ZETA_DebugAssert(header != NULL);
     ZETA_DebugAssert(disk != NULL);
 
-    size_t idx = GetFATEntryIdx_(header, fat_idx, entry_num);
+    u64_t idx = GetFATEntryIdx_(header, fat_idx, clus_num);
 
     byte_t tmp[4];
     disk->Read(disk->context, idx, idx + 4, tmp);
@@ -190,14 +227,14 @@ static size_t GetFATEntry_(Zeta_FileSystemFAT32_Header* header, size_t fat_idx,
     return Zeta_ReadLittleEndian(tmp, 4);
 }
 
-static bool_t SetFATEntry_(Zeta_FileSystemFAT32_Header* header, size_t fat_idx,
-                           size_t entry_num, size_t val, Zeta_Disk* disk) {
+static bool_t SetFATEntry_(Zeta_FileSysFAT32_Header* header, size_t fat_idx,
+                           u32_t clus_num, u32_t val, Zeta_Disk* disk) {
     ZETA_DebugAssert(header != NULL);
     ZETA_DebugAssert(disk != NULL);
 
-    size_t idx = GetFATEntryIdx_(header, fat_idx, entry_num);
+    u64_t idx = GetFATEntryIdx_(header, fat_idx, clus_num);
 
-    size_t num_of_enties = header->bytes_per_sec * header->size_of_fat / 4;
+    u32_t num_of_enties = header->bytes_per_sec * header->size_of_fat / 4;
 
     u32_t const M = 0x10000000;
 

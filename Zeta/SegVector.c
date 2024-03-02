@@ -346,8 +346,8 @@ void* Zeta_SegVector_Insert(void* sv_, size_t idx) {
 
         for (; seg_idx < seg_capacity - m_vacant && 0 < r_vacant &&
                m_vacant <= r_vacant;) {
-            Zeta_MemCopy(width, Zeta_CircularVector_PushL(&r_cv),
-                         Zeta_CircularVector_PeekR(&m_cv));
+            Zeta_MemCopy(Zeta_CircularVector_PushL(&r_cv),
+                         Zeta_CircularVector_PeekR(&m_cv), width);
             --r_vacant;
 
             Zeta_CircularVector_PopR(&m_cv);
@@ -364,8 +364,8 @@ void* Zeta_SegVector_Insert(void* sv_, size_t idx) {
         DeployCircularVector_(width, seg_capacity, l_node, &l_rv, &l_v, &l_cv);
 
         for (; 0 < seg_idx && 0 < l_vacant && m_vacant <= l_vacant; --seg_idx) {
-            Zeta_MemCopy(width, Zeta_CircularVector_PushR(&l_cv),
-                         Zeta_CircularVector_PeekL(&m_cv));
+            Zeta_MemCopy(Zeta_CircularVector_PushR(&l_cv),
+                         Zeta_CircularVector_PeekL(&m_cv), width);
             --l_vacant;
 
             Zeta_CircularVector_PopL(&m_cv);
@@ -523,8 +523,8 @@ void Zeta_SegVector_Erase(void* sv_, size_t idx) {
 
     if (l_vacant <= r_vacant) {
         while (r_vacant < seg_capacity) {
-            Zeta_MemCopy(width, Zeta_CircularVector_PushR(&l_cv),
-                         Zeta_CircularVector_PeekL(&r_cv));
+            Zeta_MemCopy(Zeta_CircularVector_PushR(&l_cv),
+                         Zeta_CircularVector_PeekL(&r_cv), width);
             --l_vacant;
 
             Zeta_CircularVector_PopL(&r_cv);
@@ -537,8 +537,8 @@ void Zeta_SegVector_Erase(void* sv_, size_t idx) {
         l_node->offset = l_cv.offset;
     } else {
         while (l_vacant < seg_capacity) {
-            Zeta_MemCopy(width, Zeta_CircularVector_PushL(&r_cv),
-                         Zeta_CircularVector_PeekR(&l_cv));
+            Zeta_MemCopy(Zeta_CircularVector_PushL(&r_cv),
+                         Zeta_CircularVector_PeekR(&l_cv), width);
             --r_vacant;
 
             Zeta_CircularVector_PopR(&l_cv);

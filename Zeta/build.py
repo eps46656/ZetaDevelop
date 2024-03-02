@@ -16,7 +16,7 @@ INCLUDE_DIRS = [
 ]
 
 def builder_add(builder):
-    debug = False
+    debug = True
 
     cc = "clang"
 
@@ -622,7 +622,7 @@ def builder_add(builder):
     )
 
     builder.add(
-        f"{ZetaDir}/FileSystemFAT32.h",
+        f"{ZetaDir}/FileSysFAT32.h",
         {
             f"{File}",
             f"{ZetaDir}/Disk.h",
@@ -631,26 +631,26 @@ def builder_add(builder):
     )
 
     builder.add(
-        f"{ZetaDir}/FileSystemFAT32.c",
+        f"{ZetaDir}/FileSysFAT32.c",
         {
             f"{File}",
-            f"{ZetaDir}/FileSystemFAT32.h",
+            f"{ZetaDir}/FileSysFAT32.h",
         },
         lambda : 0
     )
 
     builder.add(
-        f"{ZetaDir}/FileSystemFAT32.o",
+        f"{ZetaDir}/FileSysFAT32.o",
         {
             f"{File}",
-            f"{ZetaDir}/FileSystemFAT32.c",
+            f"{ZetaDir}/FileSysFAT32.c",
         },
         lambda : os.system(" ".join([
             cc,
-            f"--output {ZetaDir}/FileSystemFAT32.o",
+            f"--output {ZetaDir}/FileSysFAT32.o",
             f"-c",
             *cargs,
-            f"{ZetaDir}/FileSystemFAT32.c",
+            f"{ZetaDir}/FileSysFAT32.c",
         ]))
     )
 
@@ -1329,6 +1329,44 @@ def builder_add(builder):
             f"-c",
             *cargs,
             f"{ZetaDir}/Stream.c",
+        ]))
+    )
+
+    builder.add(
+        f"{ZetaDir}/TreeAllocator.h",
+        {
+            f"{File}",
+            f"{ZetaDir}/Allocator.h",
+            f"{ZetaDir}/RelRBTreeNode.h",
+        },
+        lambda : 0
+    )
+
+    builder.add(
+        f"{ZetaDir}/TreeAllocator.c",
+        {
+            f"{File}",
+            f"{ZetaDir}/TreeAllocator.h",
+            f"{ZetaDir}/DebugTreeMap.h",
+            f"{ZetaDir}/RBTree.h",
+            f"{ZetaDir}/RelLinkedListNode.h",
+            f"{ZetaDir}/utils.h",
+        },
+        lambda : 0
+    )
+
+    builder.add(
+        f"{ZetaDir}/TreeAllocator.o",
+        {
+            f"{File}",
+            f"{ZetaDir}/TreeAllocator.c",
+        },
+        lambda : os.system(" ".join([
+            cc,
+            f"--output {ZetaDir}/TreeAllocator.o",
+            f"-c",
+            *cargs,
+            f"{ZetaDir}/TreeAllocator.c",
         ]))
     )
 

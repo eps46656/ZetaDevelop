@@ -7,20 +7,20 @@ ZETA_extern_c_beg;
 /**
  * @brief Copy byte array from dst to src
  *
- * @param size The number of bytes the byte arrays pointed by dst and src.
  * @param dst The pointer points to destination byte array.
  * @param src The pointer points to source byte array.
+ * @param size The number of bytes the byte arrays pointed by dst and src.
  */
-void Zeta_MemCopy(size_t size, void* dst, void const* src);
+void Zeta_MemCopy(void* dst, void const* src, size_t size);
 
 /**
  * @brief Swap byte array between dst and src
  *
- * @param size The number of bytes the byte arrays pointed by dst and src.
  * @param dst The pointer points to destination byte array.
  * @param src The pointer points to source byte array.
+ * @param size The number of bytes the byte arrays pointed by dst and src.
  */
-void Zeta_MemSwap(size_t size, void* x, void* y);
+void Zeta_MemSwap(void* x, void* y, size_t size);
 
 /**
  * @brief Rotate the bytes in [beg, end). mid should always in [beg, end].

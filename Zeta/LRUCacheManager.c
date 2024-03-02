@@ -113,8 +113,8 @@ Zeta_CacheManager_Node Zeta_LRUCacheManager_Pop(void* lrucm_) {
     Zeta_OrdLinkedListNode_Extract(target_ln);
 
     Zeta_CacheManager_Node ret;
-    Zeta_MemCopy(sizeof(Zeta_CacheManager_Node), (byte_t*)(void*)&ret,
-                 (byte_t*)(void*)&target_node->cn);
+    Zeta_MemCopy((byte_t*)(void*)&ret, (byte_t*)(void*)&target_node->cn,
+                 sizeof(Zeta_CacheManager_Node));
 
     Deallocate(allocator_context, target_node);
 
@@ -140,7 +140,7 @@ Zeta_CacheManager_Node Zeta_LRUCacheManager_PopWithKey(void* lrucm_,
     Zeta_OrdLinkedListNode_Extract(&target_node->ln);
 
     Zeta_CacheManager_Node ret;
-    Zeta_MemCopy(sizeof(Zeta_CacheManager_Node), &ret, &target_node->cn);
+    Zeta_MemCopy(&ret, &target_node->cn, sizeof(Zeta_CacheManager_Node));
 
     Deallocate(allocator_context, target_node);
 
@@ -166,7 +166,7 @@ Zeta_CacheManager_Node Zeta_LRUCacheManager_PopWithFrame(void* lrucm_,
     Zeta_OrdLinkedListNode_Extract(&target_node->ln);
 
     Zeta_CacheManager_Node ret;
-    Zeta_MemCopy(sizeof(Zeta_CacheManager_Node), &ret, &target_node->cn);
+    Zeta_MemCopy(&ret, &target_node->cn, sizeof(Zeta_CacheManager_Node));
 
     Deallocate(allocator_context, target_node);
 

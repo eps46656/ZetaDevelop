@@ -20,7 +20,7 @@ INCLUDE_DIRS = [
 ]
 
 def builder_add(builder):
-    debug = False
+    debug = True
 
     cc = "clang"
 
@@ -472,6 +472,87 @@ def builder_add(builder):
     )
 
     builder.add(
+        f"{ZetaExeDir}/test_fat32.cpp",
+        {
+            f"{File}",
+            f"{ZetaDir}/Disk.h",
+            f"{ZetaDir}/DiskInfo.h",
+            f"{ZetaDir}/DiskPartGPT.h",
+            f"{ZetaDir}/DiskPartMBR.h",
+            f"{ZetaDir}/define.h"
+        },
+        lambda : 0
+    )
+
+    builder.add(
+        f"{ZetaExeDir}/test_fat32.exe",
+        {
+            f"{File}",
+            f"{ZetaDir}/utils.o",
+            f"{ZetaDir}/DiskInfo.o",
+            f"{ZetaDir}/DiskPartGPT.o",
+            f"{ZetaDir}/DiskPartMBR.o",
+            f"{ZetaDir}/UTF16.o",
+            f"{ZetaDir}/UTF8.o",
+            f"{ZetaExeDir}/test_fat32.cpp",
+        },
+        lambda : os.system(" ".join([
+            cppc,
+            f"--output {ZetaExeDir}/test_fat32.exe",
+            *cppargs,
+            f"{ZetaDir}/utils.o",
+            f"{ZetaDir}/DiskInfo.o",
+            f"{ZetaDir}/DiskPartGPT.o",
+            f"{ZetaDir}/DiskPartMBR.o",
+            f"{ZetaDir}/UTF16.o",
+            f"{ZetaDir}/UTF8.o",
+            f"{ZetaExeDir}/test_fat32.cpp",
+        ]))
+    )
+
+    builder.add(
+        f"{ZetaExeDir}/test_treealloc.cpp",
+        {
+            f"{File}",
+            f"{ZetaDir}/DebugHashTable.h",
+            f"{ZetaDir}/TreeAllocator.h",
+        },
+        lambda : 0
+    )
+
+    builder.add(
+        f"{ZetaExeDir}/test_treealloc.exe",
+        {
+            f"{File}",
+            f"{ZetaDir}/Algorithm.o",
+            f"{ZetaDir}/DebugTreeMap.o",
+            f"{ZetaDir}/TreeAllocator.o",
+            f"{ZetaDir}/RawVector.o",
+            f"{ZetaDir}/RBTree.o",
+            f"{ZetaDir}/RelLinkedListNode.o",
+            f"{ZetaDir}/RelRBTreeNode.o",
+            f"{ZetaDir}/utils.o",
+
+            f"{ZetaExeDir}/test_treealloc.cpp",
+        },
+        lambda : os.system(" ".join([
+            cppc,
+            f"--output {ZetaExeDir}/test_treealloc.exe",
+            *cppargs,
+            f"{ZetaDir}/Algorithm.o",
+            f"{ZetaDir}/DebugTreeMap.o",
+            f"{ZetaDir}/TreeAllocator.o",
+            f"{ZetaDir}/RawVector.o",
+            f"{ZetaDir}/RBTree.o",
+            f"{ZetaDir}/RelLinkedListNode.o",
+            f"{ZetaDir}/RelRBTreeNode.o",
+            f"{ZetaDir}/utils.o",
+
+            f"{ZetaExeDir}/test_treealloc.cpp",
+        ]))
+    )
+
+    builder.add(
         f"{ZetaExeDir}/test_usb.cpp",
         {
             f"{File}",
@@ -848,6 +929,42 @@ def builder_add(builder):
             f"{ZetaDir}/random.o",
             f"{ZetaDir}/SlabAllocator.o",
             f"{ZetaExeDir}/test_slab.c",
+        ]))
+    )
+
+    builder.add(
+        f"{ZetaExeDir}/test_slaballoc.cpp",
+        {
+            f"{File}",
+            f"{ZetaDir}/DebugHashTable.h",
+            f"{ZetaDir}/SlabAllocator.h",
+        },
+        lambda : 0
+    )
+
+    builder.add(
+        f"{ZetaExeDir}/test_slaballoc.exe",
+        {
+            f"{File}",
+            f"{ZetaDir}/RBTree.o",
+            f"{ZetaDir}/RelLinkedListNode.o",
+            f"{ZetaDir}/RelRBTreeNode.o",
+            f"{ZetaDir}/SlabAllocator.o",
+            f"{ZetaDir}/utils.o",
+
+            f"{ZetaExeDir}/test_slaballoc.cpp",
+        },
+        lambda : os.system(" ".join([
+            cppc,
+            f"--output {ZetaExeDir}/test_slaballoc.exe",
+            *cppargs,
+            f"{ZetaDir}/RBTree.o",
+            f"{ZetaDir}/RelLinkedListNode.o",
+            f"{ZetaDir}/RelRBTreeNode.o",
+            f"{ZetaDir}/SlabAllocator.o",
+            f"{ZetaDir}/utils.o",
+
+            f"{ZetaExeDir}/test_slaballoc.cpp",
         ]))
     )
 

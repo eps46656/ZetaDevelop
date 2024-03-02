@@ -1,5 +1,4 @@
-#include "FileSystemFAT.h"
-
+#include "FileSysFAT.h"
 #include "utils.h"
 
 #define READ(dst, length)                          \
@@ -117,8 +116,8 @@ struct ExtBPB_32 {
     byte_t FilSysType[8];
 };
 
-bool_t Zeta_FileSystem_FAT_ReadHeader(Header* dst, byte_t const* data) {
-    ZETA_DebugAssert(dst != NULL);
+bool_t Zeta_FileSys_FAT_ReadHeader(Header* dst, byte_t const* data) {
+    ZETA_DebFileSysst != NULL);
     ZETA_DebugAssert(data != NULL);
 
 #define ASSERT_RET(cond) \
@@ -245,8 +244,8 @@ bool_t Zeta_FileSystem_FAT_ReadHeader(Header* dst, byte_t const* data) {
         (dst->root_ent_cnt * 32 + dst->bytes_per_sec - 1) / dst->bytes_per_sec;
 }
 
-byte_t const* Zeta_FileSystem_FAT_ReadBPB(Zeta_FileSystem_FAT_BPB* dst,
-                                          byte_t const* data) {
+byte_t const* Zeta_FileSys_FAT_ReadBPB(Zeta_FileSys_FAT_BPB* dst,
+                                       byte_t const* data) {
     ZETA_DebugAssert(dst != NULL);
     ZETA_DebugAssert(data != NULL);
 

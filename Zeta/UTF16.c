@@ -81,7 +81,7 @@ UTF16_EncodeRet Zeta_UTF16_Encode(byte_t* dst, byte_t* dst_end,
             };
         }
 
-        Zeta_MemCopy(tmp_size, dst, tmp);
+        Zeta_MemCopy(dst, tmp, tmp_size);
         dst += tmp_size;
     }
 

@@ -14,7 +14,7 @@ static void Zeta_Insertion_(Zeta_Vector* vec, size_t i, void* cmper_context,
 
     if (max_tmp_width < width) {
         while (0 < cmper(cmper_context, prev_ref, ref)) {
-            Zeta_MemSwap(width, prev_ref, ref);
+            Zeta_MemSwap(prev_ref, ref, width);
 
             --i;
             ref = prev_ref;
@@ -28,8 +28,8 @@ static void Zeta_Insertion_(Zeta_Vector* vec, size_t i, void* cmper_context,
 
     char tmp[max_tmp_width];
 
-    Zeta_MemCopy(width, tmp, ref);
-    Zeta_MemCopy(width, ref, prev_ref);
+    Zeta_MemCopy(tmp, ref, width);
+    Zeta_MemCopy(ref, prev_ref, width);
 
     for (;;) {
         --i;
@@ -37,11 +37,11 @@ static void Zeta_Insertion_(Zeta_Vector* vec, size_t i, void* cmper_context,
         prev_ref = vec->Access(vec_context, i - 1);
 
         if (cmper(cmper_context, prev_ref, tmp) <= 0) {
-            Zeta_MemCopy(width, ref, tmp);
+            Zeta_MemCopy(ref, tmp, width);
             break;
         }
 
-        Zeta_MemCopy(width, ref, prev_ref);
+        Zeta_MemCopy(ref, prev_ref, width);
     }
 }
 
@@ -63,7 +63,7 @@ static void Zeta_InsertionSort_(Zeta_Vector* vec, size_t beg, size_t end,
         }
     }
 
-    Zeta_MemSwap(width, vec->Access(vec_context, beg), min_addr);
+    Zeta_MemSwap(vec->Access(vec_context, beg), min_addr, width);
 
     for (size_t i = beg + 2; i < end; ++i) {
         Zeta_Insertion_(vec, i, cmper_context, cmper);
@@ -98,16 +98,16 @@ static size_t Zeta_Partition_(Zeta_Vector* vec, size_t beg, size_t end,
 
         if (j <= i) { break; }
 
-        Zeta_MemSwap(width, vec->Access(vec_context, i),
-                     vec->Access(vec_context, j));
+        Zeta_MemSwap(vec->Access(vec_context, i), vec->Access(vec_context, j),
+                     width);
 
         ++i;
     }
 
     --i;
 
-    Zeta_MemSwap(width, vec->Access(vec_context, beg),
-                 vec->Access(vec_context, i));
+    Zeta_MemSwap(vec->Access(vec_context, beg), vec->Access(vec_context, i),
+                 width);
 
     return i;
 }
@@ -130,11 +130,11 @@ static size_t Zeta_SimplePartition_(
     void* b = vec->Access(vec_context, beg + 1);
     void* c = vec->Access(vec_context, end - 1);
 
-    if (0 < cmper(cmper_context, a, b)) { Zeta_MemSwap(width, a, b); }
+    if (0 < cmper(cmper_context, a, b)) { Zeta_MemSwap(a, b, width); }
 
     if (0 < cmper(cmper_context, b, c)) {
-        Zeta_MemSwap(width, b, c);
-        if (0 < cmper(cmper_context, a, b)) { Zeta_MemSwap(width, a, b); }
+        Zeta_MemSwap(b, c, width);
+        if (0 < cmper(cmper_context, a, b)) { Zeta_MemSwap(a, b, width); }
     }
 
     return Zeta_Partition_(vec, beg + 1, end - 1, cmper_context, cmper);
@@ -169,16 +169,16 @@ static size_t Zeta_PrettyPartition_(
         Zeta_InsertionSort_(vec, g_beg, g_beg + group_size, cmper_context,
                             cmper);
 
-        Zeta_MemSwap(width, vec->Access(vec_context, beg + i),
-                     vec->Access(vec_context, g_beg + group_size / 2));
+        Zeta_MemSwap(vec->Access(vec_context, beg + i),
+                     vec->Access(vec_context, g_beg + group_size / 2), width);
     }
 
     size_t pivot = beg + group_num / 2;
 
     Zeta_KthElement_(vec, beg, pivot, beg + group_num, cmper_context, cmper);
 
-    Zeta_MemSwap(width, vec->Access(vec_context, beg),
-                 vec->Access(vec_context, pivot));
+    Zeta_MemSwap(vec->Access(vec_context, beg), vec->Access(vec_context, pivot),
+                 width);
 
     return Zeta_Partition_(vec, beg, end, cmper_context, cmper);
 }

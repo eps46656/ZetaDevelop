@@ -105,7 +105,7 @@ val_t* DvAccess(size_t idx) {
 
 val_t* DvInsert(size_t idx, val_t const& val) {
     void* val_p = Zeta_DynamicVector_Insert(&dv, idx);
-    Zeta_MemCopy(sizeof(val_t), (byte_t*)val_p, (byte_t*)(void*)&val);
+    Zeta_MemCopy((byte_t*)val_p, (byte_t*)(void*)&val, sizeof(val_t));
     return (val_t*)val_p;
 }
 
