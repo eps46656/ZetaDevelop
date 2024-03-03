@@ -29,6 +29,7 @@ struct Zeta_SlabAllocator {
     size_t num_of_occupied_units;
 
     Zeta_RelLinkedListNode vacant_slab_n_list_head;
+    Zeta_RelLinkedListNode occupied_slab_n_list_head;
 
     Zeta_RelLinkedListNode hot_unit_head;
 };
@@ -45,7 +46,7 @@ void Zeta_SlabAllocator_Deallocate(void* sa, void* ptr);
 
 void Zeta_SlabAllocator_DeployAllocator(void* sa, Zeta_Allocator* dst);
 
-void Zeta_SlabAllocator_Check(void* sa, bool_t print_state,
-                              void* dst_ptr_size_tm);
+void Zeta_SlabAllocator_Check(void* sa, Zeta_DebugTreeMap* dst_used_ptr_size_tm,
+                              Zeta_DebugTreeMap* dst_released_ptr_size_tm);
 
 ZETA_extern_c_end;

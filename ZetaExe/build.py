@@ -946,6 +946,7 @@ def builder_add(builder):
         f"{ZetaExeDir}/test_slaballoc.exe",
         {
             f"{File}",
+            f"{ZetaDir}/DebugTreeMap.o",
             f"{ZetaDir}/RBTree.o",
             f"{ZetaDir}/RelLinkedListNode.o",
             f"{ZetaDir}/RelRBTreeNode.o",
@@ -958,6 +959,7 @@ def builder_add(builder):
             cppc,
             f"--output {ZetaExeDir}/test_slaballoc.exe",
             *cppargs,
+            f"{ZetaDir}/DebugTreeMap.o",
             f"{ZetaDir}/RBTree.o",
             f"{ZetaDir}/RelLinkedListNode.o",
             f"{ZetaDir}/RelRBTreeNode.o",

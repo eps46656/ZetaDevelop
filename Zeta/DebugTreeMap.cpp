@@ -34,6 +34,22 @@ size_t Zeta_DebugTreeMap_GetSize(void* tm_) {
     return tree_map->size();
 }
 
+void Zeta_DebugTreeMap_Move(void* tm_, void* src_tm_) {
+    Zeta_DebugTreeMap* tm = (Zeta_DebugTreeMap*)tm_;
+    ZETA_DebugAssert(tm != NULL);
+
+    Zeta_DebugTreeMap* src_tm = (Zeta_DebugTreeMap*)src_tm_;
+    ZETA_DebugAssert(src_tm != NULL);
+
+    tree_map_t* tree_map = (tree_map_t*)tm->tree_map;
+    ZETA_DebugAssert(tree_map != NULL);
+
+    tree_map_t* src_tree_map = (tree_map_t*)src_tm->tree_map;
+    ZETA_DebugAssert(src_tree_map != NULL);
+
+    *tree_map = std::move(*src_tree_map);
+}
+
 Zeta_DebugTreeMap_KeyValPair Zeta_DebugTreeMap_Find(void* tm_, size_t key) {
     Zeta_DebugTreeMap* tm = (Zeta_DebugTreeMap*)tm_;
     ZETA_DebugAssert(tm != NULL);

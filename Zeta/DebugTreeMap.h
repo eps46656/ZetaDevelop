@@ -24,6 +24,8 @@ void Zeta_DebugTreeMap_Destroy(void* tm);
 
 size_t Zeta_DebugTreeMap_GetSize(void* tm);
 
+void Zeta_DebugTreeMap_Move(void* tm, void* src_tm);
+
 Zeta_DebugTreeMap_KeyValPair Zeta_DebugTreeMap_Find(void* tm, size_t key);
 
 Zeta_DebugTreeMap_KeyValPair Zeta_DebugTreeMap_LowerBound(void* tm,

@@ -4,6 +4,7 @@
 
 #include "../Zeta/DebugTreeMap.h"
 #include "../Zeta/SlabAllocator.h"
+#include "MemAllocatorCheck.h"
 #include "StdAllocator.h"
 
 typedef long long unsigned llu;
@@ -15,6 +16,29 @@ Zeta_SlabAllocator allocator_;
 Zeta_Allocator allocator;
 
 std::map<size_t, size_t> req_ptr_size_tm;
+
+std::vector<void*> ptrs;
+
+void Check() {
+    Zeta_DebugTreeMap used_ptr_size_tm;
+    Zeta_DebugTreeMap released_ptr_size_tm;
+
+    Zeta_DebugTreeMap_Create(&used_ptr_size_tm);
+    Zeta_DebugTreeMap_Create(&released_ptr_size_tm);
+
+    Zeta_SlabAllocator_Check(&allocator_, &used_ptr_size_tm,
+                             &released_ptr_size_tm);
+
+    for (auto iter{ ptrs.begin() }, end{ ptrs.end() }; iter != end; ++iter) {
+        bool_t b = Zeta_DebugTreeMap_Erase(&released_ptr_size_tm,
+                                           ZETA_PTR_TO_UINT(*iter));
+
+        ZETA_DebugAssert(b);
+    }
+
+    CheckFullContains(std_allocator_.records,
+                      *(std::map<size_t, size_t>*)used_ptr_size_tm.tree_map);
+}
 
 void main1() {
     unsigned int seed = time(NULL);
@@ -38,22 +62,25 @@ void main1() {
 
     Zeta_SlabAllocator_DeployAllocator(&allocator_, &allocator);
 
-    std::vector<void*> ptrs;
-
     ZETA_PrintPos;
 
-    for (int _ = 0; _ < 200; ++_) {
+    for (int _ = 0; _ < 5; ++_) {
         for (int test_i = 0; test_i < 1000; ++test_i) {
             ptrs.push_back(allocator.Allocate(allocator.context, width));
+            Check();
         }
 
-        for (int _ = 0; _ < 5; ++_) {
+        Check();
+
+        for (int _ = 0; _ < 10; ++_) {
             for (int test_i = 0; test_i < 1000; ++test_i) {
                 void* ptr = allocator.Allocate(allocator.context, width);
 
                 ZETA_DebugAssert(ptr != NULL);
 
                 ptrs.push_back(ptr);
+
+                Check();
             }
 
             for (int test_i = 0; test_i < 1000; ++test_i) {
@@ -63,8 +90,12 @@ void main1() {
 
                 ptrs[idx] = ptrs.back();
                 ptrs.pop_back();
+
+                Check();
             }
         }
+
+        Check();
 
         for (; ptrs.size() != 0;) {
             size_t idx = idx_generator(en) % ptrs.size();
@@ -73,7 +104,11 @@ void main1() {
 
             ptrs[idx] = ptrs.back();
             ptrs.pop_back();
+
+            Check();
         }
+
+        Check();
 
         ZETA_DebugAssert(std_allocator_.records.empty());
     }
