@@ -2,87 +2,88 @@
 
 #include "utils.h"
 
-static void* Insert_(void* context, void* (*GetP)(void* context, void* n),
-                     void* (*GetD)(void* context, void* n),
-                     void* (*GetE)(void* context, void* n),
-                     int (*GetColor)(void* context, void* n),
-                     void (*ReverseColor)(void* context, void* n),
-                     void (*AttachD)(void* context, void* n, void* m),
-                     void (*AttachE)(void* context, void* n, void* m),
-                     void (*RotateD)(void* context, void* n),
-                     void (*RotateE)(void* context, void* n), void* n,
-                     void* m) {
-    if (n == NULL) {
-        if (GetColor(context, m) == 1) { ReverseColor(context, m); }
-        return m;
-    }
-
-    if (GetColor(context, m) == 0) { ReverseColor(context, m); }
-
-    void* root = Zeta_GetMostLink(context, GetP, n);
-
-    void* nd = GetD(context, n);
-
-    if (nd == NULL) {
-        AttachD(context, n, m);
-    } else {
-        AttachE(context, Zeta_GetMostLink(context, GetE, nd), m);
-    }
-
-    for (n = m;;) {
-        void* np = GetP(context, n);
-
-        if (np == NULL) {
-            ReverseColor(context, n);
-            break;
-        }
-
-        if (GetColor(context, np) == 0) { break; }
-
-        void* ng = GetP(context, np);
-
-        if (ng == NULL) {
-            ReverseColor(context, np);
-            break;
-        }
-
-        void* (*GetY)(void* context, void* n);
-        void (*RotateX)(void* context, void* n);
-        void (*RotateY)(void* context, void* n);
-
-        if (GetD(context, ng) == np) {
-            GetY = GetE;
-            RotateX = RotateD;
-            RotateY = RotateE;
-        } else {
-            GetY = GetD;
-            RotateX = RotateE;
-            RotateY = RotateD;
-        }
-
-        void* nu = GetY(context, ng);
-
-        if (GetColor(context, nu) == 1) {
-            ReverseColor(context, np);
-            ReverseColor(context, nu);
-            ReverseColor(context, ng);
-            n = ng;
-            continue;
-        }
-
-        if (GetY(context, np) == n) {
-            RotateX(context, np);
-            ZETA_Swap(n, np);
-        }
-
-        ReverseColor(context, np);
-        ReverseColor(context, ng);
-        RotateY(context, ng);
-        break;
-    }
-
+#define Insert_(D, E)                                                       \
+    void* context = rbtn_opr->context;                                      \
+    void* (*GetP)(void* context, void* n) = rbtn_opr->GetP;                 \
+    void* (*GetD)(void* context, void* n) = rbtn_opr->Get##D;               \
+    void* (*GetE)(void* context, void* n) = rbtn_opr->Get##E;               \
+    int (*GetColor)(void* context, void* n) = rbtn_opr->GetColor;           \
+    void (*ReverseColor)(void* context, void* n) = rbtn_opr->ReverseColor;  \
+    void (*AttachD)(void* context, void* n, void* m) = rbtn_opr->Attach##D; \
+    void (*AttachE)(void* context, void* n, void* m) = rbtn_opr->Attach##E; \
+    void (*RotateD)(void* context, void* n) = rbtn_opr->Rotate##D;          \
+    void (*RotateE)(void* context, void* n) = rbtn_opr->Rotate##E;          \
+                                                                            \
+    if (n == NULL) {                                                        \
+        if (GetColor(context, m) == 1) { ReverseColor(context, m); }        \
+        return m;                                                           \
+    }                                                                       \
+                                                                            \
+    if (GetColor(context, m) == 0) { ReverseColor(context, m); }            \
+                                                                            \
+    void* root = Zeta_GetMostLink(context, GetP, n);                        \
+                                                                            \
+    void* nd = GetD(context, n);                                            \
+                                                                            \
+    if (nd == NULL) {                                                       \
+        AttachD(context, n, m);                                             \
+    } else {                                                                \
+        AttachE(context, Zeta_GetMostLink(context, GetE, nd), m);           \
+    }                                                                       \
+                                                                            \
+    for (n = m;;) {                                                         \
+        void* np = GetP(context, n);                                        \
+                                                                            \
+        if (np == NULL) {                                                   \
+            ReverseColor(context, n);                                       \
+            break;                                                          \
+        }                                                                   \
+                                                                            \
+        if (GetColor(context, np) == 0) { break; }                          \
+                                                                            \
+        void* ng = GetP(context, np);                                       \
+                                                                            \
+        if (ng == NULL) {                                                   \
+            ReverseColor(context, np);                                      \
+            break;                                                          \
+        }                                                                   \
+                                                                            \
+        void* (*GetY)(void* context, void* n);                              \
+        void (*RotateX)(void* context, void* n);                            \
+        void (*RotateY)(void* context, void* n);                            \
+                                                                            \
+        if (GetD(context, ng) == np) {                                      \
+            GetY = GetE;                                                    \
+            RotateX = RotateD;                                              \
+            RotateY = RotateE;                                              \
+        } else {                                                            \
+            GetY = GetD;                                                    \
+            RotateX = RotateE;                                              \
+            RotateY = RotateD;                                              \
+        }                                                                   \
+                                                                            \
+        void* nu = GetY(context, ng);                                       \
+                                                                            \
+        if (GetColor(context, nu) == 1) {                                   \
+            ReverseColor(context, np);                                      \
+            ReverseColor(context, nu);                                      \
+            ReverseColor(context, ng);                                      \
+            n = ng;                                                         \
+            continue;                                                       \
+        }                                                                   \
+                                                                            \
+        if (GetY(context, np) == n) {                                       \
+            RotateX(context, np);                                           \
+            ZETA_Swap(n, np);                                               \
+        }                                                                   \
+                                                                            \
+        ReverseColor(context, np);                                          \
+        ReverseColor(context, ng);                                          \
+        RotateY(context, ng);                                               \
+        break;                                                              \
+    }                                                                       \
+                                                                            \
     return Zeta_GetMostLink(context, GetP, root);
-}
 
 void* Zeta_RBTree_InsertL(Zeta_RBTreeNodeOpr const* rbtn_opr, void* n,
                           void* m) {
@@ -101,10 +102,7 @@ void* Zeta_RBTree_InsertL(Zeta_RBTreeNodeOpr const* rbtn_opr, void* n,
     ZETA_DebugAssert(rbtn_opr->GetL(rbtn_opr->context, m) == NULL);
     ZETA_DebugAssert(rbtn_opr->GetR(rbtn_opr->context, m) == NULL);
 
-    return Insert_(rbtn_opr->context, rbtn_opr->GetP, rbtn_opr->GetL,
-                   rbtn_opr->GetR, rbtn_opr->GetColor, rbtn_opr->ReverseColor,
-                   rbtn_opr->AttachL, rbtn_opr->AttachR, rbtn_opr->RotateL,
-                   rbtn_opr->RotateR, n, m);
+    Insert_(L, R);
 }
 
 void* Zeta_RBTree_InsertR(Zeta_RBTreeNodeOpr const* rbtn_opr, void* n,
@@ -124,10 +122,7 @@ void* Zeta_RBTree_InsertR(Zeta_RBTreeNodeOpr const* rbtn_opr, void* n,
     ZETA_DebugAssert(rbtn_opr->GetL(rbtn_opr->context, m) == NULL);
     ZETA_DebugAssert(rbtn_opr->GetR(rbtn_opr->context, m) == NULL);
 
-    return Insert_(rbtn_opr->context, rbtn_opr->GetP, rbtn_opr->GetR,
-                   rbtn_opr->GetL, rbtn_opr->GetColor, rbtn_opr->ReverseColor,
-                   rbtn_opr->AttachR, rbtn_opr->AttachL, rbtn_opr->RotateR,
-                   rbtn_opr->RotateL, n, m);
+    Insert_(R, L);
 }
 
 static void ExtractBalance_(Zeta_RBTreeNodeOpr const* rbtn_opr, void* n) {

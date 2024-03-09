@@ -2,6 +2,8 @@
 
 #include "define.h"
 
+ZETA_extern_c_beg;
+
 typedef struct Zeta_Deque Zeta_Deque;
 
 struct Zeta_Deque {
@@ -23,3 +25,5 @@ struct Zeta_Deque {
 
     void (*PopR)(void* context);
 };
+
+ZETA_extern_c_end;

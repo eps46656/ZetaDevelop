@@ -7,9 +7,9 @@
 #include "RawVector.h"
 #include "utils.h"
 
-static void DeployCircularVector_(size_t width, size_t seg_capacity,
-                                  Zeta_SegVector_Node* node, Zeta_RawVector* rv,
-                                  Zeta_Vector* v, Zeta_CircularVector* cv) {
+static void ToCircularVector_(size_t width, size_t seg_capacity,
+                              Zeta_SegVector_Node* node, Zeta_RawVector* rv,
+                              Zeta_Vector* v, Zeta_CircularVector* cv) {
     rv->data = node->seg;
     rv->width = width;
     rv->stride = width;
@@ -106,7 +106,7 @@ void* Zeta_SegVector_Access(void* sv_, size_t idx) {
     Zeta_Vector m_v;
     Zeta_CircularVector m_cv;
 
-    DeployCircularVector_(width, seg_capacity, m_node, &m_rv, &m_v, &m_cv);
+    ToCircularVector_(width, seg_capacity, m_node, &m_rv, &m_v, &m_cv);
 
     return Zeta_CircularVector_Access(&m_cv, seg_idx);
 }
@@ -273,7 +273,7 @@ void* Zeta_SegVector_Insert(void* sv_, size_t idx) {
     Zeta_Vector m_v;
     Zeta_CircularVector m_cv;
 
-    DeployCircularVector_(width, seg_capacity, m_node, &m_rv, &m_v, &m_cv);
+    ToCircularVector_(width, seg_capacity, m_node, &m_rv, &m_v, &m_cv);
 
     size_t m_vacant = seg_capacity - Zeta_CircularVector_GetSize(&m_cv);
 
@@ -323,7 +323,7 @@ void* Zeta_SegVector_Insert(void* sv_, size_t idx) {
         Zeta_Vector l_v;
         Zeta_CircularVector l_cv;
 
-        DeployCircularVector_(width, seg_capacity, l_node, &l_rv, &l_v, &l_cv);
+        ToCircularVector_(width, seg_capacity, l_node, &l_rv, &l_v, &l_cv);
 
         void* ret = Zeta_CircularVector_PushR(&l_cv);
         --l_vacant;
@@ -342,7 +342,7 @@ void* Zeta_SegVector_Insert(void* sv_, size_t idx) {
         Zeta_Vector r_v;
         Zeta_CircularVector r_cv;
 
-        DeployCircularVector_(width, seg_capacity, r_node, &r_rv, &r_v, &r_cv);
+        ToCircularVector_(width, seg_capacity, r_node, &r_rv, &r_v, &r_cv);
 
         for (; seg_idx < seg_capacity - m_vacant && 0 < r_vacant &&
                m_vacant <= r_vacant;) {
@@ -361,7 +361,7 @@ void* Zeta_SegVector_Insert(void* sv_, size_t idx) {
         Zeta_Vector l_v;
         Zeta_CircularVector l_cv;
 
-        DeployCircularVector_(width, seg_capacity, l_node, &l_rv, &l_v, &l_cv);
+        ToCircularVector_(width, seg_capacity, l_node, &l_rv, &l_v, &l_cv);
 
         for (; 0 < seg_idx && 0 < l_vacant && m_vacant <= l_vacant; --seg_idx) {
             Zeta_MemCopy(Zeta_CircularVector_PushR(&l_cv),
@@ -445,7 +445,7 @@ void Zeta_SegVector_Erase(void* sv_, size_t idx) {
     Zeta_Vector m_v;
     Zeta_CircularVector m_cv;
 
-    DeployCircularVector_(width, seg_capacity, m_node, &m_rv, &m_v, &m_cv);
+    ToCircularVector_(width, seg_capacity, m_node, &m_rv, &m_v, &m_cv);
 
     Zeta_CircularVector_Erase(&m_cv, seg_idx);
 
@@ -513,13 +513,13 @@ void Zeta_SegVector_Erase(void* sv_, size_t idx) {
     Zeta_Vector l_v;
     Zeta_CircularVector l_cv;
 
-    DeployCircularVector_(width, seg_capacity, l_node, &l_rv, &l_v, &l_cv);
+    ToCircularVector_(width, seg_capacity, l_node, &l_rv, &l_v, &l_cv);
 
     Zeta_RawVector r_rv;
     Zeta_Vector r_v;
     Zeta_CircularVector r_cv;
 
-    DeployCircularVector_(width, seg_capacity, r_node, &r_rv, &r_v, &r_cv);
+    ToCircularVector_(width, seg_capacity, r_node, &r_rv, &r_v, &r_cv);
 
     if (l_vacant <= r_vacant) {
         while (r_vacant < seg_capacity) {
@@ -611,7 +611,6 @@ void Zeta_SegVector_ToVector(void* sv_, Zeta_Vector* dst) {
     ZETA_DebugAssert(dst != NULL);
 
     dst->context = sv;
-
     dst->GetWidth = Zeta_SegVector_GetWidth;
     dst->GetSize = Zeta_SegVector_GetSize;
     dst->PeekL = Zeta_SegVector_PeekL;

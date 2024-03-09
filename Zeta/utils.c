@@ -218,6 +218,28 @@ u128_t Zeta_GetPowerMod(u128_t base, u128_t exp, u128_t mod) {
     return ret;
 }
 
+int Zeta_GetLogFloor(u128_t val, u128_t base) {
+    ZETA_DebugAssert(0 < val);
+    ZETA_DebugAssert(1 < base);
+
+    int ret = 0;
+
+    for (; base <= val; val /= base) { ++ret; }
+
+    return ret;
+}
+
+int Zeta_GetLogCeil(u128_t val, u128_t base) {
+    ZETA_DebugAssert(0 < val);
+    ZETA_DebugAssert(1 < base);
+
+    int ret = 0;
+
+    for (; 1 < val; val /= base) { ++ret; }
+
+    return ret;
+}
+
 u128_t Zeta_FindNextConMod(u128_t beg, u128_t target, u128_t mod) {
     ZETA_DebugAssert(0 < mod);
     return beg + (target + mod - beg % mod) % mod;

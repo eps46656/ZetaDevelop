@@ -4,7 +4,7 @@
 
 ZETA_extern_c_beg;
 
-    typedef unsigned long long key_t;
+typedef unsigned long long key_t;
 typedef unsigned long long val_t;
 
 void* DebugHashTable_Create();

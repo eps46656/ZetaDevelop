@@ -1157,6 +1157,39 @@ def builder_add(builder):
     )
 
     builder.add(
+        f"{ZetaDir}/RelRBLinkedListNode.h",
+        {
+            f"{File}",
+            f"{ZetaDir}/define.h",
+        },
+        lambda : 0
+    )
+
+    builder.add(
+        f"{ZetaDir}/RelRBLinkedListNode.c",
+        {
+            f"{File}",
+            f"{ZetaDir}/RelRBLinkedListNode.h",
+        },
+        lambda : 0
+    )
+
+    builder.add(
+        f"{ZetaDir}/RelRBLinkedListNode.o",
+        {
+            f"{File}",
+            f"{ZetaDir}/RelRBLinkedListNode.c",
+        },
+        lambda : os.system(" ".join([
+            cc,
+            f"--output {ZetaDir}/RelRBLinkedListNode.o",
+            f"-c",
+            *cargs,
+            f"{ZetaDir}/RelRBLinkedListNode.c",
+        ]))
+    )
+
+    builder.add(
         f"{ZetaDir}/RelRBTreeNode.h",
         {
             f"{File}",

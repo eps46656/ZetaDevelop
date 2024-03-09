@@ -33,7 +33,7 @@ void Zeta_PoolAllocator_Deallocate(void* pa_, void* ptr) {
     pa->n = n;
 }
 
-void Zeta_PoolAllocator_DeployAllocator(void* pa_, Zeta_Allocator* dst) {
+void Zeta_PoolAllocator_ToAllocator(void* pa_, Zeta_Allocator* dst) {
     Zeta_PoolAllocator* pa = pa_;
 
     ZETA_DebugAssert(pa_ != NULL);

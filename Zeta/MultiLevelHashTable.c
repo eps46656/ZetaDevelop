@@ -23,16 +23,16 @@ void Zeta_MultiLevelHashTable_Init(void* mlht_) {
     Zeta_MultiLevelHashTable* mlht = mlht_;
     ZETA_DebugAssert(mlht != NULL);
 
-    mlht->mlv = NULL;
+    Zeta_MultiLevelVector_Init(&mlht->mlv);
 }
 
 void* Zeta_MultiLevelHashTable_GetFirst(void* mlht_) {
     Zeta_MultiLevelHashTable* mlht = mlht_;
     ZETA_DebugAssert(mlht != NULL);
 
-    Zeta_MultiLevelVector* mlv = mlht->mlv;
+    Zeta_MultiLevelVector* mlv = &mlht->mlv;
 
-    size_t idxes[ZETA_MultiLevelVector_max_level];
+    size_t idxes[ZETA_MultiLevelVector_level_max];
     GetIdxes_(idxes, mlv, 0);
 
     void** n = Zeta_MultiLevelVector_FindNextNotNull(mlv, idxes, 1);
@@ -50,9 +50,9 @@ void* Zeta_MultiLevelHashTable_GetNext(void* mlht_, void* mlhtn_) {
     Zeta_MultiLevelHashTableNode* nxt_mlhtn = mlhtn->next;
     if (nxt_mlhtn != NULL) { return nxt_mlhtn; }
 
-    Zeta_MultiLevelVector* mlv = mlht->mlv;
+    Zeta_MultiLevelVector* mlv = &mlht->mlv;
 
-    size_t idxes[ZETA_MultiLevelVector_max_level];
+    size_t idxes[ZETA_MultiLevelVector_level_max];
     GetIdxes_(idxes, mlv, mlhtn->hash_code);
 
     void** n = Zeta_MultiLevelVector_FindNextNotNull(mlv, idxes, 0);
@@ -69,13 +69,13 @@ void Zeta_MultiLevelHashTable_Insert(void* mlht_, void* mlhtn_) {
     ZETA_DebugAssert(mlhtn->prev == NULL);
     ZETA_DebugAssert(mlhtn->next == NULL);
 
-    Zeta_MultiLevelVector* mlv = mlht->mlv;
+    Zeta_MultiLevelVector* mlv = &mlht->mlv;
     ZETA_DebugAssert(mlv != NULL);
 
-    size_t idxes[ZETA_MultiLevelVector_max_level];
+    size_t idxes[ZETA_MultiLevelVector_level_max];
     GetIdxes_(idxes, mlv, mlhtn->hash_code);
 
-    void** n = Zeta_MultiLevelVector_Insert(mlht->mlv, idxes);
+    void** n = Zeta_MultiLevelVector_Insert(&mlht->mlv, idxes);
 
     Zeta_MultiLevelHashTableNode* head_mlhtn = *n;
     *n = mlhtn;
@@ -93,22 +93,22 @@ void Zeta_MultiLevelHashTable_Extract(void* mlht_, void* mlhtn_) {
     Zeta_MultiLevelHashTableNode* mlhtn = mlhtn_;
     ZETA_DebugAssert(mlhtn != NULL);
 
-    Zeta_MultiLevelVector* mlv = mlht->mlv;
+    Zeta_MultiLevelVector* mlv = &mlht->mlv;
     ZETA_DebugAssert(mlv != NULL);
 
-    size_t idxes[ZETA_MultiLevelVector_max_level];
+    size_t idxes[ZETA_MultiLevelVector_level_max];
     GetIdxes_(idxes, mlv, mlhtn->hash_code);
 
-    void** n = Zeta_MultiLevelVector_Insert(mlht->mlv, idxes);
+    void** n = Zeta_MultiLevelVector_Access(&mlht->mlv, idxes);
 
     ZETA_DebugAssert(n != NULL);
 
     if (ZETA_debug) {
-        bool_t found = 0;
+        bool_t found = FALSE;
 
         for (Zeta_MultiLevelHashTableNode* m = *n; m != NULL; m = m->next) {
             if (mlhtn == m) {
-                found = 1;
+                found = TRUE;
                 break;
             }
         }
@@ -124,18 +124,14 @@ void Zeta_MultiLevelHashTable_Extract(void* mlht_, void* mlhtn_) {
 
     if (prev_mlhtn == NULL) {
         if (next_mlhtn == NULL) {
-            Zeta_MultiLevelVector_Erase(mlht->mlv, idxes);
+            Zeta_MultiLevelVector_Erase(&mlht->mlv, idxes);
         } else {
             *n = next_mlhtn;
             next_mlhtn->prev = NULL;
         }
     } else {
-        if (next_mlhtn == NULL) {
-            prev_mlhtn->next = NULL;
-        } else {
-            prev_mlhtn->next = next_mlhtn;
-            next_mlhtn->prev = prev_mlhtn;
-        }
+        prev_mlhtn->next = next_mlhtn;
+        if (next_mlhtn != NULL) { next_mlhtn->prev = prev_mlhtn; }
     }
 }
 
@@ -143,13 +139,13 @@ void* Zeta_MultiLevelHashTable_Find(void* mlht_, size_t hash_code) {
     Zeta_MultiLevelHashTable* mlht = mlht_;
     ZETA_DebugAssert(mlht != NULL);
 
-    Zeta_MultiLevelVector* mlv = mlht->mlv;
+    Zeta_MultiLevelVector* mlv = &mlht->mlv;
     ZETA_DebugAssert(mlv != NULL);
 
-    size_t idxes[ZETA_MultiLevelVector_max_level];
+    size_t idxes[ZETA_MultiLevelVector_level_max];
     GetIdxes_(idxes, mlv, hash_code);
 
-    void** n = Zeta_MultiLevelVector_Insert(mlht->mlv, idxes);
+    void** n = Zeta_MultiLevelVector_Insert(&mlht->mlv, idxes);
 
     if (n == NULL) { return NULL; }
 

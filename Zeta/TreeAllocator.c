@@ -275,8 +275,9 @@ void Zeta_TreeAllocator_Deallocate(void* ta_, void* ptr) {
     }
 }
 
-void GetVacantHead_(Zeta_DebugTreeMap* dst_head_mt,
-                    Zeta_TreeAllocator_Head* head, size_t lb, size_t ub) {
+static void GetVacantHead_(Zeta_DebugTreeMap* dst_head_mt,
+                           Zeta_TreeAllocator_Head* head, size_t lb,
+                           size_t ub) {
     size_t stride = GetStride_(head);
     ZETA_DebugAssert(lb <= stride && stride <= ub);
 
@@ -326,8 +327,6 @@ void Zeta_TreeAllocator_Check(void* ta_, bool_t print_state,
 
     Zeta_DebugTreeMap_EraseAll(dst_ptr_size_tm);
 
-    if (print_state) { printf("\n\n--- ord allocator check begin ---\n\n"); }
-
     typedef unsigned long long ull;
 
     Zeta_TreeAllocator* ta = ta_;
@@ -339,20 +338,7 @@ void Zeta_TreeAllocator_Check(void* ta_, bool_t print_state,
     size_t head_align = alignof(Zeta_TreeAllocator_Head);
     size_t head_size = sizeof(Zeta_TreeAllocator_Head);
 
-    if (print_state) {
-        printf("basic config:\n");
-
-        printf("head_align: %zu\n", head_align);
-        printf("head_size: %zu\n", head_size);
-        printf("\n");
-    }
-
     size_t align = ta->align;
-
-    if (print_state) {
-        printf("align: %zu\n", align);
-        printf("\n");
-    }
 
     ZETA_DebugAssert(data_beg % head_align == 0);
     ZETA_DebugAssert((data_beg + head_size) % align == 0);
@@ -361,20 +347,6 @@ void Zeta_TreeAllocator_Check(void* ta_, bool_t print_state,
 
     Zeta_TreeAllocator_Head* beg_head = ZETA_UINT_TO_PTR(data_beg);
     Zeta_TreeAllocator_Head* end_head = ZETA_UINT_TO_PTR(data_end - head_size);
-
-    if (print_state) {
-        printf("\n");
-
-        printf("blocks:\n\n");
-
-        printf("\tbeg_head: %p\n", beg_head);
-        printf("\tend_head: %p\n", end_head);
-
-        printf("\n");
-
-        printf("\t%16s\t%16s\t%16s\t%16s\t%16s\t%16s\n", "head", "data begin",
-               "data end", "stride", "size", "state");
-    }
 
     ZETA_DebugAssert(Zeta_RelRBTreeNode_GetP(NULL, ta->sn_root) == NULL);
 
@@ -395,11 +367,8 @@ void Zeta_TreeAllocator_Check(void* ta_, bool_t print_state,
         Zeta_RelLinkedListNode* nxt_hn_i = Zeta_RelLinkedListNode_GetR(hn_i);
 
         ZETA_DebugAssert(hn_i < nxt_hn_i);
-        // ZETA_DebugAssert(hn_i < nxt_hn_i);
 
         Zeta_TreeAllocator_Head* nxt_head_i = GetHeadFromHN_(nxt_hn_i);
-
-        bool_t vacant = IsVacant_(ta, head_i);
 
         size_t stride = (ull)nxt_head_i - (ull)head_i;
         size_t size = (ull)nxt_head_i - (ull)data_i;
@@ -407,28 +376,12 @@ void Zeta_TreeAllocator_Check(void* ta_, bool_t print_state,
         ZETA_DebugAssert(head_size <= stride);
         ZETA_DebugAssert(size + head_size == stride);
 
-        if (print_state) {
-            printf("\t%16p\t%16p\t%16p\t", head_i, data_i, nxt_head_i);
-
-            printf("%16zu\t", stride);
-
-            printf("%16zu\t", size);
-
-            printf("  %+03d", vacant);
-        }
-
-        if (vacant) {
-            if (print_state) { printf(" (  vacant)    "); }
-
+        if (IsVacant_(ta, head_i)) {
             bool_t b = Zeta_DebugTreeMap_Erase(&vacant_head_mt,
                                                ZETA_PTR_TO_UINT(head_i));
 
             ZETA_DebugAssert(b);
         } else {
-            if (print_state) { printf(" (occupied)    "); }
-        }
-
-        if (!vacant) {
             Zeta_DebugTreeMap_KeyValPair kvp = Zeta_DebugTreeMap_Insert(
                 dst_ptr_size_tm, ZETA_PTR_TO_UINT(data_i));
 
@@ -437,17 +390,11 @@ void Zeta_TreeAllocator_Check(void* ta_, bool_t print_state,
             *kvp.val = (ull)nxt_head_i - (ull)data_i;
         }
 
-        if (print_state) { printf("\n"); }
-
         hn_i = nxt_hn_i;
     }
 
-    if (print_state) { printf("\n\n\n"); }
-
     ZETA_DebugAssert(Zeta_DebugTreeMap_GetSize(&vacant_head_mt) == 0);
     Zeta_DebugTreeMap_Destroy(&vacant_head_mt);
-
-    if (print_state) { printf("\n--- ord allocator check end ---\n\n"); }
 }
 
 void Zeta_TreeAllocator_ToAllocator(void* ta_, Zeta_Allocator* dst) {

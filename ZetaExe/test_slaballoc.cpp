@@ -60,7 +60,7 @@ void main1() {
 
     Zeta_SlabAllocator_Init(&allocator_);
 
-    Zeta_SlabAllocator_DeployAllocator(&allocator_, &allocator);
+    Zeta_SlabAllocator_ToAllocator(&allocator_, &allocator);
 
     ZETA_PrintPos;
 

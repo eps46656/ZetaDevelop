@@ -8,7 +8,7 @@ static void CheckIdxes_(void* mlv_, size_t* idxes) {
 
     int level = mlv->level;
     ZETA_DebugAssert(0 < level);
-    ZETA_DebugAssert(level <= ZETA_MultiLevelVector_max_level);
+    ZETA_DebugAssert(level <= ZETA_MultiLevelVector_level_max);
 
     for (int level_i = 0; level_i < level; ++level_i) {
         size_t branch_num = mlv->branch_nums[level_i];
@@ -26,7 +26,7 @@ void Zeta_MultiLevelVector_Init(void* mlv_) {
 
     if (level <= 0) {
         level = 6;
-        ZETA_StaticAssert(6 <= ZETA_MultiLevelVector_max_level);
+        ZETA_StaticAssert(6 <= ZETA_MultiLevelVector_level_max);
 
         mlv->level = level;
 
@@ -39,18 +39,21 @@ void Zeta_MultiLevelVector_Init(void* mlv_) {
     }
 
     ZETA_DebugAssert(0 < level);
-    ZETA_DebugAssert(level < ZETA_MultiLevelVector_max_level);
+    ZETA_DebugAssert(level < ZETA_MultiLevelVector_level_max);
 
     for (int level_i = 0; level_i < level; ++level_i) {
         size_t branch_num = mlv->branch_nums[level_i];
 
         ZETA_DebugAssert(0 < branch_num);
-        ZETA_DebugAssert(branch_num <= ZETA_MultiLevelVector_max_branch_num);
+        ZETA_DebugAssert(branch_num <= ZETA_MultiLevelVector_branch_num_max);
     }
 
     mlv->root = NULL;
 
     ZETA_DebugAssert(mlv->allocator != NULL);
+    ZETA_DebugAssert(mlv->allocator->GetAlign(mlv->allocator->context) %
+                         alignof(void*) ==
+                     0);
 }
 
 size_t Zeta_MultiLevelVector_GetCapacity(void* mlv_) {
@@ -61,7 +64,7 @@ size_t Zeta_MultiLevelVector_GetCapacity(void* mlv_) {
 
     int level = mlv->level;
     ZETA_DebugAssert(0 < level);
-    ZETA_DebugAssert(level <= ZETA_MultiLevelVector_max_level);
+    ZETA_DebugAssert(level <= ZETA_MultiLevelVector_level_max);
 
     for (int level_i = 0; level_i < level; ++level_i) {
         size_t branch_num = mlv->branch_nums[level_i];
@@ -276,6 +279,7 @@ L1:;
 void* AllocatePage_(size_t branch_num, void* allocator_context,
                     void* (*Allocate)(void* context, size_t size)) {
     void** ret = Allocate(allocator_context, sizeof(void*) * branch_num);
+    ZETA_DebugAssert(ret != NULL);
 
     for (size_t idx = 0; idx < branch_num; ++idx) { ret[idx] = NULL; }
 
@@ -332,7 +336,7 @@ void Zeta_MultiLevelVector_Erase(void* mlv_, size_t* idxes) {
     ZETA_DebugAssert(Deallocate != NULL);
 
     void* n = mlv->root;
-    void* pages[ZETA_MultiLevelVector_max_level];
+    void* pages[ZETA_MultiLevelVector_level_max];
 
     for (int level_i = 0; level_i < level; ++level_i) {
         if (n == NULL) { return; }

@@ -104,6 +104,10 @@ u128_t Zeta_GetPower(u128_t base, u128_t exp);
  */
 u128_t Zeta_GetPowerMod(u128_t base, u128_t exp, u128_t mod);
 
+int Zeta_GetLogFloor(u128_t val, u128_t base);
+
+int Zeta_GetLogCeil(u128_t val, u128_t base);
+
 u128_t Zeta_FindNextConMod(u128_t beg, u128_t target, u128_t mod);
 
 void* Zeta_GetMostLink(void* context, void* (*GetLink)(void* context, void* n),

@@ -23,7 +23,7 @@ void* Zeta_LRUCacheManager_Find(void* lrucm_, size_t key) {
     Zeta_LRUCacheManager* lrucm = lrucm_;
     ZETA_DebugAssert(lrucm != NULL);
 
-    size_t key_idxes[ZETA_MultiLevelVector_max_level];
+    size_t key_idxes[ZETA_MultiLevelVector_level_max];
     GetKeyIdxes_(lrucm, key_idxes, key);
 
     void** node_p = Zeta_MultiLevelVector_Access(&lrucm->mlv, key_idxes);
@@ -49,7 +49,7 @@ void* Zeta_LRUCacheManager_Push(void* lrucm_, size_t key, void* frame) {
 
     void* (*Allocate)(void* context, size_t size) = allocator->Allocate;
 
-    size_t key_idxes[ZETA_MultiLevelVector_max_level];
+    size_t key_idxes[ZETA_MultiLevelVector_level_max];
     GetKeyIdxes_(lrucm, key_idxes, key);
 
     void** node_p = Zeta_MultiLevelVector_Insert(&lrucm->mlv, key_idxes);
@@ -99,7 +99,7 @@ void* Zeta_LRUCacheManager_Pop(void* lrucm_) {
 
     Zeta_OrdLinkedListNode_Extract(target_n);
 
-    size_t key_idxes[ZETA_MultiLevelVector_max_level];
+    size_t key_idxes[ZETA_MultiLevelVector_level_max];
     GetKeyIdxes_(lrucm, key_idxes, target_node->key);
 
     Zeta_MultiLevelVector_Erase(&lrucm->mlv, key_idxes);

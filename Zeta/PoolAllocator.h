@@ -14,4 +14,4 @@ void* Zeta_PoolAllocator_Allocate(void* pa, size_t size);
 
 void Zeta_PoolAllocator_Deallocate(void* pa, void* ptr);
 
-void Zeta_PoolAllocator_DeployAllocator(void* pa, Zeta_Allocator* dst);
+void Zeta_PoolAllocator_ToAllocator(void* pa, Zeta_Allocator* dst);

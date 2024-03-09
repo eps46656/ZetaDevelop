@@ -1,6 +1,7 @@
 #pragma once
 
 #include "MultiLevelVector.h"
+#include "RelLinkedListNode.h"
 
 ZETA_extern_c_beg;
 
@@ -8,14 +9,13 @@ typedef struct Zeta_MultiLevelHashTableNode Zeta_MultiLevelHashTableNode;
 
 struct Zeta_MultiLevelHashTableNode {
     size_t hash_code;
-    Zeta_MultiLevelHashTableNode* prev;
-    Zeta_MultiLevelHashTableNode* next;
+    Zeta_MultiLevelHashTableNode* nxt;
 };
 
 typedef struct Zeta_MultiLevelHashTable Zeta_MultiLevelHashTable;
 
 struct Zeta_MultiLevelHashTable {
-    Zeta_MultiLevelVector* mlv;
+    Zeta_MultiLevelVector mlv;
 };
 
 /* initialize the mlhtn */

@@ -14,7 +14,7 @@ Single SlabAllocator only provides single width of unit.
 
 */
 
-#define ZETA_SlabAllocator_max_of_num ZETA_maxof(u8_t)
+#define ZETA_SlabAllocator_max_num ZETA_maxof(u8_t)
 
 typedef struct Zeta_SlabAllocator Zeta_SlabAllocator;
 
@@ -44,7 +44,7 @@ void* Zeta_SlabAllocator_Allocate(void* sa, size_t size);
 
 void Zeta_SlabAllocator_Deallocate(void* sa, void* ptr);
 
-void Zeta_SlabAllocator_DeployAllocator(void* sa, Zeta_Allocator* dst);
+void Zeta_SlabAllocator_ToAllocator(void* sa, Zeta_Allocator* dst);
 
 void Zeta_SlabAllocator_Check(void* sa, Zeta_DebugTreeMap* dst_used_ptr_size_tm,
                               Zeta_DebugTreeMap* dst_released_ptr_size_tm);

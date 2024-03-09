@@ -78,13 +78,15 @@ void MyFree(void* ptr) {
 }
 
 void CheckAllocator(bool_t print_state) {
+    ZETA_Unused(print_state);
+
     Zeta_DebugTreeMap ptr_size_tm_;
     Zeta_DebugTreeMap_Create(&ptr_size_tm_);
 
     std::map<size_t, size_t>& ptr_size_tm =
         *static_cast<std::map<size_t, size_t>*>(ptr_size_tm_.tree_map);
 
-    Zeta_OrdAllocator_Check(&allocator, print_state, &ptr_size_tm_);
+    Zeta_OrdAllocator_Check(&allocator, &ptr_size_tm_);
 
     CheckNoCross(ptr_size_tm);
 
@@ -159,7 +161,7 @@ void main1() {
         }
     }
 
-    // Zeta_OrdAllocator_Check(&allocator, 1, ptr_size_tm);
+    // Zeta_OrdAllocator_Check(&allocator, ptr_size_tm);
 
     // DebugTreeMap_Print(ptr_size_tm);
 }

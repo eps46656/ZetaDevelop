@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Disk.h"
+#include "SegVector.h"
 
 typedef struct Zeta_FileSysFAT32_Header Zeta_FileSysFAT32_Header;
 
@@ -48,4 +49,39 @@ struct Zeta_FileSysFAT32_Header {
     byte_t vol_lab[11];
 
     byte_t fs_type[8];
+};
+
+typedef struct Zeta_FileSysFAT32_DirEntry Zeta_FileSysFAT32_DirEntry;
+
+struct Zeta_FileSysFAT32_DirEntry {
+    Zeta_SegVector name;
+
+    u8_t attr;
+
+    u64_t first_clus_num;
+
+    s32_t crt_year;
+    u8_t crt_month;
+    u8_t crt_day;
+    u8_t crt_hour;
+    u8_t crt_min;
+    u8_t crt_sec;
+    u16_t crt_msec;
+
+    s32_t acc_year;
+    u8_t acc_month;
+    u8_t acc_day;
+
+    s32_t wrt_year;
+    u8_t wrt_month;
+    u8_t wrt_day;
+    u8_t wrt_hour;
+    u8_t wrt_min;
+    u8_t wrt_sec;
+};
+
+typedef struct Zeta_FileSysFAT32_Dir Zeta_FileSysFAT32_Dir;
+
+struct Zeta_FileSysFAT32_Dir {
+    Zeta_SegVector entries;
 };
