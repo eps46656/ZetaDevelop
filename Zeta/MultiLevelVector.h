@@ -23,7 +23,7 @@ struct Zeta_MultiLevelVector {
 
     void* root;
 
-    Zeta_Allocator* allocator;
+    Zeta_Allocator allocator;
 };
 
 /**

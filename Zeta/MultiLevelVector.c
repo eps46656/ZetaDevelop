@@ -51,6 +51,7 @@ void Zeta_MultiLevelVector_Init(void* mlv_) {
     mlv->root = NULL;
 
     ZETA_DebugAssert(mlv->allocator != NULL);
+    ZETA_DebugAssert(mlv->allocator->GetAlign != NULL);
     ZETA_DebugAssert(mlv->allocator->GetAlign(mlv->allocator->context) %
                          alignof(void*) ==
                      0);
