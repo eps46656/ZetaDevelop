@@ -125,6 +125,38 @@ def builder_add(builder):
     )
 
     builder.add(
+        f"{ZetaExeDir}/test_binheap.cpp",
+        {
+            f"{File}",
+            f"{ZetaDir}/BinHeap.h",
+            f"{ZetaDir}/RelCntRBTreeNode.h"
+        },
+        lambda : 0
+    )
+
+    builder.add(
+        f"{ZetaExeDir}/test_binheap.exe",
+        {
+            f"{File}",
+            f"{ZetaDir}/BinHeap.o",
+            f"{ZetaDir}/BinTree.o",
+            f"{ZetaDir}/RelCntRBTreeNode.o",
+            f"{ZetaDir}/utils.o",
+            f"{ZetaExeDir}/test_binheap.cpp",
+        },
+        lambda : os.system(" ".join([
+            cppc,
+            f"--output {ZetaExeDir}/test_binheap.exe",
+            *cppargs,
+            f"{ZetaDir}/BinHeap.o",
+            f"{ZetaDir}/BinTree.o",
+            f"{ZetaDir}/RelCntRBTreeNode.o",
+            f"{ZetaDir}/utils.o",
+            f"{ZetaExeDir}/test_binheap.cpp",
+        ]))
+    )
+
+    builder.add(
         f"{ZetaExeDir}/test_gplist.c",
         {
             f"{File}",

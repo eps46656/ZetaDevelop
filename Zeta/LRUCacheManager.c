@@ -104,17 +104,6 @@ void Zeta_LRUCacheManager_Init(void* lrucm_) {
     ZETA_DebugAssert(lrucm->blk_vec->GetBlockNum != NULL);
     size_t blk_num = lrucm->blk_vec->GetBlockNum(lrucm->blk_vec->context);
 
-    int blk_idx_level = Zeta_GetLogCeil(blk_num, blk_idx_level_branch_num);
-    ZETA_DebugAssert(blk_idx_level <= ZETA_MultiLevelVector_level_max);
-
-    lrucm->n_map.level = blk_idx_level;
-
-    for (int i = 0; i < blk_idx_level; ++i) {
-        lrucm->n_map.branch_nums[i] = blk_idx_level_branch_num;
-    }
-
-    Zeta_MultiLevelVector_Init(&lrucm->n_map);
-
     lrucm->held_cl_cnt = 0;
     lrucm->unheld_cl_cnt = 0;
 }
@@ -207,26 +196,6 @@ static void RotateFromUnheldToHeld_(Zeta_LRUCacheManager* lrucm,
         ++lrucm->held_cl_cnt;
         --lrucm->unheld_cl_cnt;
     }
-}
-
-static user_t FindUnusedUser_(Zeta_LRUCacheManager* lrucm) {
-    int user_level = Zeta_GetLogCeil(ZETA_LRUCacheManager_user_num_max,
-                                     user_level_branch_num);
-
-    lrucm->n_map.level = user_level;
-
-    size_t idxes[ZETA_MultiLevelVector_level_max];
-    for (int i = 0; i < user_level; ++i) { idxes[i] = 0; }
-
-    Zeta_MultiLevelVector_FindNextNotNull(&lrucm->n_map, idxes, TRUE);
-
-    user_t user = 0;
-
-    for (int i = 0; i < user_level; ++i) {
-        user = user * user_level_branch_num + idxes[i];
-    }
-
-    return user;
 }
 
 static void Lift_(Zeta_LRUCacheManager* lrucm, Zeta_LRUCacheManager_XNode* xn) {
@@ -524,9 +493,9 @@ static void Uncache_(Zeta_LRUCacheManager* lrucm,
     }
 }
 
-static Zeta_LRUCacheManager_XNode* Access_(Zeta_LRUCacheManager* lrucm,
-                                           Zeta_LRUCacheManager_UNode* un,
-                                           size_t blk_idx) {
+static Zeta_LRUCacheManager_XNode* UserCache_(Zeta_LRUCacheManager* lrucm,
+                                              Zeta_LRUCacheManager_UNode* un,
+                                              size_t blk_idx) {
     Zeta_BlockVector* blk_vec = lrucm->blk_vec;
     ZETA_DebugAssert(blk_vec != NULL);
 
@@ -536,12 +505,7 @@ static Zeta_LRUCacheManager_XNode* Access_(Zeta_LRUCacheManager* lrucm,
 
     ZETA_DebugAssert(blk_idx < blk_num);
 
-    size_t idxes[ZETA_MultiLevelVector_level_max];
-
-    GetIdxes_(idxes, lrcum->blk_vec, blk_idx);
-    void** cn_ = Zeta_MultiLevelVector_Access(&lrucm->n_map, idxes);
-
-    Zeta_RelRBTreeNode* at = FindAT_(lrucm->ct_root, blk_idx);
+    Zeta_RelRBTreeNode* at = FindAT_(un->at_root, blk_idx);
 
     if (at != NULL) {
         Zeta_LRUCacheManager_XNode* xn =

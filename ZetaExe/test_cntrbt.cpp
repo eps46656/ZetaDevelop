@@ -19,46 +19,7 @@ struct NodeCup {
 
 // -----------------------------------------------------------------------------
 
-Zeta_BinTreeNodeAccessor btn_accessor = (Zeta_BinTreeNodeAccessor){
-    .context = NULL,
-
-    .GetP = Zeta_RelCntRBTreeNode_GetP,
-    .GetL = Zeta_RelCntRBTreeNode_GetL,
-    .GetR = Zeta_RelCntRBTreeNode_GetR,
-};
-
-Zeta_RBTreeNodeOpr rbtn_opr = (Zeta_RBTreeNodeOpr){
-    .context = NULL,
-
-    .GetP = Zeta_RelCntRBTreeNode_GetP,
-    .GetL = Zeta_RelCntRBTreeNode_GetL,
-    .GetR = Zeta_RelCntRBTreeNode_GetR,
-
-    .GetColor = Zeta_RelCntRBTreeNode_GetColor,
-    .ReverseColor = Zeta_RelCntRBTreeNode_ReverseColor,
-
-    .AttachL = Zeta_RelCntRBTreeNode_AttachL,
-    .AttachR = Zeta_RelCntRBTreeNode_AttachR,
-
-    .Detach = Zeta_RelCntRBTreeNode_Detach,
-
-    .Swap = Zeta_RelCntRBTreeNode_Swap,
-
-    .RotateL = Zeta_RelCntRBTreeNode_RotateL,
-    .RotateR = Zeta_RelCntRBTreeNode_RotateR,
-};
-
-Zeta_CntBinTreeNodeOpr cbtn_opr = (Zeta_CntBinTreeNodeOpr){
-    .context = NULL,
-
-    .GetP = Zeta_RelCntRBTreeNode_GetP,
-    .GetL = Zeta_RelCntRBTreeNode_GetL,
-    .GetR = Zeta_RelCntRBTreeNode_GetR,
-
-    .GetAccSize = Zeta_RelCntRBTreeNode_GetAccSize,
-    .GetSize = Zeta_RelCntRBTreeNode_GetSize,
-    .SetSize = Zeta_RelCntRBTreeNode_SetSize,
-};
+Zeta_BinTreeNodeOperator btn_opr;
 
 // -----------------------------------------------------------------------------
 
@@ -74,7 +35,7 @@ void* rb;
 // -----------------------------------------------------------------------------
 
 void CompareLR() {
-    void* n = Zeta_GetMostLink(NULL, rbtn_opr.GetL, root);
+    void* n = Zeta_GetMostLink(NULL, btn_opr.GetL, root);
     auto iter = vec.begin();
     auto end = vec.end();
 
@@ -89,16 +50,15 @@ void CompareLR() {
         Node* node = ZETA_GetStructFromMember(Node, n, n);
 
         ZETA_DebugAssert(iter->linked_node == node);
-        ZETA_DebugAssert(iter->size ==
-                         Zeta_RelCntRBTreeNode_GetSize(NULL, node));
+        ZETA_DebugAssert(iter->size == Zeta_BinTree_GetSize(&btn_opr, n));
 
         ++iter;
-        n = Zeta_BinTree_StepR(&btn_accessor, n);
+        n = Zeta_BinTree_StepR(&btn_opr, n);
     }
 }
 
 void CompareRL() {
-    void* n = Zeta_GetMostLink(NULL, rbtn_opr.GetR, root);
+    void* n = Zeta_GetMostLink(NULL, btn_opr.GetR, root);
     auto iter = vec.rbegin();
     auto end = vec.rend();
 
@@ -113,16 +73,15 @@ void CompareRL() {
         Node* node = ZETA_GetStructFromMember(Node, n, n);
 
         ZETA_DebugAssert(iter->linked_node == node);
-        ZETA_DebugAssert(iter->size ==
-                         Zeta_RelCntRBTreeNode_GetSize(NULL, node));
+        ZETA_DebugAssert(iter->size == Zeta_BinTree_GetSize(&btn_opr, n));
 
         ++iter;
-        n = Zeta_BinTree_StepL(&btn_accessor, n);
+        n = Zeta_BinTree_StepL(&btn_opr, n);
     }
 }
 
 void Check() {
-    Zeta_RBTree_Check(&rbtn_opr, root);
+    Zeta_RBTree_Check(&btn_opr, root);
     CompareLR();
     CompareRL();
 }
@@ -135,7 +94,7 @@ void Access(size_t idx) {
     void* target_n;
     size_t target_tail_idx;
 
-    Zeta_CntBinTree_Access(&target_n, &target_tail_idx, &cbtn_opr, root, idx);
+    Zeta_BinTree_Access(&target_n, &target_tail_idx, &btn_opr, root, idx);
 
     auto target_iter = vec.end();
 
@@ -163,18 +122,18 @@ void Insert(size_t idx, size_t size) {
 
     Node* new_node = new Node;
     Zeta_RelCntRBTreeNode_Init(NULL, &new_node->n);
-    Zeta_RelCntRBTreeNode_SetSize(NULL, &new_node->n, size);
+    Zeta_BinTree_SetSize(&btn_opr, &new_node->n, size);
 
     size_sum += size;
 
     if (idx < vec.size()) {
         Node* ins_node = vec[idx].linked_node;
-        root = Zeta_RBTree_InsertL(&rbtn_opr, &ins_node->n, &new_node->n);
+        root = Zeta_RBTree_InsertL(&btn_opr, &ins_node->n, &new_node->n);
     } else if (vec.size() == 0) {
         root = &new_node->n;
     } else {
         Node* ins_node = vec.back().linked_node;
-        root = Zeta_RBTree_InsertR(&rbtn_opr, &ins_node->n, &new_node->n);
+        root = Zeta_RBTree_InsertR(&btn_opr, &ins_node->n, &new_node->n);
     }
 
     vec.insert(vec.begin() + idx, (NodeCup){
@@ -192,7 +151,7 @@ void Erase(size_t idx) {
     size_sum -= vec[idx].size;
 
     Node* target_node = vec[idx].linked_node;
-    root = Zeta_RBTree_Extract(&rbtn_opr, &target_node->n);
+    root = Zeta_RBTree_Extract(&btn_opr, &target_node->n);
     delete target_node;
 
     vec.erase(vec.begin() + idx);
@@ -210,26 +169,24 @@ void main1() {
                                                          ZETA_maxof(size_t) };
     std::uniform_int_distribution<size_t> size_generator{ 0, 16 };
 
+    Zeta_RelCntRBTreeNode_ToBinTreeNodeOperator(NULL, &btn_opr);
+
     size_sum = 0;
     root = NULL;
 
-    for (int i = 0; i < 20; ++i) {
+    for (int i = 0; i < 1024; ++i) {
         Insert(idx_generator(en) % (vec.size() + 1), size_generator(en));
         Check();
     }
 
-    ZETA_PrintPos;
-
-    for (int _ = 0; _ < 5; ++_) {
-        for (int i = 0, end = idx_generator(en) % 100 + 20; i < end; ++i) {
+    for (int _ = 0; _ < 16; ++_) {
+        for (int i = 0, end = idx_generator(en) % 1024 + 4096; i < end; ++i) {
             Insert(idx_generator(en) % (vec.size() + 1), size_generator(en));
             Check();
         }
 
-        ZETA_PrintPos;
-
         for (int i = 0,
-                 end = std::min(vec.size(), idx_generator(en) % 100 + 20);
+                 end = std::min(vec.size(), idx_generator(en) % 1024 + 4096);
              i < end; ++i) {
             Erase(idx_generator(en) % vec.size());
             Check();
@@ -237,12 +194,9 @@ void main1() {
 
         for (int i = 0, end = vec.size() * 2; i < end; ++i) {
             int idx = idx_generator(en) % (size_sum * 2);
-            ZETA_PrintVar("%lld", idx);
             Access(idx);
         }
     }
-
-    ZETA_PrintPos;
 
     printf("ok\n");
 }

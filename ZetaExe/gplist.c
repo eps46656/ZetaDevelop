@@ -5,7 +5,7 @@
 
 typedef unsigned long long int val_t;
 
-Zeta_BinTreeNodeAccessor bt_accessor = {
+Zeta_BinTreeNodeOpr bt_accessor = {
     .GetP = Zeta_OrdCntRBTreeNode_GetP,
     .GetL = Zeta_OrdCntRBTreeNode_GetL,
     .GetR = Zeta_OrdCntRBTreeNode_GetR,

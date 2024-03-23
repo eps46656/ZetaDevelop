@@ -103,7 +103,7 @@ void Zeta_MultiLevelHashTable_Extract(void* mlht_, void* mlhtn_) {
 
     ZETA_DebugAssert(n != NULL);
 
-    if (ZETA_debug) {
+    if (ZETA_IsDebug) {
         bool_t found = FALSE;
 
         for (Zeta_MultiLevelHashTableNode* m = *n; m != NULL; m = m->next) {

@@ -104,6 +104,40 @@ def builder_add(builder):
     )
 
     builder.add(
+        f"{ZetaDir}/BinHeap.h",
+        {
+            f"{File}",
+            f"{ZetaDir}/BinTree.h",
+        },
+        lambda : 0
+    )
+
+    builder.add(
+        f"{ZetaDir}/BinHeap.c",
+        {
+            f"{File}",
+            f"{ZetaDir}/BinHeap.h",
+            f"{ZetaDir}/utils.h",
+        },
+        lambda : 0
+    )
+
+    builder.add(
+        f"{ZetaDir}/BinHeap.o",
+        {
+            f"{File}",
+            f"{ZetaDir}/BinHeap.c",
+        },
+        lambda : os.system(" ".join([
+            cc,
+            f"--output {ZetaDir}/BinHeap.o",
+            f"-c",
+            *cargs,
+            f"{ZetaDir}/BinHeap.c",
+        ]))
+    )
+
+    builder.add(
         f"{ZetaDir}/BinTree.h",
         {
             f"{File}",
@@ -126,7 +160,7 @@ def builder_add(builder):
         f"{ZetaDir}/BinTree.o",
         {
             f"{File}",
-            f"{ZetaDir}/BinTree.h",
+            f"{ZetaDir}/BinTree.c",
         },
         lambda : os.system(" ".join([
             cc,
@@ -1087,6 +1121,39 @@ def builder_add(builder):
             f"-c",
             *cargs,
             f"{ZetaDir}/RBTree.c",
+        ]))
+    )
+
+    builder.add(
+        f"{ZetaDir}/RelBinTreeNode.h",
+        {
+            f"{File}",
+            f"{ZetaDir}/BinTree.h",
+        },
+        lambda : 0
+    )
+
+    builder.add(
+        f"{ZetaDir}/RelBinTreeNode.c",
+        {
+            f"{File}",
+            f"{ZetaDir}/RelBinTreeNode.h",
+        },
+        lambda : 0
+    )
+
+    builder.add(
+        f"{ZetaDir}/RelBinTreeNode.o",
+        {
+            f"{File}",
+            f"{ZetaDir}/RelBinTreeNode.c",
+        },
+        lambda : os.system(" ".join([
+            cc,
+            f"--output {ZetaDir}/RelBinTreeNode.o",
+            f"-c",
+            *cargs,
+            f"{ZetaDir}/RelBinTreeNode.c",
         ]))
     )
 

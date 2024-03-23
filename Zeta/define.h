@@ -20,10 +20,10 @@
 #define ZETA_StaticAssert(cond) _Static_assert(cond, "")
 
 #if defined(DEBUG)
-#define ZETA_debug 1
+#define ZETA_IsDebug TRUE
 #define ZETA_DebugAssert(cond) ZETA_Assert(cond)
 #else
-#define ZETA_debug 0
+#define ZETA_IsDebug FALSE
 #define ZETA_DebugAssert(cond) \
     if (cond) {                \
     } else {                   \

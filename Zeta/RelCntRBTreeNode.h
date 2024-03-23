@@ -1,6 +1,6 @@
 #pragma once
 
-#include "define.h"
+#include "BinTree.h"
 
 ZETA_extern_c_beg;
 
@@ -16,31 +16,22 @@ struct Zeta_RelCntRBTreeNode {
 void Zeta_RelCntRBTreeNode_Init(void* context, void* n);
 
 void* Zeta_RelCntRBTreeNode_GetP(void* context, void* n);
-
 void* Zeta_RelCntRBTreeNode_GetL(void* context, void* n);
-
 void* Zeta_RelCntRBTreeNode_GetR(void* context, void* n);
 
-int Zeta_RelCntRBTreeNode_GetColor(void* context, void* n);
+void Zeta_RelCntRBTreeNode_SetP(void* context, void* n, void* m);
+void Zeta_RelCntRBTreeNode_SetL(void* context, void* n, void* m);
+void Zeta_RelCntRBTreeNode_SetR(void* context, void* n, void* m);
 
-void Zeta_RelCntRBTreeNode_ReverseColor(void* context, void* n);
+int Zeta_RelCntRBTreeNode_GetPColor(void* context, void* n);
+
+void Zeta_RelCntRBTreeNode_SetPColor(void* context, void* n, int p_color);
 
 size_t Zeta_RelCntRBTreeNode_GetAccSize(void* context, void* n);
 
-size_t Zeta_RelCntRBTreeNode_GetSize(void* context, void* n);
+void Zeta_RelCntRBTreeNode_SetAccSize(void* context, void* n, size_t acc_size);
 
-void Zeta_RelCntRBTreeNode_SetSize(void* context, void* n, size_t size);
-
-void Zeta_RelCntRBTreeNode_AttachL(void* context, void* n, void* m);
-
-void Zeta_RelCntRBTreeNode_AttachR(void* context, void* n, void* m);
-
-void Zeta_RelCntRBTreeNode_Detach(void* context, void* n);
-
-void Zeta_RelCntRBTreeNode_Swap(void* context, void* n, void* m);
-
-void Zeta_RelCntRBTreeNode_RotateL(void* context, void* n);
-
-void Zeta_RelCntRBTreeNode_RotateR(void* context, void* n);
+void Zeta_RelCntRBTreeNode_ToBinTreeNodeOperator(
+    void* context, Zeta_BinTreeNodeOperator* btn_opr);
 
 ZETA_extern_c_end;

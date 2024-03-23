@@ -34,7 +34,7 @@ static void SetLC_(void* n_, void* l, int l_color) {
 
     ZETA_DebugAssert(l_color == 0 || l_color == 1);
 
-    n->lc = (ZETA_PTR_TO_UINT(l) + l_color - ZETA_PTR_TO_UINT(n));
+    n->lc = (ZETA_PTR_TO_UINT(l) + (uintptr_t)l_color - ZETA_PTR_TO_UINT(n));
 }
 
 static void SetRC_(void* n_, void* r, int r_color) {
@@ -43,7 +43,7 @@ static void SetRC_(void* n_, void* r, int r_color) {
 
     ZETA_DebugAssert(r_color == 0 || r_color == 1);
 
-    n->rc = (ZETA_PTR_TO_UINT(r) + r_color - ZETA_PTR_TO_UINT(n));
+    n->rc = (ZETA_PTR_TO_UINT(r) + (uintptr_t)r_color - ZETA_PTR_TO_UINT(n));
 }
 
 static void SetL_(void* n_, void* l) {

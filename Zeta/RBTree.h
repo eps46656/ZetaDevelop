@@ -4,35 +4,14 @@
 
 ZETA_extern_c_beg;
 
-typedef struct Zeta_RBTreeNodeOpr Zeta_RBTreeNodeOpr;
+void* Zeta_RBTree_InsertL(Zeta_BinTreeNodeOperator const* btn_opr, void* n,
+                          void* m);
 
-struct Zeta_RBTreeNodeOpr {
-    void* context;
+void* Zeta_RBTree_InsertR(Zeta_BinTreeNodeOperator const* btn_opr, void* n,
+                          void* m);
 
-    void* (*GetP)(void* context, void* n);
-    void* (*GetL)(void* context, void* n);
-    void* (*GetR)(void* context, void* n);
+void* Zeta_RBTree_Extract(Zeta_BinTreeNodeOperator const* btn_opr, void* n);
 
-    int (*GetColor)(void* context, void* n);
-    void (*ReverseColor)(void* context, void* n);
-
-    void (*AttachL)(void* context, void* n, void* m);
-    void (*AttachR)(void* context, void* n, void* m);
-
-    void (*Detach)(void* context, void* n);
-
-    void (*Swap)(void* context, void* n, void* m);
-
-    void (*RotateL)(void* context, void* n);
-    void (*RotateR)(void* context, void* n);
-};
-
-void* Zeta_RBTree_InsertL(Zeta_RBTreeNodeOpr const* rbtn_opr, void* n, void* m);
-
-void* Zeta_RBTree_InsertR(Zeta_RBTreeNodeOpr const* rbtn_opr, void* n, void* m);
-
-void* Zeta_RBTree_Extract(Zeta_RBTreeNodeOpr const* rbtn_opr, void* n);
-
-void Zeta_RBTree_Check(Zeta_RBTreeNodeOpr const* rbtn_opr, void* n);
+void Zeta_RBTree_Check(Zeta_BinTreeNodeOperator const* btn_opr, void* n);
 
 ZETA_extern_c_end;

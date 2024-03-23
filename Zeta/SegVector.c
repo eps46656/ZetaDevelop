@@ -232,7 +232,7 @@ void* Zeta_SegVector_Insert(void* sv_, size_t idx) {
 
     ZETA_DebugAssert(idx <= size);
 
-    Zeta_BinTreeNodeAccessor btn_accessor = (Zeta_BinTreeNodeAccessor){
+    Zeta_BinTreeNodeOpr btn_accessor = (Zeta_BinTreeNodeOpr){
         .context = NULL,
 
         .GetP = Zeta_RelCntRBTreeNode_GetP,
@@ -415,7 +415,7 @@ void Zeta_SegVector_Erase(void* sv_, size_t idx) {
 
     ZETA_DebugAssert(idx < size);
 
-    Zeta_BinTreeNodeAccessor btn_accessor = (Zeta_BinTreeNodeAccessor){
+    Zeta_BinTreeNodeOpr btn_accessor = (Zeta_BinTreeNodeOpr){
         .context = NULL,
 
         .GetP = Zeta_RelCntRBTreeNode_GetP,
