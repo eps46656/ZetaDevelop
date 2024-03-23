@@ -24,7 +24,7 @@ static Zeta_RelRBTreeNode* GetR_(void* n_) {
     return n == r ? NULL : r;
 }
 
-static int GetPColor_(void* n_) {
+static int GetColor_(void* n_) {
     Zeta_RelRBTreeNode* n = n_;
     return n == NULL ? 0 : (ZETA_PTR_TO_UINT(n) + n->p) % 2;
 }
@@ -62,7 +62,6 @@ void Zeta_RelRBTreeNode_Init(void* context, void* n_) {
     SetPC_(n, NULL, 0);
     SetL_(n, NULL);
     SetR_(n, NULL);
-    n->acc_size = 0;
 }
 
 void* Zeta_RelRBTreeNode_GetP(void* context, void* n) {
@@ -82,7 +81,7 @@ void* Zeta_RelRBTreeNode_GetR(void* context, void* n) {
 
 void Zeta_RelRBTreeNode_SetP(void* context, void* n, void* m) {
     ZETA_Unused(context);
-    SetPC_(n, m, GetPColor_(n));
+    SetPC_(n, m, GetColor_(n));
 }
 
 void Zeta_RelRBTreeNode_SetL(void* context, void* n, void* m) {
@@ -95,12 +94,12 @@ void Zeta_RelRBTreeNode_SetR(void* context, void* n, void* m) {
     SetR_(n, m);
 }
 
-int Zeta_RelRBTreeNode_GetPColor(void* context, void* n) {
+int Zeta_RelRBTreeNode_GetColor(void* context, void* n) {
     ZETA_Unused(context);
-    return GetPColor_(n);
+    return GetColor_(n);
 }
 
-void Zeta_RelRBTreeNode_SetPColor(void* context, void* n_, int p_color) {
+void Zeta_RelRBTreeNode_SetColor(void* context, void* n_, int p_color) {
     ZETA_Unused(context);
 
     Zeta_RelRBTreeNode* n = n_;
@@ -125,6 +124,6 @@ void Zeta_RelRBTreeNode_DeployBinTreeNodeOperator(
     btn_opr->SetL = Zeta_RelRBTreeNode_SetL;
     btn_opr->SetR = Zeta_RelRBTreeNode_SetR;
 
-    btn_opr->GetPColor = Zeta_RelRBTreeNode_GetPColor;
-    btn_opr->SetPColor = Zeta_RelRBTreeNode_SetPColor;
+    btn_opr->GetColor = Zeta_RelRBTreeNode_GetColor;
+    btn_opr->SetColor = Zeta_RelRBTreeNode_SetColor;
 }

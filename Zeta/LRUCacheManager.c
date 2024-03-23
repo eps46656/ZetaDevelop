@@ -253,30 +253,13 @@ static Zeta_LRUCacheManager_XNode* Ref_(Zeta_LRUCacheManager* lrucm,
     ZETA_DebugAssert(lrucm->xn_allocator != NULL);
     ZETA_DebugAssert(lrucm->xn_allocator->Allocate != NULL);
 
+    Zeta_BinTreeNodeOperator btn_opr;
+    Zeta_BinTree_InitOpr(&btn_opr);
+    Zeta_RelRBTreeNode_DeployBinTreeNodeOperator(NULL, &btn_opr);
+
     Zeta_LRUCacheManager_UNode* xn = lrucm->xn_allocator->Allocate(
         lrucm->xn_allocator->context, sizeof(Zeta_LRUCacheManager_XNode));
     ZETA_DebugAssert(xn != NULL);
-
-    Zeta_RBTreeNodeOpr const rbtn_opr = {
-        .context = NULL,
-
-        .GetP = Zeta_RelRBTreeNode_GetP,
-        .GetL = Zeta_RelRBTreeNode_GetL,
-        .GetR = Zeta_RelRBTreeNode_GetR,
-
-        .GetColor = Zeta_RelRBTreeNode_GetColor,
-        .ReverseColor = Zeta_RelRBTreeNode_ReverseColor,
-
-        .AttachL = Zeta_RelRBTreeNode_AttachL,
-        .AttachR = Zeta_RelRBTreeNode_AttachR,
-
-        .Detach = Zeta_RelRBTreeNode_Detach,
-
-        .Swap = Zeta_RelRBTreeNode_Swap,
-
-        .RotateL = Zeta_RelRBTreeNode_RotateL,
-        .RotateR = Zeta_RelRBTreeNode_RotateR,
-    };
 
     Zeta_RelRBTreeNode_Init(&xn->at);
 
@@ -284,10 +267,10 @@ static Zeta_LRUCacheManager_XNode* Ref_(Zeta_LRUCacheManager* lrucm,
 
     if (ins_n == NULL) {
         un->at_root = Zeta_RBTree_InsertR(
-            &rbtn_opr, Zeta_GetMostLink(un->at_root, Zeta_RelRBTreeNode_GetR),
+            &btn_opr, Zeta_GetMostLink(un->at_root, Zeta_RelRBTreeNode_GetR),
             &xn->at);
     } else {
-        un->at_root = Zeta_RBTree_InsertL(&rbtn_opr, ins_n, &xn->at);
+        un->at_root = Zeta_RBTree_InsertL(&btn_opr, ins_n, &xn->at);
     }
 
     Zeta_RelLinkedListNode_Init(&xn->al);
@@ -318,34 +301,17 @@ static void Unref_(Zeta_LRUCacheManager* lrucm,
     ZETA_DebugAssert(lrucm != NULL);
     ZETA_DebugAssert(xn != NULL);
 
+    Zeta_BinTreeNodeOperator btn_opr;
+    Zeta_BinTree_InitOpr(&btn_opr);
+    Zeta_RelRBTreeNode_DeployBinTreeNodeOperator(NULL, &btn_opr);
+
     uintptr_t un_ = ZETA_PTR_TO_UINT(GetPtr_(&xn->un));
     bool_t is_ext = un_ % 2 == EXT_AL_COLOR;
     Zeta_LRUCacheManager_UNode* un = un_ / 2 * 2;
 
     Zeta_LRUCacheManager_CNode* cn = GetPtr_(&xn->cn);
 
-    Zeta_RBTreeNodeOpr const rbtn_opr = {
-        .context = NULL,
-
-        .GetP = Zeta_RelRBTreeNode_GetP,
-        .GetL = Zeta_RelRBTreeNode_GetL,
-        .GetR = Zeta_RelRBTreeNode_GetR,
-
-        .GetColor = Zeta_RelRBTreeNode_GetColor,
-        .ReverseColor = Zeta_RelRBTreeNode_ReverseColor,
-
-        .AttachL = Zeta_RelRBTreeNode_AttachL,
-        .AttachR = Zeta_RelRBTreeNode_AttachR,
-
-        .Detach = Zeta_RelRBTreeNode_Detach,
-
-        .Swap = Zeta_RelRBTreeNode_Swap,
-
-        .RotateL = Zeta_RelRBTreeNode_RotateL,
-        .RotateR = Zeta_RelRBTreeNode_RotateR,
-    };
-
-    un->at_root = Zeta_RBTree_Extract(&rbtn_opr, &xn->at);
+    un->at_root = Zeta_RBTree_Extract(&btn_opr, &xn->at);
 
     Zeta_RelLinkedListNode_Extract(&xn->al);
 
@@ -368,7 +334,7 @@ static void Unref_(Zeta_LRUCacheManager* lrucm,
 
     if (&cn->bl_head != Zeta_RelLinkedList_GetL(&cn->bl_head)) { return; }
 
-    Zeta_RBTree_Extract(&rbtn_opr, &cn->ct);
+    Zeta_RBTree_Extract(&btn_opr, &cn->ct);
 
     Zeta_RelRBLinkedListNode_Extract(&cn->cl);
     --lrucm->unheld_cl_cnt;
@@ -420,30 +386,13 @@ static Zeta_LRUCacheManager_CNode* Cache_(Zeta_LRUCacheManager* lrucm,
     ZETA_DebugAssert(lrucm->cn_allocator != NULL);
     ZETA_DebugAssert(lrucm->cn_allocator->Allocate != NULL);
 
+    Zeta_BinTreeNodeOperator btn_opr;
+    Zeta_BinTree_InitOpr(&btn_opr);
+    Zeta_RelRBTreeNode_DeployBinTreeNodeOperator(NULL, &btn_opr);
+
     Zeta_LRUCacheManager_CNode* cn = lrucm->cn_allocator->Allocate(
         lrucm->cn_allocator->context, sizeof(Zeta_LRUCacheManager_CNode));
     ZETA_DebugAssert(cn != NULL);
-
-    Zeta_RBTreeNodeOpr const rbtn_opr = {
-        .context = NULL,
-
-        .GetP = Zeta_RelRBTreeNode_GetP,
-        .GetL = Zeta_RelRBTreeNode_GetL,
-        .GetR = Zeta_RelRBTreeNode_GetR,
-
-        .GetColor = Zeta_RelRBTreeNode_GetColor,
-        .ReverseColor = Zeta_RelRBTreeNode_ReverseColor,
-
-        .AttachL = Zeta_RelRBTreeNode_AttachL,
-        .AttachR = Zeta_RelRBTreeNode_AttachR,
-
-        .Detach = Zeta_RelRBTreeNode_Detach,
-
-        .Swap = Zeta_RelRBTreeNode_Swap,
-
-        .RotateL = Zeta_RelRBTreeNode_RotateL,
-        .RotateR = Zeta_RelRBTreeNode_RotateR,
-    };
 
     Zeta_RelRBTreeNode_Init(&cn->ct);
 
@@ -451,10 +400,10 @@ static Zeta_LRUCacheManager_CNode* Cache_(Zeta_LRUCacheManager* lrucm,
 
     if (ins_ct == NULL) {
         lrucm->ct_root = Zeta_RBTree_InsertR(
-            &rbtn_opr,
-            Zeta_GetMostLink(lrucm->ct_root, Zeta_RelRBTreeNode_GetR), &xn->at);
+            &btn_opr, Zeta_GetMostLink(lrucm->ct_root, Zeta_RelRBTreeNode_GetR),
+            &xn->at);
     } else {
-        lrucm->ct_root = Zeta_RBTree_InsertL(&rbtn_opr, ins_ct, &xn->at);
+        lrucm->ct_root = Zeta_RBTree_InsertL(&btn_opr, ins_ct, &xn->at);
     }
 
     Zeta_RelRBLinkedListNode_Init(&cn->cl);

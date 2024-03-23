@@ -13,13 +13,8 @@ void Zeta_BinTree_InitOpr(Zeta_BinTreeNodeOperator* btn_opr) {
     btn_opr->SetL = NULL;
     btn_opr->SetR = NULL;
 
-    btn_opr->GetPColor = NULL;
-    btn_opr->GetLColor = NULL;
-    btn_opr->GetRColor = NULL;
-
-    btn_opr->SetPColor = NULL;
-    btn_opr->SetLColor = NULL;
-    btn_opr->SetRColor = NULL;
+    btn_opr->GetColor = NULL;
+    btn_opr->SetColor = NULL;
 
     btn_opr->GetAccSize = NULL;
     btn_opr->SetAccSize = NULL;
@@ -321,17 +316,11 @@ void Zeta_BinTree_Swap(Zeta_BinTreeNodeOperator const* btn_opr, void* n,
     void (*SetAccSize)(void* context, void* n, size_t acc_size) =       \
         btn_opr->SetAccSize;                                            \
                                                                         \
-    size_t n_size = Zeta_BinTree_GetSize(btn_opr, n);                   \
-                                                                        \
     void* ne = GetE(context, n);                                        \
     ZETA_DebugAssert(ne != NULL);                                       \
                                                                         \
-    size_t ne_size = Zeta_BinTree_GetSize(btn_opr, ne);                 \
-                                                                        \
     void* ned = GetD(context, ne);                                      \
     void* np = GetP(context, n);                                        \
-                                                                        \
-    size_t ned_size = Zeta_BinTree_GetSize(btn_opr, ned);               \
                                                                         \
     if (np != NULL) {                                                   \
         if (GetD(context, np) == n) {                                   \
@@ -356,11 +345,7 @@ void Zeta_BinTree_Swap(Zeta_BinTreeNodeOperator const* btn_opr, void* n,
     size_t ned_acc_size = GetAccSize(context, ned);                     \
                                                                         \
     SetAccSize(context, n, n_acc_size - ne_acc_size + ned_acc_size);    \
-    SetAccSize(context, ne, n_acc_size);                                \
-                                                                        \
-    ZETA_DebugAssert(Zeta_BinTree_GetSize(btn_opr, n) == n_size);       \
-    ZETA_DebugAssert(Zeta_BinTree_GetSize(btn_opr, ne) == ne_size);     \
-    ZETA_DebugAssert(Zeta_BinTree_GetSize(btn_opr, ned) == ned_size);
+    SetAccSize(context, ne, n_acc_size);
 
 void Zeta_BinTree_RotateL(Zeta_BinTreeNodeOperator const* btn_opr, void* n) {
     Rotate_(L, R);

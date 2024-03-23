@@ -107,15 +107,4 @@ void Zeta_RelBinTreeNode_DeployBinTreeNodeOperator(
     btn_opr->SetP = Zeta_RelBinTreeNode_SetP;
     btn_opr->SetL = Zeta_RelBinTreeNode_SetL;
     btn_opr->SetR = Zeta_RelBinTreeNode_SetR;
-
-    btn_opr->GetPColor = NULL;
-    btn_opr->GetLColor = NULL;
-    btn_opr->GetRColor = NULL;
-
-    btn_opr->SetPColor = NULL;
-    btn_opr->SetLColor = NULL;
-    btn_opr->SetRColor = NULL;
-
-    btn_opr->GetAccSize = NULL;
-    btn_opr->SetAccSize = NULL;
 }

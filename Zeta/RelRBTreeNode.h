@@ -22,9 +22,9 @@ void Zeta_RelRBTreeNode_SetP(void* context, void* n, void* m);
 void Zeta_RelRBTreeNode_SetL(void* context, void* n, void* m);
 void Zeta_RelRBTreeNode_SetR(void* context, void* n, void* m);
 
-int Zeta_RelRBTreeNode_GetPColor(void* context, void* n);
+int Zeta_RelRBTreeNode_GetColor(void* context, void* n);
 
-void Zeta_RelRBTreeNode_SetPColor(void* context, void* n, int p_color);
+void Zeta_RelRBTreeNode_SetColor(void* context, void* n, int p_color);
 
 void Zeta_RelRBTreeNode_DeployBinTreeNodeOperator(
     void* context, Zeta_BinTreeNodeOperator* btn_opr);

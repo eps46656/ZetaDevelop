@@ -147,6 +147,10 @@ void* Zeta_TreeAllocator_Allocate(void* ta_, size_t size) {
     Zeta_TreeAllocator_Head* l_head = ChooseNiceBlock_(ta, size);
     if (l_head == NULL) { return NULL; }
 
+    Zeta_BinTreeNodeOperator btn_opr;
+    Zeta_BinTree_InitOpr(&btn_opr);
+    Zeta_RelRBTreeNode_DeployBinTreeNodeOperator(NULL, &btn_opr);
+
     size_t align = ta->align;
 
     size_t head_size = sizeof(Zeta_TreeAllocator_Head);
@@ -158,28 +162,7 @@ void* Zeta_TreeAllocator_Allocate(void* ta_, size_t size) {
     Zeta_TreeAllocator_Head* r_head =
         GetHeadFromHN_(Zeta_RelLinkedListNode_GetR(&l_head->hn));
 
-    Zeta_RBTreeNodeOpr const rbtn_opr = {
-        .context = NULL,
-
-        .GetP = Zeta_RelRBTreeNode_GetP,
-        .GetL = Zeta_RelRBTreeNode_GetL,
-        .GetR = Zeta_RelRBTreeNode_GetR,
-
-        .GetColor = Zeta_RelRBTreeNode_GetColor,
-        .ReverseColor = Zeta_RelRBTreeNode_ReverseColor,
-
-        .AttachL = Zeta_RelRBTreeNode_AttachL,
-        .AttachR = Zeta_RelRBTreeNode_AttachR,
-
-        .Detach = Zeta_RelRBTreeNode_Detach,
-
-        .Swap = Zeta_RelRBTreeNode_Swap,
-
-        .RotateL = Zeta_RelRBTreeNode_RotateL,
-        .RotateR = Zeta_RelRBTreeNode_RotateR,
-    };
-
-    ta->sn_root = Zeta_RBTree_Extract(&rbtn_opr, &l_head->sn);
+    ta->sn_root = Zeta_RBTree_Extract(&btn_opr, &l_head->sn);
 
     if (m_head == r_head) { return (Zeta_TreeAllocator_Head*)l_head + 1; }
 
@@ -194,11 +177,11 @@ void* Zeta_TreeAllocator_Allocate(void* ta_, size_t size) {
 
     if (ins_sn == NULL) {
         ta->sn_root = Zeta_RBTree_InsertR(
-            &rbtn_opr,
+            &btn_opr,
             Zeta_GetMostLink(NULL, Zeta_RelRBTreeNode_GetR, ta->sn_root),
             &m_head->sn);
     } else {
-        ta->sn_root = Zeta_RBTree_InsertL(&rbtn_opr, ins_sn, &m_head->sn);
+        ta->sn_root = Zeta_RBTree_InsertL(&btn_opr, ins_sn, &m_head->sn);
     }
 
     return (Zeta_TreeAllocator_Head*)l_head + 1;
@@ -210,6 +193,10 @@ void Zeta_TreeAllocator_Deallocate(void* ta_, void* ptr) {
 
     if (ptr == NULL) { return; }
 
+    Zeta_BinTreeNodeOperator btn_opr;
+    Zeta_BinTree_InitOpr(&btn_opr);
+    Zeta_RelRBTreeNode_DeployBinTreeNodeOperator(NULL, &btn_opr);
+
     Zeta_TreeAllocator_Head* m_head = (Zeta_TreeAllocator_Head*)ptr - 1;
 
     Zeta_TreeAllocator_Head* l_head =
@@ -218,33 +205,12 @@ void Zeta_TreeAllocator_Deallocate(void* ta_, void* ptr) {
     Zeta_TreeAllocator_Head* r_head =
         GetHeadFromHN_(Zeta_RelLinkedListNode_GetR(&m_head->hn));
 
-    Zeta_RBTreeNodeOpr const rbtn_opr = {
-        .context = NULL,
-
-        .GetP = Zeta_RelRBTreeNode_GetP,
-        .GetL = Zeta_RelRBTreeNode_GetL,
-        .GetR = Zeta_RelRBTreeNode_GetR,
-
-        .GetColor = Zeta_RelRBTreeNode_GetColor,
-        .ReverseColor = Zeta_RelRBTreeNode_ReverseColor,
-
-        .AttachL = Zeta_RelRBTreeNode_AttachL,
-        .AttachR = Zeta_RelRBTreeNode_AttachR,
-
-        .Detach = Zeta_RelRBTreeNode_Detach,
-
-        .Swap = Zeta_RelRBTreeNode_Swap,
-
-        .RotateL = Zeta_RelRBTreeNode_RotateL,
-        .RotateR = Zeta_RelRBTreeNode_RotateR,
-    };
-
     bool_t merge_l = IsVacant_(ta, l_head);
     bool_t merge_r = IsVacant_(ta, r_head);
 
     if (merge_l) {
         Zeta_RelLinkedListNode_Extract(&m_head->hn);
-        ta->sn_root = Zeta_RBTree_Extract(&rbtn_opr, &l_head->sn);
+        ta->sn_root = Zeta_RBTree_Extract(&btn_opr, &l_head->sn);
     } else {
         Zeta_RelRBTreeNode_Init(NULL, &m_head->sn);
         l_head = m_head;
@@ -256,7 +222,7 @@ void Zeta_TreeAllocator_Deallocate(void* ta_, void* ptr) {
 
         Zeta_RelLinkedListNode_Extract(&r_head->hn);
 
-        ta->sn_root = Zeta_RBTree_Extract(&rbtn_opr, &r_head->sn);
+        ta->sn_root = Zeta_RBTree_Extract(&btn_opr, &r_head->sn);
 
         r_head = rr_head;
     }
@@ -267,11 +233,11 @@ void Zeta_TreeAllocator_Deallocate(void* ta_, void* ptr) {
 
     if (ins_sn == NULL) {
         ta->sn_root = Zeta_RBTree_InsertR(
-            &rbtn_opr,
+            &btn_opr,
             Zeta_GetMostLink(NULL, Zeta_RelRBTreeNode_GetR, ta->sn_root),
             &l_head->sn);
     } else {
-        ta->sn_root = Zeta_RBTree_InsertL(&rbtn_opr, ins_sn, &l_head->sn);
+        ta->sn_root = Zeta_RBTree_InsertL(&btn_opr, ins_sn, &l_head->sn);
     }
 }
 
@@ -323,6 +289,7 @@ vacant block check:
 
 void Zeta_TreeAllocator_Check(void* ta_, bool_t print_state,
                               void* dst_ptr_size_tm) {
+    ZETA_Unused(print_state);
     ZETA_DebugAssert(dst_ptr_size_tm != NULL);
 
     Zeta_DebugTreeMap_EraseAll(dst_ptr_size_tm);

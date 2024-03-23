@@ -23,8 +23,8 @@ void Zeta_OrdCntRBTreeNode_SetP(void* context, void* n, void* m);
 void Zeta_OrdCntRBTreeNode_SetL(void* context, void* n, void* m);
 void Zeta_OrdCntRBTreeNode_SetR(void* context, void* n, void* m);
 
-int Zeta_OrdCntRBTreeNode_GetPColor(void* context, void* n);
-void Zeta_OrdCntRBTreeNode_SetPColor(void* context, void* n, int p_color);
+int Zeta_OrdCntRBTreeNode_GetColor(void* context, void* n);
+void Zeta_OrdCntRBTreeNode_SetColor(void* context, void* n, int p_color);
 
 size_t Zeta_OrdCntRBTreeNode_GetAccSize(void* context, void* n);
 void Zeta_OrdCntRBTreeNode_SetAccSize(void* context, void* n, size_t acc_size);

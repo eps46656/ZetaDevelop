@@ -17,13 +17,8 @@ struct Zeta_BinTreeNodeOperator {
     void (*SetL)(void* context, void* n, void* m);
     void (*SetR)(void* context, void* n, void* m);
 
-    int (*GetPColor)(void* context, void* n);
-    int (*GetLColor)(void* context, void* n);
-    int (*GetRColor)(void* context, void* n);
-
-    void (*SetPColor)(void* context, void* n, int p_color);
-    void (*SetLColor)(void* context, void* n, int l_color);
-    void (*SetRColor)(void* context, void* n, int r_color);
+    int (*GetColor)(void* context, void* n);
+    void (*SetColor)(void* context, void* n, int p_color);
 
     size_t (*GetAccSize)(void* context, void* n);
     void (*SetAccSize)(void* context, void* n, size_t acc_size);

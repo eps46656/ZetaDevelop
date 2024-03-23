@@ -1,48 +1,10 @@
-#include "../Zeta/CntBinTree.h"
 #include "../Zeta/OrdCntRBTreeNode.h"
 #include "../Zeta/RBTree.h"
 #include "../Zeta/utils.h"
 
 typedef unsigned long long int val_t;
 
-Zeta_BinTreeNodeOpr bt_accessor = {
-    .GetP = Zeta_OrdCntRBTreeNode_GetP,
-    .GetL = Zeta_OrdCntRBTreeNode_GetL,
-    .GetR = Zeta_OrdCntRBTreeNode_GetR,
-};
-
-Zeta_RBTreeNodeOpr rbtn_opr = {
-    .context = NULL,
-
-    .GetP = Zeta_OrdCntRBTreeNode_GetP,
-    .GetL = Zeta_OrdCntRBTreeNode_GetL,
-    .GetR = Zeta_OrdCntRBTreeNode_GetR,
-
-    .GetColor = Zeta_OrdCntRBTreeNode_GetColor,
-    .ReverseColor = Zeta_OrdCntRBTreeNode_ReverseColor,
-
-    .AttachL = Zeta_OrdCntRBTreeNode_AttachL,
-    .AttachR = Zeta_OrdCntRBTreeNode_AttachR,
-
-    .Detach = Zeta_OrdCntRBTreeNode_Detach,
-
-    .Swap = Zeta_OrdCntRBTreeNode_Swap,
-
-    .RotateL = Zeta_OrdCntRBTreeNode_RotateL,
-    .RotateR = Zeta_OrdCntRBTreeNode_RotateR,
-};
-
-Zeta_CntBinTreeNodeOpr cbtn_opr = {
-    .context = NULL,
-
-    .GetP = Zeta_OrdCntRBTreeNode_GetP,
-    .GetL = Zeta_OrdCntRBTreeNode_GetL,
-    .GetR = Zeta_OrdCntRBTreeNode_GetR,
-
-    .GetAccSize = Zeta_OrdCntRBTreeNode_GetAccSize,
-    .GetSize = Zeta_OrdCntRBTreeNode_GetSize,
-    .SetSize = Zeta_OrdCntRBTreeNode_SetSize,
-};
+Zeta_BinTreeNodeOperator btn_opr;
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
@@ -76,12 +38,12 @@ void GPList_Init(void* gpl_) {
 
     Zeta_OrdCntRBTreeNode_Init(NULL, gpl->lb);
     Zeta_OrdCntRBTreeNode_Init(NULL, gpl->rb);
-    cbtn_opr.SetSize(NULL, gpl->lb, 1);
-    cbtn_opr.SetSize(NULL, gpl->rb, 1);
+    btn_opr.SetSize(NULL, gpl->lb, 1);
+    btn_opr.SetSize(NULL, gpl->rb, 1);
 
     void* root = NULL;
-    root = Zeta_RBTree_InsertR(&rbtn_opr, root, gpl->lb);
-    root = Zeta_RBTree_InsertR(&rbtn_opr, root, gpl->rb);
+    root = Zeta_RBTree_InsertR(&btn_opr, root, gpl->lb);
+    root = Zeta_RBTree_InsertR(&btn_opr, root, gpl->rb);
     gpl->root = root;
 }
 
@@ -95,7 +57,7 @@ size_t GPList_GetSize(void* gpl_) {
     GPList* gpl = gpl_;
     ZETA_DebugAssert(gpl != NULL);
 
-    return cbtn_opr.GetAccSize(NULL, gpl->root) - 2;
+    return btn_opr.GetAccSize(NULL, gpl->root) - 2;
 }
 
 void* GPList_GetNode(void* gpl_, size_t idx) {
@@ -108,11 +70,11 @@ void* GPList_GetNode(void* gpl_, size_t idx) {
 
     void* ret;
 
-    Zeta_CntBinTree_Access(&ret,       // dst_n
-                           0,          // dst_idx
-                           &cbtn_opr,  // cbtn_opr
-                           gpl->root,  // n
-                           idx + 1     // idx
+    Zeta_BinTree_Access(&ret,       // dst_n
+                        0,          // dst_idx
+                        &btn_opr,   // btn_opr
+                        gpl->root,  // n
+                        idx + 1     // idx
     );
 
     return ret;
@@ -168,7 +130,7 @@ void* GPList_InsertL(void* gpl_, void* n) {
     GPListNode* gpn = malloc(sizeof(GPListNode));
     Zeta_OrdCntRBTreeNode_Init(NULL, &gpn->n);
     Zeta_OrdCntRBTreeNode_SetSize(NULL, &gpn->n, 1);
-    gpl->root = Zeta_RBTree_InsertL(&rbtn_opr, n, &gpn->n);
+    gpl->root = Zeta_RBTree_InsertL(&btn_opr, n, &gpn->n);
 
     return &gpn->n;
 }
@@ -185,7 +147,7 @@ void* GPList_InsertR(void* gpl_, void* n) {
     GPListNode* gpn = malloc(sizeof(GPListNode));
     Zeta_OrdCntRBTreeNode_Init(NULL, &gpn->n);
     Zeta_OrdCntRBTreeNode_SetSize(NULL, &gpn->n, 1);
-    gpl->root = Zeta_RBTree_InsertR(&rbtn_opr, n, &gpn->n);
+    gpl->root = Zeta_RBTree_InsertR(&btn_opr, n, &gpn->n);
 
     return &gpn->n;
 }
@@ -200,7 +162,7 @@ void GPList_Erase(void* gpl_, void* n) {
     ZETA_DebugAssert(gpl->lb != n);
     ZETA_DebugAssert(gpl->rb != n);
 
-    gpl->root = Zeta_RBTree_Extract(&rbtn_opr, n);
+    gpl->root = Zeta_RBTree_Extract(&btn_opr, n);
     free(ZETA_GetStructFromMember(GPListNode, n, n));
 }
 
@@ -208,7 +170,7 @@ void GPList_Check(void* gpl_) {
     GPList* gpl = gpl_;
     ZETA_DebugAssert(gpl != NULL);
 
-    Zeta_RBTree_Check(&rbtn_opr, gpl->root);
+    Zeta_RBTree_Check(&btn_opr, gpl->root);
 }
 
 // -----------------------------------------------------------------------------

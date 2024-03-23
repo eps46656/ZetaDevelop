@@ -205,40 +205,6 @@ def builder_add(builder):
     )
 
     builder.add(
-        f"{ZetaDir}/CntBinTree.h",
-        {
-            f"{File}",
-            f"{ZetaDir}/define.h",
-        },
-        lambda : 0
-    )
-
-    builder.add(
-        f"{ZetaDir}/CntBinTree.c",
-        {
-            f"{File}",
-            f"{ZetaDir}/CntBinTree.h",
-            f"{ZetaDir}/utils.h",
-        },
-        lambda : 0
-    )
-
-    builder.add(
-        f"{ZetaDir}/CntBinTree.o",
-        {
-            f"{File}",
-            f"{ZetaDir}/CntBinTree.c",
-        },
-        lambda : os.system(" ".join([
-            cc,
-            f"--output {ZetaDir}/CntBinTree.o",
-            f"-c",
-            *cargs,
-            f"{ZetaDir}/CntBinTree.c",
-        ]))
-    )
-
-    builder.add(
         f"{ZetaDir}/CRC.h",
         {
             f"{File}",
@@ -1308,7 +1274,6 @@ def builder_add(builder):
 
             f"{ZetaDir}/BinTree.h",
             f"{ZetaDir}/CircularVector.h",
-            f"{ZetaDir}/CntBinTree.h",
             f"{ZetaDir}/RBTree.h",
             f"{ZetaDir}/RawVector.h",
             f"{ZetaDir}/utils.h",
