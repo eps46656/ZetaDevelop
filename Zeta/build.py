@@ -929,7 +929,7 @@ def builder_add(builder):
         f"{ZetaDir}/OrdRBTreeNode.h",
         {
             f"{File}",
-            f"{ZetaDir}/define.h",
+            f"{ZetaDir}/BinTree.h",
         },
         lambda : 0
     )
@@ -962,7 +962,7 @@ def builder_add(builder):
         f"{ZetaDir}/OrdCntRBTreeNode.h",
         {
             f"{File}",
-            f"{ZetaDir}/define.h",
+            f"{ZetaDir}/BinTree.h",
         },
         lambda : 0
     )

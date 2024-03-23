@@ -4,27 +4,29 @@ static Zeta_OrdRBTreeNode* GetP_(void* n_) {
     Zeta_OrdRBTreeNode* n = n_;
     ZETA_DebugAssert(n != NULL);
 
-    void* np = (void*)(uintptr_t)((uintptr_t)n->p / 2 * 2);
-    return n == np ? NULL : np;
+    void* p = ZETA_UINT_TO_PTR(n->p / 2 * 2);
+    return n == p ? NULL : p;
 }
 
 static Zeta_OrdRBTreeNode* GetL_(void* n_) {
     Zeta_OrdRBTreeNode* n = n_;
     ZETA_DebugAssert(n != NULL);
 
-    return n == n->l ? NULL : n->l;
+    void* l = ZETA_UINT_TO_PTR(n->l);
+    return n == l ? NULL : l;
 }
 
 static Zeta_OrdRBTreeNode* GetR_(void* n_) {
     Zeta_OrdRBTreeNode* n = n_;
     ZETA_DebugAssert(n != NULL);
 
-    return n == n->r ? NULL : n->r;
+    void* r = ZETA_UINT_TO_PTR(n->r);
+    return n == r ? NULL : r;
 }
 
-static int GetC_(void* n_) {
+static int GetPColor_(void* n_) {
     Zeta_OrdRBTreeNode* n = n_;
-    return n == NULL ? 0 : (uintptr_t)n->p % 2;
+    return n == NULL ? 0 : n->p % 2;
 }
 
 static void SetPC_(void* n_, void* p, int c) {
@@ -33,30 +35,21 @@ static void SetPC_(void* n_, void* p, int c) {
 
     ZETA_DebugAssert(c == 0 || c == 1);
 
-    if (p == NULL) { p = n; }
-
-    n->p = (void*)(uintptr_t)((uintptr_t)n->p + c);
-}
-
-static void SetP_(void* n_, void* p) {
-    Zeta_OrdRBTreeNode* n = n_;
-    ZETA_DebugAssert(n != NULL);
-
-    SetPC_(n, p, GetC_(n));
+    n->p = ZETA_PTR_TO_UINT(p == NULL ? (void*)n : p) + (uintptr_t)c;
 }
 
 static void SetL_(void* n_, void* l) {
     Zeta_OrdRBTreeNode* n = n_;
     ZETA_DebugAssert(n != NULL);
 
-    n->l = l == NULL ? n : l;
+    n->l = ZETA_PTR_TO_UINT(l == NULL ? (void*)n : l);
 }
 
 static void SetR_(void* n_, void* r) {
     Zeta_OrdRBTreeNode* n = n_;
     ZETA_DebugAssert(n != NULL);
 
-    n->r = r == NULL ? n : r;
+    n->r = ZETA_PTR_TO_UINT(r == NULL ? (void*)n : r);
 }
 
 void Zeta_OrdRBTreeNode_Init(void* context, void* n_) {
@@ -85,226 +78,51 @@ void* Zeta_OrdRBTreeNode_GetR(void* context, void* n_) {
     return GetR_(n_);
 }
 
-int Zeta_OrdRBTreeNode_GetColor(void* context, void* n_) {
+void Zeta_OrdRBTreeNode_SetP(void* context, void* n, void* m) {
     ZETA_Unused(context);
-    return GetC_(n_);
+    SetPC_(n, m, GetPColor_(n));
 }
 
-void Zeta_OrdRBTreeNode_ReverseColor(void* context, void* n_) {
+void Zeta_OrdRBTreeNode_SetL(void* context, void* n, void* m) {
     ZETA_Unused(context);
-
-    Zeta_OrdRBTreeNode* n = n_;
-    ZETA_DebugAssert(n != NULL);
-
-    SetPC_(n, GetP_(n), 1 - GetC_(n));
-}
-
-void Zeta_OrdRBTreeNode_AttachL(void* context, void* n_, void* m_) {
-    ZETA_Unused(context);
-
-    Zeta_OrdRBTreeNode* n = n_;
-    Zeta_OrdRBTreeNode* m = m_;
-
-    ZETA_DebugAssert(n != NULL);
-    ZETA_DebugAssert(GetL_(n) == NULL);
-    ZETA_DebugAssert(m != NULL);
-    ZETA_DebugAssert(GetP_(m) == NULL);
-
     SetL_(n, m);
-    SetP_(m, n);
 }
 
-void Zeta_OrdRBTreeNode_AttachR(void* context, void* n_, void* m_) {
+void Zeta_OrdRBTreeNode_SetR(void* context, void* n, void* m) {
     ZETA_Unused(context);
-
-    Zeta_OrdRBTreeNode* n = n_;
-    Zeta_OrdRBTreeNode* m = m_;
-
-    ZETA_DebugAssert(n != NULL);
-    ZETA_DebugAssert(GetR_(n) == NULL);
-    ZETA_DebugAssert(m != NULL);
-    ZETA_DebugAssert(GetP_(m) == NULL);
-
     SetR_(n, m);
-    SetP_(m, n);
 }
 
-void Zeta_OrdRBTreeNode_Detach(void* context, void* n_) {
+int Zeta_OrdRBTreeNode_GetPColor(void* context, void* n_) {
+    ZETA_Unused(context);
+    return GetPColor_(n_);
+}
+
+void Zeta_OrdRBTreeNode_SetPColor(void* context, void* n_, int p_color) {
     ZETA_Unused(context);
 
     Zeta_OrdRBTreeNode* n = n_;
     ZETA_DebugAssert(n != NULL);
 
-    Zeta_OrdRBTreeNode* np = GetP_(n);
-
-    if (np == NULL) { return; }
-
-    if (GetL_(np) == n) {
-        SetL_(np, NULL);
-    } else {
-        SetR_(np, NULL);
-    }
-
-    SetP_(n, NULL);
+    SetPC_(n, GetP_(n), p_color);
 }
 
-void Zeta_OrdRBTreeNode_Swap(void* context, void* n_, void* m_) {
+void Zeta_OrdRBTreeNode_DeployBinTreeNodeOperator(
+    void* context, Zeta_BinTreeNodeOperator* btn_opr) {
     ZETA_Unused(context);
 
-    Zeta_OrdRBTreeNode* n = n_;
-    Zeta_OrdRBTreeNode* m = m_;
+    ZETA_DebugAssert(btn_opr != NULL);
 
-    ZETA_DebugAssert(n != NULL);
-    ZETA_DebugAssert(m != NULL);
+    btn_opr->context = NULL;
 
-    if (n == m) { return; }
+    btn_opr->GetP = Zeta_OrdRBTreeNode_GetP;
+    btn_opr->GetL = Zeta_OrdRBTreeNode_GetL;
+    btn_opr->GetR = Zeta_OrdRBTreeNode_GetR;
 
-    Zeta_OrdRBTreeNode* np = GetP_(n);
-    Zeta_OrdRBTreeNode* mp = GetP_(m);
+    btn_opr->SetP = Zeta_OrdRBTreeNode_SetP;
+    btn_opr->SetL = Zeta_OrdRBTreeNode_SetL;
+    btn_opr->SetR = Zeta_OrdRBTreeNode_SetR;
 
-    if (np == m) {
-        ZETA_Swap(n, m);
-        ZETA_Swap(np, mp);
-    }
-
-    Zeta_OrdRBTreeNode* nl = GetL_(n);
-    Zeta_OrdRBTreeNode* nr = GetR_(n);
-
-    Zeta_OrdRBTreeNode* ml = GetL_(m);
-    Zeta_OrdRBTreeNode* mr = GetR_(m);
-
-    if (mp == n) {
-        if (np != NULL) {
-            if (GetL_(np) == n) {
-                SetL_(np, m);
-            } else {
-                SetR_(np, m);
-            }
-        }
-
-        SetP_(m, np);
-
-        if (GetL_(n) == m) {
-            SetL_(m, n);
-
-            SetR_(m, nr);
-            if (nr != NULL) { SetP_(nr, m); }
-        } else {
-            SetL_(m, nl);
-            if (nl != NULL) { SetP_(nl, m); }
-
-            SetR_(m, n);
-        }
-
-        SetP_(n, m);
-
-        SetL_(n, ml);
-        if (ml != NULL) { SetP_(ml, n); }
-
-        SetR_(n, mr);
-        if (mr != NULL) { SetP_(mr, n); }
-    } else {
-        if (np != NULL) {
-            if (GetL_(np) == n) {
-                SetL_(np, m);
-            } else {
-                SetR_(np, m);
-            }
-        }
-
-        SetP_(m, np);
-
-        SetL_(m, nl);
-        if (nl != NULL) { SetP_(nl, m); }
-
-        SetR_(m, nr);
-        if (nr != NULL) { SetP_(nr, m); }
-
-        if (mp != NULL) {
-            if (GetL_(mp) == m) {
-                SetL_(mp, n);
-            } else {
-                SetR_(mp, n);
-            }
-        }
-
-        SetP_(n, mp);
-
-        SetL_(n, ml);
-        if (ml != NULL) { SetP_(ml, n); }
-
-        SetR_(n, mr);
-        if (mr != NULL) { SetP_(mr, n); }
-    }
-
-    np = GetP_(n);
-    mp = GetP_(m);
-
-    int nc = GetC_(n);
-    int mc = GetC_(m);
-
-    if (nc != mc) {
-        SetPC_(n, np, mc);
-        SetPC_(m, mp, nc);
-    }
-}
-
-void Zeta_OrdRBTreeNode_RotateL(void* context, void* n_) {
-    ZETA_Unused(context);
-
-    Zeta_OrdRBTreeNode* n = n_;
-    ZETA_DebugAssert(n != NULL);
-
-    Zeta_OrdRBTreeNode* nr = GetR_(n);
-    ZETA_DebugAssert(nr != NULL);
-
-    Zeta_OrdRBTreeNode* nrl = GetL_(nr);
-    Zeta_OrdRBTreeNode* np = GetP_(n);
-
-    if (np != NULL) {
-        if (GetL_(np) == n) {
-            SetL_(np, nr);
-        } else {
-            SetR_(np, nr);
-        }
-    }
-
-    SetP_(nr, np);
-
-    SetL_(nr, n);
-    SetP_(n, nr);
-
-    SetR_(n, nrl);
-
-    if (nrl != NULL) { SetP_(nrl, n); }
-}
-
-void Zeta_OrdRBTreeNode_RotateR(void* context, void* n_) {
-    ZETA_Unused(context);
-
-    Zeta_OrdRBTreeNode* n = n_;
-    ZETA_DebugAssert(n != NULL);
-
-    Zeta_OrdRBTreeNode* nl = GetL_(n);
-    ZETA_DebugAssert(nl != NULL);
-
-    Zeta_OrdRBTreeNode* nlr = GetR_(nl);
-    Zeta_OrdRBTreeNode* np = GetP_(n);
-
-    if (np != NULL) {
-        if (GetL_(np) == n) {
-            SetL_(np, nl);
-        } else {
-            SetR_(np, nl);
-        }
-    }
-
-    SetP_(nl, np);
-
-    SetR_(nl, n);
-    SetP_(n, nl);
-
-    SetL_(n, nlr);
-
-    if (nlr != NULL) { SetP_(nlr, n); }
+    btn_opr->GetPColor = Zeta_OrdRBTreeNode_GetPColor;
+    btn_opr->SetPColor = Zeta_OrdRBTreeNode_SetPColor;
 }

@@ -24,7 +24,7 @@ static Zeta_RelRBTreeNode* GetR_(void* n_) {
     return n == r ? NULL : r;
 }
 
-static int GetC_(void* n_) {
+static int GetPColor_(void* n_) {
     Zeta_RelRBTreeNode* n = n_;
     return n == NULL ? 0 : (ZETA_PTR_TO_UINT(n) + n->p) % 2;
 }
@@ -35,29 +35,22 @@ static void SetPC_(void* n_, void* p, int c) {
 
     ZETA_DebugAssert(c == 0 || c == 1);
 
-    n->p = ZETA_PTR_TO_UINT(p == NULL ? n : p) + (uintptr_t)c -
+    n->p = ZETA_PTR_TO_UINT(p == NULL ? (void*)n : p) + (uintptr_t)c -
            ZETA_PTR_TO_UINT(n);
-}
-
-static void SetP_(void* n_, void* p) {
-    Zeta_RelRBTreeNode* n = n_;
-    ZETA_DebugAssert(n != NULL);
-
-    SetPC_(n, p, GetC_(n));
 }
 
 static void SetL_(void* n_, void* l) {
     Zeta_RelRBTreeNode* n = n_;
     ZETA_DebugAssert(n != NULL);
 
-    n->l = ZETA_PTR_TO_UINT(l == NULL ? n : l) - ZETA_PTR_TO_UINT(n);
+    n->l = ZETA_PTR_TO_UINT(l == NULL ? (void*)n : l) - ZETA_PTR_TO_UINT(n);
 }
 
 static void SetR_(void* n_, void* r) {
     Zeta_RelRBTreeNode* n = n_;
     ZETA_DebugAssert(n != NULL);
 
-    n->r = ZETA_PTR_TO_UINT(r == NULL ? n : r) - ZETA_PTR_TO_UINT(n);
+    n->r = ZETA_PTR_TO_UINT(r == NULL ? (void*)n : r) - ZETA_PTR_TO_UINT(n);
 }
 
 void Zeta_RelRBTreeNode_Init(void* context, void* n_) {
@@ -69,243 +62,69 @@ void Zeta_RelRBTreeNode_Init(void* context, void* n_) {
     SetPC_(n, NULL, 0);
     SetL_(n, NULL);
     SetR_(n, NULL);
+    n->acc_size = 0;
 }
 
-void* Zeta_RelRBTreeNode_GetP(void* context, void* n_) {
+void* Zeta_RelRBTreeNode_GetP(void* context, void* n) {
     ZETA_Unused(context);
-    return GetP_(n_);
+    return GetP_(n);
 }
 
-void* Zeta_RelRBTreeNode_GetL(void* context, void* n_) {
+void* Zeta_RelRBTreeNode_GetL(void* context, void* n) {
     ZETA_Unused(context);
-    return GetL_(n_);
+    return GetL_(n);
 }
 
-void* Zeta_RelRBTreeNode_GetR(void* context, void* n_) {
+void* Zeta_RelRBTreeNode_GetR(void* context, void* n) {
     ZETA_Unused(context);
-    return GetR_(n_);
+    return GetR_(n);
 }
 
-int Zeta_RelRBTreeNode_GetColor(void* context, void* n_) {
+void Zeta_RelRBTreeNode_SetP(void* context, void* n, void* m) {
     ZETA_Unused(context);
-    return GetC_(n_);
+    SetPC_(n, m, GetPColor_(n));
 }
 
-void Zeta_RelRBTreeNode_ReverseColor(void* context, void* n_) {
+void Zeta_RelRBTreeNode_SetL(void* context, void* n, void* m) {
     ZETA_Unused(context);
-
-    Zeta_RelRBTreeNode* n = n_;
-    ZETA_DebugAssert(n != NULL);
-
-    SetPC_(n, GetP_(n), 1 - GetC_(n));
-}
-
-void Zeta_RelRBTreeNode_AttachL(void* context, void* n_, void* m_) {
-    ZETA_Unused(context);
-
-    Zeta_RelRBTreeNode* n = n_;
-    Zeta_RelRBTreeNode* m = m_;
-
-    ZETA_DebugAssert(n != NULL);
-    ZETA_DebugAssert(GetL_(n) == NULL);
-    ZETA_DebugAssert(m != NULL);
-    ZETA_DebugAssert(GetP_(m) == NULL);
-
     SetL_(n, m);
-    SetP_(m, n);
 }
 
-void Zeta_RelRBTreeNode_AttachR(void* context, void* n_, void* m_) {
+void Zeta_RelRBTreeNode_SetR(void* context, void* n, void* m) {
     ZETA_Unused(context);
-
-    Zeta_RelRBTreeNode* n = n_;
-    Zeta_RelRBTreeNode* m = m_;
-
-    ZETA_DebugAssert(n != NULL);
-    ZETA_DebugAssert(GetR_(n) == NULL);
-    ZETA_DebugAssert(m != NULL);
-    ZETA_DebugAssert(GetP_(m) == NULL);
-
     SetR_(n, m);
-    SetP_(m, n);
 }
 
-void Zeta_RelRBTreeNode_Detach(void* context, void* n_) {
+int Zeta_RelRBTreeNode_GetPColor(void* context, void* n) {
+    ZETA_Unused(context);
+    return GetPColor_(n);
+}
+
+void Zeta_RelRBTreeNode_SetPColor(void* context, void* n_, int p_color) {
     ZETA_Unused(context);
 
     Zeta_RelRBTreeNode* n = n_;
     ZETA_DebugAssert(n != NULL);
 
-    Zeta_RelRBTreeNode* np = GetP_(n);
-
-    if (np == NULL) { return; }
-
-    if (GetL_(np) == n) {
-        SetL_(np, NULL);
-    } else {
-        SetR_(np, NULL);
-    }
-
-    SetP_(n, NULL);
+    SetPC_(n, GetP_(n), p_color);
 }
 
-void Zeta_RelRBTreeNode_Swap(void* context, void* n_, void* m_) {
+void Zeta_RelRBTreeNode_DeployBinTreeNodeOperator(
+    void* context, Zeta_BinTreeNodeOperator* btn_opr) {
     ZETA_Unused(context);
 
-    Zeta_RelRBTreeNode* n = n_;
-    Zeta_RelRBTreeNode* m = m_;
+    ZETA_DebugAssert(btn_opr != NULL);
 
-    ZETA_DebugAssert(n != NULL);
-    ZETA_DebugAssert(m != NULL);
+    btn_opr->context = NULL;
 
-    if (n == m) { return; }
+    btn_opr->GetP = Zeta_RelRBTreeNode_GetP;
+    btn_opr->GetL = Zeta_RelRBTreeNode_GetL;
+    btn_opr->GetR = Zeta_RelRBTreeNode_GetR;
 
-    Zeta_RelRBTreeNode* np = GetP_(n);
-    Zeta_RelRBTreeNode* mp = GetP_(m);
+    btn_opr->SetP = Zeta_RelRBTreeNode_SetP;
+    btn_opr->SetL = Zeta_RelRBTreeNode_SetL;
+    btn_opr->SetR = Zeta_RelRBTreeNode_SetR;
 
-    if (np == m) {
-        ZETA_Swap(n, m);
-        ZETA_Swap(np, mp);
-    }
-
-    Zeta_RelRBTreeNode* nl = GetL_(n);
-    Zeta_RelRBTreeNode* nr = GetR_(n);
-
-    Zeta_RelRBTreeNode* ml = GetL_(m);
-    Zeta_RelRBTreeNode* mr = GetR_(m);
-
-    if (mp == n) {
-        if (np != NULL) {
-            if (GetL_(np) == n) {
-                SetL_(np, m);
-            } else {
-                SetR_(np, m);
-            }
-        }
-
-        SetP_(m, np);
-
-        if (GetL_(n) == m) {
-            SetL_(m, n);
-
-            SetR_(m, nr);
-            if (nr != NULL) { SetP_(nr, m); }
-        } else {
-            SetL_(m, nl);
-            if (nl != NULL) { SetP_(nl, m); }
-
-            SetR_(m, n);
-        }
-
-        SetP_(n, m);
-
-        SetL_(n, ml);
-        if (ml != NULL) { SetP_(ml, n); }
-
-        SetR_(n, mr);
-        if (mr != NULL) { SetP_(mr, n); }
-    } else {
-        if (np != NULL) {
-            if (GetL_(np) == n) {
-                SetL_(np, m);
-            } else {
-                SetR_(np, m);
-            }
-        }
-
-        SetP_(m, np);
-
-        SetL_(m, nl);
-        if (nl != NULL) { SetP_(nl, m); }
-
-        SetR_(m, nr);
-        if (nr != NULL) { SetP_(nr, m); }
-
-        if (mp != NULL) {
-            if (GetL_(mp) == m) {
-                SetL_(mp, n);
-            } else {
-                SetR_(mp, n);
-            }
-        }
-
-        SetP_(n, mp);
-
-        SetL_(n, ml);
-        if (ml != NULL) { SetP_(ml, n); }
-
-        SetR_(n, mr);
-        if (mr != NULL) { SetP_(mr, n); }
-    }
-
-    np = GetP_(n);
-    mp = GetP_(m);
-
-    int nc = GetC_(n);
-    int mc = GetC_(m);
-
-    if (nc != mc) {
-        SetPC_(n, np, mc);
-        SetPC_(m, mp, nc);
-    }
-}
-
-void Zeta_RelRBTreeNode_RotateL(void* context, void* n_) {
-    ZETA_Unused(context);
-
-    Zeta_RelRBTreeNode* n = n_;
-    ZETA_DebugAssert(n != NULL);
-
-    Zeta_RelRBTreeNode* nr = GetR_(n);
-    ZETA_DebugAssert(nr != NULL);
-
-    Zeta_RelRBTreeNode* nrl = GetL_(nr);
-    Zeta_RelRBTreeNode* np = GetP_(n);
-
-    if (np != NULL) {
-        if (GetL_(np) == n) {
-            SetL_(np, nr);
-        } else {
-            SetR_(np, nr);
-        }
-    }
-
-    SetP_(nr, np);
-
-    SetL_(nr, n);
-    SetP_(n, nr);
-
-    SetR_(n, nrl);
-
-    if (nrl != NULL) { SetP_(nrl, n); }
-}
-
-void Zeta_RelRBTreeNode_RotateR(void* context, void* n_) {
-    ZETA_Unused(context);
-
-    Zeta_RelRBTreeNode* n = n_;
-    ZETA_DebugAssert(n != NULL);
-
-    Zeta_RelRBTreeNode* nl = GetL_(n);
-    ZETA_DebugAssert(nl != NULL);
-
-    Zeta_RelRBTreeNode* nlr = GetR_(nl);
-    Zeta_RelRBTreeNode* np = GetP_(n);
-
-    if (np != NULL) {
-        if (GetL_(np) == n) {
-            SetL_(np, nl);
-        } else {
-            SetR_(np, nl);
-        }
-    }
-
-    SetP_(nl, np);
-
-    SetR_(nl, n);
-    SetP_(n, nl);
-
-    SetL_(n, nlr);
-
-    if (nlr != NULL) { SetP_(nlr, n); }
+    btn_opr->GetPColor = Zeta_RelRBTreeNode_GetPColor;
+    btn_opr->SetPColor = Zeta_RelRBTreeNode_SetPColor;
 }

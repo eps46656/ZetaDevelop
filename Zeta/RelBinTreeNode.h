@@ -26,7 +26,7 @@ void Zeta_RelBinTreeNode_SetL(void* context, void* n, void* m);
 
 void Zeta_RelBinTreeNode_SetR(void* context, void* n, void* m);
 
-void Zeta_RelCntRBTreeNode_ToBinTreeNodeOperator(
+void Zeta_RelCntRBTreeNode_DeployBinTreeNodeOperator(
     void* context, Zeta_BinTreeNodeOperator* btn_opr);
 
 ZETA_extern_c_end;

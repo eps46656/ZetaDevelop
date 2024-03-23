@@ -29,6 +29,8 @@ struct Zeta_BinTreeNodeOperator {
     void (*SetAccSize)(void* context, void* n, size_t acc_size);
 };
 
+void Zeta_BinTree_InitOpr(Zeta_BinTreeNodeOperator* btn_opr);
+
 size_t Zeta_BinTree_GetSize(Zeta_BinTreeNodeOperator const* btn_opr, void* n);
 
 void Zeta_BinTree_SetSize(Zeta_BinTreeNodeOperator const* btn_opr, void* n,

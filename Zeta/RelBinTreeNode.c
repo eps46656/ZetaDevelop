@@ -92,7 +92,7 @@ void Zeta_RelBinTreeNode_SetR(void* context, void* n, void* m) {
     SetR_(n, m);
 }
 
-void Zeta_RelBinTreeNode_ToBinTreeNodeOperator(
+void Zeta_RelBinTreeNode_DeployBinTreeNodeOperator(
     void* context, Zeta_BinTreeNodeOperator* btn_opr) {
     ZETA_Unused(context);
 

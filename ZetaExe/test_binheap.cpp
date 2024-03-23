@@ -19,7 +19,7 @@ Zeta_BinHeap bh;
 std::priority_queue<int, std::vector<int>, std::greater<int>> queue;
 
 void SetBntOpr() {
-    Zeta_RelCntRBTreeNode_ToBinTreeNodeOperator(NULL, &btn_opr);
+    Zeta_RelCntRBTreeNode_DeployBinTreeNodeOperator(NULL, &btn_opr);
 }
 
 void BinHeap_Init() {

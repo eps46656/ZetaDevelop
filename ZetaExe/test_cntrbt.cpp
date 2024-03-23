@@ -2,14 +2,14 @@
 #include <vector>
 
 #include "../Zeta/CntBinTree.h"
+#include "../Zeta/OrdCntRBTreeNode.h"
 #include "../Zeta/RBTree.h"
-#include "../Zeta/RelCntRBTreeNode.h"
 #include "../Zeta/utils.h"
 
 // -----------------------------------------------------------------------------
 
 struct Node {
-    Zeta_RelCntRBTreeNode n;
+    Zeta_OrdCntRBTreeNode n;
 };
 
 struct NodeCup {
@@ -121,7 +121,7 @@ void Insert(size_t idx, size_t size) {
     ZETA_DebugAssert(idx <= vec.size());
 
     Node* new_node = new Node;
-    Zeta_RelCntRBTreeNode_Init(NULL, &new_node->n);
+    Zeta_OrdCntRBTreeNode_Init(NULL, &new_node->n);
     Zeta_BinTree_SetSize(&btn_opr, &new_node->n, size);
 
     size_sum += size;
@@ -169,7 +169,8 @@ void main1() {
                                                          ZETA_maxof(size_t) };
     std::uniform_int_distribution<size_t> size_generator{ 0, 16 };
 
-    Zeta_RelCntRBTreeNode_ToBinTreeNodeOperator(NULL, &btn_opr);
+    Zeta_BinTree_InitOpr(&btn_opr);
+    Zeta_OrdCntRBTreeNode_DeployBinTreeNodeOperator(NULL, &btn_opr);
 
     size_sum = 0;
     root = NULL;

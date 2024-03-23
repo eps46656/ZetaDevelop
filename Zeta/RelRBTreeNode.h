@@ -1,6 +1,6 @@
 #pragma once
 
-#include "define.h"
+#include "BinTree.h"
 
 ZETA_extern_c_beg;
 
@@ -10,30 +10,23 @@ struct Zeta_RelRBTreeNode {
     uintptr_t p;
     uintptr_t l;
     uintptr_t r;
-};
+} __attribute__((aligned(2)));
 
 void Zeta_RelRBTreeNode_Init(void* context, void* n);
 
 void* Zeta_RelRBTreeNode_GetP(void* context, void* n);
-
 void* Zeta_RelRBTreeNode_GetL(void* context, void* n);
-
 void* Zeta_RelRBTreeNode_GetR(void* context, void* n);
 
-int Zeta_RelRBTreeNode_GetColor(void* context, void* n);
+void Zeta_RelRBTreeNode_SetP(void* context, void* n, void* m);
+void Zeta_RelRBTreeNode_SetL(void* context, void* n, void* m);
+void Zeta_RelRBTreeNode_SetR(void* context, void* n, void* m);
 
-void Zeta_RelRBTreeNode_ReverseColor(void* context, void* n);
+int Zeta_RelRBTreeNode_GetPColor(void* context, void* n);
 
-void Zeta_RelRBTreeNode_AttachL(void* context, void* n, void* m);
+void Zeta_RelRBTreeNode_SetPColor(void* context, void* n, int p_color);
 
-void Zeta_RelRBTreeNode_AttachR(void* context, void* n, void* m);
-
-void Zeta_RelRBTreeNode_Detach(void* context, void* n);
-
-void Zeta_RelRBTreeNode_Swap(void* context, void* n, void* m);
-
-void Zeta_RelRBTreeNode_RotateL(void* context, void* n);
-
-void Zeta_RelRBTreeNode_RotateR(void* context, void* n);
+void Zeta_RelRBTreeNode_DeployBinTreeNodeOperator(
+    void* context, Zeta_BinTreeNodeOperator* btn_opr);
 
 ZETA_extern_c_end;

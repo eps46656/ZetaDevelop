@@ -127,7 +127,7 @@ void Zeta_RelCntRBTreeNode_SetAccSize(void* context, void* n_,
     n->acc_size = acc_size;
 }
 
-void Zeta_RelCntRBTreeNode_ToBinTreeNodeOperator(
+void Zeta_RelCntRBTreeNode_DeployBinTreeNodeOperator(
     void* context, Zeta_BinTreeNodeOperator* btn_opr) {
     ZETA_Unused(context);
 
@@ -144,12 +144,7 @@ void Zeta_RelCntRBTreeNode_ToBinTreeNodeOperator(
     btn_opr->SetR = Zeta_RelCntRBTreeNode_SetR;
 
     btn_opr->GetPColor = Zeta_RelCntRBTreeNode_GetPColor;
-    btn_opr->GetLColor = NULL;
-    btn_opr->GetRColor = NULL;
-
     btn_opr->SetPColor = Zeta_RelCntRBTreeNode_SetPColor;
-    btn_opr->SetLColor = NULL;
-    btn_opr->SetRColor = NULL;
 
     btn_opr->GetAccSize = Zeta_RelCntRBTreeNode_GetAccSize;
     btn_opr->SetAccSize = Zeta_RelCntRBTreeNode_SetAccSize;

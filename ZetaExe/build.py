@@ -1154,7 +1154,7 @@ def builder_add(builder):
             f"{File}",
             f"{ZetaDir}/CntBinTree.h",
             f"{ZetaDir}/RBTree.h",
-            f"{ZetaDir}/RelCntRBTreeNode.h",
+            f"{ZetaDir}/OrdCntRBTreeNode.h",
             f"{ZetaDir}/utils.h",
         },
         lambda : 0
@@ -1167,7 +1167,7 @@ def builder_add(builder):
             f"{ZetaDir}/BinTree.o",
             f"{ZetaDir}/CntBinTree.o",
             f"{ZetaDir}/RBTree.o",
-            f"{ZetaDir}/RelCntRBTreeNode.o",
+            f"{ZetaDir}/OrdCntRBTreeNode.o",
             f"{ZetaDir}/utils.o",
 
             f"{ZetaExeDir}/test_cntrbt.cpp",
@@ -1179,7 +1179,7 @@ def builder_add(builder):
             f"{ZetaDir}/BinTree.o",
             f"{ZetaDir}/CntBinTree.o",
             f"{ZetaDir}/RBTree.o",
-            f"{ZetaDir}/RelCntRBTreeNode.o",
+            f"{ZetaDir}/OrdCntRBTreeNode.o",
             f"{ZetaDir}/utils.o",
 
             f"{ZetaExeDir}/test_cntrbt.cpp",

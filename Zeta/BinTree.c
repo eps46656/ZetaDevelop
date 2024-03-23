@@ -2,6 +2,29 @@
 
 #include "utils.h"
 
+void Zeta_BinTree_InitOpr(Zeta_BinTreeNodeOperator* btn_opr) {
+    btn_opr->context = NULL;
+
+    btn_opr->GetP = NULL;
+    btn_opr->GetL = NULL;
+    btn_opr->GetR = NULL;
+
+    btn_opr->SetP = NULL;
+    btn_opr->SetL = NULL;
+    btn_opr->SetR = NULL;
+
+    btn_opr->GetPColor = NULL;
+    btn_opr->GetLColor = NULL;
+    btn_opr->GetRColor = NULL;
+
+    btn_opr->SetPColor = NULL;
+    btn_opr->SetLColor = NULL;
+    btn_opr->SetRColor = NULL;
+
+    btn_opr->GetAccSize = NULL;
+    btn_opr->SetAccSize = NULL;
+}
+
 static void AddDiffSize_(Zeta_BinTreeNodeOperator const* btn_opr, void* n,
                          size_t diff_size) {
     if (diff_size == 0) { return; }
