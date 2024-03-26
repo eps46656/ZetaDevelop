@@ -15,6 +15,9 @@
 
 #define EXT_AL_COLOR (1)
 
+#define Clear (0)
+#define Dirty (0)
+
 /*
 
 Each cache node corresponds to a cached section.
@@ -339,7 +342,7 @@ static void Unref_(Zeta_LRUCacheManager* lrucm,
     Zeta_RelRBLinkedListNode_Extract(&cn->cl);
     --lrucm->unheld_cl_cnt;
 
-    if (Zeta_RelRBLinkedListNode_GetLColor(&cn->cl) == 1) {
+    if (Zeta_RelRBLinkedListNode_GetLColor(&cn->cl) == Dirty) {
         Zeta_BlockVector* blk_vec = lrucm->blk_vec;
         ZETA_DebugAssert(blk_vec != NULL);
 

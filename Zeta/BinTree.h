@@ -50,11 +50,23 @@ void* Zeta_BinTree_StepL(Zeta_BinTreeNodeOperator const* btn_opr, void* n);
 
 void* Zeta_BinTree_StepR(Zeta_BinTreeNodeOperator const* btn_opr, void* n);
 
-void Zeta_BinTree_Access(void** dst_n, size_t* dst_tail_idx,
-                         Zeta_BinTreeNodeOperator const* cbtn_opr, void* n,
-                         size_t idx);
+void Zeta_BinTree_AccessL(void** dst_n, size_t* dst_tail_idx,
+                          Zeta_BinTreeNodeOperator const* btn_opr, void* n,
+                          size_t idx);
+
+void Zeta_BinTree_AccessR(void** dst_n, size_t* dst_tail_idx,
+                          Zeta_BinTreeNodeOperator const* btn_opr, void* n,
+                          size_t idx);
+
+void Zeta_BinTree_AdvanceL(void** dst_n, size_t* dst_tail_idx,
+                           Zeta_BinTreeNodeOperator const* btn_opr, void* n,
+                           size_t step);
+
+void Zeta_BinTree_AdvanceR(void** dst_n, size_t* dst_tail_idx,
+                           Zeta_BinTreeNodeOperator const* btn_opr, void* n,
+                           size_t step);
 
 void Zeta_BinTree_GetAccSize(size_t* dst_l_acc_size, size_t* dst_r_acc_size,
-                             Zeta_BinTreeNodeOperator const* cbtn_opr, void* n);
+                             Zeta_BinTreeNodeOperator const* btn_opr, void* n);
 
 ZETA_extern_c_end;

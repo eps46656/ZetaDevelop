@@ -93,7 +93,7 @@ void Access(size_t idx) {
     void* target_n;
     size_t target_tail_idx;
 
-    Zeta_BinTree_Access(&target_n, &target_tail_idx, &btn_opr, root, idx);
+    Zeta_BinTree_AccessL(&target_n, &target_tail_idx, &btn_opr, root, idx);
 
     auto target_iter = vec.end();
 

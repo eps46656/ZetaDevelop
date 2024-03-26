@@ -1,8 +1,10 @@
 #pragma once
 
 #include "Allocator.h"
+#include "BinHeap.h"
 #include "BlockVector.h"
 #include "MultiLevelVector.h"
+#include "RelBinTreeNode.h"
 #include "RelRBTreeNode.h"
 #include "SlabAllocator.h"
 
@@ -37,8 +39,13 @@ typedef struct Zeta_LRUCacheManager_CNode Zeta_LRUCacheManager_CNode;
 
 struct Zeta_LRUCacheManager_CNode {
     Zeta_RelRBTreeNode ct;
-    Zeta_RelRBLinkedListNode cl;  // dirty bit: l color
-    Zeta_RelLinkedListNode bl_head;
+
+    union {
+        Zeta_RelLinkedListNode cl;
+        Zeta_RelBinTreeNode ch;
+    };
+
+    Zeta_RelRBLinkedListNode bl_head;  // dirty bit: l color
 
     size_t blk_idx;
     byte_t* data;
@@ -81,9 +88,9 @@ struct Zeta_LRUCacheManager {
     Zeta_RelRBTreeNode* n_root;
 };
 
-// void* Zeta_LRUCacheManager_
+void Zeta_LRUCacheManager_LogIn(void* lrucm, Zeta_LRUCacheManager_UNode* un);
 
-void Zeta_LRUCacheManager_Lock(void* lrucm, void* desc);
+void Zeta_LRUCacheManager_Lock(void* lrucm, Zeta_LRUCacheManager_UNode* un);
 
 // void Zeta_LRUCacheManager_Lock(void* lrucm, void* desc);
 

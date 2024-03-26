@@ -24,11 +24,7 @@
 #define ZETA_DebugAssert(cond) ZETA_Assert(cond)
 #else
 #define ZETA_IsDebug FALSE
-#define ZETA_DebugAssert(cond) \
-    if (cond) {                \
-    } else {                   \
-    }                          \
-    ZETA_StaticAssert(TRUE)
+#define ZETA_DebugAssert(cond) ZETA_Unused(cond)
 #endif
 
 typedef unsigned char byte_t;
@@ -57,6 +53,14 @@ typedef s32_t unichar_t;
 #define ZETA_PrintPos                   \
     printf(__FILE__ ":%d\n", __LINE__); \
     fflush(stdout);                     \
+    ZETA_StaticAssert(TRUE)
+
+#define ZETA_INTERRUPT                                      \
+    {                                                       \
+        printf(__FILE__ ":%d    interrupt...\n", __LINE__); \
+        char tmp;                                           \
+        scanf("%c", &tmp);                                  \
+    }                                                       \
     ZETA_StaticAssert(TRUE)
 
 #define ZETA_Unused(x) ((void)(x))

@@ -68,9 +68,10 @@ def builder_add(builder):
     )
 
     builder.add(
-        f"{ZetaExeDir}/test_head.h",
+        f"{ZetaExeDir}/StdAllocator.h",
         {
-            f"{ZetaDir}/define.h",
+            f"{ZetaDir}/Allocator.h",
+            f"{ZetaExeDir}/test_head.h",
         },
         lambda : 0
     )
@@ -79,6 +80,14 @@ def builder_add(builder):
         f"{ZetaExeDir}/SimpleVector.h",
         {
             f"{ZetaExeDir}/test_head.h",
+        },
+        lambda : 0
+    )
+
+    builder.add(
+        f"{ZetaExeDir}/test_head.h",
+        {
+            f"{ZetaDir}/define.h",
         },
         lambda : 0
     )
@@ -648,15 +657,6 @@ def builder_add(builder):
     )
 
     builder.add(
-        f"{ZetaExeDir}/StdAllocator.h",
-        {
-            f"{File}",
-            f"{ZetaDir}/Allocator.h"
-        },
-        lambda : 0
-    )
-
-    builder.add(
         f"{ZetaExeDir}/test_segvec.cpp",
         {
             f"{File}",
@@ -677,7 +677,7 @@ def builder_add(builder):
             f"{ZetaDir}/DebugTreeMap.o",
             f"{ZetaDir}/RawVector.o",
             f"{ZetaDir}/RBTree.o",
-            f"{ZetaDir}/RelCntRBTreeNode.o",
+            f"{ZetaDir}/OrdCntRBTreeNode.o",
             f"{ZetaDir}/utils.o",
             f"{ZetaExeDir}/test_segvec.cpp",
         },
@@ -692,9 +692,51 @@ def builder_add(builder):
             f"{ZetaDir}/DebugTreeMap.o",
             f"{ZetaDir}/RawVector.o",
             f"{ZetaDir}/RBTree.o",
-            f"{ZetaDir}/RelCntRBTreeNode.o",
+            f"{ZetaDir}/OrdCntRBTreeNode.o",
             f"{ZetaDir}/utils.o",
             f"{ZetaExeDir}/test_segvec.cpp",
+        ]))
+    )
+
+    builder.add(
+        f"{ZetaExeDir}/test_segvec2.cpp",
+        {
+            f"{File}",
+            f"{ZetaDir}/SegVector.h",
+            f"{ZetaExeDir}/StdAllocator.h"
+        },
+        lambda : 0
+    )
+
+    builder.add(
+        f"{ZetaExeDir}/test_segvec2.exe",
+        {
+            f"{File}",
+            f"{ZetaDir}/SegVector.o",
+            f"{ZetaDir}/BinTree.o",
+            f"{ZetaDir}/CircularVector.o",
+            f"{ZetaDir}/DebugDeque.o",
+            f"{ZetaDir}/DebugTreeMap.o",
+            f"{ZetaDir}/RawVector.o",
+            f"{ZetaDir}/RBTree.o",
+            f"{ZetaDir}/OrdCntRBTreeNode.o",
+            f"{ZetaDir}/utils.o",
+            f"{ZetaExeDir}/test_segvec2.cpp",
+        },
+        lambda : os.system(" ".join([
+            cppc,
+            f"--output {ZetaExeDir}/test_segvec2.exe",
+            *cppargs,
+            f"{ZetaDir}/SegVector.o",
+            f"{ZetaDir}/BinTree.o",
+            f"{ZetaDir}/CircularVector.o",
+            f"{ZetaDir}/DebugDeque.o",
+            f"{ZetaDir}/DebugTreeMap.o",
+            f"{ZetaDir}/RawVector.o",
+            f"{ZetaDir}/RBTree.o",
+            f"{ZetaDir}/OrdCntRBTreeNode.o",
+            f"{ZetaDir}/utils.o",
+            f"{ZetaExeDir}/test_segvec2.cpp",
         ]))
     )
 
@@ -737,6 +779,85 @@ def builder_add(builder):
             f"{ZetaDir}/RelCntRBTreeNode.o",
             f"{ZetaDir}/utils.o",
             f"{ZetaExeDir}/test_segvec_speed.cpp",
+        ]))
+    )
+
+    builder.add(
+        f"{ZetaExeDir}/test_segvec2_speed.cpp",
+        {
+            f"{File}",
+            f"{ZetaDir}/SegVector.h",
+            f"{ZetaExeDir}/StdAllocator.h"
+        },
+        lambda : 0
+    )
+
+    builder.add(
+        f"{ZetaExeDir}/test_segvec2_speed.exe",
+        {
+            f"{File}",
+            f"{ZetaDir}/SegVector.o",
+            f"{ZetaDir}/BinTree.o",
+            f"{ZetaDir}/CircularVector.o",
+            f"{ZetaDir}/DebugTreeMap.o",
+            f"{ZetaDir}/RawVector.o",
+            f"{ZetaDir}/RBTree.o",
+            f"{ZetaDir}/OrdCntRBTreeNode.o",
+            f"{ZetaDir}/utils.o",
+            f"{ZetaExeDir}/test_segvec2_speed.cpp",
+        },
+        lambda : os.system(" ".join([
+            cppc,
+            f"--output {ZetaExeDir}/test_segvec2_speed.exe",
+            *cppargs,
+            f"{ZetaDir}/SegVector.o",
+            f"{ZetaDir}/BinTree.o",
+            f"{ZetaDir}/CircularVector.o",
+            f"{ZetaDir}/DebugTreeMap.o",
+            f"{ZetaDir}/RawVector.o",
+            f"{ZetaDir}/RBTree.o",
+            f"{ZetaDir}/OrdCntRBTreeNode.o",
+            f"{ZetaDir}/utils.o",
+            f"{ZetaExeDir}/test_segvec2_speed.cpp",
+        ]))
+    )
+
+    builder.add(
+        f"{ZetaExeDir}/test_seqcntr.cpp",
+        {
+            f"{File}",
+            f"{ZetaDir}/CircularVector.h",
+            f"{ZetaDir}/SegVector.h",
+            f"{ZetaExeDir}/StdAllocator.h"
+        },
+        lambda : 0
+    )
+
+    builder.add(
+        f"{ZetaExeDir}/test_seqcntr.exe",
+        {
+            f"{File}",
+            f"{ZetaDir}/BinTree.o",
+            f"{ZetaDir}/CircularVector.o",
+            f"{ZetaDir}/DebugTreeMap.o",
+            f"{ZetaDir}/OrdCntRBTreeNode.o",
+            f"{ZetaDir}/RBTree.o",
+            f"{ZetaDir}/SegVector.o",
+            f"{ZetaDir}/utils.o",
+            f"{ZetaExeDir}/test_seqcntr.cpp",
+        },
+        lambda : os.system(" ".join([
+            cppc,
+            f"--output {ZetaExeDir}/test_seqcntr.exe",
+            *cppargs,
+            f"{ZetaDir}/BinTree.o",
+            f"{ZetaDir}/CircularVector.o",
+            f"{ZetaDir}/DebugTreeMap.o",
+            f"{ZetaDir}/OrdCntRBTreeNode.o",
+            f"{ZetaDir}/RBTree.o",
+            f"{ZetaDir}/SegVector.o",
+            f"{ZetaDir}/utils.o",
+            f"{ZetaExeDir}/test_seqcntr.cpp",
         ]))
     )
 
@@ -1348,5 +1469,16 @@ if __name__ == "__main__":
     yend = "\033[0m"
 
     print("success")
-    print(f"{ybeg}not_built:{yend} {non_built}")
-    print(f"{ybeg}    built:{yend} {built}")
+
+    non_built.sort()
+    built.sort()
+
+    print(f"{ybeg}not_built:{yend}")
+
+    for i in non_built:
+        print(f"\t{i}")
+
+    print(f"{ybeg}    built:{yend}")
+
+    for i in built:
+        print(f"\t{i}")

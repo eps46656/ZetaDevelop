@@ -175,7 +175,8 @@ def builder_add(builder):
         f"{ZetaDir}/CircularVector.h",
         {
             f"{File}",
-            f"{ZetaDir}/Vector.h",
+            f"{ZetaDir}/Cursor.h",
+            f"{ZetaDir}/SeqContainer.h",
         },
         lambda : 0
     )
@@ -235,6 +236,15 @@ def builder_add(builder):
             *cargs,
             f"{ZetaDir}/CRC.c",
         ]))
+    )
+
+    builder.add(
+        f"{ZetaDir}/Cursor.h",
+        {
+            f"{File}",
+            f"{ZetaDir}/define.h",
+        },
+        lambda : 0
     )
 
     builder.add(
@@ -1256,12 +1266,50 @@ def builder_add(builder):
     )
 
     builder.add(
+        f"{ZetaDir}/SegList.h",
+        {
+            f"{File}",
+            f"{ZetaDir}/Allocator.h",
+            f"{ZetaDir}/DebugTreeMap.h",
+            f"{ZetaDir}/OrdLinkedListNode.h",
+            f"{ZetaDir}/Vector.h",
+        },
+        lambda : 0
+    )
+
+    builder.add(
+        f"{ZetaDir}/SegList.c",
+        {
+            f"{File}",
+            f"{ZetaDir}/SegList.h",
+        },
+        lambda : 0
+    )
+
+    builder.add(
+        f"{ZetaDir}/SegList.o",
+        {
+            f"{File}",
+            f"{ZetaDir}/SegList.c",
+        },
+        lambda : os.system(" ".join([
+            cc,
+            f"--output {ZetaDir}/SegList.o",
+            f"-c",
+            *cargs,
+            f"{ZetaDir}/SegList.c",
+        ]))
+    )
+
+    builder.add(
         f"{ZetaDir}/SegVector.h",
         {
             f"{File}",
             f"{ZetaDir}/Allocator.h",
-            f"{ZetaDir}/RelCntRBTreeNode.h",
-            f"{ZetaDir}/Vector.h",
+            f"{ZetaDir}/Cursor.h",
+            f"{ZetaDir}/DebugTreeMap.h",
+            f"{ZetaDir}/OrdCntRBTreeNode.h",
+            f"{ZetaDir}/SeqContainer.h",
         },
         lambda : 0
     )
@@ -1293,6 +1341,39 @@ def builder_add(builder):
             f"-c",
             *cargs,
             f"{ZetaDir}/SegVector.c",
+        ]))
+    )
+
+    builder.add(
+        f"{ZetaDir}/SeqContainer.h",
+        {
+            f"{File}",
+            f"{ZetaDir}/define.h",
+        },
+        lambda : 0
+    )
+
+    builder.add(
+        f"{ZetaDir}/SeqContainer.c",
+        {
+            f"{File}",
+            f"{ZetaDir}/SeqContainer.h",
+        },
+        lambda : 0
+    )
+
+    builder.add(
+        f"{ZetaDir}/SeqContainer.o",
+        {
+            f"{File}",
+            f"{ZetaDir}/SeqContainer.c",
+        },
+        lambda : os.system(" ".join([
+            cc,
+            f"--output {ZetaDir}/SeqContainer.o",
+            f"-c",
+            *cargs,
+            f"{ZetaDir}/SeqContainer.c",
         ]))
     )
 
@@ -1562,5 +1643,16 @@ if __name__ == "__main__":
     yend = "\033[0m"
 
     print("success")
-    print(f"{ybeg}not_built:{yend} {non_built}")
-    print(f"{ybeg}    built:{yend} {built}")
+
+    non_built.sort()
+    built.sort()
+
+    print(f"{ybeg}not_built:{yend}")
+
+    for i in non_built:
+        print(f"\t{i}")
+
+    print(f"{ybeg}    built:{yend}")
+
+    for i in built:
+        print(f"\t{i}")

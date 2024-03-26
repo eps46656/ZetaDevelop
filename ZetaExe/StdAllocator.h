@@ -1,7 +1,7 @@
 
 #include <map>
 
-#include "../Zeta/define.h"
+#include "../Zeta/Allocator.h"
 
 #define RECORDS TRUE
 
@@ -53,8 +53,12 @@ void StdAllocator_ToAllocator(void* sa_, Zeta_Allocator* dst) {
     ZETA_DebugAssert(sa != NULL);
 
     dst->context = sa;
+
     dst->GetAlign = StdAllocator_GetAlign;
+
     dst->Query = StdAllocator_Query;
+
     dst->Allocate = StdAllocator_Allocate;
+
     dst->Deallocate = StdAllocator_Deallocate;
 }
