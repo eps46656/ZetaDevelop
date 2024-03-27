@@ -186,6 +186,32 @@ void SC_Erase(size_t idx) {
                                                  &pos_cursor, &re_cursor));
 }
 
+void SC_CheckIterator(size_t idx_a, size_t idx_b) {
+    byte_t cursor_a[CURSOR_WIDTH]
+        __attribute__((aligned(alignof(max_align_t))));
+
+    byte_t cursor_b[CURSOR_WIDTH]
+        __attribute__((aligned(alignof(max_align_t))));
+
+    size_t diff = idx_b - idx_a;
+
+    seq_cntr.Access(seq_cntr.context, &cursor_a, idx_a);
+    seq_cntr.Access(seq_cntr.context, &cursor_b, idx_b);
+    seq_cntr_cursor_opr.AdvanceR(seq_cntr_cursor_opr.context, &cursor_a, diff);
+
+    ZETA_DebugAssert(seq_cntr_cursor_opr.IsEqual(seq_cntr_cursor_opr.context,
+                                                 &cursor_a, &cursor_b));
+
+    //
+
+    seq_cntr.Access(seq_cntr.context, &cursor_a, idx_a);
+    seq_cntr.Access(seq_cntr.context, &cursor_b, idx_b);
+    seq_cntr_cursor_opr.AdvanceL(seq_cntr_cursor_opr.context, &cursor_b, diff);
+
+    ZETA_DebugAssert(seq_cntr_cursor_opr.IsEqual(seq_cntr_cursor_opr.context,
+                                                 &cursor_a, &cursor_b));
+}
+
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
@@ -277,6 +303,16 @@ void main1() {
             }
 
             CheckCompare();
+        }
+
+        ZETA_PrintPos;
+
+        for (int i = 0; i < 2000; ++i) {
+            size_t idx_a = size_generator(en) % (dd.size() + 2);
+            size_t idx_b = size_generator(en) % (dd.size() + 2);
+
+            SC_CheckIterator(std::min(idx_a, idx_b) - 1,
+                             std::max(idx_a, idx_b) - 1);
         }
 
         ZETA_PrintPos;

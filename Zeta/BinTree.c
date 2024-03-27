@@ -475,54 +475,58 @@ void Zeta_BinTree_AccessR(void** dst_n, size_t* dst_tail_idx,
     Access_(R, L);
 }
 
-#define Advance_(D, E)                                                     \
-    if (dst_n == NULL && dst_tail_idx == NULL) { return; }                 \
-                                                                           \
-    ZETA_DebugAssert(btn_opr != NULL);                                     \
-                                                                           \
-    void* context = btn_opr->context;                                      \
-                                                                           \
-    void* (*GetP)(void* context, void* n) = btn_opr->GetP;                 \
-    void* (*GetD)(void* context, void* n) = btn_opr->Get##D;               \
-    void* (*GetE)(void* context, void* n) = btn_opr->Get##E;               \
-                                                                           \
-    ZETA_DebugAssert(GetP != NULL);                                        \
-    ZETA_DebugAssert(GetD != NULL);                                        \
-    ZETA_DebugAssert(GetE != NULL);                                        \
-                                                                           \
-    size_t (*GetAccSize)(void* context, void* n) = btn_opr->GetAccSize;    \
-                                                                           \
-    ZETA_DebugAssert(GetAccSize != NULL);                                  \
-                                                                           \
-    while (n != NULL && 0 < step) {                                        \
-        void* nd = GetD(context, n);                                       \
-        void* ne = GetE(context, n);                                       \
-                                                                           \
-        size_t n_acc_size = GetAccSize(context, n);                        \
-        size_t nd_acc_size = GetAccSize(context, nd);                      \
-        size_t ne_acc_size = GetAccSize(context, ne);                      \
-                                                                           \
-        size_t n_size = n_acc_size - nd_acc_size - ne_acc_size;            \
-                                                                           \
-        if (step < n_size) { break; }                                      \
-                                                                           \
-        step -= n_size;                                                    \
-                                                                           \
-        if (step < ne_acc_size) {                                          \
-            Zeta_BinTree_Access##D(dst_n, dst_tail_idx, btn_opr, n, step); \
-            return;                                                        \
-        }                                                                  \
-                                                                           \
-        for (;;) {                                                         \
-            void* np = GetP(context, n);                                   \
-            if (np == NULL || GetD(context, np) == n) { break; }           \
-            n = np;                                                        \
-        }                                                                  \
-                                                                           \
-        step -= ne_acc_size;                                               \
-    }                                                                      \
-                                                                           \
-    if (dst_n != NULL) { *dst_n = n; }                                     \
+#define Advance_(D, E)                                                      \
+    if (dst_n == NULL && dst_tail_idx == NULL) { return; }                  \
+                                                                            \
+    ZETA_DebugAssert(btn_opr != NULL);                                      \
+                                                                            \
+    void* context = btn_opr->context;                                       \
+                                                                            \
+    void* (*GetP)(void* context, void* n) = btn_opr->GetP;                  \
+    void* (*GetD)(void* context, void* n) = btn_opr->Get##D;                \
+    void* (*GetE)(void* context, void* n) = btn_opr->Get##E;                \
+                                                                            \
+    ZETA_DebugAssert(GetP != NULL);                                         \
+    ZETA_DebugAssert(GetD != NULL);                                         \
+    ZETA_DebugAssert(GetE != NULL);                                         \
+                                                                            \
+    size_t (*GetAccSize)(void* context, void* n) = btn_opr->GetAccSize;     \
+    ZETA_DebugAssert(GetAccSize != NULL);                                   \
+                                                                            \
+    while (n != NULL && 0 < step) {                                         \
+        void* nd = GetD(context, n);                                        \
+        void* ne = GetE(context, n);                                        \
+                                                                            \
+        size_t n_acc_size = GetAccSize(context, n);                         \
+        size_t nd_acc_size = GetAccSize(context, nd);                       \
+        size_t ne_acc_size = GetAccSize(context, ne);                       \
+                                                                            \
+        size_t n_size = n_acc_size - nd_acc_size - ne_acc_size;             \
+                                                                            \
+        if (step < n_size) { break; }                                       \
+                                                                            \
+        step -= n_size;                                                     \
+                                                                            \
+        if (step < ne_acc_size) {                                           \
+            Zeta_BinTree_Access##D(dst_n, dst_tail_idx, btn_opr, ne, step); \
+            return;                                                         \
+        }                                                                   \
+                                                                            \
+        step -= ne_acc_size;                                                \
+                                                                            \
+        for (;;) {                                                          \
+            void* np = GetP(context, n);                                    \
+                                                                            \
+            if (np == NULL || GetD(context, np) == n) {                     \
+                n = np;                                                     \
+                break;                                                      \
+            }                                                               \
+                                                                            \
+            n = np;                                                         \
+        }                                                                   \
+    }                                                                       \
+                                                                            \
+    if (dst_n != NULL) { *dst_n = n; }                                      \
     if (dst_tail_idx != NULL) { *dst_tail_idx = step; }
 
 void Zeta_BinTree_AdvanceL(void** dst_n, size_t* dst_tail_idx,
