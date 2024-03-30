@@ -114,10 +114,9 @@ u128_t Zeta_SimpleRandom(u128_t x) {
     return ((x * a + c) >> 16) & mask;
 }
 
-u128_t Zeta_SimpleHash(u128_t x_) {
-    u128_t x = x_;
-    x = (x ^ (x >> 30)) * (u128_t)0xbf58476d1ce4e5b9;
-    x = (x ^ (x >> 27)) * (u128_t)0x94d049bb133111eb;
+size_t Zeta_SimpleHash(size_t x) {
+    x = (x ^ (x >> 30)) * (size_t)0xbf58476d1ce4e5b9;
+    x = (x ^ (x >> 27)) * (size_t)0x94d049bb133111eb;
     x = x ^ (x >> 31);
     return x;
 }

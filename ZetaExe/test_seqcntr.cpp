@@ -36,12 +36,6 @@ std::deque<val_t> dd;
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 
-void SetVal(void* dst_, val_t val) { *(val_t*)dst_ = val; }
-
-// -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
-
 void InitCV() {
     cv.width = sizeof(val_t);
     cv.stride = sizeof(val_t);
@@ -97,7 +91,7 @@ val_t* SC_PushL(val_t val) {
 
     ZETA_DebugAssert(ele == re_ele);
 
-    SetVal(ele, val);
+    *(val_t*)ele = val;
 
     byte_t re_cursor[CURSOR_WIDTH]
         __attribute__((aligned(alignof(max_align_t))));
@@ -126,7 +120,7 @@ val_t* SC_PushR(val_t val) {
 
     ZETA_DebugAssert(ele == re_ele);
 
-    SetVal(ele, val);
+    *(val_t*)ele = val;
 
     byte_t re_cursor[CURSOR_WIDTH]
         __attribute__((aligned(alignof(max_align_t))));
@@ -158,7 +152,7 @@ void SC_Insert(size_t idx, val_t val) {
 
     ZETA_DebugAssert(ele == re_ele);
 
-    SetVal(ele, val);
+    *(val_t*)ele = val;
 
     byte_t re_cursor[CURSOR_WIDTH]
         __attribute__((aligned(alignof(max_align_t))));
@@ -253,7 +247,8 @@ void CheckCompare() {
 // -----------------------------------------------------------------------------
 
 void main1() {
-    unsigned int seed = time(NULL);
+    // unsigned int seed = time(NULL);
+    unsigned int seed = 1711789696;
 
     ZETA_PrintVar("%d", seed);
 
@@ -266,7 +261,7 @@ void main1() {
 
     CheckCompare();
 
-    for (int i = 0; i < 1000; ++i) {
+    for (int i = 0; i < 10000; ++i) {
         size_t idx = size_generator(en) % (dd.size() + 1);
         size_t val = val_generator(en);
 
@@ -276,7 +271,7 @@ void main1() {
         CheckCompare();
     }
 
-    for (int _ = 0; _ < 100; ++_) {
+    for (int _ = 0; _ < 20; ++_) {
         ZETA_PrintPos;
 
         for (int i = 0; i < 1000; ++i) {

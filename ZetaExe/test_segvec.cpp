@@ -57,7 +57,7 @@ void SetupSegVector() {
     sv_.node_allocator = &node_allocator;
     sv_.seg_allocator = &seg_allocator;
     Zeta_SegVector_Init(&sv_);
-    Zeta_SegVector_ToVector(&sv_, &sv);
+    Zeta_SegVector_DeployVector(&sv_, &sv);
 };
 
 void Check() {

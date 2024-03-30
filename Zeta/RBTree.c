@@ -219,6 +219,9 @@ void* Zeta_RBTree_Extract(Zeta_BinTreeNodeOperator const* btn_opr, void* n) {
     int (*GetColor)(void* context, void* n) = btn_opr->GetColor;
     void (*SetColor)(void* context, void* n, int p_color) = btn_opr->SetColor;
 
+    ZETA_DebugAssert(GetColor != NULL);
+    ZETA_DebugAssert(SetColor != NULL);
+
     void* root;
 
     void* nl = GetL(context, n);
@@ -236,8 +239,10 @@ void* Zeta_RBTree_Extract(Zeta_BinTreeNodeOperator const* btn_opr, void* n) {
         int nc = GetColor(context, n);
         int mc = GetColor(context, m);
 
-        SetColor(context, n, mc);
-        SetColor(context, m, nc);
+        if (nc != mc) {
+            SetColor(context, n, mc);
+            SetColor(context, m, nc);
+        }
 
         root = Zeta_GetMostLink(context, GetP, m);
     } else {

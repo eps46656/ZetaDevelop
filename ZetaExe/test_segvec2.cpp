@@ -8,28 +8,13 @@
 #include "MemAllocatorCheck.h"
 #include "StdAllocator.h"
 
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+
 typedef unsigned int val_t;
 
-#define WIDTH sizeof(val_t)
-
-void SetVal(void* dst, val_t x) { Zeta_MemCopy(dst, &x, WIDTH); }
-
-void PrintVal(void* x) {
-    unsigned int xi;
-    Zeta_MemCopy(&xi, x, WIDTH);
-    printf("%x\n", xi);
-}
-
-bool CmpVal(void* x_, void* y_) {
-    char* x = (char*)x_;
-    char* y = (char*)y_;
-
-    for (size_t i = 0; i < WIDTH; ++i) {
-        if (x[i] != y[i]) { return FALSE; }
-    }
-
-    return TRUE;
-}
+#define CURSOR_WIDTH ((size_t)(sizeof(void*) * 8))
 
 StdAllocator node_allocator_;
 Zeta_Allocator node_allocator;
@@ -40,17 +25,31 @@ Zeta_Allocator seg_allocator;
 std::deque<val_t> dd;
 Zeta_SegVector sv;
 
+Zeta_SeqContainer seq_cntr;
+Zeta_CursorOperator seq_cntr_cursor_opr;
+
 Zeta_DebugTreeMap node_tm;
 Zeta_DebugTreeMap seg_tm;
+
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
 
 void SetupDebugDeque() {}
 
 void SetupSegVector() {
-    sv.width = WIDTH;
-    sv.seg_capacity = sizeof(val_t);
+    StdAllocator_ToAllocator(&node_allocator_, &node_allocator);
+    StdAllocator_ToAllocator(&seg_allocator_, &seg_allocator);
+
+    sv.width = sizeof(val_t);
+    sv.seg_capacity = 32;
     sv.node_allocator = &node_allocator;
     sv.seg_allocator = &seg_allocator;
+
     Zeta_SegVector_Init(&sv);
+    Zeta_SegVector_DeploySeqContainer(&sv, &seq_cntr);
+
+    Zeta_SegVector_Cursor_DeployCursorOperator(&sv, &seq_cntr_cursor_opr);
 }
 
 bool_t SV_LowerBound_(void* val, void* ele) {
@@ -62,46 +61,61 @@ bool_t SV_UpperBound_(void* val, void* ele) {
 }
 
 size_t SV_LowerBound(val_t val) {
-    size_t idx;
-    void* ele;
+    byte_t cursor[CURSOR_WIDTH] __attribute__((aligned(alignof(max_align_t))));
 
-    Zeta_SegVector_FindFirst(&sv, &idx, &ele, &val, SV_LowerBound_);
+    Zeta_SegVector_FindFirst(&sv, &cursor, &val, SV_LowerBound_);
 
-    size_t size = Zeta_SegVector_GetSize(&sv);
+    Zeta_SegVector_Cursor_Check(&sv, &cursor);
 
-    ZETA_DebugAssert(idx <= size);
+    byte_t beg_cursor[CURSOR_WIDTH]
+        __attribute__((aligned(alignof(max_align_t))));
 
-    if (idx < size) {
-        ZETA_DebugAssert(Zeta_SegVector_Access(&sv, idx) == ele);
-    }
+    Zeta_SegVector_PeekL(&sv, &beg_cursor);
 
-    return idx;
+    return Zeta_SegVector_Cursor_Differ(&sv, &cursor, &beg_cursor);
 }
 
 size_t SV_UpperBound(val_t val) {
-    size_t idx;
-    void* ele;
+    byte_t cursor[CURSOR_WIDTH] __attribute__((aligned(alignof(max_align_t))));
 
-    Zeta_SegVector_FindFirst(&sv, &idx, &ele, &val, SV_UpperBound_);
+    Zeta_SegVector_FindFirst(&sv, &cursor, &val, SV_UpperBound_);
 
-    size_t size = Zeta_SegVector_GetSize(&sv);
+    Zeta_SegVector_Cursor_Check(&sv, &cursor);
 
-    ZETA_DebugAssert(idx <= size);
+    byte_t beg_cursor[CURSOR_WIDTH]
+        __attribute__((aligned(alignof(max_align_t))));
 
-    if (idx < size) {
-        ZETA_DebugAssert(Zeta_SegVector_Access(&sv, idx) == ele);
-    }
+    Zeta_SegVector_PeekL(&sv, &beg_cursor);
 
-    return idx;
+    return Zeta_SegVector_Cursor_Differ(&sv, &cursor, &beg_cursor);
 }
 
 size_t SV_Insert(val_t val) {
-    size_t idx = SV_UpperBound(val);
-    *(val_t*)Zeta_SegVector_Insert(&sv, idx) = val;
+    byte_t cursor[CURSOR_WIDTH] __attribute__((aligned(alignof(max_align_t))));
+
+    Zeta_SegVector_FindFirst(&sv, &cursor, &val, SV_UpperBound_);
+
+    Zeta_SegVector_Cursor_Check(&sv, &cursor);
+
+    byte_t beg_cursor[CURSOR_WIDTH]
+        __attribute__((aligned(alignof(max_align_t))));
+
+    Zeta_SegVector_PeekL(&sv, &beg_cursor);
+
+    size_t idx = Zeta_SegVector_Cursor_Differ(&sv, &cursor, &beg_cursor);
+
+    *(val_t*)Zeta_SegVector_Insert(&sv, &cursor) = val;
+
     return idx;
 }
 
-void SV_Erase(size_t idx) { Zeta_SegVector_Erase(&sv, idx); }
+void SV_Erase(size_t idx) {
+    byte_t cursor[CURSOR_WIDTH] __attribute__((aligned(alignof(max_align_t))));
+
+    Zeta_SegVector_Access(&sv, &cursor, idx);
+
+    Zeta_SegVector_Erase(&sv, &cursor);
+}
 
 size_t DD_LowerBound(val_t val) {
     return (size_t)(std::lower_bound(dd.begin(), dd.end(), val) - dd.begin());
@@ -124,7 +138,7 @@ void Check() {
     ZETA_DebugAssert(Zeta_SegVector_GetSize(&sv) == size);
 
     for (size_t i = 0; i < size; ++i) {
-        ZETA_DebugAssert(CmpVal(&dd[i], Zeta_SegVector_Access(&sv, i)));
+        ZETA_DebugAssert(dd[i] == *(val_t*)Zeta_SegVector_Access(&sv, NULL, i));
     }
 
     std::map<size_t, size_t>* node_tree_map =
@@ -182,6 +196,15 @@ void main1() {
             size_t dd_idx = DD_Insert(val);
 
             ZETA_DebugAssert(sv_idx == dd_idx);
+
+            Check();
+        }
+
+        for (int i = 0; i < 2000; ++i) {
+            size_t val = val_generator(en);
+
+            ZETA_DebugAssert(DD_LowerBound(val) == SV_LowerBound(val));
+            ZETA_DebugAssert(DD_UpperBound(val) == SV_UpperBound(val));
 
             Check();
         }

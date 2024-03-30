@@ -448,15 +448,20 @@ void* Zeta_BinTree_StepR(Zeta_BinTreeNodeOperator const* btn_opr, void* n) {
                                                                         \
         if (idx < nd_acc_size) {                                        \
             n = nd;                                                     \
+            n_acc_size = nd_acc_size;                                   \
             continue;                                                   \
         }                                                               \
                                                                         \
+        void* ne = GetE(context, n);                                    \
+        size_t ne_acc_size = GetAccSize(context, ne);                   \
+                                                                        \
         idx -= nd_acc_size;                                             \
-        size_t n_size = Zeta_BinTree_GetSize(btn_opr, n);               \
+        size_t n_size = n_acc_size - nd_acc_size - ne_acc_size;         \
                                                                         \
         if (idx < n_size) { break; }                                    \
                                                                         \
-        n = GetE(context, n);                                           \
+        n = ne;                                                         \
+        n_acc_size = ne_acc_size;                                       \
         idx -= n_size;                                                  \
     }                                                                   \
                                                                         \
@@ -560,17 +565,19 @@ void Zeta_BinTree_GetAccSize(size_t* dst_l_acc_size, size_t* dst_r_acc_size,
     ZETA_DebugAssert(GetR != NULL);
 
     size_t (*GetAccSize)(void* context, void* n) = btn_opr->GetAccSize;
-
     ZETA_DebugAssert(GetAccSize != NULL);
 
     size_t l_acc_size = GetAccSize(context, GetL(context, n));
     size_t r_acc_size = GetAccSize(context, GetR(context, n));
 
+    size_t n_acc_size = GetAccSize(context, n);
+
     for (;;) {
         void* np = GetP(context, n);
         if (np == NULL) { break; }
 
-        size_t k = GetAccSize(context, np) - GetAccSize(context, n);
+        size_t np_acc_size = GetAccSize(context, np);
+        size_t k = np_acc_size - n_acc_size;
 
         if (GetL(context, np) == n) {
             r_acc_size += k;
@@ -579,6 +586,7 @@ void Zeta_BinTree_GetAccSize(size_t* dst_l_acc_size, size_t* dst_r_acc_size,
         }
 
         n = np;
+        n_acc_size = np_acc_size;
     }
 
     if (dst_l_acc_size != NULL) { *dst_l_acc_size = l_acc_size; }

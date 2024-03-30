@@ -11,7 +11,6 @@ ZETA_extern_c_beg;
 typedef struct Zeta_SegVector_Node Zeta_SegVector_Node;
 
 struct Zeta_SegVector_Node {
-    char padding[8];
     Zeta_OrdCntRBTreeNode n;
     void* seg;
     size_t offset;

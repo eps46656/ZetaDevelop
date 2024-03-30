@@ -63,7 +63,9 @@ typedef s32_t unichar_t;
     }                                                       \
     ZETA_StaticAssert(TRUE)
 
-#define ZETA_Unused(x) ((void)(x))
+#define ZETA_Unused(x)          \
+    if (FALSE) { ((void)(x)); } \
+    ZETA_StaticAssert(TRUE)
 
 #define ZETA_Assert(cond)                                      \
     if (cond) {                                                \

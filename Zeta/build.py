@@ -16,7 +16,7 @@ INCLUDE_DIRS = [
 ]
 
 def builder_add(builder):
-    debug = True
+    debug = False
 
     cc = "clang"
 
@@ -51,9 +51,9 @@ def builder_add(builder):
 
         cppargs += ["-O3", "-g", "-D DEBUG"]
     else:
-        cargs += ["-O3"]
+        cargs += ["-O3", "-flto"]
 
-        cppargs += ["-O3"]
+        cppargs += ["-O3", "-flto"]
 
     builder.add(
         f"{File}",

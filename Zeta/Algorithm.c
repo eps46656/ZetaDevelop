@@ -1,5 +1,55 @@
 #include "Algorithm.h"
 
+static void Zeta_InsertionCursor_(
+    void* cursor, Zeta_CursorOperator const* cursor_opr, void* cmper_context,
+    int (*cmper)(void* context, void const* x, void const* y)) {
+    size_t const max_tmp_width = 64;
+
+    void* (*Refer)(void* context, void const* cursor) = cursor_opr->Refer;
+    ZETA_DebugAssert(Refer != NULL);
+
+    void* (*StepL)(void* context, void* cursor) = cursor_opr->StepL;
+    ZETA_DebugAssert(StepL != NULL);
+
+    void* cursor_opr_context = cursor_opr->context;
+
+    void* vec_context = vec->context;
+
+    size_t width = vec->GetWidth(vec_context);
+
+    void* ele = Refer(cursor_opr->context, cursor);
+    StepL(cursor_opr_context, cursor);
+
+    void* prv_ele = Refer(cursor_opr->context, cursor);
+
+    if (max_tmp_width < width) {
+        while (0 < cmper(cmper_context, prv_ele, ele)) {
+            Zeta_MemSwap(prv_ele, ele, width);
+
+            ele = prv_ele;
+            StepL(cursor_opr_context, cursor);
+            prv_ele = Refer(cursor_opr->context, cursor);
+        }
+
+        return;
+    }
+
+    if (cmper(cmper_context, prv_ele, ele) <= 0) { return; }
+
+    unsigned char tmp[max_tmp_width];
+
+    Zeta_MemCopy(tmp, ele, width);
+
+    do {
+        Zeta_MemCopy(ele, prv_ele, width);
+        ele = prv_ele;
+        StepL(cursor_opr_context, cursor);
+        prv_ele = Refer(cursor_opr->context, cursor);
+    } while (0 < cmper(cmper_context, prv_ele, tmp));
+
+    Zeta_MemCopy(ele, tmp, width);
+}
+
 static void Zeta_Insertion_(Zeta_Vector* vec, size_t i, void* cmper_context,
                             int (*cmper)(void* cmper_context, void const* x,
                                          void const* y)) {

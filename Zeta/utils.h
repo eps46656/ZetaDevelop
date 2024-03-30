@@ -77,7 +77,7 @@ u128_t Zeta_WriteBigEndian(byte_t* dst, u128_t val, unsigned int length);
 
 u128_t Zeta_SimpleRandom(u128_t x);
 
-u128_t Zeta_SimpleHash(u128_t x);
+size_t Zeta_SimpleHash(size_t x);
 
 u128_t Zeta_GetGCD(u128_t x, u128_t y);
 

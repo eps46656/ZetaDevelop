@@ -13,26 +13,7 @@
 
 typedef unsigned int val_t;
 
-#define WIDTH sizeof(val_t)
-
-void SetVal(void* dst, val_t x) { Zeta_MemCopy(dst, &x, WIDTH); }
-
-void PrintVal(void* x) {
-    unsigned int xi;
-    Zeta_MemCopy(&xi, x, WIDTH);
-    printf("%x\n", xi);
-}
-
-bool CmpVal(void* x_, void* y_) {
-    char* x = (char*)x_;
-    char* y = (char*)y_;
-
-    for (size_t i = 0; i < WIDTH; ++i) {
-        if (x[i] != y[i]) { return FALSE; }
-    }
-
-    return TRUE;
-}
+#define CURSOR_WIDTH ((size_t)(sizeof(void*) * 8))
 
 StdAllocator node_allocator_;
 Zeta_Allocator node_allocator;
@@ -44,17 +25,27 @@ std::multiset<val_t> ms;
 std::deque<val_t> dd;
 Zeta_SegVector sv;
 
+Zeta_SeqContainer seq_cntr;
+Zeta_CursorOperator seq_cntr_cursor_opr;
+
 Zeta_DebugTreeMap node_tm;
 Zeta_DebugTreeMap seg_tm;
 
 void SetupDebugDeque() {}
 
 void SetupSegVector() {
-    sv.width = WIDTH;
+    StdAllocator_ToAllocator(&node_allocator_, &node_allocator);
+    StdAllocator_ToAllocator(&seg_allocator_, &seg_allocator);
+
+    sv.width = sizeof(val_t);
     sv.seg_capacity = 32;
     sv.node_allocator = &node_allocator;
     sv.seg_allocator = &seg_allocator;
+
     Zeta_SegVector_Init(&sv);
+    Zeta_SegVector_DeploySeqContainer(&sv, &seq_cntr);
+
+    Zeta_SegVector_Cursor_DeployCursorOperator(&sv, &seq_cntr_cursor_opr);
 }
 
 bool_t SV_LowerBound_(void* val, void* ele) {
@@ -66,41 +57,32 @@ bool_t SV_UpperBound_(void* val, void* ele) {
 }
 
 val_t SV_LowerBound(val_t val) {
-    size_t idx;
-    void* ele;
-
-    Zeta_SegVector_FindFirst(&sv, &idx, &ele, &val, SV_LowerBound_);
-
-    size_t size = Zeta_SegVector_GetSize(&sv);
-
-    return idx == size ? ZETA_maxof(val_t) : *(val_t*)ele;
+    val_t* ele =
+        (val_t*)Zeta_SegVector_FindFirst(&sv, NULL, &val, SV_LowerBound_);
+    return ele == NULL ? ZETA_maxof(val_t) : *ele;
 }
 
 val_t SV_UpperBound(val_t val) {
-    size_t idx;
-    void* ele;
-
-    Zeta_SegVector_FindFirst(&sv, &idx, &ele, &val, SV_UpperBound_);
-
-    size_t size = Zeta_SegVector_GetSize(&sv);
-
-    return idx == size ? ZETA_maxof(val_t) : *(val_t*)ele;
+    val_t* ele =
+        (val_t*)Zeta_SegVector_FindFirst(&sv, NULL, &val, SV_UpperBound_);
+    return ele == NULL ? ZETA_maxof(val_t) : *ele;
 }
 
 void SV_Insert(val_t val) {
-    size_t idx;
-    Zeta_SegVector_FindFirst(&sv, &idx, NULL, &val, SV_UpperBound_);
-    *(val_t*)Zeta_SegVector_Insert(&sv, idx) = val;
+    byte_t cursor[CURSOR_WIDTH] __attribute__((aligned(alignof(max_align_t))));
+
+    Zeta_SegVector_FindFirst(&sv, &cursor, &val, SV_UpperBound_);
+
+    *(val_t*)Zeta_SegVector_Insert(&sv, &cursor) = val;
 }
 
 void SV_Erase(val_t val) {
-    size_t idx;
+    byte_t cursor[CURSOR_WIDTH] __attribute__((aligned(alignof(max_align_t))));
 
-    Zeta_SegVector_FindFirst(&sv, &idx, NULL, &val, SV_LowerBound_);
+    val_t* ele =
+        (val_t*)Zeta_SegVector_FindFirst(&sv, &cursor, &val, SV_LowerBound_);
 
-    size_t size = Zeta_SegVector_GetSize(&sv);
-
-    if (idx < size) { Zeta_SegVector_Erase(&sv, idx); }
+    if (ele != NULL && *ele == val) { Zeta_SegVector_Erase(&sv, &cursor); }
 }
 
 val_t MS_LowerBound(val_t val) {
@@ -121,14 +103,16 @@ void MS_Erase(val_t val) {
 }
 
 void main1() {
-    unsigned int seed = time(NULL);
+    // unsigned int seed = time(NULL);
+    unsigned int seed = 1711803601;
 
     ZETA_PrintVar("%d", seed);
 
     std::mt19937_64 en{ seed };
     std::uniform_int_distribution<size_t> size_generator{ 0,
                                                           ZETA_maxof(size_t) };
-    std::uniform_int_distribution<size_t> val_generator{ 0, 16 };
+    std::uniform_int_distribution<size_t> val_generator{ 0,
+                                                         ZETA_maxof(size_t) };
 
     StdAllocator_ToAllocator(&node_allocator_, &node_allocator);
     StdAllocator_ToAllocator(&seg_allocator_, &seg_allocator);
@@ -144,7 +128,7 @@ void main1() {
     void (*Insert)(val_t val);
     void (*Erase)(val_t val);
 
-    bool_t is_sv{ FALSE };
+    bool_t is_sv{ TRUE };
 
     val_t dummy{ 0 };
 
@@ -174,38 +158,42 @@ void main1() {
     }
 
     for (int _ = 0; _ < 20; ++_) {
-        for (int i = 0; i < 20000; ++i) {
+        for (int i = 0; i < 200000; ++i) {
             size_t val = val_generator(en);
 
             Insert(val);
         }
 
-        for (int i = 0; i < 20000; ++i) {
-            size_t val = val_generator(en);
-            dummy += UpperBound(val);
+        if (TRUE) {
+            for (int i = 0; i < 200000; ++i) {
+                size_t val = val_generator(en);
+                dummy += UpperBound(val);
+            }
+
+            for (int i = 0; i < 200000; ++i) {
+                size_t val = val_generator(en);
+                dummy += LowerBound(val);
+            }
         }
 
-        for (int i = 0; i < 20000; ++i) {
-            size_t val = val_generator(en);
-            dummy += LowerBound(val);
-        }
-
-        if (FALSE) {
-            for (int i = 0; i < 20000; ++i) {
+        if (TRUE) {
+            for (int i = 0; i < 200000; ++i) {
                 size_t val = val_generator(en);
 
                 Erase(val);
             }
         }
 
-        for (int i = 0; i < 20000; ++i) {
-            size_t val = val_generator(en);
-            dummy += LowerBound(val);
-        }
+        if (TRUE) {
+            for (int i = 0; i < 200000; ++i) {
+                size_t val = val_generator(en);
+                dummy += LowerBound(val);
+            }
 
-        for (int i = 0; i < 20000; ++i) {
-            size_t val = val_generator(en);
-            dummy += UpperBound(val);
+            for (int i = 0; i < 200000; ++i) {
+                size_t val = val_generator(en);
+                dummy += UpperBound(val);
+            }
         }
     }
 
