@@ -1,6 +1,7 @@
 #include <deque>
 #include <iostream>
 #include <random>
+#include <set>
 
 #include "../Zeta/CircularVector.h"
 #include "../Zeta/SegVector.h"
@@ -31,6 +32,8 @@ Zeta_CursorOperator seq_cntr_cursor_opr;
 void (*CheckCursor)(void* sc, void const* cursor);
 
 std::deque<val_t> dd;
+
+std::multiset<val_t> val_set;
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
@@ -80,6 +83,14 @@ val_t* SC_Access(size_t idx) {
     return (val_t*)ele;
 }
 
+void InsertValToValSet(val_t val) { val_set.insert(val); }
+
+void EraseValFromValSet(val_t val) {
+    auto iter{ val_set.find(val) };
+    ZETA_DebugAssert(iter != val_set.end());
+    val_set.erase(iter);
+}
+
 val_t* SC_PushL(val_t val) {
     byte_t pos_cursor[CURSOR_WIDTH]
         __attribute__((aligned(alignof(max_align_t))));
@@ -105,6 +116,8 @@ val_t* SC_PushL(val_t val) {
 
     ZETA_DebugAssert(seq_cntr_cursor_opr.IsEqual(seq_cntr_cursor_opr.context,
                                                  pos_cursor, re_cursor));
+
+    InsertValToValSet(val);
 
     return (val_t*)ele;
 }
@@ -136,6 +149,8 @@ val_t* SC_PushR(val_t val) {
     ZETA_DebugAssert(seq_cntr_cursor_opr.IsEqual(seq_cntr_cursor_opr.context,
                                                  pos_cursor, re_cursor));
 
+    InsertValToValSet(val);
+
     return (val_t*)ele;
 }
 
@@ -161,13 +176,17 @@ void SC_Insert(size_t idx, val_t val) {
 
     ZETA_DebugAssert(seq_cntr_cursor_opr.IsEqual(seq_cntr_cursor_opr.context,
                                                  &pos_cursor, &re_cursor));
+
+    InsertValToValSet(val);
 }
 
 void SC_Erase(size_t idx) {
     byte_t pos_cursor[CURSOR_WIDTH]
         __attribute__((aligned(alignof(max_align_t))));
 
-    seq_cntr.Access(seq_cntr.context, &pos_cursor, idx);
+    val_t* ele = (val_t*)seq_cntr.Access(seq_cntr.context, &pos_cursor, idx);
+
+    EraseValFromValSet(*ele);
 
     seq_cntr.Erase(seq_cntr.context, &pos_cursor);
 
@@ -180,6 +199,14 @@ void SC_Erase(size_t idx) {
                                                  &pos_cursor, &re_cursor));
 }
 
+void EraseAll_(void* context, void* ele) {
+    ZETA_Unused(context);
+
+    EraseValFromValSet(*(val_t*)ele);
+}
+
+void SC_EraseAll() { seq_cntr.EraseAll(seq_cntr.context, NULL, EraseAll_); }
+
 void SC_CheckIterator(size_t idx_a, size_t idx_b) {
     byte_t cursor_a[CURSOR_WIDTH]
         __attribute__((aligned(alignof(max_align_t))));
@@ -190,16 +217,18 @@ void SC_CheckIterator(size_t idx_a, size_t idx_b) {
     size_t diff = idx_b - idx_a;
 
     seq_cntr.Access(seq_cntr.context, &cursor_a, idx_a);
+
     seq_cntr.Access(seq_cntr.context, &cursor_b, idx_b);
+
     seq_cntr_cursor_opr.AdvanceR(seq_cntr_cursor_opr.context, &cursor_a, diff);
 
     ZETA_DebugAssert(seq_cntr_cursor_opr.IsEqual(seq_cntr_cursor_opr.context,
                                                  &cursor_a, &cursor_b));
 
-    //
-
     seq_cntr.Access(seq_cntr.context, &cursor_a, idx_a);
+
     seq_cntr.Access(seq_cntr.context, &cursor_b, idx_b);
+
     seq_cntr_cursor_opr.AdvanceL(seq_cntr_cursor_opr.context, &cursor_b, diff);
 
     ZETA_DebugAssert(seq_cntr_cursor_opr.IsEqual(seq_cntr_cursor_opr.context,
@@ -230,11 +259,14 @@ val_t* DD_Insert(size_t idx, val_t val) {
 
 void DD_Erase(size_t idx) { dd.erase(dd.begin() + idx); }
 
+void DD_EraseAll() { dd.clear(); }
+
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 
 void CheckCompare() {
+    ZETA_DebugAssert(dd.size() == val_set.size());
     ZETA_DebugAssert(dd.size() == seq_cntr.GetSize(seq_cntr.context));
 
     for (size_t i{ 0 }; i < dd.size(); ++i) {
@@ -247,8 +279,8 @@ void CheckCompare() {
 // -----------------------------------------------------------------------------
 
 void main1() {
-    // unsigned int seed = time(NULL);
-    unsigned int seed = 1711789696;
+    unsigned int seed = time(NULL);
+    // unsigned int seed = 1711789696;
 
     ZETA_PrintVar("%d", seed);
 
@@ -261,20 +293,8 @@ void main1() {
 
     CheckCompare();
 
-    for (int i = 0; i < 10000; ++i) {
-        size_t idx = size_generator(en) % (dd.size() + 1);
-        size_t val = val_generator(en);
-
-        DD_Insert(idx, val);
-        SC_Insert(idx, val);
-
-        CheckCompare();
-    }
-
-    for (int _ = 0; _ < 20; ++_) {
-        ZETA_PrintPos;
-
-        for (int i = 0; i < 1000; ++i) {
+    for (int _ = 0; _ < 5; ++_) {
+        for (int i = 0; i < 10000; ++i) {
             size_t idx = size_generator(en) % (dd.size() + 1);
             size_t val = val_generator(en);
 
@@ -284,44 +304,63 @@ void main1() {
             CheckCompare();
         }
 
-        ZETA_PrintPos;
+        for (int _ = 0; _ < 5; ++_) {
+            ZETA_PrintPos;
 
-        for (int i = 0; i < 1000; ++i) {
-            size_t val = val_generator(en);
+            for (int i = 0; i < 1000; ++i) {
+                size_t idx = size_generator(en) % (dd.size() + 1);
+                size_t val = val_generator(en);
 
-            if (size_generator(en) % 2 == 0) {
-                DD_PushL(val);
-                SC_PushL(val);
-            } else {
-                DD_PushR(val);
-                SC_PushR(val);
+                DD_Insert(idx, val);
+                SC_Insert(idx, val);
+
+                CheckCompare();
             }
 
-            CheckCompare();
+            ZETA_PrintPos;
+
+            for (int i = 0; i < 1000; ++i) {
+                size_t val = val_generator(en);
+
+                if (size_generator(en) % 2 == 0) {
+                    DD_PushL(val);
+                    SC_PushL(val);
+                } else {
+                    DD_PushR(val);
+                    SC_PushR(val);
+                }
+
+                CheckCompare();
+            }
+
+            ZETA_PrintPos;
+
+            for (int i = 0; i < 2000; ++i) {
+                size_t idx_a = size_generator(en) % (dd.size() + 2);
+                size_t idx_b = size_generator(en) % (dd.size() + 2);
+
+                SC_CheckIterator(std::min(idx_a, idx_b) - 1,
+                                 std::max(idx_a, idx_b) - 1);
+            }
+
+            ZETA_PrintPos;
+
+            for (int i = 0; i < 2000 && 1000 < dd.size(); ++i) {
+                size_t idx = size_generator(en) % dd.size();
+
+                DD_Erase(idx);
+                SC_Erase(idx);
+
+                CheckCompare();
+            }
+
+            ZETA_PrintPos;
         }
 
-        ZETA_PrintPos;
+        DD_EraseAll();
+        SC_EraseAll();
 
-        for (int i = 0; i < 2000; ++i) {
-            size_t idx_a = size_generator(en) % (dd.size() + 2);
-            size_t idx_b = size_generator(en) % (dd.size() + 2);
-
-            SC_CheckIterator(std::min(idx_a, idx_b) - 1,
-                             std::max(idx_a, idx_b) - 1);
-        }
-
-        ZETA_PrintPos;
-
-        for (int i = 0; i < 2000 && 0 < dd.size(); ++i) {
-            size_t idx = size_generator(en) % dd.size();
-
-            DD_Erase(idx);
-            SC_Erase(idx);
-
-            CheckCompare();
-        }
-
-        ZETA_PrintPos;
+        CheckCompare();
     }
 }
 

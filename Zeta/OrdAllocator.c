@@ -13,15 +13,15 @@ typedef struct Zeta_OrdAllocator_Head Zeta_OrdAllocator_Head;
 
 struct Zeta_OrdAllocator_Head {
     int state;
-    Zeta_RelLinkedListNode hn;  // link to other heads
+    Zeta_OrdLinkedListNode hn;  // link to other heads
 
     union {
         struct {
-            Zeta_RelRBTreeNode sn;  // link to other vacant
+            Zeta_OrdRBTreeNode sn;  // link to other vacant
         } vacant_info;
 
         struct {
-            Zeta_RelLinkedListNode slab_n;  // link to slab list
+            Zeta_OrdLinkedListNode slab_n;  // link to slab list
             uintptr_t unit_ptr;             // points to slab unit
         } slab_info;
     };
@@ -110,10 +110,10 @@ void Zeta_OrdAllocator_Init(void* ord_allocator_) {
     size_t mem_end = mem_beg + ord_allocator->size;
 
     size_t slab_list_heads_beg =
-        Zeta_FindNextConMod(mem_beg, 0, alignof(Zeta_RelLinkedListNode));
+        Zeta_FindNextConMod(mem_beg, 0, alignof(Zeta_OrdLinkedListNode));
 
     size_t slab_list_heads_end =
-        slab_list_heads_beg + sizeof(Zeta_RelLinkedListNode) *
+        slab_list_heads_beg + sizeof(Zeta_OrdLinkedListNode) *
                                   ZETA_OrdAllocator_max_num_of_slab_level;
 
     size_t data_beg =
@@ -204,7 +204,7 @@ void Zeta_OrdAllocator_Init(void* ord_allocator_) {
 
     for (int level_i = 0; level_i < ZETA_OrdAllocator_max_num_of_slab_level;
          ++level_i) {
-        Zeta_RelLinkedListNode_Init(&ord_allocator->slab_list_heads[level_i]);
+        Zeta_OrdLinkedListNode_Init(&ord_allocator->slab_list_heads[level_i]);
     }
 
     Zeta_OrdAllocator_Head* beg_head = ZETA_UINT_TO_PTR(data_beg);
@@ -213,14 +213,14 @@ void Zeta_OrdAllocator_Init(void* ord_allocator_) {
         ZETA_UINT_TO_PTR(ZETA_PTR_TO_UINT(data_end) - head_size);
 
     beg_head->state = ZETA_OrdAllocator_state_vacant;
-    Zeta_RelLinkedListNode_Init(&beg_head->hn);
-    Zeta_RelRBTreeNode_Init(NULL, &beg_head->vacant_info.sn);
+    Zeta_OrdLinkedListNode_Init(&beg_head->hn);
+    Zeta_OrdRBTreeNode_Init(NULL, &beg_head->vacant_info.sn);
 
     end_head->state = ZETA_OrdAllocator_state_occupied;
-    Zeta_RelLinkedListNode_Init(&end_head->hn);
+    Zeta_OrdLinkedListNode_Init(&end_head->hn);
     SetPtr_(&end_head->ptr, end_head);
 
-    Zeta_RelLinkedListNode_InsertR(&beg_head->hn, &end_head->hn);
+    Zeta_OrdLinkedListNode_InsertR(&beg_head->hn, &end_head->hn);
 
     ord_allocator->sn_root = &beg_head->vacant_info.sn;
 }
@@ -240,7 +240,7 @@ static Zeta_OrdAllocator_Head* GetHeadFromSlabN_(void* slab_n) {
 
 static size_t GetStride_(Zeta_OrdAllocator_Head* head) {
     Zeta_OrdAllocator_Head* nxt_head =
-        GetHeadFromHN_(Zeta_RelLinkedListNode_GetR(&head->hn));
+        GetHeadFromHN_(Zeta_OrdLinkedListNode_GetR(&head->hn));
 
     return ZETA_PTR_TO_UINT(nxt_head) - ZETA_PTR_TO_UINT(head);
 }
@@ -253,10 +253,10 @@ static void* FindBlock_(void* sn_root, size_t stride) {
         size_t sn_stride = GetStride_(GetHeadFromSN_(sn));
 
         if (sn_stride < stride) {
-            sn = Zeta_RelRBTreeNode_GetR(NULL, sn);
+            sn = Zeta_OrdRBTreeNode_GetR(NULL, sn);
         } else {
             ret = sn;
-            sn = Zeta_RelRBTreeNode_GetL(NULL, sn);
+            sn = Zeta_OrdRBTreeNode_GetL(NULL, sn);
         }
     }
 
@@ -283,7 +283,7 @@ static Zeta_OrdAllocator_Head* ChooseNiceBlock_(
 
     if (twice_fit_sn != NULL) { return GetHeadFromSN_(twice_fit_sn); }
 
-    return GetHeadFromSN_(Zeta_GetMostLink(NULL, Zeta_RelRBTreeNode_GetR,
+    return GetHeadFromSN_(Zeta_GetMostLink(NULL, Zeta_OrdRBTreeNode_GetR,
                                            ord_allocator->sn_root));
 }
 
@@ -291,7 +291,7 @@ static Zeta_OrdAllocator_Head* Allocate_(Zeta_OrdAllocator* ord_allocator,
                                          size_t size) {
     Zeta_BinTreeNodeOperator btn_opr;
     Zeta_BinTree_InitOpr(&btn_opr);
-    Zeta_RelRBTreeNode_DeployBinTreeNodeOperator(NULL, &btn_opr);
+    Zeta_OrdRBTreeNode_DeployBinTreeNodeOperator(NULL, &btn_opr);
 
     Zeta_OrdAllocator_Head* l_head = ChooseNiceBlock_(ord_allocator, size);
     if (l_head == NULL) { return NULL; }
@@ -305,7 +305,7 @@ static Zeta_OrdAllocator_Head* Allocate_(Zeta_OrdAllocator* ord_allocator,
                          Zeta_FindNextConMod(size + head_size, 0, align));
 
     Zeta_OrdAllocator_Head* r_head =
-        GetHeadFromHN_(Zeta_RelLinkedListNode_GetR(&l_head->hn));
+        GetHeadFromHN_(Zeta_OrdLinkedListNode_GetR(&l_head->hn));
 
     ord_allocator->sn_root =
         Zeta_RBTree_Extract(&btn_opr, &l_head->vacant_info.sn);
@@ -314,10 +314,10 @@ static Zeta_OrdAllocator_Head* Allocate_(Zeta_OrdAllocator* ord_allocator,
 
     m_head->state = ZETA_OrdAllocator_state_vacant;
 
-    Zeta_RelLinkedListNode_Init(&m_head->hn);
-    Zeta_RelLinkedListNode_InsertR(&l_head->hn, &m_head->hn);
+    Zeta_OrdLinkedListNode_Init(&m_head->hn);
+    Zeta_OrdLinkedListNode_InsertR(&l_head->hn, &m_head->hn);
 
-    Zeta_RelRBTreeNode_Init(NULL, &m_head->vacant_info.sn);
+    Zeta_OrdRBTreeNode_Init(NULL, &m_head->vacant_info.sn);
 
     size_t m_stride = ZETA_PTR_TO_UINT(r_head) - ZETA_PTR_TO_UINT(m_head);
 
@@ -326,7 +326,7 @@ static Zeta_OrdAllocator_Head* Allocate_(Zeta_OrdAllocator* ord_allocator,
     if (ins_sn == NULL) {
         ord_allocator->sn_root =
             Zeta_RBTree_InsertR(&btn_opr,
-                                Zeta_GetMostLink(NULL, Zeta_RelRBTreeNode_GetR,
+                                Zeta_GetMostLink(NULL, Zeta_OrdRBTreeNode_GetR,
                                                  ord_allocator->sn_root),
                                 &m_head->vacant_info.sn);
     } else {
@@ -341,37 +341,37 @@ static Zeta_OrdAllocator_Head* Deallocate_(Zeta_OrdAllocator* ord_allocator,
                                            Zeta_OrdAllocator_Head* head) {
     Zeta_BinTreeNodeOperator btn_opr;
     Zeta_BinTree_InitOpr(&btn_opr);
-    Zeta_RelRBTreeNode_DeployBinTreeNodeOperator(NULL, &btn_opr);
+    Zeta_OrdRBTreeNode_DeployBinTreeNodeOperator(NULL, &btn_opr);
 
     Zeta_OrdAllocator_Head* m_head = head;
 
     Zeta_OrdAllocator_Head* l_head =
-        GetHeadFromHN_(Zeta_RelLinkedListNode_GetL(&m_head->hn));
+        GetHeadFromHN_(Zeta_OrdLinkedListNode_GetL(&m_head->hn));
 
     Zeta_OrdAllocator_Head* r_head =
-        GetHeadFromHN_(Zeta_RelLinkedListNode_GetR(&m_head->hn));
+        GetHeadFromHN_(Zeta_OrdLinkedListNode_GetR(&m_head->hn));
 
     bool_t merge_l = l_head->state == ZETA_OrdAllocator_state_vacant;
     bool_t merge_r = r_head->state == ZETA_OrdAllocator_state_vacant;
 
     if (merge_l) {
-        Zeta_RelLinkedListNode_Extract(&m_head->hn);
+        Zeta_OrdLinkedListNode_Extract(&m_head->hn);
 
         ord_allocator->sn_root =
             Zeta_RBTree_Extract(&btn_opr, &l_head->vacant_info.sn);
     } else {
         m_head->state = ZETA_OrdAllocator_state_vacant;
 
-        Zeta_RelRBTreeNode_Init(NULL, &m_head->vacant_info.sn);
+        Zeta_OrdRBTreeNode_Init(NULL, &m_head->vacant_info.sn);
 
         l_head = m_head;
     }
 
     if (merge_r) {
         Zeta_OrdAllocator_Head* rr_head =
-            GetHeadFromHN_(Zeta_RelLinkedListNode_GetR(&r_head->hn));
+            GetHeadFromHN_(Zeta_OrdLinkedListNode_GetR(&r_head->hn));
 
-        Zeta_RelLinkedListNode_Extract(&r_head->hn);
+        Zeta_OrdLinkedListNode_Extract(&r_head->hn);
 
         ord_allocator->sn_root =
             Zeta_RBTree_Extract(&btn_opr, &r_head->vacant_info.sn);
@@ -386,7 +386,7 @@ static Zeta_OrdAllocator_Head* Deallocate_(Zeta_OrdAllocator* ord_allocator,
     if (ins_sn == NULL) {
         ord_allocator->sn_root =
             Zeta_RBTree_InsertR(&btn_opr,
-                                Zeta_GetMostLink(NULL, Zeta_RelRBTreeNode_GetR,
+                                Zeta_GetMostLink(NULL, Zeta_OrdRBTreeNode_GetR,
                                                  ord_allocator->sn_root),
                                 &l_head->vacant_info.sn);
     } else {
@@ -422,9 +422,9 @@ static void SetupSlab_(Zeta_OrdAllocator* ord_allocator,
 
     head->state = slab_level;
 
-    Zeta_RelLinkedListNode_Init(&head->slab_info.slab_n);
+    Zeta_OrdLinkedListNode_Init(&head->slab_info.slab_n);
 
-    Zeta_RelLinkedListNode_InsertR(&ord_allocator->slab_list_heads[slab_level],
+    Zeta_OrdLinkedListNode_InsertR(&ord_allocator->slab_list_heads[slab_level],
                                    &head->slab_info.slab_n);
 
     uintptr_t* ptr_i = &head->ptr;
@@ -476,11 +476,11 @@ void* Zeta_OrdAllocator_Allocate(void* ord_allocator_, size_t size) {
 
     for (int slab_level_i = best_slab_level; slab_level_i < num_of_slab_level;
          ++slab_level_i) {
-        Zeta_RelLinkedListNode* slab_list_head =
+        Zeta_OrdLinkedListNode* slab_list_head =
             &ord_allocator->slab_list_heads[slab_level_i];
 
-        Zeta_RelLinkedListNode* slab_n =
-            Zeta_RelLinkedListNode_GetR(slab_list_head);
+        Zeta_OrdLinkedListNode* slab_n =
+            Zeta_OrdLinkedListNode_GetR(slab_list_head);
 
         Zeta_OrdAllocator_Head* head;
 
@@ -522,9 +522,9 @@ void* Zeta_OrdAllocator_Allocate(void* ord_allocator_, size_t size) {
         SetPtr_(ptr, head);
 
         if (nxt_ptr == ord_allocator->mem) {
-            Zeta_RelLinkedListNode_Extract(&head->slab_info.slab_n);
+            Zeta_OrdLinkedListNode_Extract(&head->slab_info.slab_n);
 
-            Zeta_RelLinkedListNode_InsertL(
+            Zeta_OrdLinkedListNode_InsertL(
                 &ord_allocator->slab_list_heads[slab_level_i],
                 &head->slab_info.slab_n);
         }
@@ -576,7 +576,7 @@ void Zeta_OrdAllocator_Deallocate(void* ord_allocator_, void* ptr_) {
         ptr_i = ZETA_UINT_TO_PTR(ZETA_PTR_TO_UINT(ptr_i) + slab_stride);
     }
 
-    Zeta_RelLinkedListNode_Extract(&head->slab_info.slab_n);
+    Zeta_OrdLinkedListNode_Extract(&head->slab_info.slab_n);
     Deallocate_(ord_allocator, head);
 }
 
@@ -598,10 +598,10 @@ static void GetVacantHead_(Zeta_DebugTreeMap* dst_head_mt,
     size_t stride = GetStride_(head);
     ZETA_DebugAssert(lb <= stride && stride <= ub);
 
-    Zeta_RelRBTreeNode* sn = &head->vacant_info.sn;
+    Zeta_OrdRBTreeNode* sn = &head->vacant_info.sn;
 
-    Zeta_RelRBTreeNode* sn_l = Zeta_RelRBTreeNode_GetL(NULL, sn);
-    Zeta_RelRBTreeNode* sn_r = Zeta_RelRBTreeNode_GetR(NULL, sn);
+    Zeta_OrdRBTreeNode* sn_l = Zeta_OrdRBTreeNode_GetL(NULL, sn);
+    Zeta_OrdRBTreeNode* sn_r = Zeta_OrdRBTreeNode_GetR(NULL, sn);
 
     Zeta_DebugTreeMap_Insert(dst_head_mt, ZETA_PTR_TO_UINT(head));
 
@@ -766,7 +766,7 @@ void Zeta_OrdAllocator_Check(void* ord_allocator_, void* dst_ptr_size_tm) {
         Zeta_DebugTreeMap_Create(&slab_mts[i]);
     }
 
-    ZETA_DebugAssert(Zeta_RelRBTreeNode_GetP(NULL, ord_allocator->sn_root) ==
+    ZETA_DebugAssert(Zeta_OrdRBTreeNode_GetP(NULL, ord_allocator->sn_root) ==
                      NULL);
 
     Zeta_DebugTreeMap vacant_head_mt;
@@ -775,7 +775,7 @@ void Zeta_OrdAllocator_Check(void* ord_allocator_, void* dst_ptr_size_tm) {
     GetVacantHead_(&vacant_head_mt, GetHeadFromSN_(ord_allocator->sn_root), 0,
                    ZETA_maxof(size_t));
 
-    for (Zeta_RelLinkedListNode* hn_i = &beg_head->hn; hn_i != &end_head->hn;) {
+    for (Zeta_OrdLinkedListNode* hn_i = &beg_head->hn; hn_i != &end_head->hn;) {
         Zeta_OrdAllocator_Head* head_i = GetHeadFromHN_(hn_i);
         ZETA_DebugAssert(ZETA_PTR_TO_UINT(head_i) % head_align == 0);
 
@@ -783,7 +783,7 @@ void Zeta_OrdAllocator_Check(void* ord_allocator_, void* dst_ptr_size_tm) {
 
         ZETA_DebugAssert(ZETA_PTR_TO_UINT(data_i) % align == 0);
 
-        Zeta_RelLinkedListNode* nxt_hn_i = Zeta_RelLinkedListNode_GetR(hn_i);
+        Zeta_OrdLinkedListNode* nxt_hn_i = Zeta_OrdLinkedListNode_GetR(hn_i);
 
         ZETA_DebugAssert(hn_i < nxt_hn_i);
         // ZETA_DebugAssert(hn_i < nxt_hn_i);
@@ -836,10 +836,10 @@ void Zeta_OrdAllocator_Check(void* ord_allocator_, void* dst_ptr_size_tm) {
     ZETA_DebugAssert(Zeta_DebugTreeMap_GetSize(&vacant_head_mt) == 0);
     Zeta_DebugTreeMap_Destroy(&vacant_head_mt);
 
-    for (Zeta_RelLinkedListNode* hn_i = &beg_head->hn; hn_i != &end_head->hn;) {
+    for (Zeta_OrdLinkedListNode* hn_i = &beg_head->hn; hn_i != &end_head->hn;) {
         Zeta_OrdAllocator_Head* head_i = GetHeadFromHN_(hn_i);
 
-        Zeta_RelLinkedListNode* nxt_hn_i = Zeta_RelLinkedListNode_GetR(hn_i);
+        Zeta_OrdLinkedListNode* nxt_hn_i = Zeta_OrdLinkedListNode_GetR(hn_i);
 
         int state = head_i->state;
 
@@ -854,13 +854,13 @@ void Zeta_OrdAllocator_Check(void* ord_allocator_, void* dst_ptr_size_tm) {
     for (int level_i = 0; level_i < num_of_slab_level; ++level_i) {
         Zeta_DebugTreeMap* slab_mt = &slab_mts[level_i];
 
-        Zeta_RelLinkedListNode* slab_list_head =
+        Zeta_OrdLinkedListNode* slab_list_head =
             &ord_allocator->slab_list_heads[level_i];
 
-        Zeta_RelLinkedListNode* slab_n = slab_list_head;
+        Zeta_OrdLinkedListNode* slab_n = slab_list_head;
 
         for (;;) {
-            slab_n = Zeta_RelLinkedListNode_GetR(slab_n);
+            slab_n = Zeta_OrdLinkedListNode_GetR(slab_n);
             if (slab_n == slab_list_head) { break; }
 
             Zeta_OrdAllocator_Head* head_i = GetHeadFromSlabN_(slab_n);

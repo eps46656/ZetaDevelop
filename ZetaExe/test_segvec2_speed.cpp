@@ -104,7 +104,7 @@ void MS_Erase(val_t val) {
 
 void main1() {
     // unsigned int seed = time(NULL);
-    unsigned int seed = 1711803601;
+    unsigned int seed = 1711901207;
 
     ZETA_PrintVar("%d", seed);
 
@@ -128,7 +128,7 @@ void main1() {
     void (*Insert)(val_t val);
     void (*Erase)(val_t val);
 
-    bool_t is_sv{ TRUE };
+    bool_t is_sv{ FALSE };
 
     val_t dummy{ 0 };
 

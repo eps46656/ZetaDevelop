@@ -1,7 +1,7 @@
 #pragma once
 
 #include "Allocator.h"
-#include "RelRBTreeNode.h"
+#include "OrdRBTreeNode.h"
 
 ZETA_extern_c_beg;
 
@@ -27,7 +27,7 @@ struct Zeta_TreeAllocator {
     void* data_beg;
     void* data_end;
 
-    Zeta_RelRBTreeNode* sn_root;
+    Zeta_OrdRBTreeNode* sn_root;
 };
 
 /**

@@ -13,7 +13,8 @@ typedef struct Zeta_SegVector_Node Zeta_SegVector_Node;
 struct Zeta_SegVector_Node {
     Zeta_OrdCntRBTreeNode n;
     void* seg;
-    size_t offset;
+    unsigned short offset;
+    unsigned short size;
 };
 
 typedef struct Zeta_SegVector_Cursor Zeta_SegVector_Cursor;
@@ -59,7 +60,7 @@ void* Zeta_SegVector_PeekR(void* sv, void* dst_cursor);
 
 void* Zeta_SegVector_Access(void* sv, void* dst_cursor, size_t idx);
 
-void* Zeta_SegVector_FindFirst(void* sv_, void* dst_cursor, void* context,
+void* Zeta_SegVector_FindFirst(void* sv, void* dst_cursor, void* context,
                                bool_t (*Compare)(void* context, void* ele));
 
 void* Zeta_SegVector_PushL(void* sv, void* dst_cursor);
@@ -74,7 +75,10 @@ void Zeta_SegVector_PopR(void* sv);
 
 void* Zeta_SegVector_Erase(void* sv, void* pos_cursor);
 
-void Zeta_SegVector_Check(void* sv_, Zeta_DebugTreeMap* dst_node_tm,
+void Zeta_SegVector_EraseAll(void* sv, void* callabck_context,
+                             void (*Callback)(void* context, void* ele));
+
+void Zeta_SegVector_Check(void* sv, Zeta_DebugTreeMap* dst_node_tm,
                           Zeta_DebugTreeMap* dst_seg_tm);
 
 void Zeta_SegVector_DeploySeqContainer(void* sv, Zeta_SeqContainer* seq_cntr);

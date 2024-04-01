@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Cursor.h"
+#include "DebugTreeMap.h"
 #include "SeqContainer.h"
 
 ZETA_extern_c_beg;
@@ -58,7 +59,10 @@ void Zeta_CircularVector_PopR(void* cv);
 
 void* Zeta_CircularVector_Erase(void* cv, void* pos_cursor);
 
-void Zeta_CircularVector_EraseAll(void* cv);
+void Zeta_CircularVector_EraseAll(void* cv, void* callback_context,
+                                  void (*Callback)(void* context, void* ele));
+
+// void Zeta_CircularVector_Check(void* cv, Zeta_DebugTreeMap* dst_tm);
 
 void Zeta_CircularVector_DeploySeqContainer(void* cv,
                                             Zeta_SeqContainer* seq_cntr);

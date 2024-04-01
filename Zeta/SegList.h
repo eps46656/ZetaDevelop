@@ -3,7 +3,7 @@
 #include "Allocator.h"
 #include "DebugTreeMap.h"
 #include "OrdLinkedListNode.h"
-#include "Vector.h"
+#include "SeqContainer.h"
 
 ZETA_extern_c_beg;
 
@@ -13,6 +13,15 @@ struct Zeta_SegList_Node {
     char padding[8];
     Zeta_OrdLinkedListNode n;
     void* seg;
+};
+
+typedef struct Zeta_SegList_Cursor Zeta_SegList_Cursor;
+
+struct Zeta_SegList_Cursor {
+    size_t idx;
+    Zeta_OrdCntRBTreeNode* n;
+    size_t seg_idx;
+    void* ele;
 };
 
 typedef struct Zeta_SegList Zeta_SegList;

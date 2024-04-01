@@ -258,9 +258,23 @@ void* Zeta_CircularVector_Erase(void* cv_, void* pos_cursor_) {
     return Access_(data, stride, offset, idx, capacity);
 }
 
-void Zeta_CircularVector_EraseAll(void* cv_) {
+void Zeta_CircularVector_EraseAll(void* cv_, void* callback_context,
+                                  void (*Callback)(void* context, void* ele)) {
     Zeta_CircularVector* cv = cv_;
     ZETA_DebugAssert(cv != NULL);
+
+    if (Callback != NULL) {
+        size_t stride = cv->stride;
+        size_t offset = cv->offset;
+        size_t size = cv->size;
+        size_t capacity = cv->capacity;
+        void* data = cv->data;
+
+        for (size_t i = 0; i < size; ++i) {
+            Callback(callback_context,
+                     Access_(data, stride, offset, i, capacity));
+        }
+    }
 
     cv->offset = 0;
     cv->size = 0;
@@ -295,6 +309,7 @@ void Zeta_CircularVector_DeploySeqContainer(void* cv_,
     seq_cntr->PopR = Zeta_CircularVector_PopR;
 
     seq_cntr->Erase = Zeta_CircularVector_Erase;
+    seq_cntr->EraseAll = Zeta_CircularVector_EraseAll;
 }
 
 // -----------------------------------------------------------------------------

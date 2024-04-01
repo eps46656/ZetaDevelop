@@ -27,6 +27,8 @@ struct Zeta_SeqContainer {
     void (*PopR)(void* context);
 
     void* (*Erase)(void* context, void* pos_cursor);
+    void (*EraseAll)(void* context, void* callback_context,
+                     void (*Callback)(void* context, void* ele));
 };
 
 void Zeta_SeqContainer_Init(Zeta_SeqContainer* seq_cntr);

@@ -18,9 +18,9 @@ def SetMTime(path, mtime):
 
 def CheckAdjList(adj_list):
     # adj_list = {
-    #   "v 0": {"adj 00", "adj 01", "adj 02", ...},
-    #   "v 1": {"adj 10", "adj 11", "adj 12", ...},
-    #   "v 2": {"adj 20", "adj 21", "adj 22", ...},
+    #   "v 0": {"adj 0 0", "adj 0 1", "adj 0 2", ...},
+    #   "v 1": {"adj 1 0", "adj 1 1", "adj 1 2", ...},
+    #   "v 2": {"adj 2 0", "adj 2 1", "adj 2 2", ...},
     #   ...
     # }
 
@@ -29,12 +29,11 @@ def CheckAdjList(adj_list):
     for adjs in adj_list.values():
         assert adjs.issubset(vertices)
 
-
 def BFS(adj_list, sources):
-    # A = {
-    #   "v 0": {"adj 00", "adj 01", "adj 02", ...},
-    #   "v 1": {"adj 10", "adj 11", "adj 12", ...},
-    #   "v 2": {"adj 20", "adj 21", "adj 22", ...},
+    # adj_list = {
+    #   "v 0": {"adj 0 0", "adj 0 1", "adj 0 2", ...},
+    #   "v 1": {"adj 1 0", "adj 1 1", "adj 1 2", ...},
+    #   "v 2": {"adj 2 0", "adj 2 1", "adj 2 2", ...},
     #   ...
     # }
 
@@ -66,14 +65,16 @@ def BFS(adj_list, sources):
     return ret
 
 def TPSort(adj_list, sources):
-    # A = {
-    #   "v 0": {"adj 00", "adj 01", "adj 02", ...},
-    #   "v 1": {"adj 10", "adj 11", "adj 12", ...},
-    #   "v 2": {"adj 20", "adj 21", "adj 22", ...},
+    # adj_list = {
+    #   "v 0": {"adj 0 0", "adj 0 1", "adj 0 2", ...},
+    #   "v 1": {"adj 1 0", "adj 1 1", "adj 1 2", ...},
+    #   "v 2": {"adj 2 0", "adj 2 1", "adj 2 2", ...},
     #   ...
     # }
     #
-    # return ["u 0", "u 1", "u 2", ... ]
+    # sources = [ "s 0", "s 1", "s 2", ... ]
+    #
+    # return [ "u 0", "u 1", "u 2", ... ]
 
     q = BFS(adj_list, sources)
 
@@ -124,7 +125,7 @@ class Builder:
         #       ...
         #   }
 
-    def add(self, unit, deps, callback):
+    def Add(self, unit, deps, callback=None):
         assert unit not in self.deps, f"duplicated unit: {unit}"
 
         self.deps[unit] = set(deps)
@@ -133,12 +134,15 @@ class Builder:
     def units(self):
         return list(self.deps.keys())
 
-    def build(self, target, rebuild):
+    def GetDepUnits(self, target):
         assert target in self.deps, f"unknown unit {target}"
 
-        v = TPSort(self.deps, [target])
+        return list(reversed(TPSort(self.deps, [target])))
 
-        mtimes = { unit: GetMTime(unit) for unit in v }
+    def build(self, target, rebuild):
+        dep_units = self.GetDepUnits(target)
+
+        mtimes = { unit: GetMTime(unit) for unit in dep_units }
 
         not_built = []
         built = []
@@ -146,7 +150,7 @@ class Builder:
         ybeg = "\033[93m"
         yend = "\033[0m"
 
-        for unit in reversed(v):
+        for unit in dep_units:
             if len(self.deps[unit]) == 0:
                 continue
 
@@ -157,9 +161,12 @@ class Builder:
                 continue
 
             print(f"{ybeg}building:{yend} {unit}")
-            rc = self.callbacks[unit]()
 
-            assert rc == 0, f"error happened when building {unit}"
+            callback = self.callbacks[unit]
+
+            if callback is not None:
+                rc = callback()
+                assert rc == 0, f"error happened when building {unit}"
 
             assert os.path.exists(unit), \
                    f"unit {unit} does not exist after built"
