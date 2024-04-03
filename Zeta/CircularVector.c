@@ -3,8 +3,8 @@
 #include "utils.h"
 
 #define Access_(data, stride, offset, idx, capacity) \
-    ZETA_UINT_TO_PTR(ZETA_PTR_TO_UINT(data) +        \
-                     stride * ((offset + idx) % capacity))
+    ZETA_GetPtrFromAddr(ZETA_GetAddrFromPtr(data) +  \
+                        stride * ((offset + idx) % capacity))
 
 void Zeta_CircularVector_Init(void* cv_) {
     Zeta_CircularVector* cv = cv_;
@@ -103,7 +103,7 @@ void* Zeta_CircularVector_Access(void* cv_, void* dst_cursor_, size_t idx) {
     ZETA_DebugAssert(width <= stride);
     ZETA_DebugAssert(offset < capacity);
     ZETA_DebugAssert(size <= capacity);
-    ZETA_DebugAssert(capacity <= ZETA_max_mod_under_size_t);
+    ZETA_DebugAssert(capacity <= ZETA_GetMaxMod(size_t));
     ZETA_DebugAssert(data != NULL);
 
     ZETA_DebugAssert(idx + 1 < cv->size + 2);
@@ -163,7 +163,7 @@ void* Zeta_CircularVector_Insert(void* cv_, void* pos_cursor_) {
     ZETA_DebugAssert(width <= stride);
     ZETA_DebugAssert(offset < capacity);
     ZETA_DebugAssert(size < capacity);
-    ZETA_DebugAssert(capacity <= ZETA_max_mod_under_size_t);
+    ZETA_DebugAssert(capacity <= ZETA_GetMaxMod(size_t));
     ZETA_DebugAssert(data != NULL);
 
     size_t idx = pos_cursor->idx;
@@ -233,7 +233,7 @@ void* Zeta_CircularVector_Erase(void* cv_, void* pos_cursor_) {
     ZETA_DebugAssert(width <= stride);
     ZETA_DebugAssert(offset < capacity);
     ZETA_DebugAssert(size <= capacity);
-    ZETA_DebugAssert(capacity <= ZETA_max_mod_under_size_t);
+    ZETA_DebugAssert(capacity <= ZETA_GetMaxMod(size_t));
     ZETA_DebugAssert(data != NULL);
 
     size_t idx = pos_cursor->idx;
@@ -391,7 +391,7 @@ void* Zeta_CircularVector_Cursor_Refer(void* cv_, void const* cursor_) {
     ZETA_DebugAssert(width <= stride);
     ZETA_DebugAssert(offset < capacity);
     ZETA_DebugAssert(size <= capacity);
-    ZETA_DebugAssert(capacity <= ZETA_max_mod_under_size_t);
+    ZETA_DebugAssert(capacity <= ZETA_GetMaxMod(size_t));
     ZETA_DebugAssert(data != NULL);
 
     size_t idx = cursor->idx + 1;

@@ -2,7 +2,7 @@
 
 #include "BinTree.h"
 
-ZETA_extern_c_beg;
+ZETA_ExternC_Beg;
 
 typedef struct Zeta_RelBinTreeNode Zeta_RelBinTreeNode;
 
@@ -29,4 +29,4 @@ void Zeta_RelBinTreeNode_SetR(void* context, void* n, void* m);
 void Zeta_RelCntRBTreeNode_DeployBinTreeNodeOperator(
     void* context, Zeta_BinTreeNodeOperator* btn_opr);
 
-ZETA_extern_c_end;
+ZETA_ExternC_End;

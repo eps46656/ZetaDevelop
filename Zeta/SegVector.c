@@ -11,7 +11,7 @@ void Zeta_SegVector_Init(void* sv_) {
 
     ZETA_DebugAssert(0 < sv->width);
     ZETA_DebugAssert(0 < sv->seg_capacity);
-    ZETA_DebugAssert(sv->seg_capacity <= ZETA_maxof(unsigned short));
+    ZETA_DebugAssert(sv->seg_capacity <= ZETA_GetRangeMax(unsigned short));
 
     ZETA_DebugAssert(sv->node_allocator != NULL);
     ZETA_DebugAssert(sv->node_allocator->Allocate != NULL);
@@ -567,7 +567,8 @@ void* Zeta_SegVector_Insert(void* sv_, void* pos_cursor_) {
 
     if (l_vacant < r_vacant ||
         (l_vacant == r_vacant &&
-         Zeta_SimpleHash(ZETA_PTR_TO_UINT(l_n) ^ ZETA_PTR_TO_UINT(r_n)) % 2 ==
+         Zeta_SimpleHash(ZETA_GetAddrFromPtr(l_n) ^ ZETA_GetAddrFromPtr(r_n)) %
+                 2 ==
              0)) {
         Zeta_CircularVector r_cv;
         r_cv.width = width;
@@ -809,7 +810,8 @@ void* Zeta_SegVector_Erase(void* sv_, void* pos_cursor_) {
 
     if (lm_vacant < mr_vacant ||
         (lm_vacant == mr_vacant &&
-         Zeta_SimpleHash(ZETA_PTR_TO_UINT(l_n) ^ ZETA_PTR_TO_UINT(r_n)) % 2 ==
+         Zeta_SimpleHash(ZETA_GetAddrFromPtr(l_n) ^ ZETA_GetAddrFromPtr(r_n)) %
+                 2 ==
              0)) {
         a_n = m_n;
         a_node = m_node;
@@ -879,7 +881,8 @@ void* Zeta_SegVector_Erase(void* sv_, void* pos_cursor_) {
 
     if (a_vacant < b_vacant ||
         (a_vacant == b_vacant &&
-         Zeta_SimpleHash(ZETA_PTR_TO_UINT(a_n) ^ ZETA_PTR_TO_UINT(b_n)) % 2 ==
+         Zeta_SimpleHash(ZETA_GetAddrFromPtr(a_n) ^ ZETA_GetAddrFromPtr(b_n)) %
+                 2 ==
              0)) {         // b to a
         if (a_n == m_n) {  // r(b) to m(a)
             ret_n = m_n;
@@ -1035,7 +1038,7 @@ void Check_(Zeta_SegVector* sv, Zeta_DebugTreeMap* dst_node_tm,
 
     {
         Zeta_DebugTreeMap_KeyValPair p =
-            Zeta_DebugTreeMap_Insert(dst_node_tm, ZETA_PTR_TO_UINT(node));
+            Zeta_DebugTreeMap_Insert(dst_node_tm, ZETA_GetAddrFromPtr(node));
         ZETA_DebugAssert(p.b);
         *p.val = sizeof(Zeta_SegVector_Node);
     }
@@ -1049,8 +1052,8 @@ void Check_(Zeta_SegVector* sv, Zeta_DebugTreeMap* dst_node_tm,
     ZETA_DebugAssert(node->offset < sv->seg_capacity);
 
     {
-        Zeta_DebugTreeMap_KeyValPair p =
-            Zeta_DebugTreeMap_Insert(dst_seg_tm, ZETA_PTR_TO_UINT(node->seg));
+        Zeta_DebugTreeMap_KeyValPair p = Zeta_DebugTreeMap_Insert(
+            dst_seg_tm, ZETA_GetAddrFromPtr(node->seg));
         ZETA_DebugAssert(p.b);
         *p.val = sv->width * sv->seg_capacity;
     }

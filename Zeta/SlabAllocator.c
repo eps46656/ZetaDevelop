@@ -18,19 +18,19 @@ ZETA_StaticAssert(alignof(SlabHead) % alignof(uintptr_t) == 0);
 #define ZETA_SlabSize (stride * num + sizeof(SlabHead))
 
 #define ZETA_GetSlabHeadFromSlab(slab) \
-    (ZETA_UINT_TO_PTR(ZETA_PTR_TO_UINT(slab) + stride * num))
+    (ZETA_GetPtrFromAddr(ZETA_GetAddrFromPtr(slab) + stride * num))
 
 #define ZETA_GetSlabFromSlabHead(slab_head) \
-    (ZETA_UINT_TO_PTR(ZETA_PTR_TO_UINT(slab_head) - stride * num))
+    (ZETA_GetPtrFromAddr(ZETA_GetAddrFromPtr(slab_head) - stride * num))
 
-#define ZETA_GetFirstChunkFromSlab(slab) (ZETA_PTR_TO_UINT(slab))
+#define ZETA_GetFirstChunkFromSlab(slab) (ZETA_GetAddrFromPtr(slab))
 
 void* GetPtr_(uintptr_t* ptr) {
-    return ZETA_UINT_TO_PTR(ZETA_PTR_TO_UINT(ptr) + *ptr);
+    return ZETA_GetPtrFromAddr(ZETA_GetAddrFromPtr(ptr) + *ptr);
 }
 
 void SetPtr_(uintptr_t* ptr, void* val) {
-    *ptr = ZETA_PTR_TO_UINT(val) - ZETA_PTR_TO_UINT(ptr);
+    *ptr = ZETA_GetAddrFromPtr(val) - ZETA_GetAddrFromPtr(ptr);
 }
 
 void Zeta_SlabAllocator_Init(void* sa_) {
@@ -132,20 +132,20 @@ void* Zeta_SlabAllocator_Allocate(void* sa_, size_t size) {
         uintptr_t chunk = first_chunk;
 
         for (size_t i = 0; i < num; ++i, chunk += stride) {
-            Zeta_RelLinkedListNode_Init(ZETA_UINT_TO_PTR(chunk));
+            Zeta_RelLinkedListNode_Init(ZETA_GetPtrFromAddr(chunk));
 
-            Zeta_RelLinkedListNode_InsertL(ZETA_UINT_TO_PTR(hot_unit_head),
-                                           ZETA_UINT_TO_PTR(chunk));
+            Zeta_RelLinkedListNode_InsertL(ZETA_GetPtrFromAddr(hot_unit_head),
+                                           ZETA_GetPtrFromAddr(chunk));
 
-            SetPtr_(ZETA_UINT_TO_PTR(chunk + width), slab);
+            SetPtr_(ZETA_GetPtrFromAddr(chunk + width), slab);
         }
 
         sa->num_of_vacant_units += num;
 
-        hot_unit_n = ZETA_UINT_TO_PTR(first_chunk);
+        hot_unit_n = ZETA_GetPtrFromAddr(first_chunk);
     } else {
         uintptr_t* hot_unit_back_ptr =
-            ZETA_UINT_TO_PTR(ZETA_PTR_TO_UINT(hot_unit_n) + width);
+            ZETA_GetPtrFromAddr(ZETA_GetAddrFromPtr(hot_unit_n) + width);
 
         Slab* slab = GetPtr_(hot_unit_back_ptr);
 
@@ -179,7 +179,7 @@ void Zeta_SlabAllocator_Deallocate(void* sa_, void* ptr) {
     Zeta_RelLinkedListNode_Init(ptr);
     Zeta_RelLinkedListNode_InsertR(&sa->hot_unit_head, ptr);
 
-    Slab* slab = GetPtr_(ZETA_UINT_TO_PTR(ZETA_PTR_TO_UINT(ptr) + width));
+    Slab* slab = GetPtr_(ZETA_GetPtrFromAddr(ZETA_GetAddrFromPtr(ptr) + width));
 
     SlabHead* slab_head = ZETA_GetSlabHeadFromSlab(slab);
 
@@ -214,7 +214,7 @@ void Zeta_SlabAllocator_Deallocate(void* sa_, void* ptr) {
     uintptr_t chunk = ZETA_GetFirstChunkFromSlab(vacant_slab);
 
     for (size_t i = 0; i < num; ++i, chunk += stride) {
-        Zeta_RelLinkedListNode_Extract(ZETA_UINT_TO_PTR(chunk));
+        Zeta_RelLinkedListNode_Extract(ZETA_GetPtrFromAddr(chunk));
     }
 
     sa->num_of_vacant_units -= num;
@@ -263,7 +263,7 @@ void Zeta_SlabAllocator_Check(void* sa_,
         if (hot_unit == &sa->hot_unit_head) { break; }
 
         Zeta_DebugTreeMap_KeyValPair p = Zeta_DebugTreeMap_Insert(
-            &vacant_unit_mt, ZETA_PTR_TO_UINT(hot_unit));
+            &vacant_unit_mt, ZETA_GetAddrFromPtr(hot_unit));
 
         ZETA_DebugAssert(p.b);
     }
@@ -291,7 +291,7 @@ void Zeta_SlabAllocator_Check(void* sa_,
             ZETA_DebugAssert(chunk % align == 0);
 
             ZETA_DebugAssert(occupied_slab ==
-                             GetPtr_(ZETA_UINT_TO_PTR(chunk + width)));
+                             GetPtr_(ZETA_GetPtrFromAddr(chunk + width)));
 
             if (Zeta_DebugTreeMap_Find(&vacant_unit_mt, chunk).b) {
                 ++check_num;
@@ -311,10 +311,10 @@ void Zeta_SlabAllocator_Check(void* sa_,
 
         check_num_of_vacant_units += check_num;
 
-        size_t slab_size = chunk - ZETA_PTR_TO_UINT(occupied_slab_head);
+        size_t slab_size = chunk - ZETA_GetAddrFromPtr(occupied_slab_head);
 
         Zeta_DebugTreeMap_KeyValPair p = Zeta_DebugTreeMap_Insert(
-            dst_used_ptr_size_tm, ZETA_PTR_TO_UINT(occupied_slab_head));
+            dst_used_ptr_size_tm, ZETA_GetAddrFromPtr(occupied_slab_head));
 
         ZETA_DebugAssert(p.b);
 
@@ -338,17 +338,17 @@ void Zeta_SlabAllocator_Check(void* sa_,
             ZETA_DebugAssert(chunk % align == 0);
 
             ZETA_DebugAssert(vacant_slab ==
-                             GetPtr_(ZETA_UINT_TO_PTR(chunk + width)));
+                             GetPtr_(ZETA_GetPtrFromAddr(chunk + width)));
 
             ZETA_DebugAssert(Zeta_DebugTreeMap_Find(&vacant_unit_mt, chunk).b);
         }
 
         check_num_of_vacant_units += num;
 
-        size_t slab_size = chunk - ZETA_PTR_TO_UINT(vacant_slab_head);
+        size_t slab_size = chunk - ZETA_GetAddrFromPtr(vacant_slab_head);
 
         Zeta_DebugTreeMap_KeyValPair p = Zeta_DebugTreeMap_Insert(
-            dst_used_ptr_size_tm, ZETA_PTR_TO_UINT(vacant_slab_head));
+            dst_used_ptr_size_tm, ZETA_GetAddrFromPtr(vacant_slab_head));
 
         ZETA_DebugAssert(p.b);
 

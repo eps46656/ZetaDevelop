@@ -26,7 +26,7 @@ void Zeta_TreeAllocator_Init(void* ta_) {
 
     ZETA_DebugAssert(ta->mem != NULL);
 
-    uintptr_t mem_beg = ZETA_PTR_TO_UINT(ta->mem);
+    uintptr_t mem_beg = ZETA_GetAddrFromPtr(ta->mem);
     uintptr_t mem_end = mem_beg + ta->size;
 
     uintptr_t data_beg =
@@ -36,11 +36,12 @@ void Zeta_TreeAllocator_Init(void* ta_) {
 
     ZETA_DebugAssert(data_beg <= data_end);
 
-    ta->data_beg = ZETA_UINT_TO_PTR(data_beg);
-    ta->data_end = ZETA_UINT_TO_PTR(data_end);
+    ta->data_beg = ZETA_GetPtrFromAddr(data_beg);
+    ta->data_end = ZETA_GetPtrFromAddr(data_end);
 
-    Zeta_TreeAllocator_Head* beg_head = ZETA_UINT_TO_PTR(data_beg);
-    Zeta_TreeAllocator_Head* end_head = ZETA_UINT_TO_PTR(data_end - head_size);
+    Zeta_TreeAllocator_Head* beg_head = ZETA_GetPtrFromAddr(data_beg);
+    Zeta_TreeAllocator_Head* end_head =
+        ZETA_GetPtrFromAddr(data_end - head_size);
 
     Zeta_OrdLinkedListNode_Init(&beg_head->hn);
     Zeta_OrdRBTreeNode_Init(NULL, &beg_head->sn);
@@ -79,7 +80,7 @@ static size_t GetStride_(Zeta_TreeAllocator_Head* head) {
     Zeta_TreeAllocator_Head* nxt_head =
         GetHeadFromHN_(Zeta_OrdLinkedListNode_GetR(&head->hn));
 
-    return ZETA_PTR_TO_UINT(nxt_head) - ZETA_PTR_TO_UINT(head);
+    return ZETA_GetAddrFromPtr(nxt_head) - ZETA_GetAddrFromPtr(head);
 }
 
 static void* FindBlock_(void* sn_root, size_t stride) {
@@ -154,8 +155,8 @@ void* Zeta_TreeAllocator_Allocate(void* ta_, size_t size) {
     size_t head_size = sizeof(Zeta_TreeAllocator_Head);
 
     Zeta_TreeAllocator_Head* m_head =
-        ZETA_UINT_TO_PTR(ZETA_PTR_TO_UINT(l_head) +
-                         Zeta_FindNextConMod(size + head_size, 0, align));
+        ZETA_GetPtrFromAddr(ZETA_GetAddrFromPtr(l_head) +
+                            Zeta_FindNextConMod(size + head_size, 0, align));
 
     Zeta_TreeAllocator_Head* r_head =
         GetHeadFromHN_(Zeta_OrdLinkedListNode_GetR(&l_head->hn));
@@ -169,7 +170,7 @@ void* Zeta_TreeAllocator_Allocate(void* ta_, size_t size) {
 
     Zeta_OrdRBTreeNode_Init(NULL, &m_head->sn);
 
-    size_t m_stride = ZETA_PTR_TO_UINT(r_head) - ZETA_PTR_TO_UINT(m_head);
+    size_t m_stride = ZETA_GetAddrFromPtr(r_head) - ZETA_GetAddrFromPtr(m_head);
 
     void* ins_sn = FindBlock_(ta->sn_root, m_stride);
 
@@ -225,7 +226,8 @@ void Zeta_TreeAllocator_Deallocate(void* ta_, void* ptr) {
         r_head = rr_head;
     }
 
-    size_t lr_stride = ZETA_PTR_TO_UINT(r_head) - ZETA_PTR_TO_UINT(l_head);
+    size_t lr_stride =
+        ZETA_GetAddrFromPtr(r_head) - ZETA_GetAddrFromPtr(l_head);
 
     void* ins_sn = FindBlock_(ta->sn_root, lr_stride);
 
@@ -250,7 +252,7 @@ static void GetVacantHead_(Zeta_DebugTreeMap* dst_head_mt,
     Zeta_OrdRBTreeNode* sn_l = Zeta_OrdRBTreeNode_GetL(NULL, sn);
     Zeta_OrdRBTreeNode* sn_r = Zeta_OrdRBTreeNode_GetR(NULL, sn);
 
-    Zeta_DebugTreeMap_Insert(dst_head_mt, ZETA_PTR_TO_UINT(head));
+    Zeta_DebugTreeMap_Insert(dst_head_mt, ZETA_GetAddrFromPtr(head));
 
     if (sn_l != NULL) {
         GetVacantHead_(dst_head_mt, GetHeadFromSN_(sn_l), lb, stride);
@@ -297,8 +299,8 @@ void Zeta_TreeAllocator_Check(void* ta_, bool_t print_state,
     Zeta_TreeAllocator* ta = ta_;
     ZETA_DebugAssert(ta != NULL);
 
-    uintptr_t data_beg = ZETA_PTR_TO_UINT(ta->data_beg);
-    uintptr_t data_end = ZETA_PTR_TO_UINT(ta->data_end);
+    uintptr_t data_beg = ZETA_GetAddrFromPtr(ta->data_beg);
+    uintptr_t data_end = ZETA_GetAddrFromPtr(ta->data_end);
 
     size_t head_align = alignof(Zeta_TreeAllocator_Head);
     size_t head_size = sizeof(Zeta_TreeAllocator_Head);
@@ -310,8 +312,9 @@ void Zeta_TreeAllocator_Check(void* ta_, bool_t print_state,
     ZETA_DebugAssert((data_end - head_size) % head_align == 0);
     ZETA_DebugAssert(data_end % align == 0);
 
-    Zeta_TreeAllocator_Head* beg_head = ZETA_UINT_TO_PTR(data_beg);
-    Zeta_TreeAllocator_Head* end_head = ZETA_UINT_TO_PTR(data_end - head_size);
+    Zeta_TreeAllocator_Head* beg_head = ZETA_GetPtrFromAddr(data_beg);
+    Zeta_TreeAllocator_Head* end_head =
+        ZETA_GetPtrFromAddr(data_end - head_size);
 
     ZETA_DebugAssert(Zeta_OrdRBTreeNode_GetP(NULL, ta->sn_root) == NULL);
 
@@ -319,15 +322,16 @@ void Zeta_TreeAllocator_Check(void* ta_, bool_t print_state,
     Zeta_DebugTreeMap_Create(&vacant_head_mt);
 
     GetVacantHead_(&vacant_head_mt, GetHeadFromSN_(ta->sn_root), 0,
-                   ZETA_maxof(size_t));
+                   ZETA_GetRangeMax(size_t));
 
     for (Zeta_OrdLinkedListNode* hn_i = &beg_head->hn; hn_i != &end_head->hn;) {
         Zeta_TreeAllocator_Head* head_i = GetHeadFromHN_(hn_i);
-        ZETA_DebugAssert(ZETA_PTR_TO_UINT(head_i) % head_align == 0);
+        ZETA_DebugAssert(ZETA_GetAddrFromPtr(head_i) % head_align == 0);
 
-        void* data_i = ZETA_UINT_TO_PTR(ZETA_PTR_TO_UINT(head_i) + head_size);
+        void* data_i =
+            ZETA_GetPtrFromAddr(ZETA_GetAddrFromPtr(head_i) + head_size);
 
-        ZETA_DebugAssert(ZETA_PTR_TO_UINT(data_i) % align == 0);
+        ZETA_DebugAssert(ZETA_GetAddrFromPtr(data_i) % align == 0);
 
         Zeta_OrdLinkedListNode* nxt_hn_i = Zeta_OrdLinkedListNode_GetR(hn_i);
 
@@ -343,12 +347,12 @@ void Zeta_TreeAllocator_Check(void* ta_, bool_t print_state,
 
         if (IsVacant_(ta, head_i)) {
             bool_t b = Zeta_DebugTreeMap_Erase(&vacant_head_mt,
-                                               ZETA_PTR_TO_UINT(head_i));
+                                               ZETA_GetAddrFromPtr(head_i));
 
             ZETA_DebugAssert(b);
         } else {
             Zeta_DebugTreeMap_KeyValPair kvp = Zeta_DebugTreeMap_Insert(
-                dst_ptr_size_tm, ZETA_PTR_TO_UINT(data_i));
+                dst_ptr_size_tm, ZETA_GetAddrFromPtr(data_i));
 
             ZETA_DebugAssert(kvp.b);
 

@@ -2,7 +2,7 @@
 
 #include "define.h"
 
-ZETA_extern_c_beg;
+ZETA_ExternC_Beg;
 
 typedef struct Zeta_DiskInfo Zeta_DiskInfo;
 
@@ -15,4 +15,4 @@ struct Zeta_DiskInfo {
     size_t secs_per_track;
 };
 
-ZETA_extern_c_end;
+ZETA_ExternC_End;

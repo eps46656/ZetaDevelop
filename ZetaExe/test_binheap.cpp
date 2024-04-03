@@ -157,7 +157,8 @@ void main2() {
     ZETA_PrintVar("%u", seed);
 
     std::mt19937_64 en{ seed };
-    std::uniform_int_distribution<size_t> val_generator{ 0, ZETA_maxof(int) };
+    std::uniform_int_distribution<size_t> val_generator{ 0, ZETA_GetRangeMax(
+                                                                int) };
 
     BinHeap_Init();
     Queue_Init();

@@ -5,7 +5,7 @@
 #include "OrdLinkedListNode.h"
 #include "SeqContainer.h"
 
-ZETA_extern_c_beg;
+ZETA_ExternC_Beg;
 
 typedef struct Zeta_SegList_Node Zeta_SegList_Node;
 
@@ -68,4 +68,4 @@ void Zeta_SegList_Check(void* sl, Zeta_DebugTreeMap* dst_node_tm,
 
 void Zeta_SegList_ToVector(void* sl, Zeta_Vector* dst);
 
-ZETA_extern_c_end;
+ZETA_ExternC_End;

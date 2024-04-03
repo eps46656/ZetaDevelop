@@ -45,13 +45,13 @@ void* MyAlloc(size_t size) {
 
     ZETA_DebugAssert(ptr != NULL);
 
-    size_t m_beg = ZETA_PTR_TO_UINT(ptr);
+    size_t m_beg = ZETA_GetAddrFromPtr(ptr);
     size_t m_end = m_beg + size;
 
     ZETA_DebugAssert(m_beg % allocator.align == 0);
 
-    ZETA_DebugAssert(ZETA_PTR_TO_UINT(allocator.data_beg) <= m_beg);
-    ZETA_DebugAssert(m_end <= ZETA_PTR_TO_UINT(allocator.data_end));
+    ZETA_DebugAssert(ZETA_GetAddrFromPtr(allocator.data_beg) <= m_beg);
+    ZETA_DebugAssert(m_end <= ZETA_GetAddrFromPtr(allocator.data_end));
 
     auto iter = req_ptr_size_tm.insert({ m_beg, size }).first;
 
@@ -71,7 +71,7 @@ void* MyAlloc(size_t size) {
 
 void MyFree(void* ptr) {
     Zeta_TreeAllocator_Deallocate(&allocator, ptr);
-    size_t b = req_ptr_size_tm.erase(ZETA_PTR_TO_UINT(ptr));
+    size_t b = req_ptr_size_tm.erase(ZETA_GetAddrFromPtr(ptr));
     ZETA_DebugAssert(b);
 }
 
@@ -110,8 +110,8 @@ void main1() {
 
     std::mt19937_64 en{ seed };
     std::uniform_int_distribution<size_t> size_generator{ 16, 2 * 1024 };
-    std::uniform_int_distribution<size_t> idx_generator{ 0,
-                                                         ZETA_maxof(size_t) };
+    std::uniform_int_distribution<size_t> idx_generator{ 0, ZETA_GetRangeMax(
+                                                                size_t) };
 
     allocator.mem = mem;
     allocator.align = 16;

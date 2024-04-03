@@ -3,7 +3,7 @@
 #include "Allocator.h"
 #include "DebugTreeMap.h"
 
-ZETA_extern_c_beg;
+ZETA_ExternC_Beg;
 
 /**
  * The maximum number of level.
@@ -101,4 +101,4 @@ void Zeta_MultiLevelVector_Clear(void* mlv);
 
 void Zeta_MultiLevelVector_GetAllPages(void* mlv, Zeta_DebugTreeMap* dst);
 
-ZETA_extern_c_end;
+ZETA_ExternC_End;

@@ -55,12 +55,12 @@ typedef s32_t unichar_t;
     fflush(stdout);                     \
     ZETA_StaticAssert(TRUE)
 
-#define ZETA_INTERRUPT                                      \
-    {                                                       \
-        printf(__FILE__ ":%d    interrupt...\n", __LINE__); \
-        char tmp;                                           \
-        scanf("%c", &tmp);                                  \
-    }                                                       \
+#define ZETA_Pause                                      \
+    {                                                   \
+        printf(__FILE__ ":%d    pause...\n", __LINE__); \
+        char tmp;                                       \
+        scanf("%c", &tmp);                              \
+    }                                                   \
     ZETA_StaticAssert(TRUE)
 
 #define ZETA_Unused(x)          \
@@ -76,18 +76,18 @@ typedef s32_t unichar_t;
     ZETA_StaticAssert(TRUE)
 
 #if defined(__cplusplus)
-#define ZETA_extern_c_beg \
-    extern "C" {          \
+#define ZETA_ExternC_Beg \
+    extern "C" {         \
     ZETA_StaticAssert(TRUE)
-#define ZETA_extern_c_end \
-    }                     \
+#define ZETA_ExternC_End \
+    }                    \
     ZETA_StaticAssert(TRUE)
 #else
-#define ZETA_extern_c_beg ZETA_StaticAssert(TRUE)
-#define ZETA_extern_c_end ZETA_StaticAssert(TRUE)
+#define ZETA_ExternC_Beg ZETA_StaticAssert(TRUE)
+#define ZETA_ExternC_End ZETA_StaticAssert(TRUE)
 #endif
 
-#define ZETA_minof(type)                     \
+#define ZETA_GetRangeMin(type)               \
     _Generic((type)0,                        \
         char: CHAR_MIN,                      \
         short: SHRT_MIN,                     \
@@ -111,7 +111,7 @@ typedef s32_t unichar_t;
         u128_t: ((u128_t)0),                 \
         s128_t: ((s128_t)(-((s128_t)1 << 127))))
 
-#define ZETA_maxof(type)                        \
+#define ZETA_GetRangeMax(type)                  \
     _Generic((type)0,                           \
         char: CHAR_MAX,                         \
         short: SHRT_MAX,                        \
@@ -135,13 +135,13 @@ typedef s32_t unichar_t;
         u128_t: ((u128_t)(~(u128_t)0)),         \
         s128_t: ((s128_t)(((s128_t)1 << 127) - 1)))
 
-#define ZETA_IsSigned(type) (ZETA_minof(type) < 0)
+#define ZETA_IsSigned(type) (ZETA_GetRangeMin(type) != 0)
 
-#define ZETA_PTR_TO_UINT(x) ((uintptr_t)(void*)(x))
-#define ZETA_UINT_TO_PTR(x) ((void*)(uintptr_t)(x))
+#define ZETA_GetAddrFromPtr(x) ((uintptr_t)(void*)(x))
+#define ZETA_GetPtrFromAddr(x) ((void*)(uintptr_t)(x))
 
 #define ZETA_GetStructFromMember(type, mem, ptr) \
-    ((type*)ZETA_UINT_TO_PTR(ZETA_PTR_TO_UINT(ptr) - offsetof(type, mem)))
+    ((type*)ZETA_GetPtrFromAddr(ZETA_GetAddrFromPtr(ptr) - offsetof(type, mem)))
 
 #define ZETA_Swap(x, y)      \
     {                        \
@@ -151,7 +151,7 @@ typedef s32_t unichar_t;
     }                        \
     ZETA_StaticAssert(TRUE)
 
-#define ZETA_max_mod_under_size_t (ZETA_maxof(size_t) / 2 + 1)
+#define ZETA_GetMaxMod(type) (ZETA_GetRangeMax(type) / 2 + 1)
 
-ZETA_StaticAssert(ZETA_minof(byte_t) <= 0);
-ZETA_StaticAssert(255 <= ZETA_maxof(byte_t));
+ZETA_StaticAssert(ZETA_GetRangeMin(byte_t) <= 0);
+ZETA_StaticAssert(255 <= ZETA_GetRangeMax(byte_t));

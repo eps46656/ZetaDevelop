@@ -2,7 +2,7 @@
 
 #include "BinTree.h"
 
-ZETA_extern_c_beg;
+ZETA_ExternC_Beg;
 
 typedef struct Zeta_OrdRBTreeNode Zeta_OrdRBTreeNode;
 
@@ -28,4 +28,4 @@ void Zeta_OrdRBTreeNode_SetColor(void* context, void* n, int p_color);
 void Zeta_OrdRBTreeNode_DeployBinTreeNodeOperator(
     void* context, Zeta_BinTreeNodeOperator* btn_opr);
 
-ZETA_extern_c_end;
+ZETA_ExternC_End;

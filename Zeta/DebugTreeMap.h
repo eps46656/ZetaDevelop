@@ -2,7 +2,7 @@
 
 #include "define.h"
 
-ZETA_extern_c_beg;
+ZETA_ExternC_Beg;
 
 typedef struct Zeta_DebugTreeMap Zeta_DebugTreeMap;
 
@@ -42,4 +42,4 @@ void Zeta_DebugTreeMap_EraseAll(void* tm);
 
 void Zeta_DebugTreeMap_Print(void* tm);
 
-ZETA_extern_c_end;
+ZETA_ExternC_Beg;

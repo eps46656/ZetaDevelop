@@ -31,7 +31,7 @@ void Check() {
 
     for (auto iter{ ptrs.begin() }, end{ ptrs.end() }; iter != end; ++iter) {
         bool_t b = Zeta_DebugTreeMap_Erase(&released_ptr_size_tm,
-                                           ZETA_PTR_TO_UINT(*iter));
+                                           ZETA_GetAddrFromPtr(*iter));
 
         ZETA_DebugAssert(b);
     }
@@ -46,8 +46,8 @@ void main1() {
     ZETA_PrintVar("%d", seed);
 
     std::mt19937_64 en{ seed };
-    std::uniform_int_distribution<size_t> idx_generator{ 0,
-                                                         ZETA_maxof(size_t) };
+    std::uniform_int_distribution<size_t> idx_generator{ 0, ZETA_GetRangeMax(
+                                                                size_t) };
 
     StdAllocator_ToAllocator(&std_allocator_, &std_allocator);
 

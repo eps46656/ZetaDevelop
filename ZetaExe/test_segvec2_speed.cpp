@@ -59,13 +59,13 @@ bool_t SV_UpperBound_(void* val, void* ele) {
 val_t SV_LowerBound(val_t val) {
     val_t* ele =
         (val_t*)Zeta_SegVector_FindFirst(&sv, NULL, &val, SV_LowerBound_);
-    return ele == NULL ? ZETA_maxof(val_t) : *ele;
+    return ele == NULL ? ZETA_GetRangeMax(val_t) : *ele;
 }
 
 val_t SV_UpperBound(val_t val) {
     val_t* ele =
         (val_t*)Zeta_SegVector_FindFirst(&sv, NULL, &val, SV_UpperBound_);
-    return ele == NULL ? ZETA_maxof(val_t) : *ele;
+    return ele == NULL ? ZETA_GetRangeMax(val_t) : *ele;
 }
 
 void SV_Insert(val_t val) {
@@ -87,12 +87,12 @@ void SV_Erase(val_t val) {
 
 val_t MS_LowerBound(val_t val) {
     auto iter = ms.lower_bound(val);
-    return iter == ms.end() ? ZETA_maxof(val_t) : *iter;
+    return iter == ms.end() ? ZETA_GetRangeMax(val_t) : *iter;
 }
 
 val_t MS_UpperBound(val_t val) {
     auto iter = ms.upper_bound(val);
-    return iter == ms.end() ? ZETA_maxof(val_t) : *iter;
+    return iter == ms.end() ? ZETA_GetRangeMax(val_t) : *iter;
 }
 
 void MS_Insert(val_t val) { ms.insert(val); }
@@ -109,10 +109,10 @@ void main1() {
     ZETA_PrintVar("%d", seed);
 
     std::mt19937_64 en{ seed };
-    std::uniform_int_distribution<size_t> size_generator{ 0,
-                                                          ZETA_maxof(size_t) };
-    std::uniform_int_distribution<size_t> val_generator{ 0,
-                                                         ZETA_maxof(size_t) };
+    std::uniform_int_distribution<size_t> size_generator{ 0, ZETA_GetRangeMax(
+                                                                 size_t) };
+    std::uniform_int_distribution<size_t> val_generator{ 0, ZETA_GetRangeMax(
+                                                                size_t) };
 
     StdAllocator_ToAllocator(&node_allocator_, &node_allocator);
     StdAllocator_ToAllocator(&seg_allocator_, &seg_allocator);

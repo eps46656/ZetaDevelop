@@ -2,7 +2,7 @@
 
 #include "define.h"
 
-ZETA_extern_c_beg;
+ZETA_ExternC_Beg;
 
 typedef struct Zeta_CRCHasher Zeta_CRCHasher;
 
@@ -19,4 +19,4 @@ unsigned _BitInt(64) Zeta_CRCHasher_GetResult(void* hasher);
 void Zeta_CRCHasher_Rotate(void* hasher, byte_t const* data,
                            byte_t const* data_end, int reverse);
 
-ZETA_extern_c_end;
+ZETA_ExternC_End;

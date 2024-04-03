@@ -229,7 +229,8 @@ void* Zeta_RBTree_Extract(Zeta_BinTreeNodeOperator const* btn_opr, void* n) {
 
     if (nl != NULL && nr != NULL) {
         int ran =
-            Zeta_SimpleHash(ZETA_PTR_TO_UINT(nl) ^ ZETA_PTR_TO_UINT(nr)) % 2;
+            Zeta_SimpleHash(ZETA_GetAddrFromPtr(nl) ^ ZETA_GetAddrFromPtr(nr)) %
+            2;
 
         void* m = ran ? Zeta_GetMostLink(context, GetL, nr)
                       : Zeta_GetMostLink(context, GetR, nl);

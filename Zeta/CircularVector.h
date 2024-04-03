@@ -4,9 +4,9 @@
 #include "DebugTreeMap.h"
 #include "SeqContainer.h"
 
-ZETA_extern_c_beg;
+ZETA_ExternC_Beg;
 
-#define ZETA_CircularVector_max_capacity (ZETA_maxof(size_t) / 2 + 1)
+#define ZETA_CircularVector_max_capacity (ZETA_GetRangeMax(size_t) / 2 + 1)
 
 typedef struct Zeta_CircularVector Zeta_CircularVector;
 
@@ -95,4 +95,4 @@ void Zeta_CircularVector_Cursor_AdvanceR(void* cv, void* cursor, size_t step);
 void Zeta_CircularVector_Cursor_DeployCursorOperator(
     void* cv, Zeta_CursorOperator* cursor_opr);
 
-ZETA_extern_c_end;
+ZETA_ExternC_End;

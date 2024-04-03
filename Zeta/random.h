@@ -2,9 +2,9 @@
 
 #include "define.h"
 
-ZETA_extern_c_beg;
+ZETA_ExternC_Beg;
 
-    ZETA_StaticAssert(32 <= CHAR_BIT * sizeof(size_t));
+ZETA_StaticAssert(32 <= CHAR_BIT * sizeof(size_t));
 
 typedef struct Zeta_LCGRandomGenerator Zeta_LCGRandomGenerator;
 
@@ -21,4 +21,4 @@ void Zeta_LCGRandomGenerator_Rotate(void* lcgrg);
 
 size_t Zeta_LCGRandomGenerator_Fetch(void* lcgrg);
 
-ZETA_extern_c_end;
+ZETA_ExternC_End;

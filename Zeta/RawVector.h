@@ -2,7 +2,7 @@
 
 #include "Vector.h"
 
-ZETA_extern_c_beg;
+ZETA_ExternC_Beg;
 
 typedef struct Zeta_RawVector Zeta_RawVector;
 
@@ -41,4 +41,4 @@ void* Zeta_RawVector_Access(void* rv, size_t idx);
 
 void Zeta_RawVector_ToVector(void* rv, Zeta_Vector* vec);
 
-ZETA_extern_c_end;
+ZETA_ExternC_End;

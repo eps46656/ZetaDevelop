@@ -70,7 +70,7 @@ size_t Zeta_MultiLevelVector_GetCapacity(void* mlv_) {
     for (int level_i = 0; level_i < level; ++level_i) {
         size_t branch_num = mlv->branch_nums[level_i];
 
-        ZETA_DebugAssert(ret <= ZETA_maxof(size_t) / branch_num);
+        ZETA_DebugAssert(ret <= ZETA_GetRangeMax(size_t) / branch_num);
 
         ret *= branch_num;
     }

@@ -122,17 +122,17 @@ size_t Zeta_SimpleHash(size_t x) {
 }
 
 u128_t Zeta_GetGCD(u128_t x, u128_t y) {
+    if (x == 0 && y == 0) { return 1; }
+
     for (;;) {
-        if (x == 0) { return x + y; }
+        if (x == 0) { return y; }
         y %= x;
-        if (y == 0) { return x + y; }
+        if (y == 0) { return x; }
         x %= y;
     }
 }
 
-u128_t Zeta_GetLCM(u128_t x, u128_t y) {
-    return x == 0 || y == 0 ? x + y : x / Zeta_GetGCD(x, y) * y;
-}
+u128_t Zeta_GetLCM(u128_t x, u128_t y) { return x / Zeta_GetGCD(x, y) * y; }
 
 u128_t Zeta_GetPower(u128_t base, u128_t exp) {
     u128_t ret = 1;
@@ -187,7 +187,7 @@ u128_t Zeta_GetMulMod(u128_t x, u128_t y, u128_t mod) {
     x %= mod;
     y %= mod;
 
-    if (x == 0 || y <= ZETA_maxof(u128_t) / x) { return (x * y) % mod; }
+    if (x == 0 || y <= ZETA_GetRangeMax(u128_t) / x) { return (x * y) % mod; }
 
     if (x < y) { ZETA_Swap(x, y); }
 

@@ -4,28 +4,28 @@ static void* GetL_(void* n_) {
     Zeta_RelLinkedListNode* n = n_;
     ZETA_DebugAssert(n != NULL);
 
-    return ZETA_UINT_TO_PTR(ZETA_PTR_TO_UINT(n) + n->l);
+    return ZETA_GetPtrFromAddr(ZETA_GetAddrFromPtr(n) + n->l);
 }
 
 static void* GetR_(void* n_) {
     Zeta_RelLinkedListNode* n = n_;
     ZETA_DebugAssert(n != NULL);
 
-    return ZETA_UINT_TO_PTR(ZETA_PTR_TO_UINT(n) + n->r);
+    return ZETA_GetPtrFromAddr(ZETA_GetAddrFromPtr(n) + n->r);
 }
 
 static void SetL_(void* n_, void* l) {
     Zeta_RelLinkedListNode* n = n_;
     ZETA_DebugAssert(n != NULL);
 
-    n->l = ZETA_PTR_TO_UINT(l) - ZETA_PTR_TO_UINT(n);
+    n->l = ZETA_GetAddrFromPtr(l) - ZETA_GetAddrFromPtr(n);
 }
 
 static void SetR_(void* n_, void* r) {
     Zeta_RelLinkedListNode* n = n_;
     ZETA_DebugAssert(n != NULL);
 
-    n->r = ZETA_PTR_TO_UINT(r) - ZETA_PTR_TO_UINT(n);
+    n->r = ZETA_GetAddrFromPtr(r) - ZETA_GetAddrFromPtr(n);
 }
 
 void Zeta_RelLinkedListNode_Init(void* n) {

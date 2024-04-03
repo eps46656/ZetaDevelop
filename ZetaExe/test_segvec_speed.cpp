@@ -92,9 +92,10 @@ void main1() {
     ZETA_PrintVar("%d", seed);
 
     std::mt19937_64 en{ seed };
-    std::uniform_int_distribution<size_t> size_generator{ 0,
-                                                          ZETA_maxof(size_t) };
-    std::uniform_int_distribution<size_t> val_generator{ 0, ZETA_maxof(val_t) };
+    std::uniform_int_distribution<size_t> size_generator{ 0, ZETA_GetRangeMax(
+                                                                 size_t) };
+    std::uniform_int_distribution<size_t> val_generator{ 0, ZETA_GetRangeMax(
+                                                                val_t) };
 
     StdAllocator_ToAllocator(&node_allocator_, &node_allocator);
     StdAllocator_ToAllocator(&seg_allocator_, &seg_allocator);

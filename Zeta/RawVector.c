@@ -65,7 +65,8 @@ void* Zeta_RawVector_Access(void* rv_, size_t idx) {
 
     ZETA_DebugAssert(idx < rv->size);
 
-    return ZETA_UINT_TO_PTR(ZETA_PTR_TO_UINT(rv->data) + rv->stride * idx);
+    return ZETA_GetPtrFromAddr(ZETA_GetAddrFromPtr(rv->data) +
+                               rv->stride * idx);
 }
 
 /*

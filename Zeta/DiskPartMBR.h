@@ -2,7 +2,7 @@
 
 #include "DiskInfo.h"
 
-ZETA_extern_c_beg;
+ZETA_ExternC_Beg;
 
 #define ZETA_DiskPartMBR_size_of_bootstrap (446)
 
@@ -31,4 +31,4 @@ byte_t* Zeta_DiskPartMBR_WriteMBR(byte_t* dst, byte_t* dst_end,
                                   Zeta_DiskInfo const* disk_info,
                                   Zeta_DiskPartMBR_MBR* mbr);
 
-ZETA_extern_c_end;
+ZETA_ExternC_End;

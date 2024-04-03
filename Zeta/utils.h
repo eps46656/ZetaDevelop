@@ -2,7 +2,7 @@
 
 #include "define.h"
 
-ZETA_extern_c_beg;
+ZETA_ExternC_Beg;
 
 /**
  * @brief Copy byte array from dst to src
@@ -113,4 +113,4 @@ u128_t Zeta_FindNextConMod(u128_t beg, u128_t target, u128_t mod);
 void* Zeta_GetMostLink(void* context, void* (*GetLink)(void* context, void* n),
                        void* n);
 
-ZETA_extern_c_end;
+ZETA_ExternC_End;

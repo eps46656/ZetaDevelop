@@ -4,7 +4,7 @@
 #include "RelLinkedListNode.h"
 #include "RelRBTreeNode.h"
 
-ZETA_extern_c_beg;
+ZETA_ExternC_Beg;
 
 /*
 
@@ -164,4 +164,4 @@ void Zeta_OrdAllocator_ToAllocator(void* ord_allocator, Zeta_Allocator* dst);
 
 void Zeta_OrdAllocator_Check(void* ord_allocator, void* dst_ptr_size_tm);
 
-ZETA_extern_c_end;
+ZETA_ExternC_End;

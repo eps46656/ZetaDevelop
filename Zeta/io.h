@@ -2,7 +2,7 @@
 
 #include "Stream.h"
 
-ZETA_extern_c_beg;
+ZETA_ExternC_Beg;
 
 void Zeta_SIntToBinStr(Zeta_Stream* dst, s128_t x, bool_t sign, size_t width,
                        unichar_t padding_char);
@@ -31,4 +31,4 @@ void Zeta_UIntToHexStr(Zeta_Stream* dst, u128_t x, bool_t sign,
 void Zeta_PtrToHexStr(Zeta_Stream* dst, void const* x, bool_t uppercase,
                       size_t width, unichar_t padding_char);
 
-ZETA_extern_c_end;
+ZETA_ExternC_End;

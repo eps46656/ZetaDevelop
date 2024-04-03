@@ -164,8 +164,8 @@ void main1() {
     ZETA_PrintVar("%d", seed);
 
     std::mt19937_64 en{ seed };
-    std::uniform_int_distribution<size_t> idx_generator{ 0,
-                                                         ZETA_maxof(size_t) };
+    std::uniform_int_distribution<size_t> idx_generator{ 0, ZETA_GetRangeMax(
+                                                                size_t) };
     std::uniform_int_distribution<size_t> size_generator{ 0, 16 };
 
     Zeta_BinTree_InitOpr(&btn_opr);

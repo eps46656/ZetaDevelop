@@ -2,7 +2,7 @@
 
 #include "define.h"
 
-ZETA_extern_c_beg;
+ZETA_ExternC_Beg;
 
 typedef struct Zeta_Stream Zeta_Stream;
 
@@ -26,4 +26,4 @@ struct Zeta_Stream {
 
 void Zeta_StreamTransfer(Zeta_Stream* dst, Zeta_Stream* src);
 
-ZETA_extern_c_end;
+ZETA_ExternC_End;

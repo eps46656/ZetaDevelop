@@ -2,7 +2,7 @@
 
 #include "define.h"
 
-ZETA_extern_c_beg;
+ZETA_ExternC_Beg;
 
 typedef struct Zeta_CacheManager_Node Zeta_CacheManager_Node;
 
@@ -28,4 +28,4 @@ struct Zeta_CacheManager {
     Zeta_CacheManager_Node (*PopWithFrame)(void* context, void* frame);
 };
 
-ZETA_extern_c_end;
+ZETA_ExternC_End;

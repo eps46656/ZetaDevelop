@@ -2,7 +2,7 @@
 
 #include "define.h"
 
-ZETA_extern_c_beg;
+ZETA_ExternC_Beg;
 
 typedef struct Zeta_RelRBLinkedListNode Zeta_RelRBLinkedListNode;
 
@@ -31,4 +31,4 @@ void Zeta_RelRBLinkedListNode_InsertR(void* n, void* m);
 
 void Zeta_RelRBLinkedListNode_Extract(void* n);
 
-ZETA_extern_c_end;
+ZETA_ExternC_End;

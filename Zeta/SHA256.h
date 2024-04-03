@@ -2,7 +2,7 @@
 
 #include "define.h"
 
-ZETA_extern_c_beg;
+ZETA_ExternC_Beg;
 
 typedef struct Zeta_SHA256Hasher Zeta_SHA256Hasher;
 
@@ -78,4 +78,4 @@ void Zeta_SHA256Hasher_GetResult(void* hasher, byte_t* dst);
 void Zeta_SHA256Hasher_Rotate(void* hasher, byte_t const* data,
                               byte_t const* data_end);
 
-ZETA_extern_c_end;
+ZETA_ExternC_End;

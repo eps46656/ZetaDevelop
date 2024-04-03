@@ -3,7 +3,7 @@
 #include "MultiLevelVector.h"
 #include "RelLinkedListNode.h"
 
-ZETA_extern_c_beg;
+ZETA_ExternC_Beg;
 
 typedef struct Zeta_MultiLevelHashTableNode Zeta_MultiLevelHashTableNode;
 
@@ -39,4 +39,4 @@ void* Zeta_MultiLevelHashTable_Find(void* mlht, size_t hash_code);
 /* return the next first mlhtn with same hash code to mlhtn's one. */
 void* Zeta_MultiLevelHashTable_FindNext(void* mlhtn);
 
-ZETA_extern_c_end;
+ZETA_ExternC_End;

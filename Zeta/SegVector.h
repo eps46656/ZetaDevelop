@@ -6,7 +6,7 @@
 #include "OrdCntRBTreeNode.h"
 #include "SeqContainer.h"
 
-ZETA_extern_c_beg;
+ZETA_ExternC_Beg;
 
 typedef struct Zeta_SegVector_Node Zeta_SegVector_Node;
 
@@ -109,4 +109,4 @@ void Zeta_SegVector_Cursor_AdvanceR(void* sv, void* cursor, size_t step);
 void Zeta_SegVector_Cursor_DeployCursorOperator(
     void* sv, Zeta_CursorOperator* cursor_opr);
 
-ZETA_extern_c_end;
+ZETA_ExternC_End;

@@ -2,7 +2,7 @@
 
 #include "define.h"
 
-ZETA_extern_c_beg;
+ZETA_ExternC_Beg;
 
 typedef struct Zeta_BlockVector Zeta_BlockVector;
 
@@ -18,4 +18,4 @@ struct Zeta_BlockVector {
     void (*WriteBlock)(void* context, size_t blk_idx, byte_t const* src);
 };
 
-ZETA_extern_c_end;
+ZETA_ExternC_End;

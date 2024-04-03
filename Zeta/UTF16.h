@@ -2,7 +2,7 @@
 
 #include "define.h"
 
-ZETA_extern_c_beg;
+ZETA_ExternC_Beg;
 
 typedef struct UTF16_EncodeRet UTF16_EncodeRet;
 
@@ -62,4 +62,4 @@ UTF16_DecodeRet Zeta_UTF16_Decode(unichar_t* dst, unichar_t* dst_end,
                                   byte_t const* data, byte_t const* data_end,
                                   bool_t little_endian);
 
-ZETA_extern_c_end;
+ZETA_ExternC_End;

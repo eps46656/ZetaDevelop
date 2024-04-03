@@ -45,7 +45,7 @@ size_t Zeta_UTF8_GetEncodeSize(unichar_t const* data,
 
     for (; data < data_end; ++data) {
         byte_t* tmp_p = EncodeChar_(tmp, data[0]);
-        if (tmp_p == NULL) { return ZETA_maxof(size_t); }
+        if (tmp_p == NULL) { return ZETA_GetRangeMax(size_t); }
         ret += tmp_p - tmp;
     }
 
@@ -168,7 +168,7 @@ size_t Zeta_UTF8_GetDecodeSize(byte_t const* data, byte_t const* data_end) {
 
     while (data < data_end) {
         byte_t const* nxt_data = DecodeChar_(&dst, data, data_end);
-        if (nxt_data == NULL) { return ZETA_maxof(size_t); }
+        if (nxt_data == NULL) { return ZETA_GetRangeMax(size_t); }
         data = nxt_data;
         ++ret;
     }

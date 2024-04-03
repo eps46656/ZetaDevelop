@@ -50,7 +50,8 @@ std::vector<void*> vet;
 
 std::mt19937_64 rand_en;
 
-std::uniform_int_distribution<size_t> size_generator{ 0, ZETA_maxof(size_t) };
+std::uniform_int_distribution<size_t> size_generator{ 0, ZETA_GetRangeMax(
+                                                             size_t) };
 
 std::uniform_int_distribution<int> val_generator{ -64 * 1024 * 1024,
                                                   64 * 1024 * 1024 };
@@ -98,7 +99,7 @@ void MLETSetVal(size_t idx, void* val) {
 
 size_t MLETFindPrevCri(size_t idx, bool_t included) {
     if (!included) {
-        if (idx == 0) { return ZETA_maxof(size_t); }
+        if (idx == 0) { return ZETA_GetRangeMax(size_t); }
         --idx;
     }
 
@@ -106,14 +107,14 @@ size_t MLETFindPrevCri(size_t idx, bool_t included) {
         if (MLETGetVal(idx) != NULL) { return idx; }
     }
 
-    return ZETA_maxof(size_t);
+    return ZETA_GetRangeMax(size_t);
 }
 
 size_t MLETFindNextCri(size_t idx, bool_t included) {
     size_t capacity = Zeta_MultiLevelVector_GetCapacity(&mlv);
 
     if (!included) {
-        if (idx == capacity - 1) { return ZETA_maxof(size_t); }
+        if (idx == capacity - 1) { return ZETA_GetRangeMax(size_t); }
 
         ++idx;
     }
@@ -122,7 +123,7 @@ size_t MLETFindNextCri(size_t idx, bool_t included) {
         if (MLETGetVal(idx) != NULL) { return idx; }
     }
 
-    return ZETA_maxof(size_t);
+    return ZETA_GetRangeMax(size_t);
 }
 
 size_t MLETFindPrev(size_t idx, bool_t included) {
@@ -131,7 +132,7 @@ size_t MLETFindPrev(size_t idx, bool_t included) {
 
     void** p = Zeta_MultiLevelVector_FindPrevNotNull(&mlv, idxes, included);
 
-    return p == NULL ? ZETA_maxof(size_t) : GetIdx(idxes);
+    return p == NULL ? ZETA_GetRangeMax(size_t) : GetIdx(idxes);
 }
 
 size_t MLETFindNext(size_t idx, bool_t included) {
@@ -140,7 +141,7 @@ size_t MLETFindNext(size_t idx, bool_t included) {
 
     void** p = Zeta_MultiLevelVector_FindNextNotNull(&mlv, idxes, included);
 
-    return p == NULL ? ZETA_maxof(size_t) : GetIdx(idxes);
+    return p == NULL ? ZETA_GetRangeMax(size_t) : GetIdx(idxes);
 }
 
 void MLETEraseAll() { Zeta_MultiLevelVector_EraseAll(&mlv); }

@@ -2,7 +2,7 @@
 
 #include "define.h"
 
-ZETA_extern_c_beg;
+ZETA_ExternC_Beg;
 
 typedef unsigned long long key_t;
 typedef unsigned long long val_t;
@@ -23,4 +23,4 @@ void DebugHashTable_EraseAll(void* ht);
 
 void DebugHashTable_Print(void* ht);
 
-ZETA_extern_c_end;
+ZETA_ExternC_End;

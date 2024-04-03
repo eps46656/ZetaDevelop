@@ -2,7 +2,7 @@
 
 #include "define.h"
 
-ZETA_extern_c_beg;
+ZETA_ExternC_Beg;
 
 typedef struct Zeta_RelPtr Zeta_RelPtr;
 
@@ -14,4 +14,4 @@ void* Zeta_RelPtr_Get(void* rel_ptr);
 
 void Zeta_RelPtr_Set(void* rel_ptr, void* ptr);
 
-ZETA_extern_c_end;
+ZETA_ExternC_End;

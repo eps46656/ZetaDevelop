@@ -4,7 +4,7 @@
 #include "DebugTreeMap.h"
 #include "RelLinkedListNode.h"
 
-ZETA_extern_c_beg;
+ZETA_ExternC_Beg;
 
 /*
 
@@ -14,7 +14,7 @@ Single SlabAllocator only provides single width of unit.
 
 */
 
-#define ZETA_SlabAllocator_max_num ZETA_maxof(u8_t)
+#define ZETA_SlabAllocator_max_num ZETA_GetRangeMax(u8_t)
 
 typedef struct Zeta_SlabAllocator Zeta_SlabAllocator;
 
@@ -49,4 +49,4 @@ void Zeta_SlabAllocator_ToAllocator(void* sa, Zeta_Allocator* dst);
 void Zeta_SlabAllocator_Check(void* sa, Zeta_DebugTreeMap* dst_used_ptr_size_tm,
                               Zeta_DebugTreeMap* dst_released_ptr_size_tm);
 
-ZETA_extern_c_end;
+ZETA_ExternC_End;

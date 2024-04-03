@@ -28,7 +28,7 @@ void* StdAllocator_Allocate(void* sa_, size_t size) {
     void* ptr = malloc(size);
 
 #if RECORDS
-    sa->records.insert({ ZETA_PTR_TO_UINT(ptr), size });
+    sa->records.insert({ ZETA_GetAddrFromPtr(ptr), size });
 #endif
 
     return ptr;
@@ -41,7 +41,7 @@ void StdAllocator_Deallocate(void* sa_, void* ptr) {
     if (ptr == NULL) { return; }
 
 #if RECORDS
-    bool_t b = sa->records.erase(ZETA_PTR_TO_UINT(ptr)) != 0;
+    bool_t b = sa->records.erase(ZETA_GetAddrFromPtr(ptr)) != 0;
     ZETA_DebugAssert(b);
 #endif
 

@@ -2,7 +2,7 @@
 
 #include "BinTree.h"
 
-ZETA_extern_c_beg;
+ZETA_ExternC_Beg;
 
 typedef struct Zeta_BinHeap Zeta_BinHeap;
 
@@ -28,4 +28,4 @@ void Zeta_BinHeap_UpdateRoot(void* bh);
 
 void Zeta_BinHeap_Check(void* bh);
 
-ZETA_extern_c_end;
+ZETA_ExternC_End;

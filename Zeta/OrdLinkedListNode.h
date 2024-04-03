@@ -2,7 +2,7 @@
 
 #include "define.h"
 
-ZETA_extern_c_beg;
+ZETA_ExternC_Beg;
 
 typedef struct Zeta_OrdLinkedListNode Zeta_OrdLinkedListNode;
 
@@ -23,4 +23,4 @@ void Zeta_OrdLinkedListNode_InsertR(void* n, void* m);
 
 void Zeta_OrdLinkedListNode_Extract(void* n);
 
-ZETA_extern_c_end;
+ZETA_ExternC_End;

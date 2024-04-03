@@ -5,7 +5,7 @@
 #include "OrdLinkedListNode.h"
 #include "OrdRBTreeNode.h"
 
-ZETA_extern_c_beg;
+ZETA_ExternC_Beg;
 
 /*
 
@@ -211,4 +211,4 @@ void Zeta_LRUCacheManager_WriteBlock(void* lrucm, void* u_node, size_t blk_idx,
 
 void Zeta_LRUCacheManager_Flush(void* lrucm, void* u_node);
 
-ZETA_extern_c_end;
+ZETA_ExternC_End;

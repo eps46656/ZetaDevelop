@@ -5,7 +5,7 @@
 #include "MultiLevelVector.h"
 #include "Vector.h"
 
-ZETA_extern_c_beg;
+ZETA_ExternC_Beg;
 
 typedef struct Zeta_DynamicVector Zeta_DynamicVector;
 
@@ -135,4 +135,4 @@ void Zeta_DynamicVector_EraseAll(void* dv);
  */
 void Zeta_DynamicVector_ToVector(void* dv, Zeta_Vector* dst);
 
-ZETA_extern_c_end;
+ZETA_ExternC_End;

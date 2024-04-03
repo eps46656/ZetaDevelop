@@ -3,7 +3,7 @@
 #include "Allocator.h"
 #include "OrdRBTreeNode.h"
 
-ZETA_extern_c_beg;
+ZETA_ExternC_Beg;
 
 typedef struct Zeta_TreeAllocator Zeta_TreeAllocator;
 
@@ -74,4 +74,4 @@ void Zeta_TreeAllocator_Check(void* ta, bool_t print_state,
 
 void Zeta_TreeAllocator_ToAllocator(void* ta, Zeta_Allocator* dst);
 
-ZETA_extern_c_end;
+ZETA_ExternC_End;

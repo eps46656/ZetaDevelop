@@ -4,7 +4,7 @@ static Zeta_RelCntRBTreeNode* GetP_(void* n_) {
     Zeta_RelCntRBTreeNode* n = n_;
     ZETA_DebugAssert(n != NULL);
 
-    void* p = ZETA_UINT_TO_PTR((ZETA_PTR_TO_UINT(n) + n->p) / 2 * 2);
+    void* p = ZETA_GetPtrFromAddr((ZETA_GetAddrFromPtr(n) + n->p) / 2 * 2);
     return n == p ? NULL : p;
 }
 
@@ -12,7 +12,7 @@ static Zeta_RelCntRBTreeNode* GetL_(void* n_) {
     Zeta_RelCntRBTreeNode* n = n_;
     ZETA_DebugAssert(n != NULL);
 
-    void* l = ZETA_UINT_TO_PTR(ZETA_PTR_TO_UINT(n) + n->l);
+    void* l = ZETA_GetPtrFromAddr(ZETA_GetAddrFromPtr(n) + n->l);
     return n == l ? NULL : l;
 }
 
@@ -20,13 +20,13 @@ static Zeta_RelCntRBTreeNode* GetR_(void* n_) {
     Zeta_RelCntRBTreeNode* n = n_;
     ZETA_DebugAssert(n != NULL);
 
-    void* r = ZETA_UINT_TO_PTR(ZETA_PTR_TO_UINT(n) + n->r);
+    void* r = ZETA_GetPtrFromAddr(ZETA_GetAddrFromPtr(n) + n->r);
     return n == r ? NULL : r;
 }
 
 static int GetColor_(void* n_) {
     Zeta_RelCntRBTreeNode* n = n_;
-    return n == NULL ? 0 : (ZETA_PTR_TO_UINT(n) + n->p) % 2;
+    return n == NULL ? 0 : (ZETA_GetAddrFromPtr(n) + n->p) % 2;
 }
 
 static void SetPC_(void* n_, void* p, int c) {
@@ -35,22 +35,24 @@ static void SetPC_(void* n_, void* p, int c) {
 
     ZETA_DebugAssert(c == 0 || c == 1);
 
-    n->p = ZETA_PTR_TO_UINT(p == NULL ? (void*)n : p) + (uintptr_t)c -
-           ZETA_PTR_TO_UINT(n);
+    n->p = ZETA_GetAddrFromPtr(p == NULL ? (void*)n : p) + (uintptr_t)c -
+           ZETA_GetAddrFromPtr(n);
 }
 
 static void SetL_(void* n_, void* l) {
     Zeta_RelCntRBTreeNode* n = n_;
     ZETA_DebugAssert(n != NULL);
 
-    n->l = ZETA_PTR_TO_UINT(l == NULL ? (void*)n : l) - ZETA_PTR_TO_UINT(n);
+    n->l =
+        ZETA_GetAddrFromPtr(l == NULL ? (void*)n : l) - ZETA_GetAddrFromPtr(n);
 }
 
 static void SetR_(void* n_, void* r) {
     Zeta_RelCntRBTreeNode* n = n_;
     ZETA_DebugAssert(n != NULL);
 
-    n->r = ZETA_PTR_TO_UINT(r == NULL ? (void*)n : r) - ZETA_PTR_TO_UINT(n);
+    n->r =
+        ZETA_GetAddrFromPtr(r == NULL ? (void*)n : r) - ZETA_GetAddrFromPtr(n);
 }
 
 void Zeta_RelCntRBTreeNode_Init(void* context, void* n_) {

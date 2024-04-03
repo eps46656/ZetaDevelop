@@ -2,7 +2,7 @@
 
 #include "define.h"
 
-ZETA_extern_c_beg;
+ZETA_ExternC_Beg;
 
 #define ZETA_GPT_max_num_of_partition 128
 
@@ -59,4 +59,4 @@ byte_t const* Zeta_DiskPartGPT_ReadPartEntry(Zeta_DiskPartGPT_PartEntry* dst,
 byte_t* Zeta_DiskPartGPT_WritePartEntry(byte_t* dst, byte_t* dst_end,
                                         Zeta_DiskPartGPT_PartEntry* part_entry);
 
-ZETA_extern_c_end;
+ZETA_ExternC_End;

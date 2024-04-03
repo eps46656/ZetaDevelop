@@ -3,7 +3,7 @@
 #include "MultiLevelVector.h"
 #include "OrdLinkedListNode.h"
 
-ZETA_extern_c_beg;
+ZETA_ExternC_Beg;
 
 typedef struct Zeta_LRUCacheManager Zeta_LRUCacheManager;
 
@@ -30,4 +30,4 @@ void* Zeta_LRUCacheManager_PopWithFrame(void* lrucm, void* frame);
 
 void Zeta_LRUCacheManager_PrintState(void* lrucm);
 
-ZETA_extern_c_end;
+ZETA_ExternC_End;

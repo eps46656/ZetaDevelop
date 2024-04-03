@@ -2,7 +2,7 @@
 
 #include "define.h"
 
-ZETA_extern_c_beg;
+ZETA_ExternC_Beg;
 
 typedef struct Zeta_BinTreeNodeOperator Zeta_BinTreeNodeOperator;
 
@@ -69,4 +69,4 @@ void Zeta_BinTree_AdvanceR(void** dst_n, size_t* dst_tail_idx,
 void Zeta_BinTree_GetAccSize(size_t* dst_l_acc_size, size_t* dst_r_acc_size,
                              Zeta_BinTreeNodeOperator const* btn_opr, void* n);
 
-ZETA_extern_c_end;
+ZETA_ExternC_End;

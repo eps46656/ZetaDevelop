@@ -2,7 +2,7 @@
 
 #include "Vector.h"
 
-ZETA_extern_c_beg;
+ZETA_ExternC_Beg;
 
 typedef struct Zeta_DebugDeque Zeta_DebugDeque;
 
@@ -39,4 +39,4 @@ void Zeta_DebugDeque_Erase(void* dd, size_t idx);
 
 void Zeta_DebugDeque_ToVector(void* dd, Zeta_Vector* dst);
 
-ZETA_extern_c_end;
+ZETA_ExternC_End;

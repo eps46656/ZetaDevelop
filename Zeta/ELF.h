@@ -2,7 +2,7 @@
 
 #include "define.h"
 
-ZETA_extern_c_beg;
+ZETA_ExternC_Beg;
 
 #define ZETA_ELF_PT_NULL 0
 #define ZETA_ELF_PT_LOAD 1
@@ -121,4 +121,4 @@ void Zeta_ELF_ReadSectionHeader(Zeta_ELF_SectionHeader* dst,
                                 Zeta_ELF_Header* header, byte_t const* data,
                                 byte_t const* data_end);
 
-ZETA_extern_c_end;
+ZETA_ExternC_End;

@@ -4,28 +4,28 @@ static void* GetL_(void* n_) {
     Zeta_RelRBLinkedListNode* n = n_;
     ZETA_DebugAssert(n != NULL);
 
-    return ZETA_UINT_TO_PTR((ZETA_PTR_TO_UINT(n) + n->lc) / 2 * 2);
+    return ZETA_GetPtrFromAddr((ZETA_GetAddrFromPtr(n) + n->lc) / 2 * 2);
 }
 
 static void* GetR_(void* n_) {
     Zeta_RelRBLinkedListNode* n = n_;
     ZETA_DebugAssert(n != NULL);
 
-    return ZETA_UINT_TO_PTR((ZETA_PTR_TO_UINT(n) + n->rc) / 2 * 2);
+    return ZETA_GetPtrFromAddr((ZETA_GetAddrFromPtr(n) + n->rc) / 2 * 2);
 }
 
 static int GetLColor_(void* n_) {
     Zeta_RelRBLinkedListNode* n = n_;
     ZETA_DebugAssert(n != NULL);
 
-    return (ZETA_PTR_TO_UINT(n) + n->lc) % 2;
+    return (ZETA_GetAddrFromPtr(n) + n->lc) % 2;
 }
 
 static int GetRColor_(void* n_) {
     Zeta_RelRBLinkedListNode* n = n_;
     ZETA_DebugAssert(n != NULL);
 
-    return (ZETA_PTR_TO_UINT(n) + n->rc) % 2;
+    return (ZETA_GetAddrFromPtr(n) + n->rc) % 2;
 }
 
 static void SetLC_(void* n_, void* l, int l_color) {
@@ -34,7 +34,8 @@ static void SetLC_(void* n_, void* l, int l_color) {
 
     ZETA_DebugAssert(l_color == 0 || l_color == 1);
 
-    n->lc = (ZETA_PTR_TO_UINT(l) + (uintptr_t)l_color - ZETA_PTR_TO_UINT(n));
+    n->lc =
+        (ZETA_GetAddrFromPtr(l) + (uintptr_t)l_color - ZETA_GetAddrFromPtr(n));
 }
 
 static void SetRC_(void* n_, void* r, int r_color) {
@@ -43,7 +44,8 @@ static void SetRC_(void* n_, void* r, int r_color) {
 
     ZETA_DebugAssert(r_color == 0 || r_color == 1);
 
-    n->rc = (ZETA_PTR_TO_UINT(r) + (uintptr_t)r_color - ZETA_PTR_TO_UINT(n));
+    n->rc =
+        (ZETA_GetAddrFromPtr(r) + (uintptr_t)r_color - ZETA_GetAddrFromPtr(n));
 }
 
 static void SetL_(void* n_, void* l) {
