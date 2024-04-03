@@ -172,6 +172,16 @@ def AddDeps(builder):
     )
 
     builder.Add(
+        f"{ZetaDir}/BlockVector.h",
+        {
+            f"{File}",
+
+            f"{ZetaDir}/define.h",
+        },
+        None
+    )
+
+    builder.Add(
         f"{ZetaDir}/CircularVector.h",
         {
             f"{File}",
@@ -563,6 +573,41 @@ def AddDeps(builder):
     )
 
     builder.Add(
+        f"{ZetaDir}/OrdBinTreeNode.h",
+        {
+            f"{File}",
+
+            f"{ZetaDir}/BinTree.h",
+        },
+        None
+    )
+
+    builder.Add(
+        f"{ZetaDir}/OrdBinTreeNode.c",
+        {
+            f"{File}",
+
+            f"{ZetaDir}/OrdBinTreeNode.h",
+        },
+        None
+    )
+
+    builder.Add(
+        f"{ZetaDir}/OrdBinTreeNode.o",
+        {
+            f"{File}",
+            f"{ZetaDir}/OrdBinTreeNode.c",
+        },
+        lambda : os.system(" ".join([
+            cc,
+            f"--output {ZetaDir}/OrdBinTreeNode.o",
+            f"-c",
+            *cargs,
+            f"{ZetaDir}/OrdBinTreeNode.c",
+        ]))
+    )
+
+    builder.Add(
         f"{ZetaDir}/OrdLinkedListNode.h",
         {
             f"{File}",
@@ -734,8 +779,13 @@ def AddDeps(builder):
         f"{ZetaDir}/LRUCacheManager.h",
         {
             f"{File}",
-            f"{ZetaDir}/MultiLevelVector.h",
+
+            f"{ZetaDir}/Allocator.h",
+            f"{ZetaDir}/BinHeap.h",
+            f"{ZetaDir}/BlockVector.h",
+            f"{ZetaDir}/OrdBinTreeNode.h",
             f"{ZetaDir}/OrdLinkedListNode.h",
+            f"{ZetaDir}/OrdRBTreeNode.h",
         },
         None
     )
@@ -744,7 +794,11 @@ def AddDeps(builder):
         f"{ZetaDir}/LRUCacheManager.c",
         {
             f"{File}",
+
             f"{ZetaDir}/LRUCacheManager.h",
+
+            f"{ZetaDir}/RBTree.h",
+            f"{ZetaDir}/utils.h",
         },
         None
     )
