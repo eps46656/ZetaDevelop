@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Allocator.h"
+#include "OrdRBLinkedListNode.h"
 #include "OrdRBTreeNode.h"
 
 ZETA_ExternC_Beg;
@@ -24,8 +25,15 @@ struct Zeta_TreeAllocator {
      */
     size_t size;
 
+    /**
+     * The least size(byte) of allocated memory block.
+     */
+    size_t least_size;
+
     void* data_beg;
     void* data_end;
+
+    Zeta_OrdRBLinkedListNode hn_head;
 
     Zeta_OrdRBTreeNode* sn_root;
 };
@@ -72,6 +80,6 @@ void Zeta_TreeAllocator_Deallocate(void* ta, void* ptr);
 void Zeta_TreeAllocator_Check(void* ta, bool_t print_state,
                               void* dst_ptr_size_tm);
 
-void Zeta_TreeAllocator_ToAllocator(void* ta, Zeta_Allocator* dst);
+void Zeta_TreeAllocator_DeployAllocator(void* ta, Zeta_Allocator* dst);
 
 ZETA_ExternC_End;

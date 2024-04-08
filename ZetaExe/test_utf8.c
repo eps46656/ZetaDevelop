@@ -26,13 +26,13 @@ int main() {
     size_t beg = 2147483648;
     size_t end = beg + size;
 
-    ZETA_PrintVar("%llu", 0x7FFFFFFF);
+    ZETA_PrintVar(0x7FFFFFFF);
 
     printf("%llu\n", 0x7FFFFFFF);
 
     if (0x7FFFFFFFull + 1 < end) { end = 0x7FFFFFFFull + 1; }
 
-    ZETA_PrintVar("%llu", (ull)end);
+    ZETA_PrintVar((ull)end);
 
     unichar_t* data_uni = malloc(sizeof(u32_t) * size);
 
@@ -53,7 +53,7 @@ int main() {
     ZETA_DebugAssert(en_ret.nxt_dst != data_utf8_end);
     ZETA_DebugAssert(en_ret.nxt_src == data_uni + size);
 
-    ZETA_PrintVar("%lld", en_ret.nxt_dst - data_utf8_beg);
+    ZETA_PrintVar(en_ret.nxt_dst - data_utf8_beg);
 
     byte_t* data_utf8_mid = en_ret.nxt_dst;
 

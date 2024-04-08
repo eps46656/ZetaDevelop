@@ -1,24 +1,32 @@
 #include "../Zeta/LRUCacheManager.h"
 #include "FileBlockVector.h"
+#include "StdAllocator.h"
 
 FileBlockVector file_blk_vec;
 Zeta_BlockVector blk_vec;
 
-Zeta_LRUCacheManager lrucm;
+StdAllocator u_node_allocator_;
+Zeta_Allocator u_node_allocator;
 
-// Zeta_Std
+StdAllocator c_node_allocator_;
+Zeta_Allocator c_node_allocator;
+
+StdAllocator x_node_allocator_;
+Zeta_Allocator x_node_allocator;
+
+StdAllocator frame_allocator_;
+Zeta_Allocator frame_allocator;
+
+Zeta_LRUCacheManager lrucm;
 
 #define BLOCK_SIZE (512)
 
 void InitFileBlockVector() {
-    file_blk_vec.Open("ajdiwaj", BLOCK_SIZE);
+    file_blk_vec.Open("./fbv_1.fbv", BLOCK_SIZE);
 
-    blk_vec.context = &file_blk_vec;
+    Zeta_BlockVector_Init(&blk_vec);
 
-    blk_vec.GetBlockSize = FileBlockVector_GetBlockSize;
-    blk_vec.GetBlockNum = FileBlockVector_GetBlockNum;
-    blk_vec.ReadBlock = FileBlockVector_ReadBlock;
-    blk_vec.WriteBlock = FileBlockVector_WriteBlock;
+    FileBlockVector_DeployBlockVector(&file_blk_vec, &blk_vec);
 }
 
 void InitLRUCM() {

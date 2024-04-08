@@ -56,8 +56,8 @@ void InitCV() {
 }
 
 void InitSV() {
-    StdAllocator_ToAllocator(&node_allocator_, &node_allocator);
-    StdAllocator_ToAllocator(&seg_allocator_, &seg_allocator);
+    StdAllocator_DeployAllocator(&node_allocator_, &node_allocator);
+    StdAllocator_DeployAllocator(&seg_allocator_, &seg_allocator);
 
     sv.width = sizeof(val_t);
     sv.seg_capacity = 32;
@@ -282,7 +282,7 @@ void main1() {
     unsigned int seed = time(NULL);
     // unsigned int seed = 1711789696;
 
-    ZETA_PrintVar("%d", seed);
+    ZETA_PrintVar(seed);
 
     std::mt19937_64 en{ seed };
     std::uniform_int_distribution<size_t> size_generator{ 0, ZETA_GetRangeMax(

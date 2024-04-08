@@ -160,7 +160,8 @@ void* Zeta_OrdAllocator_Allocate(void* ord_allocator, size_t size);
  */
 void Zeta_OrdAllocator_Deallocate(void* ord_allocator, void* ptr);
 
-void Zeta_OrdAllocator_ToAllocator(void* ord_allocator, Zeta_Allocator* dst);
+void Zeta_OrdAllocator_DeployAllocator(void* ord_allocator,
+                                       Zeta_Allocator* dst);
 
 void Zeta_OrdAllocator_Check(void* ord_allocator, void* dst_ptr_size_tm);
 

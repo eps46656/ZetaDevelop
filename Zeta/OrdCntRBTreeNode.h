@@ -7,9 +7,9 @@ ZETA_ExternC_Beg;
 typedef struct Zeta_OrdCntRBTreeNode Zeta_OrdCntRBTreeNode;
 
 struct Zeta_OrdCntRBTreeNode {
-    uintptr_t p;
-    uintptr_t l;
-    uintptr_t r;
+    void* p;
+    Zeta_OrdCntRBTreeNode* l;
+    Zeta_OrdCntRBTreeNode* r;
     size_t acc_size;
 } __attribute__((aligned(2)));
 
@@ -24,7 +24,7 @@ void Zeta_OrdCntRBTreeNode_SetL(void* context, void* n, void* m);
 void Zeta_OrdCntRBTreeNode_SetR(void* context, void* n, void* m);
 
 int Zeta_OrdCntRBTreeNode_GetColor(void* context, void* n);
-void Zeta_OrdCntRBTreeNode_SetColor(void* context, void* n, int p_color);
+void Zeta_OrdCntRBTreeNode_SetColor(void* context, void* n, int color);
 
 size_t Zeta_OrdCntRBTreeNode_GetAccSize(void* context, void* n);
 void Zeta_OrdCntRBTreeNode_SetAccSize(void* context, void* n, size_t acc_size);

@@ -191,7 +191,7 @@ int main() {
 
     Zeta_DynamicVector_Init(&dv);
 
-    ZETA_PrintVar("%d", dv.mlv.level);
+    ZETA_PrintVar(dv.mlv.level);
 
     // for()
 
@@ -213,8 +213,8 @@ int main() {
         Check();
     }
 
-    ZETA_PrintVar("%llu", mlv_allocator.ptr_size.size());
-    ZETA_PrintVar("%llu", cluster_allocator.ptr_size.size());
+    ZETA_PrintVar(mlv_allocator.ptr_size.size());
+    ZETA_PrintVar(cluster_allocator.ptr_size.size());
 
     std::cout << "ok\n";
 

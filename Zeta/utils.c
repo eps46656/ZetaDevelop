@@ -181,6 +181,27 @@ if b != 0
 
 */
 
+/*
+u128_t Zeta_GetMulMod(u128_t x, u128_t y, u128_t mod) {
+    ZETA_DebugAssert(0 < mod);
+
+    x %= mod;
+    y %= mod;
+
+    if (x == 0 || y <= ZETA_GetRangeMax(u128_t) / x) { return (x * y) % mod; }
+
+    if (x < y) { ZETA_Swap(x, y); }
+
+    u128_t ret = 0;
+
+    for (; 0 < y; y /= 2) {
+        if (y % 2 == 1) { ret = (ret + x) % mod; }
+        x = (x + x) % mod;
+    }
+
+    return ret;
+} */
+
 u128_t Zeta_GetMulMod(u128_t x, u128_t y, u128_t mod) {
     ZETA_DebugAssert(0 < mod);
 

@@ -1,110 +1,90 @@
 #include "OrdRBTreeNode.h"
 
-static Zeta_OrdRBTreeNode* GetP_(void* n_) {
-    Zeta_OrdRBTreeNode* n = n_;
-    ZETA_DebugAssert(n != NULL);
-
-    void* p = ZETA_GetPtrFromAddr(n->p / 2 * 2);
-    return n == p ? NULL : p;
-}
-
-static Zeta_OrdRBTreeNode* GetL_(void* n_) {
-    Zeta_OrdRBTreeNode* n = n_;
-    ZETA_DebugAssert(n != NULL);
-
-    void* l = ZETA_GetPtrFromAddr(n->l);
-    return n == l ? NULL : l;
-}
-
-static Zeta_OrdRBTreeNode* GetR_(void* n_) {
-    Zeta_OrdRBTreeNode* n = n_;
-    ZETA_DebugAssert(n != NULL);
-
-    void* r = ZETA_GetPtrFromAddr(n->r);
-    return n == r ? NULL : r;
-}
-
-static int GetColor_(void* n_) {
-    Zeta_OrdRBTreeNode* n = n_;
-    return n == NULL ? 0 : n->p % 2;
-}
-
-static void SetPC_(void* n_, void* p, int c) {
-    Zeta_OrdRBTreeNode* n = n_;
-    ZETA_DebugAssert(n != NULL);
-
-    ZETA_DebugAssert(c == 0 || c == 1);
-
-    n->p = ZETA_GetAddrFromPtr(p == NULL ? (void*)n : p) + (uintptr_t)c;
-}
-
-static void SetL_(void* n_, void* l) {
-    Zeta_OrdRBTreeNode* n = n_;
-    ZETA_DebugAssert(n != NULL);
-
-    n->l = ZETA_GetAddrFromPtr(l == NULL ? (void*)n : l);
-}
-
-static void SetR_(void* n_, void* r) {
-    Zeta_OrdRBTreeNode* n = n_;
-    ZETA_DebugAssert(n != NULL);
-
-    n->r = ZETA_GetAddrFromPtr(r == NULL ? (void*)n : r);
-}
-
 void Zeta_OrdRBTreeNode_Init(void* context, void* n_) {
     ZETA_Unused(context);
 
     Zeta_OrdRBTreeNode* n = n_;
     ZETA_DebugAssert(n != NULL);
 
-    SetPC_(n, NULL, 0);
-    SetL_(n, NULL);
-    SetR_(n, NULL);
+    n->p = n;
+    n->l = NULL;
+    n->r = NULL;
 }
 
 void* Zeta_OrdRBTreeNode_GetP(void* context, void* n_) {
-    ZETA_Unused(context);
-    return GetP_(n_);
-}
-
-void* Zeta_OrdRBTreeNode_GetL(void* context, void* n_) {
-    ZETA_Unused(context);
-    return GetL_(n_);
-}
-
-void* Zeta_OrdRBTreeNode_GetR(void* context, void* n_) {
-    ZETA_Unused(context);
-    return GetR_(n_);
-}
-
-void Zeta_OrdRBTreeNode_SetP(void* context, void* n, void* m) {
-    ZETA_Unused(context);
-    SetPC_(n, m, GetColor_(n));
-}
-
-void Zeta_OrdRBTreeNode_SetL(void* context, void* n, void* m) {
-    ZETA_Unused(context);
-    SetL_(n, m);
-}
-
-void Zeta_OrdRBTreeNode_SetR(void* context, void* n, void* m) {
-    ZETA_Unused(context);
-    SetR_(n, m);
-}
-
-int Zeta_OrdRBTreeNode_GetColor(void* context, void* n_) {
-    ZETA_Unused(context);
-    return GetColor_(n_);
-}
-
-void Zeta_OrdRBTreeNode_SetColor(void* context, void* n_, int p_color) {
     ZETA_Unused(context);
 
     Zeta_OrdRBTreeNode* n = n_;
     ZETA_DebugAssert(n != NULL);
 
-    SetPC_(n, GetP_(n), p_color);
+    void* p = ZETA_GetPtrFromAddr(ZETA_GetAddrFromPtr(n->p) / 2 * 2);
+
+    return n == p ? NULL : p;
+}
+
+void* Zeta_OrdRBTreeNode_GetL(void* context, void* n_) {
+    ZETA_Unused(context);
+
+    Zeta_OrdRBTreeNode* n = n_;
+    ZETA_DebugAssert(n != NULL);
+
+    return n->l;
+}
+
+void* Zeta_OrdRBTreeNode_GetR(void* context, void* n_) {
+    ZETA_Unused(context);
+
+    Zeta_OrdRBTreeNode* n = n_;
+    ZETA_DebugAssert(n != NULL);
+
+    return n->r;
+}
+
+void Zeta_OrdRBTreeNode_SetP(void* context, void* n_, void* m) {
+    ZETA_Unused(context);
+
+    Zeta_OrdRBTreeNode* n = n_;
+    ZETA_DebugAssert(n != NULL);
+
+    n->p = ZETA_GetPtrFromAddr(
+        ZETA_GetAddrFromPtr(m == NULL ? (void*)n : (void*)m) +
+        ZETA_GetAddrFromPtr(n->p) % 2);
+}
+
+void Zeta_OrdRBTreeNode_SetL(void* context, void* n_, void* m) {
+    ZETA_Unused(context);
+
+    Zeta_OrdRBTreeNode* n = n_;
+    ZETA_DebugAssert(n != NULL);
+
+    n->l = m;
+}
+
+void Zeta_OrdRBTreeNode_SetR(void* context, void* n_, void* m) {
+    ZETA_Unused(context);
+
+    Zeta_OrdRBTreeNode* n = n_;
+    ZETA_DebugAssert(n != NULL);
+
+    n->r = m;
+}
+
+int Zeta_OrdRBTreeNode_GetColor(void* context, void* n_) {
+    ZETA_Unused(context);
+
+    Zeta_OrdRBTreeNode* n = n_;
+
+    return n == NULL ? 0 : ZETA_GetAddrFromPtr(n->p) % 2;
+}
+
+void Zeta_OrdRBTreeNode_SetColor(void* context, void* n_, int color) {
+    ZETA_Unused(context);
+
+    Zeta_OrdRBTreeNode* n = n_;
+    ZETA_DebugAssert(n != NULL);
+
+    n->p = ZETA_GetPtrFromAddr(ZETA_GetAddrFromPtr(n->p) / 2 * 2 +
+                               (uintptr_t)color);
 }
 
 void Zeta_OrdRBTreeNode_DeployBinTreeNodeOperator(
@@ -125,4 +105,7 @@ void Zeta_OrdRBTreeNode_DeployBinTreeNodeOperator(
 
     btn_opr->GetColor = Zeta_OrdRBTreeNode_GetColor;
     btn_opr->SetColor = Zeta_OrdRBTreeNode_SetColor;
+
+    btn_opr->GetAccSize = NULL;
+    btn_opr->SetAccSize = NULL;
 }

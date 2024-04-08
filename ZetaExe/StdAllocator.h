@@ -48,7 +48,7 @@ void StdAllocator_Deallocate(void* sa_, void* ptr) {
     free(ptr);
 }
 
-void StdAllocator_ToAllocator(void* sa_, Zeta_Allocator* dst) {
+void StdAllocator_DeployAllocator(void* sa_, Zeta_Allocator* dst) {
     StdAllocator* sa = (StdAllocator*)sa_;
     ZETA_DebugAssert(sa != NULL);
 

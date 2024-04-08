@@ -189,11 +189,11 @@ void main1() {
 
     ZETA_DebugAssert(dev_size % SEC_SIZE == 0);
 
-    ZETA_PrintVar("%zu", dev_size);
+    ZETA_PrintVar(dev_size);
 
     size_t num_of_secs = dev_size / SEC_SIZE;
 
-    ZETA_PrintVar("%zu", num_of_secs);
+    ZETA_PrintVar(num_of_secs);
 
     Zeta_DiskInfo disk_info = (Zeta_DiskInfo){
         .sec_size = SEC_SIZE,

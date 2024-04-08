@@ -42,4 +42,4 @@ void Zeta_DebugTreeMap_EraseAll(void* tm);
 
 void Zeta_DebugTreeMap_Print(void* tm);
 
-ZETA_ExternC_Beg;
+ZETA_ExternC_End;

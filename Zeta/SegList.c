@@ -45,8 +45,7 @@ void* Zeta_SegList_PeekL(void* sl_) {
     Zeta_SegList_Node* node = ZETA_GetStructFromMember(
         Zeta_SegList_Node, n, Zeta_OrdLinkedListNode_GetR(&sl->head));
 
-    return ZETA_GetPtrFromAddr(ZETA_GetAddrFromPtr(node->seg) +
-                               sl->width * sl->offset);
+    return (unsigned char*)(node->seg) + sl->width * sl->offset;
 }
 
 void* Zeta_SegList_PeekR(void* sl_) {
@@ -61,7 +60,7 @@ void* Zeta_SegList_PeekR(void* sl_) {
 
     size_t i = (sl->offset + sl->size - 1) % sl->seg_capacity;
 
-    return ZETA_GetPtrFromAddr(ZETA_GetAddrFromPtr(node->seg) + sl->width * i);
+    return (unsigned char*)(node->seg) + sl->width * i;
 }
 
 Zeta_SegList_Node* AllocateNode_(Zeta_SegList* sl) {
@@ -131,8 +130,7 @@ void* Zeta_SegList_PushL(void* sl_) {
 
     ++sl->size;
 
-    return ZETA_GetPtrFromAddr(ZETA_GetAddrFromPtr(node->seg) +
-                               sl->width * sl->offset);
+    return (unsigned char*)(node->seg) + sl->width * sl->offset;
 }
 
 void* Zeta_SegList_PushR(void* sl_) {
@@ -153,7 +151,7 @@ void* Zeta_SegList_PushR(void* sl_) {
 
     ++sl->size;
 
-    return ZETA_GetPtrFromAddr(ZETA_GetAddrFromPtr(node->seg) + sl->width * i);
+    return (unsigned char*)(node->seg) + sl->width * i;
 }
 
 void Zeta_SegList_PopL(void* sl_) {

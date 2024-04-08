@@ -193,7 +193,7 @@ int main1() {
 
     size_t capacity = Zeta_MultiLevelVector_GetCapacity(&mlv);
 
-    ZETA_PrintVar("%llu", capacity);
+    ZETA_PrintVar(capacity);
     vet.resize(capacity, NULL);
 
     for (int test_i = 0; test_i < 16; ++test_i) {
@@ -203,11 +203,11 @@ int main1() {
             SyncSetVal(idx, val);
         }
 
-        ZETA_PrintVar("%d", test_i);
+        ZETA_PrintVar(test_i);
 
         Check();
 
-        ZETA_PrintVar("%d", test_i);
+        ZETA_PrintVar(test_i);
 
         for (size_t i = 0; i < capacity; ++i) {
             ZETA_DebugAssert(MLETFindPrev(i, TRUE) == MLETFindPrevCri(i, TRUE));

@@ -18,4 +18,6 @@ struct Zeta_BlockVector {
     void (*WriteBlock)(void* context, size_t blk_idx, byte_t const* src);
 };
 
+void Zeta_BlockVector_Init(void* bv);
+
 ZETA_ExternC_End;

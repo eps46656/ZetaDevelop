@@ -43,13 +43,13 @@ void Check() {
 void main1() {
     unsigned int seed = time(NULL);
 
-    ZETA_PrintVar("%d", seed);
+    ZETA_PrintVar(seed);
 
     std::mt19937_64 en{ seed };
     std::uniform_int_distribution<size_t> idx_generator{ 0, ZETA_GetRangeMax(
                                                                 size_t) };
 
-    StdAllocator_ToAllocator(&std_allocator_, &std_allocator);
+    StdAllocator_DeployAllocator(&std_allocator_, &std_allocator);
 
     size_t width = sizeof(uintptr_t) * 3 + sizeof(size_t);
 
@@ -60,7 +60,7 @@ void main1() {
 
     Zeta_SlabAllocator_Init(&allocator_);
 
-    Zeta_SlabAllocator_ToAllocator(&allocator_, &allocator);
+    Zeta_SlabAllocator_DeployAllocator(&allocator_, &allocator);
 
     ZETA_PrintPos;
 

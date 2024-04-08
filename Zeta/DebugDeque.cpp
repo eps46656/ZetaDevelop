@@ -135,7 +135,7 @@ void Zeta_DebugDeque_Erase(void* dd_, size_t idx) {
     deque->erase(deque->begin() + idx);
 }
 
-void Zeta_DebugDeque_ToVector(void* dd_, Zeta_Vector* dst) {
+void Zeta_DebugDeque_DeploySeqContainer(void* dd, Zeta_SeqContainer* dst) {
     Zeta_DebugDeque* dd = (Zeta_DebugDeque*)dd_;
     ZETA_DebugAssert(dd != NULL);
 
@@ -145,13 +145,20 @@ void Zeta_DebugDeque_ToVector(void* dd_, Zeta_Vector* dst) {
 
     dst->GetWidth = Zeta_DebugDeque_GetWidth;
     dst->GetSize = Zeta_DebugDeque_GetSize;
+
     dst->PeekL = Zeta_DebugDeque_PeekL;
     dst->PeekR = Zeta_DebugDeque_PeekR;
+
     dst->Access = Zeta_DebugDeque_Access;
+
     dst->PushL = Zeta_DebugDeque_PushL;
     dst->PushR = Zeta_DebugDeque_PushR;
+
     dst->Insert = Zeta_DebugDeque_Insert;
+
     dst->PopL = Zeta_DebugDeque_PopL;
     dst->PopR = Zeta_DebugDeque_PopR;
+
     dst->Erase = Zeta_DebugDeque_Erase;
+    dst->EraseAll = Zeta_DebugDeque_EraseAll;
 }

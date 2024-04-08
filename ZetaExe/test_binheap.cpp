@@ -124,37 +124,37 @@ void main1() {
     BinHeap_Init();
     Queue_Init();
 
-    ZETA_PrintVar("%d", bh.size);
+    ZETA_PrintVar(bh.size);
 
     BinHeap_Push(3);
-    ZETA_PrintVar("%d", bh.size);
+    ZETA_PrintVar(bh.size);
 
     BinHeap_Push(7);
-    ZETA_PrintVar("%d", bh.size);
+    ZETA_PrintVar(bh.size);
 
     BinHeap_Push(5);
-    ZETA_PrintVar("%d", bh.size);
+    ZETA_PrintVar(bh.size);
 
-    ZETA_PrintVar("%d", BinHeap_Top());
+    ZETA_PrintVar(BinHeap_Top());
     BinHeap_Pop();
 
-    ZETA_PrintVar("%d", bh.size);
+    ZETA_PrintVar(bh.size);
 
-    ZETA_PrintVar("%d", BinHeap_Top());
+    ZETA_PrintVar(BinHeap_Top());
     BinHeap_Pop();
 
-    ZETA_PrintVar("%d", bh.size);
+    ZETA_PrintVar(bh.size);
 
-    ZETA_PrintVar("%d", BinHeap_Top());
+    ZETA_PrintVar(BinHeap_Top());
     BinHeap_Pop();
 
-    ZETA_PrintVar("%d", bh.size);
+    ZETA_PrintVar(bh.size);
 }
 
 void main2() {
     unsigned int seed = time(NULL);
 
-    ZETA_PrintVar("%u", seed);
+    ZETA_PrintVar(seed);
 
     std::mt19937_64 en{ seed };
     std::uniform_int_distribution<size_t> val_generator{ 0, ZETA_GetRangeMax(

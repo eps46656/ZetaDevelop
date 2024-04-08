@@ -3,8 +3,7 @@
 #include "utils.h"
 
 #define Access_(data, stride, offset, idx, capacity) \
-    ZETA_GetPtrFromAddr(ZETA_GetAddrFromPtr(data) +  \
-                        stride * ((offset + idx) % capacity))
+    (void*)((unsigned char*)(data) + stride * ((offset + idx) % capacity))
 
 void Zeta_CircularVector_Init(void* cv_) {
     Zeta_CircularVector* cv = cv_;

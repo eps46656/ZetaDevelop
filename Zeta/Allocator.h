@@ -2,6 +2,8 @@
 
 #include "define.h"
 
+ZETA_ExternC_Beg;
+
 typedef struct Zeta_Allocator Zeta_Allocator;
 
 struct Zeta_Allocator {
@@ -15,3 +17,7 @@ struct Zeta_Allocator {
 
     void (*Deallocate)(void* context, void* ptr);
 };
+
+void Zeta_Allocator_Init(void* allocator);
+
+ZETA_ExternC_End;

@@ -468,9 +468,9 @@ void ELF_Read(ELF* elf, byte_t const* data, byte_t const* data_end) {
 
     elf->shstr = &elf->sects[e_shstrndx];
 
-    ZETA_PrintVar("%d", e_shstrndx);
-    ZETA_PrintVar("%p", elf->shstr->data);
-    ZETA_PrintVar("%p", elf->shstr->data_end);
+    ZETA_PrintVar(e_shstrndx);
+    ZETA_PrintVar(elf->shstr->data);
+    ZETA_PrintVar(elf->shstr->data_end);
 
     for (byte_t const* iter = elf->shstr->data; iter != elf->shstr->data_end;
          ++iter) {

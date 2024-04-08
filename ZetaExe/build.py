@@ -20,7 +20,7 @@ INCLUDE_DIRS = [
 ]
 
 def AddDeps(builder):
-    debug = False
+    debug = True
 
     cc = "clang"
 
@@ -399,6 +399,32 @@ def AddDeps(builder):
     )
 
     builder.Add(
+        f"{ZetaExeDir}/test_fs.cpp",
+        {
+            f"{File}",
+        },
+        None
+    )
+
+    builder.Add(
+        f"{ZetaExeDir}/test_fs.exe",
+        {
+            f"{File}",
+
+            f"{ZetaExeDir}/test_fs.cpp",
+        },
+        lambda : os.system(" ".join([
+            cppc,
+
+            f"--output {ZetaExeDir}/test_fs.exe",
+
+            *cppargs,
+
+            f"{ZetaExeDir}/test_fs.cpp",
+        ]))
+    )
+
+    builder.Add(
         f"{ZetaExeDir}/test_2.c",
         {
             f"{File}",
@@ -449,6 +475,38 @@ def AddDeps(builder):
             f"-c",
             *cargs,
             f"{ZetaExeDir}/test_2.c",
+        ]))
+    )
+
+    builder.Add(
+        f"{ZetaExeDir}/test_3.c",
+        {
+            f"{File}",
+
+            f"{ZetaDir}/utils.h"
+        },
+        None
+    )
+
+    builder.Add(
+        f"{ZetaExeDir}/test_3.exe",
+        {
+            f"{File}",
+
+            f"{ZetaExeDir}/test_3.c",
+
+            # f"{ZetaDir}/utils.o",
+        },
+        lambda : os.system(" ".join([
+            cc,
+
+            f"--output {ZetaExeDir}/test_3.exe",
+
+            *cargs,
+
+            f"{ZetaExeDir}/test_3.c",
+
+            # f"{ZetaDir}/utils.o",
         ]))
     )
 
@@ -563,13 +621,13 @@ def AddDeps(builder):
         f"{ZetaExeDir}/test_treealloc.exe",
         {
             f"{File}",
-            f"{ZetaDir}/Algorithm.o",
+
+            f"{ZetaDir}/BinTree.o",
             f"{ZetaDir}/DebugTreeMap.o",
             f"{ZetaDir}/TreeAllocator.o",
-            f"{ZetaDir}/RawVector.o",
             f"{ZetaDir}/RBTree.o",
-            f"{ZetaDir}/RelLinkedListNode.o",
-            f"{ZetaDir}/RelRBTreeNode.o",
+            f"{ZetaDir}/OrdRBLinkedListNode.o",
+            f"{ZetaDir}/OrdRBTreeNode.o",
             f"{ZetaDir}/utils.o",
 
             f"{ZetaExeDir}/test_treealloc.cpp",
@@ -578,13 +636,13 @@ def AddDeps(builder):
             cppc,
             f"--output {ZetaExeDir}/test_treealloc.exe",
             *cppargs,
-            f"{ZetaDir}/Algorithm.o",
+
+            f"{ZetaDir}/BinTree.o",
             f"{ZetaDir}/DebugTreeMap.o",
             f"{ZetaDir}/TreeAllocator.o",
-            f"{ZetaDir}/RawVector.o",
             f"{ZetaDir}/RBTree.o",
-            f"{ZetaDir}/RelLinkedListNode.o",
-            f"{ZetaDir}/RelRBTreeNode.o",
+            f"{ZetaDir}/OrdRBLinkedListNode.o",
+            f"{ZetaDir}/OrdRBTreeNode.o",
             f"{ZetaDir}/utils.o",
 
             f"{ZetaExeDir}/test_treealloc.cpp",
@@ -675,7 +733,6 @@ def AddDeps(builder):
             f"{ZetaDir}/CircularVector.o",
             f"{ZetaDir}/DebugDeque.o",
             f"{ZetaDir}/DebugTreeMap.o",
-            f"{ZetaDir}/RawVector.o",
             f"{ZetaDir}/RBTree.o",
             f"{ZetaDir}/OrdCntRBTreeNode.o",
             f"{ZetaDir}/utils.o",
@@ -690,7 +747,6 @@ def AddDeps(builder):
             f"{ZetaDir}/CircularVector.o",
             f"{ZetaDir}/DebugDeque.o",
             f"{ZetaDir}/DebugTreeMap.o",
-            f"{ZetaDir}/RawVector.o",
             f"{ZetaDir}/RBTree.o",
             f"{ZetaDir}/OrdCntRBTreeNode.o",
             f"{ZetaDir}/utils.o",
@@ -717,7 +773,6 @@ def AddDeps(builder):
             f"{ZetaDir}/CircularVector.o",
             f"{ZetaDir}/DebugDeque.o",
             f"{ZetaDir}/DebugTreeMap.o",
-            f"{ZetaDir}/RawVector.o",
             f"{ZetaDir}/RBTree.o",
             f"{ZetaDir}/OrdCntRBTreeNode.o",
             f"{ZetaDir}/utils.o",
@@ -732,7 +787,6 @@ def AddDeps(builder):
             f"{ZetaDir}/CircularVector.o",
             f"{ZetaDir}/DebugDeque.o",
             f"{ZetaDir}/DebugTreeMap.o",
-            f"{ZetaDir}/RawVector.o",
             f"{ZetaDir}/RBTree.o",
             f"{ZetaDir}/OrdCntRBTreeNode.o",
             f"{ZetaDir}/utils.o",
@@ -759,7 +813,6 @@ def AddDeps(builder):
             f"{ZetaDir}/CircularVector.o",
             f"{ZetaDir}/DebugDeque.o",
             f"{ZetaDir}/DebugTreeMap.o",
-            f"{ZetaDir}/RawVector.o",
             f"{ZetaDir}/RBTree.o",
             f"{ZetaDir}/RelCntRBTreeNode.o",
             f"{ZetaDir}/utils.o",
@@ -774,7 +827,6 @@ def AddDeps(builder):
             f"{ZetaDir}/CircularVector.o",
             f"{ZetaDir}/DebugDeque.o",
             f"{ZetaDir}/DebugTreeMap.o",
-            f"{ZetaDir}/RawVector.o",
             f"{ZetaDir}/RBTree.o",
             f"{ZetaDir}/RelCntRBTreeNode.o",
             f"{ZetaDir}/utils.o",
@@ -800,7 +852,6 @@ def AddDeps(builder):
             f"{ZetaDir}/BinTree.o",
             f"{ZetaDir}/CircularVector.o",
             f"{ZetaDir}/DebugTreeMap.o",
-            f"{ZetaDir}/RawVector.o",
             f"{ZetaDir}/RBTree.o",
             f"{ZetaDir}/OrdCntRBTreeNode.o",
             f"{ZetaDir}/utils.o",
@@ -814,7 +865,6 @@ def AddDeps(builder):
             f"{ZetaDir}/BinTree.o",
             f"{ZetaDir}/CircularVector.o",
             f"{ZetaDir}/DebugTreeMap.o",
-            f"{ZetaDir}/RawVector.o",
             f"{ZetaDir}/RBTree.o",
             f"{ZetaDir}/OrdCntRBTreeNode.o",
             f"{ZetaDir}/utils.o",
@@ -1055,10 +1105,8 @@ def AddDeps(builder):
         {
             f"{File}",
             f"{ZetaDir}/utils.o",
-            f"{ZetaDir}/Algorithm.o",
-            f"{ZetaDir}/LinkedListNode.o",
+            f"{ZetaDir}/OrdLinkedListNode.o",
             f"{ZetaDir}/PoolAllocator.o",
-            f"{ZetaDir}/RawVector.o",
             f"{ZetaDir}/random.o",
             f"{ZetaDir}/SlabAllocator.o",
             f"{ZetaExeDir}/test_slab.c",
@@ -1069,10 +1117,8 @@ def AddDeps(builder):
             f"-c",
             *cargs,
             f"{ZetaDir}/utils.o",
-            f"{ZetaDir}/Algorithm.o",
-            f"{ZetaDir}/LinkedListNode.o",
+            f"{ZetaDir}/OrdLinkedListNode.o",
             f"{ZetaDir}/PoolAllocator.o",
-            f"{ZetaDir}/RawVector.o",
             f"{ZetaDir}/random.o",
             f"{ZetaDir}/SlabAllocator.o",
             f"{ZetaExeDir}/test_slab.c",
@@ -1094,9 +1140,8 @@ def AddDeps(builder):
         {
             f"{File}",
             f"{ZetaDir}/DebugTreeMap.o",
-            f"{ZetaDir}/RBTree.o",
-            f"{ZetaDir}/RelLinkedListNode.o",
-            f"{ZetaDir}/RelRBTreeNode.o",
+            f"{ZetaDir}/OrdLinkedListNode.o",
+            f"{ZetaDir}/OrdRBTreeNode.o",
             f"{ZetaDir}/SlabAllocator.o",
             f"{ZetaDir}/utils.o",
 
@@ -1107,9 +1152,8 @@ def AddDeps(builder):
             f"--output {ZetaExeDir}/test_slaballoc.exe",
             *cppargs,
             f"{ZetaDir}/DebugTreeMap.o",
-            f"{ZetaDir}/RBTree.o",
-            f"{ZetaDir}/RelLinkedListNode.o",
-            f"{ZetaDir}/RelRBTreeNode.o",
+            f"{ZetaDir}/OrdLinkedListNode.o",
+            f"{ZetaDir}/OrdRBTreeNode.o",
             f"{ZetaDir}/SlabAllocator.o",
             f"{ZetaDir}/utils.o",
 

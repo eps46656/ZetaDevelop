@@ -16,7 +16,7 @@ INCLUDE_DIRS = [
 ]
 
 def AddDeps(builder):
-    debug = False
+    debug = True
 
     cc = "clang"
 
@@ -104,6 +104,34 @@ def AddDeps(builder):
     )
 
     builder.Add(
+        f"{ZetaDir}/Allocator.c",
+        {
+            f"{File}",
+            f"{ZetaDir}/Allocator.h",
+        },
+        None
+    )
+
+    builder.Add(
+        f"{ZetaDir}/Allocator.o",
+        {
+            f"{File}",
+            f"{ZetaDir}/Allocator.c",
+        },
+        lambda : os.system(" ".join([
+            cc,
+
+            f"--output {ZetaDir}/Allocator.o",
+
+            f"-c",
+
+            *cargs,
+
+            f"{ZetaDir}/Allocator.c",
+        ]))
+    )
+
+    builder.Add(
         f"{ZetaDir}/BinHeap.h",
         {
             f"{File}",
@@ -179,6 +207,33 @@ def AddDeps(builder):
             f"{ZetaDir}/define.h",
         },
         None
+    )
+
+    builder.Add(
+        f"{ZetaDir}/BlockVector.c",
+        {
+            f"{File}",
+            f"{ZetaDir}/BlockVector.h",
+        },
+        None
+    )
+
+    builder.Add(
+        f"{ZetaDir}/BlockVector.o",
+        {
+            f"{File}",
+            f"{ZetaDir}/BlockVector.c",
+        },
+        lambda : os.system(" ".join([
+            cc,
+            f"--output {ZetaDir}/BlockVector.o",
+
+            f"-c",
+
+            *cargs,
+
+            f"{ZetaDir}/BlockVector.c",
+        ]))
     )
 
     builder.Add(
@@ -641,13 +696,45 @@ def AddDeps(builder):
     )
 
     builder.Add(
+        f"{ZetaDir}/OrdRBLinkedListNode.h",
+        {
+            f"{File}",
+            f"{ZetaDir}/define.h",
+        },
+        None
+    )
+
+    builder.Add(
+        f"{ZetaDir}/OrdRBLinkedListNode.c",
+        {
+            f"{File}",
+            f"{ZetaDir}/OrdRBLinkedListNode.h",
+        },
+        None
+    )
+
+    builder.Add(
+        f"{ZetaDir}/OrdRBLinkedListNode.o",
+        {
+            f"{File}",
+            f"{ZetaDir}/OrdRBLinkedListNode.c",
+        },
+        lambda : os.system(" ".join([
+            cc,
+            f"--output {ZetaDir}/OrdRBLinkedListNode.o",
+            f"-c",
+            *cargs,
+            f"{ZetaDir}/OrdRBLinkedListNode.c",
+        ]))
+    )
+
+    builder.Add(
         f"{ZetaDir}/DynamicVector.h",
         {
             f"{File}",
             f"{ZetaDir}/Allocator.h",
             f"{ZetaDir}/CircularVector.h",
             f"{ZetaDir}/MultiLevelVector.h",
-            f"{ZetaDir}/Vector.h",
         },
         None
     )
@@ -1091,7 +1178,6 @@ def AddDeps(builder):
         f"{ZetaDir}/RawVector.h",
         {
             f"{File}",
-            f"{ZetaDir}/Vector.h",
         },
         None
     )
@@ -1326,7 +1412,6 @@ def AddDeps(builder):
             f"{ZetaDir}/Allocator.h",
             f"{ZetaDir}/DebugTreeMap.h",
             f"{ZetaDir}/OrdLinkedListNode.h",
-            f"{ZetaDir}/Vector.h",
         },
         None
     )
@@ -1668,15 +1753,6 @@ def AddDeps(builder):
             *cargs,
             f"{ZetaDir}/utils.c",
         ]))
-    )
-
-    builder.Add(
-        f"{ZetaDir}/Vector.h",
-        {
-            f"{File}",
-            f"{ZetaDir}/define.h",
-        },
-        None
     )
 
 if __name__ == "__main__":

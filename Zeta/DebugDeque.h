@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Vector.h"
+#include "SeqContainer.h"
 
 ZETA_ExternC_Beg;
 
@@ -37,6 +37,6 @@ void Zeta_DebugDeque_PopR(void* dd);
 
 void Zeta_DebugDeque_Erase(void* dd, size_t idx);
 
-void Zeta_DebugDeque_ToVector(void* dd, Zeta_Vector* dst);
+void Zeta_DebugDeque_DeploySeqContainer(void* dd, Zeta_SeqContainer* dst);
 
 ZETA_ExternC_End;

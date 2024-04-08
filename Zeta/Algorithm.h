@@ -1,7 +1,6 @@
 #pragma once
 
 #include "Cursor.h"
-#include "Vector.h"
 #include "utils.h"
 
 ZETA_ExternC_Beg;

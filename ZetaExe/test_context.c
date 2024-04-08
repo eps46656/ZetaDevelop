@@ -141,10 +141,10 @@ int main() {
 
     do {
         Thread_Switch(&main_thread, &func1_thread);
-        ZETA_PrintVar("%d\n", func1_ret);
+        ZETA_PrintVar(func1_ret);
 
         Thread_Switch(&main_thread, &func2_thread);
-        ZETA_PrintVar("%d\n", func2_ret);
+        ZETA_PrintVar(func2_ret);
     } while (func2_ret != INT_MIN);
 
     return 0;

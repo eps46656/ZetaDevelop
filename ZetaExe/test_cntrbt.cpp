@@ -161,7 +161,7 @@ void Erase(size_t idx) {
 void main1() {
     unsigned int seed = time(NULL);
 
-    ZETA_PrintVar("%d", seed);
+    ZETA_PrintVar(seed);
 
     std::mt19937_64 en{ seed };
     std::uniform_int_distribution<size_t> idx_generator{ 0, ZETA_GetRangeMax(

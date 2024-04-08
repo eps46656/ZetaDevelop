@@ -37,13 +37,13 @@ int main() {
 
     ZETA_PrintPos;
 
-    ZETA_PrintVar("%s", cpu_info.vender_id);
-    ZETA_PrintVar("%d", cpu_info.type);
-    ZETA_PrintVar("%d", cpu_info.family);
-    ZETA_PrintVar("%d", cpu_info.ext_family);
-    ZETA_PrintVar("%d", cpu_info.model);
-    ZETA_PrintVar("%d", cpu_info.ext_model);
-    ZETA_PrintVar("%d", cpu_info.stepping);
+    ZETA_PrintVar(cpu_info.vender_id);
+    ZETA_PrintVar(cpu_info.type);
+    ZETA_PrintVar(cpu_info.family);
+    ZETA_PrintVar(cpu_info.ext_family);
+    ZETA_PrintVar(cpu_info.model);
+    ZETA_PrintVar(cpu_info.ext_model);
+    ZETA_PrintVar(cpu_info.stepping);
 
     return 0;
 }

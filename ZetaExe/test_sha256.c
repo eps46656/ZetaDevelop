@@ -18,8 +18,8 @@ int main() {
 
     _BitInt(32) k_ = Zeta_ReadBigEndian(k_tmp, 4);
 
-    ZETA_PrintVar("%llu", (ull)k);
-    ZETA_PrintVar("%llu", (ull)k_);
+    ZETA_PrintVar((ull)k);
+    ZETA_PrintVar((ull)k_);
 
     byte_t tmp;
 
@@ -39,7 +39,7 @@ int main() {
         // Zeta_SHA256Hasher_Rotate(&hasher, &tmp, 1);
     }
 
-    ZETA_PrintVar("%llu", hasher.size);
+    ZETA_PrintVar(hasher.size);
 
     byte_t digits[32];
 

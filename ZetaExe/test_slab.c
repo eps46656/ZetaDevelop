@@ -34,11 +34,11 @@ int main() {
     }
 
     int num_of_types = type_i;
-    ZETA_PrintVar("%d", num_of_types);
+    ZETA_PrintVar(num_of_types);
 
     Zeta_PoolAllocator pa_;
     Zeta_Allocator pa;
-    Zeta_PoolAllocator_ToAllocator(&pa_, &pa);
+    Zeta_PoolAllocator_DeployAllocator(&pa_, &pa);
 
     for (int i = 0; i < 1024; ++i) {
         Zeta_PoolAllocator_Deallocate(&pa_, malloc(page_size));
@@ -46,7 +46,7 @@ int main() {
 
     Zeta_SlabAllocator sa_;
     Zeta_Allocator sa;
-    Zeta_SlabAllocator_ToAllocator(&sa_, &sa);
+    Zeta_SlabAllocator_DeployAllocator(&sa_, &sa);
 
     Zeta_SlabAllocator_Entrust(&sa_, num_of_types, sizes, nums, &pa);
 

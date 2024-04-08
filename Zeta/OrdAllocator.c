@@ -581,7 +581,8 @@ void Zeta_OrdAllocator_Deallocate(void* ord_allocator_, void* ptr_) {
     Deallocate_(ord_allocator, head);
 }
 
-void Zeta_OrdAllocator_ToAllocator(void* ord_allocator_, Zeta_Allocator* dst) {
+void Zeta_OrdAllocator_DeployAllocator(void* ord_allocator_,
+                                       Zeta_Allocator* dst) {
     Zeta_OrdAllocator* ord_allocator = ord_allocator_;
     ZETA_DebugAssert(ord_allocator != NULL);
 
