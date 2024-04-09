@@ -9,6 +9,10 @@
 #include "stdlib.h"
 
 #if defined(__cplusplus)
+#include <iostream>
+#endif
+
+#if defined(__cplusplus)
 #define bool_t bool
 #else
 #define bool_t _Bool
@@ -53,6 +57,11 @@ typedef s32_t unichar_t;
 #define ZETA_Concat_(x, y) x##y
 #define ZETA_Concat(x, y) ZETA_Concat_(x, y)
 
+#if defined(__cplusplus)
+#define ZETA_PrintVar(var)                                                   \
+    std::cout << __FILE__ ":" << ZETA_ToStr(__LINE__) "\t" #var " = " << var \
+              << '\n';
+#else
 #define ZETA_PrintVar(var)                                     \
     printf(__FILE__ ":" ZETA_ToStr(__LINE__) "\t" #var " = "); \
                                                                \
@@ -86,6 +95,7 @@ typedef s32_t unichar_t;
                                                                \
     fflush(stdout);                                            \
     ZETA_StaticAssert(TRUE)
+#endif
 
 /*
 #define ZETA_PrintVar(formater, var)                                    \

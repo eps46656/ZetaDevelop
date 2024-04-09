@@ -567,7 +567,7 @@ void* Zeta_SegVector_Insert(void* sv_, void* pos_cursor_) {
 
     if (l_vacant < r_vacant ||
         (l_vacant == r_vacant &&
-         Zeta_SimpleHash(ZETA_GetAddrFromPtr(l_n) ^ ZETA_GetAddrFromPtr(r_n)) %
+         Zeta_SimpleHash(ZETA_GetAddrFromPtr(l_n) + ZETA_GetAddrFromPtr(r_n)) %
                  2 ==
              0)) {
         Zeta_CircularVector r_cv;
@@ -810,7 +810,7 @@ void* Zeta_SegVector_Erase(void* sv_, void* pos_cursor_) {
 
     if (lm_vacant < mr_vacant ||
         (lm_vacant == mr_vacant &&
-         Zeta_SimpleHash(ZETA_GetAddrFromPtr(l_n) ^ ZETA_GetAddrFromPtr(r_n)) %
+         Zeta_SimpleHash(ZETA_GetAddrFromPtr(l_n) + ZETA_GetAddrFromPtr(r_n)) %
                  2 ==
              0)) {
         a_n = m_n;
@@ -881,7 +881,7 @@ void* Zeta_SegVector_Erase(void* sv_, void* pos_cursor_) {
 
     if (a_vacant < b_vacant ||
         (a_vacant == b_vacant &&
-         Zeta_SimpleHash(ZETA_GetAddrFromPtr(a_n) ^ ZETA_GetAddrFromPtr(b_n)) %
+         Zeta_SimpleHash(ZETA_GetAddrFromPtr(a_n) + ZETA_GetAddrFromPtr(b_n)) %
                  2 ==
              0)) {         // b to a
         if (a_n == m_n) {  // r(b) to m(a)

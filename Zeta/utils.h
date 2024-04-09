@@ -110,6 +110,10 @@ int Zeta_GetLogCeil(u128_t val, u128_t base);
 
 u128_t Zeta_FindNextConMod(u128_t beg, u128_t target, u128_t mod);
 
+int Zeta_GetLSB(size_t x);
+
+int Zeta_GetMSB(size_t x);
+
 void* Zeta_GetMostLink(void* context, void* (*GetLink)(void* context, void* n),
                        void* n);
 

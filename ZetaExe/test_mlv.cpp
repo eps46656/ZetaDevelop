@@ -80,14 +80,14 @@ void GetIdxes(size_t* dst, size_t idx) {
 }
 
 void* MLETGetVal(size_t idx) {
-    size_t idxes[ZETA_MultiLevelVector_level_max];
+    size_t idxes[ZETA_MultiLevelVector_max_level];
     GetIdxes(idxes, idx);
     void** p = Zeta_MultiLevelVector_Access(&mlv, idxes);
     return p == NULL ? NULL : *p;
 }
 
 void MLETSetVal(size_t idx, void* val) {
-    size_t idxes[ZETA_MultiLevelVector_level_max];
+    size_t idxes[ZETA_MultiLevelVector_max_level];
     GetIdxes(idxes, idx);
 
     if (val == NULL) {
@@ -127,7 +127,7 @@ size_t MLETFindNextCri(size_t idx, bool_t included) {
 }
 
 size_t MLETFindPrev(size_t idx, bool_t included) {
-    size_t idxes[ZETA_MultiLevelVector_level_max];
+    size_t idxes[ZETA_MultiLevelVector_max_level];
     GetIdxes(idxes, idx);
 
     void** p = Zeta_MultiLevelVector_FindPrevNotNull(&mlv, idxes, included);
@@ -136,7 +136,7 @@ size_t MLETFindPrev(size_t idx, bool_t included) {
 }
 
 size_t MLETFindNext(size_t idx, bool_t included) {
-    size_t idxes[ZETA_MultiLevelVector_level_max];
+    size_t idxes[ZETA_MultiLevelVector_max_level];
     GetIdxes(idxes, idx);
 
     void** p = Zeta_MultiLevelVector_FindNextNotNull(&mlv, idxes, included);

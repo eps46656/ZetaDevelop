@@ -8,7 +8,7 @@ static void CheckIdxes_(void* mlv_, size_t* idxes) {
 
     int level = mlv->level;
     ZETA_DebugAssert(0 < level);
-    ZETA_DebugAssert(level <= ZETA_MultiLevelVector_level_max);
+    ZETA_DebugAssert(level <= ZETA_MultiLevelVector_max_level);
 
     for (int level_i = 0; level_i < level; ++level_i) {
         size_t branch_num = mlv->branch_nums[level_i];
@@ -26,7 +26,7 @@ void Zeta_MultiLevelVector_Init(void* mlv_) {
 
     if (level <= 0) {
         level = 6;
-        ZETA_StaticAssert(6 <= ZETA_MultiLevelVector_level_max);
+        ZETA_StaticAssert(6 <= ZETA_MultiLevelVector_max_level);
 
         mlv->level = level;
 
@@ -39,7 +39,7 @@ void Zeta_MultiLevelVector_Init(void* mlv_) {
     }
 
     ZETA_DebugAssert(0 < level);
-    ZETA_DebugAssert(level < ZETA_MultiLevelVector_level_max);
+    ZETA_DebugAssert(level < ZETA_MultiLevelVector_max_level);
 
     for (int level_i = 0; level_i < level; ++level_i) {
         size_t branch_num = mlv->branch_nums[level_i];
@@ -65,7 +65,7 @@ size_t Zeta_MultiLevelVector_GetCapacity(void* mlv_) {
 
     int level = mlv->level;
     ZETA_DebugAssert(0 < level);
-    ZETA_DebugAssert(level <= ZETA_MultiLevelVector_level_max);
+    ZETA_DebugAssert(level <= ZETA_MultiLevelVector_max_level);
 
     for (int level_i = 0; level_i < level; ++level_i) {
         size_t branch_num = mlv->branch_nums[level_i];
@@ -337,7 +337,7 @@ void Zeta_MultiLevelVector_Erase(void* mlv_, size_t* idxes) {
     ZETA_DebugAssert(Deallocate != NULL);
 
     void* n = mlv->root;
-    void* pages[ZETA_MultiLevelVector_level_max];
+    void* pages[ZETA_MultiLevelVector_max_level];
 
     for (int level_i = 0; level_i < level; ++level_i) {
         if (n == NULL) { return; }

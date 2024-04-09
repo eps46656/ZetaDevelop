@@ -4,11 +4,10 @@
 #define ZETA_DIR(path) "../Zeta" path
 
 #include "../Zeta/BinHeap.h"
-#include "../Zeta/RelCntRBTreeNode.h"
-#include ZETA_DIR("RelCntRBTreeNode.h")
+#include "../Zeta/OrdCntRBTreeNode.h"
 
 struct Node {
-    Zeta_RelCntRBTreeNode n;
+    Zeta_OrdCntRBTreeNode n;
     int val;
 };
 
@@ -19,7 +18,7 @@ Zeta_BinHeap bh;
 std::priority_queue<int, std::vector<int>, std::greater<int>> queue;
 
 void SetBntOpr() {
-    Zeta_RelCntRBTreeNode_DeployBinTreeNodeOperator(NULL, &btn_opr);
+    Zeta_OrdCntRBTreeNode_DeployBinTreeNodeOperator(NULL, &btn_opr);
 }
 
 void BinHeap_Init() {
@@ -37,14 +36,14 @@ int BinHeap_Top() {
 
 void BinHeap_Push(int val) {
     Node* node{ new Node };
-    Zeta_RelCntRBTreeNode_Init(NULL, &node->n);
+    Zeta_OrdCntRBTreeNode_Init(NULL, &node->n);
     node->val = val;
 
     Zeta_BinHeap_Insert(&bh, node);
 
     for (;;) {
-        Zeta_RelCntRBTreeNode* np{ static_cast<Zeta_RelCntRBTreeNode*>(
-            Zeta_RelCntRBTreeNode_GetP(NULL, &node->n)) };
+        Zeta_OrdCntRBTreeNode* np{ static_cast<Zeta_OrdCntRBTreeNode*>(
+            Zeta_OrdCntRBTreeNode_GetP(NULL, &node->n)) };
 
         if (np == nullptr) { break; }
 
@@ -72,8 +71,8 @@ void BinHeap_Pop() {
     int m_val{ ZETA_GetStructFromMember(Node, n, m)->val };
 
     for (;;) {
-        void* ml{ Zeta_RelCntRBTreeNode_GetL(NULL, m) };
-        void* mr{ Zeta_RelCntRBTreeNode_GetR(NULL, m) };
+        void* ml{ Zeta_OrdCntRBTreeNode_GetL(NULL, m) };
+        void* mr{ Zeta_OrdCntRBTreeNode_GetR(NULL, m) };
 
         int ml_val;
         int mr_val;

@@ -145,65 +145,9 @@ u128_t Zeta_GetPower(u128_t base, u128_t exp) {
     return ret;
 }
 
-/*
-
-(1) a * b <= m
-
-(2) m = b*k + c     0 <= c < b
-
-(1) <-> (a * b <= b*k + c) ... (1.1)
-
-(3) (a <= m / b) <-> (a <= k)
-
-(3) -> (1.1) ?
-
-
-
-
-(1) a * b < m       0 <= a, b       0 < m
-
-if b == 0:
-    0 < m       ok
-
-if b != 0
-
-(2) m = b*k + c     0 <= c < b
-
-(1) <-> (a * b < b*k + c) ... (1.1)
-
-(3) (a < m / b) <-> (a < k) ... (3.1)
-
-(3.1) -> (a*b < b*k) since b != 0 ... (3.2)
-
-(3.2) -> (a*b < b*k + c) since 0 <= c ... (1.1)
-
-(3) <-> (3.1) -> (1.1) <-> (1)
-
-*/
-
-/*
 u128_t Zeta_GetMulMod(u128_t x, u128_t y, u128_t mod) {
     ZETA_DebugAssert(0 < mod);
-
-    x %= mod;
-    y %= mod;
-
-    if (x == 0 || y <= ZETA_GetRangeMax(u128_t) / x) { return (x * y) % mod; }
-
-    if (x < y) { ZETA_Swap(x, y); }
-
-    u128_t ret = 0;
-
-    for (; 0 < y; y /= 2) {
-        if (y % 2 == 1) { ret = (ret + x) % mod; }
-        x = (x + x) % mod;
-    }
-
-    return ret;
-} */
-
-u128_t Zeta_GetMulMod(u128_t x, u128_t y, u128_t mod) {
-    ZETA_DebugAssert(0 < mod);
+    ZETA_DebugAssert(mod <= ZETA_GetMaxMod(u128_t));
 
     x %= mod;
     y %= mod;
@@ -224,10 +168,12 @@ u128_t Zeta_GetMulMod(u128_t x, u128_t y, u128_t mod) {
 
 u128_t Zeta_GetPowerMod(u128_t base, u128_t exp, u128_t mod) {
     ZETA_DebugAssert(0 < mod);
-
-    if (mod == 1) { return 0; }
+    ZETA_DebugAssert(mod <= ZETA_GetMaxMod(u128_t));
 
     base %= mod;
+
+    if (base == 0) { return 0; }
+
     u128_t ret = 1;
 
     for (; 0 < exp; exp /= 2) {
@@ -263,6 +209,32 @@ int Zeta_GetLogCeil(u128_t val, u128_t base) {
 u128_t Zeta_FindNextConMod(u128_t beg, u128_t target, u128_t mod) {
     ZETA_DebugAssert(0 < mod);
     return beg + (target + mod - beg % mod) % mod;
+}
+
+int Zeta_GetLSB(size_t x) {
+    if (x == 0) { return -1 };
+
+    const int table[]{ 0, 0, 1, 0, 2, 0, 1, 0, 3, 0, 1, 0, 2, 0, 1, 0 };
+
+    int ret{ 0 };
+
+    for (; x % 256 == 0; x /= 256) { ret += 8; }
+
+    x %= 256;
+
+    return ret + table[x / 16] + table[x % 16];
+}
+
+int Zeta_GetMSB(size_t x) {
+    if (x == 0) { return -1 };
+
+    const int table[]{ 0, 0, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 3, 3 };
+
+    int ret{ 0 };
+
+    for (; 256 <= x; x /= 256) { ret += 8; }
+
+    return ret + table[x / 16] + table[x % 16];
 }
 
 void* Zeta_GetMostLink(void* context, void* (*GetLink)(void* context, void* n),

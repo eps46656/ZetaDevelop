@@ -13,6 +13,11 @@ Zeta_TreeAllocator allocator;
 
 std::map<size_t, size_t> req_ptr_size_tm;
 
+std::mt19937_64 en;
+std::uniform_int_distribution<size_t> size_generator{ 16, 2 * 1024 };
+std::uniform_int_distribution<size_t> idx_generator{ 0,
+                                                     ZETA_GetRangeMax(size_t) };
+
 void CheckNoCross(std::map<size_t, size_t> const& m) {
     if (m.empty()) { return; }
 
@@ -66,6 +71,10 @@ void* MyAlloc(size_t size) {
         ZETA_DebugAssert(m_end <= nxt_iter->first);
     }
 
+    for (size_t i{ 0 }; i < size; ++i) {
+        *((unsigned char*)ptr + i) = size_generator(en) % 256;
+    }
+
     return ptr;
 }
 
@@ -108,10 +117,7 @@ void main1() {
 
     ZETA_PrintVar(seed);
 
-    std::mt19937_64 en{ seed };
-    std::uniform_int_distribution<size_t> size_generator{ 16, 2 * 1024 };
-    std::uniform_int_distribution<size_t> idx_generator{ 0, ZETA_GetRangeMax(
-                                                                size_t) };
+    en.seed(seed);
 
     allocator.mem = mem;
     allocator.align = 16;

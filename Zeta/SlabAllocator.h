@@ -14,7 +14,7 @@ Single SlabAllocator only provides single width of unit.
 
 */
 
-#define ZETA_SlabAllocator_max_num ZETA_GetRangeMax(u8_t)
+#define ZETA_SlabAllocator_max_num ZETA_GetRangeMax(unsigned char)
 
 typedef struct Zeta_SlabAllocator Zeta_SlabAllocator;
 

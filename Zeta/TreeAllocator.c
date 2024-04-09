@@ -313,7 +313,6 @@ range config check:
     end - head_size is head_align aligned
     end is align aligned
 
-
 sn tree check:
     all sn in sn tree, its block state should be vacant.
     stride is ordered

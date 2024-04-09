@@ -64,6 +64,10 @@ void main1() {
 
     ZETA_PrintPos;
 
+    ZETA_PrintVar(allocator_.width);
+
+    return;
+
     for (int _ = 0; _ < 5; ++_) {
         for (int test_i = 0; test_i < 1000; ++test_i) {
             ptrs.push_back(allocator.Allocate(allocator.context, width));

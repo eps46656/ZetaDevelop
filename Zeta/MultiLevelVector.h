@@ -8,7 +8,7 @@ ZETA_ExternC_Beg;
 /**
  * The maximum number of level.
  */
-#define ZETA_MultiLevelVector_level_max 12
+#define ZETA_MultiLevelVector_max_level 12
 
 /**
  * The maximum branch number of each level.
@@ -19,7 +19,7 @@ typedef struct Zeta_MultiLevelVector Zeta_MultiLevelVector;
 
 struct Zeta_MultiLevelVector {
     int level;
-    size_t branch_nums[ZETA_MultiLevelVector_level_max];
+    size_t branch_nums[ZETA_MultiLevelVector_max_level];
 
     void* root;
 

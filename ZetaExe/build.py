@@ -138,7 +138,7 @@ def AddDeps(builder):
         {
             f"{File}",
             f"{ZetaDir}/BinHeap.h",
-            f"{ZetaDir}/RelCntRBTreeNode.h"
+            f"{ZetaDir}/OrdCntRBTreeNode.h"
         },
         None
     )
@@ -149,7 +149,7 @@ def AddDeps(builder):
             f"{File}",
             f"{ZetaDir}/BinHeap.o",
             f"{ZetaDir}/BinTree.o",
-            f"{ZetaDir}/RelCntRBTreeNode.o",
+            f"{ZetaDir}/OrdCntRBTreeNode.o",
             f"{ZetaDir}/utils.o",
             f"{ZetaExeDir}/test_binheap.cpp",
         },
@@ -159,7 +159,7 @@ def AddDeps(builder):
             *cppargs,
             f"{ZetaDir}/BinHeap.o",
             f"{ZetaDir}/BinTree.o",
-            f"{ZetaDir}/RelCntRBTreeNode.o",
+            f"{ZetaDir}/OrdCntRBTreeNode.o",
             f"{ZetaDir}/utils.o",
             f"{ZetaExeDir}/test_binheap.cpp",
         ]))
@@ -814,7 +814,7 @@ def AddDeps(builder):
             f"{ZetaDir}/DebugDeque.o",
             f"{ZetaDir}/DebugTreeMap.o",
             f"{ZetaDir}/RBTree.o",
-            f"{ZetaDir}/RelCntRBTreeNode.o",
+            f"{ZetaDir}/OrdCntRBTreeNode.o",
             f"{ZetaDir}/utils.o",
             f"{ZetaExeDir}/test_segvec_speed.cpp",
         },
@@ -828,7 +828,7 @@ def AddDeps(builder):
             f"{ZetaDir}/DebugDeque.o",
             f"{ZetaDir}/DebugTreeMap.o",
             f"{ZetaDir}/RBTree.o",
-            f"{ZetaDir}/RelCntRBTreeNode.o",
+            f"{ZetaDir}/OrdCntRBTreeNode.o",
             f"{ZetaDir}/utils.o",
             f"{ZetaExeDir}/test_segvec_speed.cpp",
         ]))
@@ -1244,8 +1244,8 @@ def AddDeps(builder):
             f"{ZetaDir}/OrdAllocator.o",
             f"{ZetaDir}/RawVector.o",
             f"{ZetaDir}/RBTree.o",
-            f"{ZetaDir}/RelLinkedListNode.o",
-            f"{ZetaDir}/RelRBTreeNode.o",
+            f"{ZetaDir}/OrdLinkedListNode.o",
+            f"{ZetaDir}/OrdRBTreeNode.o",
             f"{ZetaDir}/utils.o",
 
             f"{ZetaExeDir}/test_ordalloc.cpp",
@@ -1260,8 +1260,8 @@ def AddDeps(builder):
             f"{ZetaDir}/OrdAllocator.o",
             f"{ZetaDir}/RawVector.o",
             f"{ZetaDir}/RBTree.o",
-            f"{ZetaDir}/RelLinkedListNode.o",
-            f"{ZetaDir}/RelRBTreeNode.o",
+            f"{ZetaDir}/OrdLinkedListNode.o",
+            f"{ZetaDir}/OrdRBTreeNode.o",
             f"{ZetaDir}/utils.o",
 
             f"{ZetaExeDir}/test_ordalloc.cpp",

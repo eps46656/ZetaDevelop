@@ -88,7 +88,7 @@ void* Access_(Zeta_DynamicVector* dv_, size_t idx) {
     size_t cluster_i = real_idx / dv->cluster_capacity;
     size_t cluster_j = real_idx % dv->cluster_capacity;
 
-    size_t idxes[ZETA_MultiLevelVector_level_max];
+    size_t idxes[ZETA_MultiLevelVector_max_level];
     GetIdxes_(dv, idxes, cluster_i);
 
     void** cluster = Zeta_MultiLevelVector_Access(&dv->mlv, idxes);
@@ -142,7 +142,7 @@ void* Zeta_DynamicVector_Insert(void* dv_, size_t idx) {
     size_t real_idx = (dv->offset + hole_idx) % capacity;
     size_t cluster_i = real_idx / dv->cluster_capacity;
 
-    size_t idxes[ZETA_MultiLevelVector_level_max];
+    size_t idxes[ZETA_MultiLevelVector_max_level];
     GetIdxes_(dv, idxes, cluster_i);
 
     void** cluster = Zeta_MultiLevelVector_Insert(&dv->mlv, idxes);
@@ -202,7 +202,7 @@ void Zeta_DynamicVector_Erase(void* dv_, size_t idx) {
         size_t cluster_j = real_idx % dv->cluster_capacity;
 
         if (cluster_j == dv->cluster_capacity - 1 || dv->size == 1) {
-            size_t idxes[ZETA_MultiLevelVector_level_max];
+            size_t idxes[ZETA_MultiLevelVector_max_level];
             GetIdxes_(dv, idxes, cluster_i);
 
             Deallocate(allocator_context,
@@ -223,7 +223,7 @@ void Zeta_DynamicVector_Erase(void* dv_, size_t idx) {
         size_t cluster_j = real_idx % dv->cluster_capacity;
 
         if (cluster_j == 0 || dv->size == 1) {
-            size_t idxes[ZETA_MultiLevelVector_level_max];
+            size_t idxes[ZETA_MultiLevelVector_max_level];
             GetIdxes_(dv, idxes, cluster_i);
 
             Deallocate(allocator_context,
@@ -296,7 +296,7 @@ void Zeta_DynamicVector_EraseAll(void* dv_) {
         return;
     }
 
-    size_t idxes[ZETA_MultiLevelVector_level_max];
+    size_t idxes[ZETA_MultiLevelVector_max_level];
 
     size_t cluster_i_beg = dv->offset / dv->cluster_capacity;
     size_t cluster_i_end =
