@@ -41,6 +41,9 @@ size_t FileBlockVector_GetBlockNum(void* file_blk_vec_) {
     FileBlockVector* file_blk_vec = (FileBlockVector*)file_blk_vec_;
     ZETA_DebugAssert(file_blk_vec != NULL);
 
+    ZETA_PrintVar(file_blk_vec);
+    ZETA_PrintVar(file_blk_vec->blk_num);
+
     return file_blk_vec->blk_num;
 }
 

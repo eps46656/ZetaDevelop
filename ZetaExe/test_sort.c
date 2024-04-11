@@ -1,7 +1,6 @@
 #include <stddef.h>
 
 #include "../Zeta/Algorithm.h"
-#include "../Zeta/RawVector.h"
 #include "../Zeta/random.h"
 
 typedef long long int lli;

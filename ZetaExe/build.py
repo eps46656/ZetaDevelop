@@ -68,6 +68,14 @@ def AddDeps(builder):
     )
 
     builder.Add(
+        f"{ZetaExeDir}/FileBlockVector.h",
+        {
+            f"{ZetaDir}/BlockVector.h",
+        },
+        None
+    )
+
+    builder.Add(
         f"{ZetaExeDir}/StdAllocator.h",
         {
             f"{ZetaDir}/Allocator.h",
@@ -411,6 +419,7 @@ def AddDeps(builder):
         {
             f"{File}",
 
+            f"{ZetaDir}/BlockVector.o",
             f"{ZetaExeDir}/test_fs.cpp",
         },
         lambda : os.system(" ".join([
@@ -420,6 +429,7 @@ def AddDeps(builder):
 
             *cppargs,
 
+            f"{ZetaDir}/BlockVector.o",
             f"{ZetaExeDir}/test_fs.cpp",
         ]))
     )
@@ -999,6 +1009,87 @@ def AddDeps(builder):
     )
 
     builder.Add(
+        f"{ZetaExeDir}/test_lrucm.cpp",
+        {
+            f"{File}",
+            f"{ZetaDir}/DummyBlockVector.h",
+            f"{ZetaDir}/DummyCacheManager.h",
+            f"{ZetaDir}/LRUCacheManager.h",
+            f"{ZetaDir}/RBTree.h",
+            f"{ZetaExeDir}/FileBlockVector.h",
+            f"{ZetaExeDir}/StdAllocator.h",
+        },
+        None
+    )
+
+    builder.Add(
+        f"{ZetaExeDir}/test_lrucm.exe",
+        {
+            f"{File}",
+
+            f"{ZetaDir}/Allocator.o",
+            f"{ZetaDir}/BinTree.o",
+            f"{ZetaDir}/BlockVector.o",
+            f"{ZetaDir}/DebugPipe.o",
+            f"{ZetaDir}/DummyBlockVector.o",
+            f"{ZetaDir}/DummyCacheManager.o",
+            f"{ZetaDir}/LRUCacheManager.o",
+            f"{ZetaDir}/OrdLinkedListNode.o",
+            f"{ZetaDir}/OrdRBLinkedListNode.o",
+            f"{ZetaDir}/OrdRBTreeNode.o",
+            f"{ZetaDir}/RBTree.o",
+            f"{ZetaDir}/utils.o",
+
+            f"{ZetaExeDir}/test_lrucm.cpp",
+        },
+        lambda : os.system(" ".join([
+            cppc,
+            f"--output {ZetaExeDir}/test_lrucm.exe",
+            *cppargs,
+
+            f"{ZetaDir}/Allocator.o",
+            f"{ZetaDir}/BinTree.o",
+            f"{ZetaDir}/BlockVector.o",
+            f"{ZetaDir}/DebugPipe.o",
+            f"{ZetaDir}/DummyBlockVector.o",
+            f"{ZetaDir}/DummyCacheManager.o",
+            f"{ZetaDir}/LRUCacheManager.o",
+            f"{ZetaDir}/OrdLinkedListNode.o",
+            f"{ZetaDir}/OrdRBLinkedListNode.o",
+            f"{ZetaDir}/OrdRBTreeNode.o",
+            f"{ZetaDir}/RBTree.o",
+            f"{ZetaDir}/utils.o",
+
+            f"{ZetaExeDir}/test_lrucm.cpp",
+        ]))
+    )
+
+    builder.Add(
+        f"{ZetaExeDir}/test_lsb.cpp",
+        {
+            f"{File}",
+            f"{ZetaDir}/utils.h",
+        },
+        None
+    )
+
+    builder.Add(
+        f"{ZetaExeDir}/test_lsb.exe",
+        {
+            f"{File}",
+            f"{ZetaDir}/utils.o",
+            f"{ZetaExeDir}/test_lsb.cpp",
+        },
+        lambda : os.system(" ".join([
+            cppc,
+            f"--output {ZetaExeDir}/test_lsb.exe",
+            *cppargs,
+            f"{ZetaDir}/utils.o",
+            f"{ZetaExeDir}/test_lsb.cpp",
+        ]))
+    )
+
+    builder.Add(
         f"{ZetaExeDir}/test_sort.c",
         {
             f"{File}",
@@ -1013,7 +1104,6 @@ def AddDeps(builder):
             f"{File}",
             f"{ZetaDir}/utils.o",
             f"{ZetaDir}/Algorithm.o",
-            f"{ZetaDir}/RawVector.o",
             f"{ZetaDir}/random.o",
             f"{ZetaExeDir}/test_sort.c",
         },
@@ -1024,7 +1114,6 @@ def AddDeps(builder):
             *cargs,
             f"{ZetaDir}/utils.o",
             f"{ZetaDir}/Algorithm.o",
-            f"{ZetaDir}/RawVector.o",
             f"{ZetaDir}/random.o",
             f"{ZetaExeDir}/test_sort.c",
         ]))
@@ -1036,7 +1125,6 @@ def AddDeps(builder):
             f"{File}",
             f"{ZetaDir}/utils.o",
             f"{ZetaDir}/Algorithm.o",
-            f"{ZetaDir}/RawVector.o",
             f"{ZetaDir}/random.o",
             f"{ZetaExeDir}/test_sort.c",
         },
@@ -1049,7 +1137,6 @@ def AddDeps(builder):
             f"-fPIC",
             f"{ZetaDir}/utils.o",
             f"{ZetaDir}/Algorithm.o",
-            f"{ZetaDir}/RawVector.o",
             f"{ZetaDir}/random.o",
             f"{ZetaExeDir}/test_sort.c",
         ]))
@@ -1093,7 +1180,6 @@ def AddDeps(builder):
             f"{File}",
             f"{ZetaDir}/Algorithm.h",
             f"{ZetaDir}/PoolAllocator.h",
-            f"{ZetaDir}/RawVector.h",
             f"{ZetaDir}/SlabAllocator.h",
             f"{ZetaDir}/random.h",
         },
@@ -1242,7 +1328,6 @@ def AddDeps(builder):
             f"{ZetaDir}/BinTree.o",
             f"{ZetaDir}/DebugTreeMap.o",
             f"{ZetaDir}/OrdAllocator.o",
-            f"{ZetaDir}/RawVector.o",
             f"{ZetaDir}/RBTree.o",
             f"{ZetaDir}/OrdLinkedListNode.o",
             f"{ZetaDir}/OrdRBTreeNode.o",
@@ -1258,7 +1343,6 @@ def AddDeps(builder):
             f"{ZetaDir}/BinTree.o",
             f"{ZetaDir}/DebugTreeMap.o",
             f"{ZetaDir}/OrdAllocator.o",
-            f"{ZetaDir}/RawVector.o",
             f"{ZetaDir}/RBTree.o",
             f"{ZetaDir}/OrdLinkedListNode.o",
             f"{ZetaDir}/OrdRBTreeNode.o",

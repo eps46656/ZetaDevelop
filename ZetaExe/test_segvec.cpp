@@ -39,8 +39,8 @@ Zeta_Allocator seg_allocator;
 Zeta_DebugDeque dd_;
 Zeta_SegVector sv_;
 
-Zeta_Vector dd;
-Zeta_Vector sv;
+Zeta_SeqContainer dd;
+Zeta_SeqContainer sv;
 
 Zeta_DebugTreeMap node_tm;
 Zeta_DebugTreeMap seg_tm;

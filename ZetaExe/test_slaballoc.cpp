@@ -36,6 +36,8 @@ void Check() {
         ZETA_DebugAssert(b);
     }
 
+    ZETA_DebugAssert(Zeta_DebugTreeMap_GetSize(&released_ptr_size_tm) == 0);
+
     CheckFullContains(std_allocator_.records,
                       *(std::map<size_t, size_t>*)used_ptr_size_tm.tree_map);
 }
@@ -65,8 +67,6 @@ void main1() {
     ZETA_PrintPos;
 
     ZETA_PrintVar(allocator_.width);
-
-    return;
 
     for (int _ = 0; _ < 5; ++_) {
         for (int test_i = 0; test_i < 1000; ++test_i) {

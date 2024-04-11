@@ -3,8 +3,6 @@
 
 #include "../Zeta/Allocator.h"
 
-#define RECORDS TRUE
-
 struct StdAllocator {
     std::map<size_t, size_t> records;
 };
@@ -27,7 +25,7 @@ void* StdAllocator_Allocate(void* sa_, size_t size) {
 
     void* ptr = malloc(size);
 
-#if RECORDS
+#if ZETA_IsDebug
     sa->records.insert({ ZETA_GetAddrFromPtr(ptr), size });
 #endif
 
@@ -40,7 +38,7 @@ void StdAllocator_Deallocate(void* sa_, void* ptr) {
 
     if (ptr == NULL) { return; }
 
-#if RECORDS
+#if ZETA_IsDebug
     bool_t b = sa->records.erase(ZETA_GetAddrFromPtr(ptr)) != 0;
     ZETA_DebugAssert(b);
 #endif

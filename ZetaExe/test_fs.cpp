@@ -6,10 +6,12 @@
 
 #define BLK_SIZE (512)
 
+#define FBV_NAME "./fbv_2.fbv"
+
 void main1() {
     std::fstream fs;
-    fs.open("./fbv_1.fbv", std::fstream::in | std::fstream::out |
-                               std::fstream::binary | std::fstream::trunc);
+    fs.open(FBV_NAME, std::fstream::in | std::fstream::out |
+                          std::fstream::binary | std::fstream::trunc);
 
     std::cout << fs.is_open() << "\n";
 
@@ -25,16 +27,16 @@ void main1() {
 
     fs.seekp(0, std::fstream::beg);
 
-    for (size_t i = 0; i < 512 * 64; ++i) { fs.put(0); }
+    for (size_t i = 0; i < 512 * 1024; ++i) { fs.put(0); }
 
     fs.close();
 
-    std::cout << "write to fs\n";
+    std::cout << "write to " FBV_NAME "\n";
 }
 
 void main2() {
     FileBlockVector fbv;
-    fbv.Open("./fbv_1.fbv", BLK_SIZE);
+    fbv.Open(FBV_NAME, BLK_SIZE);
 
     if (!fbv.IsOpen()) {
         std::cout << "fbv is not open\n";
@@ -48,7 +50,7 @@ void main2() {
 
 void main3() {
     FileBlockVector fbv;
-    fbv.Open("./fbv_1.fbv", BLK_SIZE);
+    fbv.Open(FBV_NAME, BLK_SIZE);
 
     if (!fbv.IsOpen()) {
         std::cout << "fbv is not open\n";
@@ -71,6 +73,6 @@ void main3() {
 }
 
 int main() {
-    main3();
+    main1();
     return 0;
 }
