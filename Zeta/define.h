@@ -58,14 +58,14 @@ typedef s32_t unichar_t;
 #define ZETA_Concat(x, y) ZETA_Concat_(x, y)
 
 #if defined(__cplusplus)
-#define ZETA_PrintVar(var)                                                   \
-    std::cout << __FILE__ ":" << ZETA_ToStr(__LINE__) "\t" #var " = " << var \
+#define ZETA_PrintVar(var)                                                     \
+    std::cout << __FILE__ ":" << ZETA_ToStr(__LINE__) "\t" #var " = " << (var) \
               << '\n';
 #else
 #define ZETA_PrintVar(var)                                     \
     printf(__FILE__ ":" ZETA_ToStr(__LINE__) "\t" #var " = "); \
                                                                \
-    _Generic(var,                                              \
+    _Generic((var),                                            \
         char: printf("%c\n", (var)),                           \
         unsigned char: printf("%X\n", (var)),                  \
         signed char: printf("%c\n", (var)),                    \
@@ -126,12 +126,13 @@ typedef s32_t unichar_t;
     if (FALSE) { ((void)(x)); } \
     ZETA_StaticAssert(TRUE)
 
-#define ZETA_Assert(cond)                                              \
-    if (cond) {                                                        \
-    } else {                                                           \
-        printf("assert at " __FILE__ ":" ZETA_ToStr(__LINE__) "\n\a"); \
-        exit(0);                                                       \
-    }                                                                  \
+#define ZETA_Assert(cond)                                            \
+    if (cond) {                                                      \
+    } else {                                                         \
+        printf("assert at " __FILE__                                 \
+               ":" ZETA_ToStr(__LINE__) "\n" ZETA_ToStr(cond) "\n"); \
+        exit(0);                                                     \
+    }                                                                \
     ZETA_StaticAssert(TRUE)
 
 #if defined(__cplusplus)

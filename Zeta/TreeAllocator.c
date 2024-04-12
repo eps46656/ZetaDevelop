@@ -210,18 +210,11 @@ void* Zeta_TreeAllocator_Allocate(void* ta_, size_t size) {
 
     Zeta_OrdRBTreeNode_Init(NULL, &m_head->sn);
 
-    size_t m_stride = ZETA_GetAddrFromPtr(r_head) - ZETA_GetAddrFromPtr(m_head);
-
-    Zeta_OrdRBTreeNode* ins_sn = FindBlock_(ta->sn_root, m_stride);
-
-    if (ins_sn == NULL) {
-        ta->sn_root = Zeta_RBTree_InsertR(
-            &btn_opr,
-            Zeta_GetMostLink(NULL, Zeta_OrdRBTreeNode_GetR, ta->sn_root),
-            &m_head->sn);
-    } else {
-        ta->sn_root = Zeta_RBTree_InsertL(&btn_opr, ins_sn, &m_head->sn);
-    }
+    ta->sn_root = Zeta_RBTree_GeneralInsertL(
+        &btn_opr, ta->sn_root,
+        FindBlock_(ta->sn_root,
+                   ZETA_GetAddrFromPtr(r_head) - ZETA_GetAddrFromPtr(m_head)),
+        &m_head->sn);
 
     return (unsigned char*)(l_head) + occupied_head_size;
 }
@@ -268,19 +261,11 @@ void Zeta_TreeAllocator_Deallocate(void* ta_, void* ptr) {
         r_head = rr_head;
     }
 
-    size_t lr_stride =
-        ZETA_GetAddrFromPtr(r_head) - ZETA_GetAddrFromPtr(l_head);
-
-    Zeta_OrdRBTreeNode* ins_sn = FindBlock_(ta->sn_root, lr_stride);
-
-    if (ins_sn == NULL) {
-        ta->sn_root = Zeta_RBTree_InsertR(
-            &btn_opr,
-            Zeta_GetMostLink(NULL, Zeta_OrdRBTreeNode_GetR, ta->sn_root),
-            &l_head->sn);
-    } else {
-        ta->sn_root = Zeta_RBTree_InsertL(&btn_opr, ins_sn, &l_head->sn);
-    }
+    ta->sn_root = Zeta_RBTree_GeneralInsertL(
+        &btn_opr, ta->sn_root,
+        FindBlock_(ta->sn_root,
+                   ZETA_GetAddrFromPtr(r_head) - ZETA_GetAddrFromPtr(l_head)),
+        &m_head->sn);
 }
 
 static void GetVacantHead_(Zeta_DebugTreeMap* dst_head_mt,
@@ -294,7 +279,10 @@ static void GetVacantHead_(Zeta_DebugTreeMap* dst_head_mt,
     Zeta_OrdRBTreeNode* sn_l = Zeta_OrdRBTreeNode_GetL(NULL, sn);
     Zeta_OrdRBTreeNode* sn_r = Zeta_OrdRBTreeNode_GetR(NULL, sn);
 
-    Zeta_DebugTreeMap_Insert(dst_head_mt, ZETA_GetAddrFromPtr(head));
+    bool_t b =
+        Zeta_DebugTreeMap_Insert(dst_head_mt, ZETA_GetAddrFromPtr(head)).b;
+
+    ZETA_DebugAssert(b);
 
     if (sn_l != NULL) {
         GetVacantHead_(dst_head_mt, GetHeadFromSN_(sn_l), lb, stride);
@@ -383,7 +371,7 @@ void Zeta_TreeAllocator_Check(void* ta_, bool_t print_state,
         size_t size =
             ZETA_GetAddrFromPtr(nxt_head_i) - ZETA_GetAddrFromPtr(data_i);
 
-        ZETA_DebugAssert(occupied_head_size <= stride);
+        ZETA_DebugAssert(occupied_head_size + ta->least_size <= stride);
         ZETA_DebugAssert(occupied_head_size + size == stride);
 
         if (IsVacant_(head_i)) {

@@ -212,29 +212,29 @@ u128_t Zeta_FindNextConMod(u128_t beg, u128_t target, u128_t mod) {
 }
 
 int Zeta_GetLSB(size_t x) {
-    if (x == 0) { return -1 };
+    if (x == 0) { return -1; }
 
-    const int table[]{ 0, 0, 1, 0, 2, 0, 1, 0, 3, 0, 1, 0, 2, 0, 1, 0 };
+    const int table[] = { 0, 0, 1, 0, 2, 0, 1, 0, 3, 0, 1, 0, 2, 0, 1, 0 };
 
-    int ret{ 0 };
+    int ret = 0;
 
     for (; x % 256 == 0; x /= 256) { ret += 8; }
 
     x %= 256;
 
-    return ret + table[x / 16] + table[x % 16];
+    return ret + (x % 16 == 0 ? (4 + table[x / 16]) : table[x % 16]);
 }
 
 int Zeta_GetMSB(size_t x) {
-    if (x == 0) { return -1 };
+    if (x == 0) { return -1; }
 
-    const int table[]{ 0, 0, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 3, 3 };
+    const int table[] = { 0, 0, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 3, 3 };
 
-    int ret{ 0 };
+    int ret = 0;
 
     for (; 256 <= x; x /= 256) { ret += 8; }
 
-    return ret + table[x / 16] + table[x % 16];
+    return ret + (x < 16 ? table[x % 16] : (4 + table[x / 16]));
 }
 
 void* Zeta_GetMostLink(void* context, void* (*GetLink)(void* context, void* n),

@@ -2,129 +2,11 @@
 
 #include "Allocator.h"
 #include "BlockVector.h"
+#include "DebugPipe.h"
 #include "OrdLinkedListNode.h"
 #include "OrdRBTreeNode.h"
 
 ZETA_ExternC_Beg;
-
-/*
-
-
-UNode
-    OrdLinkedListNode al_head;
-    OrdLinkedListNode ext_al_head;
-    map<int, XNode*> at;
-
-CNode
-    int blk_idx;
-    list<UNode*> u_nodes;
-    int held_cnt;
-    uintptr_t data; // dirty bit
-
-XNode
-    OrdLinkedListNode al_node;
-    uintptr_t c_node; // al or ext_al
-
-Manager:
-    map<int, CNode*> blk_idx_to_c_node; // blk_idx_to_all_c_nodes;
-    set<CNode*> unheld_c_nodes;
-
-RotateFromHeldToUnheld(u_node):
-    target_x_node <- find the least x_node in u_node->al_head
-
-    extract target_x_node from u_node->al_head
-
-    set target_x_node->c_node lsb
-
-    push target_x_node into u_node->ext_al_head right
-
-    target_c_node <- x_node->c_node
-
-    dec target_c_node->held_cnt
-
-    if target_c_node->held_cnt == 0:
-        insert target_c_node into unheld_ct
-
-RotateFromUnheldToHeld(u_node):
-    target_x_node <- find the first x_node in u_node->ext_al_head
-
-    extract target_x_node from u_node->ext_al_head
-
-    unset target_x_node->c_node lsb
-
-    push target_x_node into u_node->al_head left
-
-    target_c_node <- x_node->c_node
-
-    inc target_c_node->held_cnt
-
-    if target_c_node->held_cnt == 1:
-        extract target_c_node from unheld_ct
-
-
-Ref(u_node, c_node):
-    pass
-
-Unref(x_node):
-    u_node <- from x_node
-    c_node <- from x_node
-
-    extract x_node from u_node
-    extract x_node from c_node
-
-    if x_node is in u_node->al:
-        --c_node->held_cnt;
-
-        if c_node->held_cnt == 0:
-            move c_node from helf_cl to unheld_cl
-    else
-
-Cache(u_node, blk_idx):
-    c_node <- allocate c_node from c_node_allocator
-
-    // c_node->data <- allocate
-
-
-
-
-F(u_node, blk_idx):
-    if blk_idx is in u_node->al:
-        x_node <= u_node->at[blk_idx]
-        extract x_node from u_node->al
-        push x_node in the front of u_node->al
-        return
-
-    if blk_idx is in ct:
-        c_node <= ct[blk_idx]
-        Ref_(u_node, c_node);
-        return
-
-    target_c_node
-
-    if length of cl does not reach max:
-        target_c_node <= AllocateCNode_()
-        // Init(target_c_node)
-    else if ext_cl is empty:
-        target_c_node <= the last of u_node->al
-        UnRef_(u_node, target_c_node)
-    else:
-        target_c_node <= random select from ext_cl
-
-    target_c_node->data <= block_vec[blk_idx]
-*/
-
-/*
-
-0: all
-1: the first user
-2: the second user
-
-
-M: the Mth user
-
-M + 1
-
-*/
 
 typedef struct Zeta_LRUCacheManager_UNode Zeta_LRUCacheManager_UNode;
 
@@ -149,7 +31,7 @@ struct Zeta_LRUCacheManager_CNode {
     Zeta_OrdRBTreeNode ct_node;
 
     /*
-        if refered == 0:
+        if refered:
             cl_node links to other c_node
             bl_head must be empty.
         else:
@@ -193,8 +75,10 @@ struct Zeta_LRUCacheManager {
 
     Zeta_OrdRBTreeNode* ct_root;
 
-    Zeta_OrdLinkedListNode* cl_head;
+    Zeta_OrdLinkedListNode cl_head;
 };
+
+void Zeta_LRUCacheManager_Init(void* lrucm);
 
 void* Zeta_LRUCacheManager_LogIn(void* lrucm, size_t max_caches_num);
 
@@ -210,5 +94,9 @@ void Zeta_LRUCacheManager_WriteBlock(void* lrucm, void* u_node, size_t blk_idx,
                                      byte_t* data);
 
 void Zeta_LRUCacheManager_Flush(void* lrucm, void* u_node);
+
+void Zeta_LRUCacheManager_FlushAll(void* lrucm);
+
+void Zeta_LRUCacheManager_Check(void* lrucm, Zeta_DebugPipe* u_nodes);
 
 ZETA_ExternC_End;

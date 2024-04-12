@@ -47,7 +47,6 @@ size_t Zeta_BinTree_GetSize(Zeta_BinTreeNodeOperator const* btn_opr, void* n) {
     void* context = btn_opr->context;
 
     size_t (*GetAccSize)(void* context, void* n) = btn_opr->GetAccSize;
-
     ZETA_DebugAssert(GetAccSize != NULL);
 
     size_t n_acc_size = GetAccSize(context, n);
@@ -68,6 +67,8 @@ void Zeta_BinTree_SetSize(Zeta_BinTreeNodeOperator const* btn_opr, void* n,
                           size_t size) {
     ZETA_DebugAssert(btn_opr != NULL);
     ZETA_DebugAssert(n != NULL);
+
+    ZETA_DebugAssert(btn_opr->GetAccSize != NULL);
 
     AddDiffSize_(btn_opr, n, size - Zeta_BinTree_GetSize(btn_opr, n));
 }

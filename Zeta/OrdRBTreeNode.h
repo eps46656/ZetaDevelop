@@ -7,7 +7,7 @@ ZETA_ExternC_Beg;
 typedef struct Zeta_OrdRBTreeNode Zeta_OrdRBTreeNode;
 
 struct Zeta_OrdRBTreeNode {
-    void* p;
+    uintptr_t p;
     Zeta_OrdRBTreeNode* l;
     Zeta_OrdRBTreeNode* r;
 } __attribute__((aligned(2)));

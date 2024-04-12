@@ -8,7 +8,11 @@
 #define Insert_(D, E)                                                          \
     ZETA_DebugAssert(btn_opr != NULL);                                         \
                                                                                \
-    ZETA_DebugAssert(m != NULL);                                               \
+    ZETA_DebugAssert(pos != n);                                                \
+    ZETA_DebugAssert(n != NULL);                                               \
+                                                                               \
+    void* m = n;                                                               \
+    n = pos;                                                                   \
                                                                                \
     void* context = btn_opr->context;                                          \
                                                                                \
@@ -111,14 +115,36 @@
                                                                                \
     return Zeta_GetMostLink(context, GetP, root);
 
-void* Zeta_RBTree_InsertL(Zeta_BinTreeNodeOperator const* btn_opr, void* n,
-                          void* m) {
+void* Zeta_RBTree_InsertL(Zeta_BinTreeNodeOperator const* btn_opr, void* pos,
+                          void* n) {
     Insert_(L, R);
 }
 
-void* Zeta_RBTree_InsertR(Zeta_BinTreeNodeOperator const* btn_opr, void* n,
-                          void* m) {
+void* Zeta_RBTree_InsertR(Zeta_BinTreeNodeOperator const* btn_opr, void* pos,
+                          void* n) {
     Insert_(R, L);
+}
+
+#define GeneralInsert_(D, E)                                              \
+    ZETA_DebugAssert(btn_opr != NULL);                                    \
+                                                                          \
+    if (pos == NULL) {                                                    \
+        return Zeta_RBTree_Insert##E(                                     \
+            btn_opr, Zeta_GetMostLink(NULL, btn_opr->Get##E, root), n);   \
+    }                                                                     \
+                                                                          \
+    ZETA_DebugAssert(root == Zeta_GetMostLink(NULL, btn_opr->GetP, pos)); \
+                                                                          \
+    return Zeta_RBTree_Insert##D(btn_opr, pos, n);
+
+void* Zeta_RBTree_GeneralInsertL(Zeta_BinTreeNodeOperator const* btn_opr,
+                                 void* root, void* pos, void* n) {
+    GeneralInsert_(L, R);
+}
+
+void* Zeta_RBTree_GeneralInsertR(Zeta_BinTreeNodeOperator const* btn_opr,
+                                 void* root, void* pos, void* n) {
+    GeneralInsert_(R, L);
 }
 
 static void ExtractBalance_(Zeta_BinTreeNodeOperator const* btn_opr, void* n) {
@@ -201,10 +227,12 @@ static void ExtractBalance_(Zeta_BinTreeNodeOperator const* btn_opr, void* n) {
     }
 }
 
-void* Zeta_RBTree_Extract(Zeta_BinTreeNodeOperator const* btn_opr, void* n) {
+void* Zeta_RBTree_Extract(Zeta_BinTreeNodeOperator const* btn_opr, void* pos) {
     ZETA_DebugAssert(btn_opr != NULL);
 
-    ZETA_DebugAssert(n != NULL);
+    ZETA_DebugAssert(pos != NULL);
+
+    void* n = pos;
 
     void* context = btn_opr->context;
 
@@ -272,7 +300,8 @@ void* Zeta_RBTree_Extract(Zeta_BinTreeNodeOperator const* btn_opr, void* n) {
     return root;
 }
 
-static size_t Check_(Zeta_BinTreeNodeOperator const* btn_opr, void* n) {
+static size_t Check_(Zeta_BinTreeNodeOperator const* btn_opr,
+                     Zeta_DebugPipe* dst_ns, void* n) {
     if (n == NULL) { return 0; }
 
     void* context = btn_opr->context;
@@ -283,8 +312,11 @@ static size_t Check_(Zeta_BinTreeNodeOperator const* btn_opr, void* n) {
     if (nl != NULL) { ZETA_Assert(btn_opr->GetP(context, nl) == n); }
     if (nr != NULL) { ZETA_Assert(btn_opr->GetP(context, nr) == n); }
 
-    size_t lbh = Check_(btn_opr, nl);
-    size_t rbh = Check_(btn_opr, nr);
+    size_t lbh = Check_(btn_opr, dst_ns, nl);
+
+    if (dst_ns != NULL) { Zeta_DebugPipe_Push(dst_ns, ZETA_GetAddrFromPtr(n)); }
+
+    size_t rbh = Check_(btn_opr, dst_ns, nr);
 
     ZETA_Assert(lbh == rbh);
 
@@ -298,16 +330,17 @@ static size_t Check_(Zeta_BinTreeNodeOperator const* btn_opr, void* n) {
     return lbh;
 }
 
-void Zeta_RBTree_Check(Zeta_BinTreeNodeOperator const* btn_opr, void* n) {
+void Zeta_RBTree_Check(Zeta_BinTreeNodeOperator const* btn_opr,
+                       Zeta_DebugPipe* dst_ns, void* root) {
     ZETA_DebugAssert(btn_opr != NULL);
     ZETA_DebugAssert(btn_opr->GetP != NULL);
     ZETA_DebugAssert(btn_opr->GetL != NULL);
     ZETA_DebugAssert(btn_opr->GetR != NULL);
     ZETA_DebugAssert(btn_opr->GetColor != NULL);
 
-    if (n == NULL) { return; }
+    if (root == NULL) { return; }
 
-    ZETA_DebugAssert(btn_opr->GetP(btn_opr->context, n) == NULL);
+    ZETA_DebugAssert(btn_opr->GetP(btn_opr->context, root) == NULL);
 
-    Check_(btn_opr, n);
+    Check_(btn_opr, dst_ns, root);
 }

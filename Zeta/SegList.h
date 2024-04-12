@@ -12,6 +12,8 @@ typedef struct Zeta_SegList_Node Zeta_SegList_Node;
 struct Zeta_SegList_Node {
     char padding[8];
     Zeta_OrdLinkedListNode n;
+    size_t offset;
+    size_t size;
     void* seg;
 };
 
@@ -19,7 +21,7 @@ typedef struct Zeta_SegList_Cursor Zeta_SegList_Cursor;
 
 struct Zeta_SegList_Cursor {
     size_t idx;
-    Zeta_OrdCntRBTreeNode* n;
+    Zeta_OrdLinkedListNode* n;
     size_t seg_idx;
     void* ele;
 };
@@ -55,6 +57,8 @@ void* Zeta_SegList_PeekL(void* sl);
 
 void* Zeta_SegList_PeekR(void* sl);
 
+void* Zeta_SegList_Access(void* sl, void* dst_cursor, size_t idx);
+
 void* Zeta_SegList_PushL(void* sl);
 
 void* Zeta_SegList_PushR(void* sl);
@@ -62,6 +66,8 @@ void* Zeta_SegList_PushR(void* sl);
 void Zeta_SegList_PopL(void* sl);
 
 void Zeta_SegList_PopR(void* sl);
+
+void* Zeta_SegList_Erase(void* sl, void* dst_cursor, size_t idx);
 
 void Zeta_SegList_Check(void* sl, Zeta_DebugTreeMap* dst_node_tm,
                         Zeta_DebugTreeMap* dst_seg_tm);

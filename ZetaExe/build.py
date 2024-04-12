@@ -1410,6 +1410,7 @@ def AddDeps(builder):
         {
             f"{File}",
             f"{ZetaDir}/BinTree.o",
+            f"{ZetaDir}/DebugPipe.o",
             f"{ZetaDir}/RBTree.o",
             f"{ZetaDir}/OrdCntRBTreeNode.o",
             f"{ZetaDir}/utils.o",
@@ -1421,6 +1422,7 @@ def AddDeps(builder):
             f"--output {ZetaExeDir}/test_cntrbt.exe",
             *cppargs,
             f"{ZetaDir}/BinTree.o",
+            f"{ZetaDir}/DebugPipe.o",
             f"{ZetaDir}/RBTree.o",
             f"{ZetaDir}/OrdCntRBTreeNode.o",
             f"{ZetaDir}/utils.o",

@@ -80,7 +80,7 @@ void CompareRL() {
 }
 
 void Check() {
-    Zeta_RBTree_Check(&btn_opr, root);
+    Zeta_RBTree_Check(&btn_opr, NULL, root);
     CompareLR();
     CompareRL();
 }

@@ -1,5 +1,11 @@
 #include "MultiLevelVector.h"
 
+typedef u64_t mask_t;
+
+ZETA_StaticAssert(alignof(void*) % alignof(mask_t) == 0);
+
+#define mask_width (64)
+
 static void CheckIdxes_(void* mlv_, size_t* idxes) {
     Zeta_MultiLevelVector* mlv = mlv_;
     ZETA_DebugAssert(mlv != NULL);
@@ -16,6 +22,116 @@ static void CheckIdxes_(void* mlv_, size_t* idxes) {
 
         ZETA_DebugAssert(idx < branch_num);
     }
+}
+
+static int FindLSB_(mask_t x) {
+    if (x == 0) { return -1; }
+
+    const int table[] = { 0, 0, 1, 0, 2, 0, 1, 0, 3, 0, 1, 0, 2, 0, 1, 0 };
+
+    int ret = 0;
+
+    for (; x % 256 == 0; x /= 256) { ret += 8; }
+
+    x %= 256;
+
+    return ret + (x < 16 ? table[x % 16] : (4 + table[x / 16]));
+}
+
+static int FindMSB_(mask_t x) {
+    if (x == 0) { return -1; }
+
+    const int table[] = { 0, 0, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 3, 3 };
+
+    int ret = 0;
+
+    for (; 256 <= x; x /= 256) { ret += 8; }
+
+    return ret + (x < 16 ? table[x % 16] : (4 + table[x / 16]));
+}
+
+static bool_t Test_(void* page, size_t branch_num, size_t idx) {
+    mask_t mask = *((mask_t*)((void**)page + branch_num) + idx / mask_width);
+    return (mask & ((mask_t)1 << (idx % mask_width))) != 0;
+}
+
+static int FindPrev_(void* page, size_t branch_num, size_t idx) {
+    if (idx == (size_t)(-1)) { return -1; }
+
+    int i = idx / mask_width;
+    int j = idx % mask_width;
+
+    mask_t* mask = (mask_t*)((void**)page + branch_num) + i;
+
+    if (j < mask_width - 1) {
+        int j_ = mask_width - j - 1;
+        int k = FindMSB_(*mask << j_ >> j_);
+        if (0 <= k) { return mask_width * i + k; }
+
+        --mask;
+        --i;
+    }
+
+    for (; 0 <= i; --i, --mask) {
+        int k = FindMSB_(*mask);
+        if (0 <= k) { return mask_width * i + k; }
+    }
+
+    return -1;
+}
+
+static int FindNext_(void* page, size_t branch_num, size_t idx) {
+    if (idx == branch_num) { return -1; }
+
+    int i = idx / mask_width;
+    int j = idx % mask_width;
+
+    mask_t* mask = (mask_t*)((void**)page + branch_num) + i;
+
+    if (0 < j) {
+        int k = FindLSB_(*mask >> j);
+        if (0 <= k) { return mask_width * i + k; }
+
+        ++mask;
+        ++i;
+    }
+
+    for (int i_end = (branch_num - 1) / mask_width; i <= i_end; ++i, ++mask) {
+        int k = FindLSB_(*mask);
+        if (0 <= k) { return mask_width * i + k; }
+    }
+
+    return -1;
+}
+
+static void SetMask_(void* page, size_t branch_num, size_t idx) {
+    int i = idx / mask_width;
+    int j = idx % mask_width;
+
+    mask_t* mask = (mask_t*)((void**)page + branch_num) + i;
+
+    *mask |= (mask_t)1 << j;
+}
+
+static void UnsetMask_(void* page, size_t branch_num, size_t idx) {
+    int i = idx / mask_width;
+    int j = idx % mask_width;
+
+    mask_t* mask = (mask_t*)((void**)page + branch_num) + i;
+
+    *mask &= ~((mask_t)1 << j);
+}
+
+static bool_t IsEmpty_(void* page, size_t branch_num) {
+    unsigned int k = (branch_num + mask_width - 1) / mask_width;
+
+    mask_t* mask = (mask_t*)((void**)page + branch_num);
+
+    for (unsigned int i = 0; i < k; ++i) {
+        if (mask[i] != 0) { return FALSE; }
+    }
+
+    return TRUE;
 }
 
 void Zeta_MultiLevelVector_Init(void* mlv_) {
@@ -118,108 +234,13 @@ void** Zeta_MultiLevelVector_FindLastNotNull(void* mlv_, size_t* idxes) {
     return Zeta_MultiLevelVector_FindPrevNotNull(mlv, idxes, TRUE);
 }
 
-static void** FindPrevNotNull_(int level, size_t const* branch_nums,
-                               size_t* idxes, void* page) {
-    size_t branch_num = branch_nums[0];
-
-    if (level == 1) {
-        for (size_t idx = idxes[0] + 1; 0 < idx--;) {
-            if (((void**)page)[idx] != NULL) {
-                idxes[0] = idx;
-                return (void**)page + idx;
-            }
-        }
-
-        idxes[0] = branch_num - 1;
-
-        return NULL;
-    }
-
-    if (((void**)page)[idxes[0]] == NULL) {
-        for (int level_i = 1; level_i < level; ++level_i) {
-            idxes[level_i] = branch_nums[level_i] - 1;
-        }
-
-        if (idxes[0] == 0) {
-            idxes[0] = branch_nums[0] - 1;
-            return NULL;
-        }
-
-        --idxes[0];
-    }
-
-    for (size_t idx = idxes[0] + 1; 0 < idx--;) {
-        void* subpage = ((void**)page)[idx];
-        if (subpage == NULL) { continue; }
-
-        void** ret =
-            FindPrevNotNull_(level - 1, branch_nums + 1, idxes + 1, subpage);
-
-        if (ret != NULL) {
-            idxes[0] = idx;
-            return ret;
-        }
-    }
-
-    idxes[0] = branch_num - 1;
-
-    return NULL;
-}
-
-static void** FindNextNotNull_(int level, size_t const* branch_nums,
-                               size_t* idxes, void* page) {
-    size_t branch_num = branch_nums[0];
-
-    if (level == 1) {
-        for (size_t idx = idxes[0]; idx < branch_num; ++idx) {
-            if (((void**)page)[idx] != NULL) {
-                idxes[0] = idx;
-                return (void**)page + idx;
-            }
-        }
-
-        idxes[0] = 0;
-
-        return NULL;
-    }
-
-    if (((void**)page)[idxes[0]] == NULL) {
-        for (int level_i = 1; level_i < level; ++level_i) {
-            idxes[level_i] = 0;
-        }
-
-        if (idxes[0] == branch_nums[0] - 1) {
-            idxes[0] = 0;
-            return NULL;
-        }
-
-        ++idxes[0];
-    }
-
-    for (size_t idx = idxes[0]; idx < branch_num; ++idx) {
-        void* subpage = ((void**)page)[idx];
-        if (subpage == NULL) { continue; }
-
-        void** ret =
-            FindNextNotNull_(level - 1, branch_nums + 1, idxes + 1, subpage);
-
-        if (ret != NULL) {
-            idxes[0] = idx;
-            return ret;
-        }
-    }
-
-    idxes[0] = 0;
-
-    return NULL;
-}
-
 void** Zeta_MultiLevelVector_FindPrevNotNull(void* mlv_, size_t* idxes,
                                              bool_t included) {
     CheckIdxes_(mlv_, idxes);
 
     Zeta_MultiLevelVector* mlv = mlv_;
     int level = mlv->level;
+    size_t* branch_nums = mlv->branch_nums;
 
     if (!included) {
         for (int level_i = level - 1; 0 <= level_i; --level_i) {
@@ -228,7 +249,7 @@ void** Zeta_MultiLevelVector_FindPrevNotNull(void* mlv_, size_t* idxes,
                 goto L1;
             }
 
-            idxes[level_i] = mlv->branch_nums[level_i] - 1;
+            idxes[level_i] = branch_nums[level_i] - 1;
         }
 
         return NULL;
@@ -236,15 +257,61 @@ void** Zeta_MultiLevelVector_FindPrevNotNull(void* mlv_, size_t* idxes,
 
 L1:;
 
-    void* page = mlv->root;
+    void* root = mlv->root;
 
-    if (page != NULL) {
-        return FindPrevNotNull_(level, mlv->branch_nums, idxes, page);
+    if (root == NULL) {
+        for (int level_i = 0; level_i < level; ++level_i) {
+            idxes[level_i] = 0;
+        }
+
+        return NULL;
     }
 
-    for (int level_i = 0; level_i < level; ++level_i) { idxes[level_i] = 0; }
+    void* pages[ZETA_MultiLevelVector_max_level];
 
-    return NULL;
+    int level_i = 0;
+    void* page = root;
+
+    for (; level_i < level; ++level_i) {
+        pages[level_i] = page;
+        if (!Test_(page, branch_nums[level_i], idxes[level_i])) { break; }
+        page = ((void**)page)[idxes[level_i]];
+    }
+
+    if (level_i == level) { return page; }
+
+    for (; 0 <= level_i; --level_i) {
+        page = pages[level_i];
+
+        int found_idx =
+            FindPrev_(page, branch_nums[level_i], idxes[level_i] - 1);
+
+        if (found_idx != -1) {
+            idxes[level_i] = found_idx;
+            page = ((void**)page)[found_idx];
+            ++level_i;
+            break;
+        }
+    }
+
+    if (level_i == -1) {
+        for (level_i = 0; level_i < level; ++level_i) {
+            idxes[level_i] = branch_nums[level_i] - 1;
+        }
+
+        return NULL;
+    }
+
+    for (; level_i < level; ++level_i) {
+        int found_idx =
+            FindPrev_(page, branch_nums[level_i], branch_nums[level_i] - 1);
+        ZETA_DebugAssert(found_idx != -1);
+
+        idxes[level_i] = found_idx;
+        page = ((void**)page)[found_idx];
+    }
+
+    return page;
 }
 
 void** Zeta_MultiLevelVector_FindNextNotNull(void* mlv_, size_t* idxes,
@@ -253,11 +320,12 @@ void** Zeta_MultiLevelVector_FindNextNotNull(void* mlv_, size_t* idxes,
 
     Zeta_MultiLevelVector* mlv = mlv_;
     int level = mlv->level;
+    size_t* branch_nums = mlv->branch_nums;
 
     if (!included) {
         for (int level_i = level - 1; 0 <= level_i; --level_i) {
             ++idxes[level_i];
-            if (idxes[level_i] < mlv->branch_nums[level_i]) { goto L1; }
+            if (idxes[level_i] < branch_nums[level_i]) { goto L1; }
             idxes[level_i] = 0;
         }
 
@@ -266,23 +334,72 @@ void** Zeta_MultiLevelVector_FindNextNotNull(void* mlv_, size_t* idxes,
 
 L1:;
 
-    void* page = mlv->root;
+    void* root = mlv->root;
 
-    if (page != NULL) {
-        return FindNextNotNull_(level, mlv->branch_nums, idxes, page);
+    if (root == NULL) {
+        for (int level_i = 0; level_i < level; ++level_i) {
+            idxes[level_i] = 0;
+        }
+
+        return NULL;
     }
 
-    for (int level_i = 0; level_i < level; ++level_i) { idxes[level_i] = 0; }
+    void* pages[ZETA_MultiLevelVector_max_level];
 
-    return NULL;
+    int level_i = 0;
+    void* page = root;
+
+    for (; level_i < level; ++level_i) {
+        pages[level_i] = page;
+        if (!Test_(page, branch_nums[level_i], idxes[level_i])) { break; }
+        page = ((void**)page)[idxes[level_i]];
+    }
+
+    if (level_i == level) { return page; }
+
+    for (; 0 <= level_i; --level_i) {
+        page = pages[level_i];
+
+        int found_idx =
+            FindNext_(page, branch_nums[level_i], idxes[level_i] + 1);
+
+        if (found_idx != -1) {
+            idxes[level_i] = found_idx;
+            page = ((void**)page)[found_idx];
+            ++level_i;
+            break;
+        }
+    }
+
+    if (level_i == -1) {
+        for (level_i = 0; level_i < level; ++level_i) { idxes[level_i] = 0; }
+        return NULL;
+    }
+
+    for (; level_i < level; ++level_i) {
+        int found_idx = FindNext_(page, branch_nums[level_i], 0);
+        ZETA_DebugAssert(found_idx != -1);
+
+        idxes[level_i] = found_idx;
+        page = ((void**)page)[found_idx];
+    }
+
+    return page;
 }
 
 void* AllocatePage_(size_t branch_num, void* allocator_context,
                     void* (*Allocate)(void* context, size_t size)) {
-    void** ret = Allocate(allocator_context, sizeof(void*) * branch_num);
+    size_t k = (branch_num + mask_width - 1) / mask_width;
+
+    void** ret = Allocate(allocator_context,
+                          sizeof(void*) * branch_num + sizeof(mask_t) * k);
     ZETA_DebugAssert(ret != NULL);
 
     for (size_t idx = 0; idx < branch_num; ++idx) { ret[idx] = NULL; }
+
+    mask_t* mask = (mask_t*)(ret + branch_num);
+
+    for (size_t i = 0; i < k; ++i) { mask[i] = 0; }
 
     return ret;
 }
@@ -292,6 +409,7 @@ void** Zeta_MultiLevelVector_Insert(void* mlv_, size_t* idxes) {
 
     Zeta_MultiLevelVector* mlv = mlv_;
     int level = mlv->level;
+    size_t* branch_nums = mlv->branch_nums;
 
     Zeta_Allocator* allocator = mlv->allocator;
     ZETA_DebugAssert(allocator != NULL);
@@ -302,13 +420,14 @@ void** Zeta_MultiLevelVector_Insert(void* mlv_, size_t* idxes) {
     ZETA_DebugAssert(Allocate != NULL);
 
     if (mlv->root == NULL) {
-        mlv->root =
-            AllocatePage_(mlv->branch_nums[0], allocator_context, Allocate);
+        mlv->root = AllocatePage_(branch_nums[0], allocator_context, Allocate);
     }
 
     void* page = mlv->root;
 
     for (int level_i = 0; level_i < level - 1; ++level_i) {
+        SetMask_(page, branch_nums[level_i], idxes[level_i]);
+
         void** subpage = (void**)page + idxes[level_i];
 
         if (*subpage == NULL) {
@@ -319,6 +438,8 @@ void** Zeta_MultiLevelVector_Insert(void* mlv_, size_t* idxes) {
         page = *subpage;
     }
 
+    SetMask_(page, branch_nums[level - 1], idxes[level - 1]);
+
     return (void**)page + idxes[level - 1];
 }
 
@@ -327,6 +448,7 @@ void Zeta_MultiLevelVector_Erase(void* mlv_, size_t* idxes) {
 
     Zeta_MultiLevelVector* mlv = mlv_;
     int level = mlv->level;
+    size_t* branch_nums = mlv->branch_nums;
 
     Zeta_Allocator* allocator = mlv->allocator;
     ZETA_DebugAssert(allocator != NULL);
@@ -336,25 +458,21 @@ void Zeta_MultiLevelVector_Erase(void* mlv_, size_t* idxes) {
     void (*Deallocate)(void* context, void* ptr) = allocator->Deallocate;
     ZETA_DebugAssert(Deallocate != NULL);
 
-    void* n = mlv->root;
+    void* page = mlv->root;
+    if (page == NULL) { return; }
+
     void* pages[ZETA_MultiLevelVector_max_level];
 
     for (int level_i = 0; level_i < level; ++level_i) {
-        if (n == NULL) { return; }
-        pages[level_i] = n;
-        n = ((void**)n)[idxes[level_i]];
+        pages[level_i] = page;
+        if (!Test_(page, branch_nums[level_i], idxes[level_i])) { return; }
+        page = ((void**)page)[idxes[level_i]];
     }
 
     for (int level_i = level - 1; 0 <= level_i; --level_i) {
         void* page = pages[level_i];
-        ((void**)page)[idxes[level_i]] = NULL;
-
-        size_t branch_num = mlv->branch_nums[level_i];
-
-        for (size_t idx = 0; idx < branch_num; ++idx) {
-            if (((void**)page)[idx] != NULL) { return; }
-        }
-
+        UnsetMask_(page, branch_nums[level_i], idxes[level_i]);
+        if (!IsEmpty_(page, branch_nums[level_i])) { return; }
         Deallocate(allocator_context, page);
     }
 

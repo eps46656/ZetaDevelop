@@ -13,7 +13,18 @@ ZETA_ExternC_Beg;
 /**
  * The maximum branch number of each level.
  */
-#define ZETA_MultiLevelVector_branch_num_max 4096
+#define ZETA_MultiLevelVector_branch_num_max \
+    ZETA_GetRangeMax(Zeta_MultiLevelVector_idx_t)
+
+typedef struct Zeta_MultiLevelVector_idx_t unsigned short;
+
+typedef struct Zeta_MultiLevelVector_Cursor Zeta_MultiLevelVector_Cursor;
+
+struct Zeta_MultiLevelVector_Cursor {
+    size_t idx;
+    unsigned short idxes[ZETA_MultiLevelVector_max_level];
+    void** ele;
+};
 
 typedef struct Zeta_MultiLevelVector Zeta_MultiLevelVector;
 
@@ -23,7 +34,7 @@ struct Zeta_MultiLevelVector {
 
     void* root;
 
-    Zeta_Allocator allocator;
+    Zeta_Allocator* allocator;
 };
 
 /**
@@ -45,21 +56,21 @@ size_t Zeta_MultiLevelVector_GetCapacity(void* mlv);
  * @brief Get the reference of target entry by indexes.
  *
  * @param mlv The target mlv.
- * @param idxes The indexes of target entry in each level.
+ * @param idx The index of target entry in each level.
  *
  * @return The reference of target entry. If the it is not inserted, return
  * NULL.
  */
-void** Zeta_MultiLevelVector_Access(void* mlv, size_t* idxes);
+void** Zeta_MultiLevelVector_Access(void* mlv, void* dst_cursor, size_t idx);
 
-void** Zeta_MultiLevelVector_FindFirstNotNull(void* mlv, size_t* idxes);
+void** Zeta_MultiLevelVector_FindFirstNotNull(void* mlv, void* dst_cursor);
 
-void** Zeta_MultiLevelVector_FindLastNotNull(void* mlv, size_t* idxes);
+void** Zeta_MultiLevelVector_FindLastNotNull(void* mlv, void* dst_cursor);
 
-void** Zeta_MultiLevelVector_FindPrevNotNull(void* mlv, size_t* idxes,
+void** Zeta_MultiLevelVector_FindPrevNotNull(void* mlv, void* cursor,
                                              bool_t included);
 
-void** Zeta_MultiLevelVector_FindNextNotNull(void* mlv, size_t* idxes,
+void** Zeta_MultiLevelVector_FindNextNotNull(void* mlv, void* cursor,
                                              bool_t included);
 
 /**

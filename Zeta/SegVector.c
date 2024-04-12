@@ -279,20 +279,18 @@ void* Zeta_SegVector_FindFirst(void* sv_, void* dst_cursor_, void* context,
         Zeta_SegVector_Node* node =
             ZETA_GetStructFromMember(Zeta_SegVector_Node, n, n);
 
-        size_t n_size = node->size;
-
         cv.offset = node->offset;
-        cv.size = n_size;
+        cv.size = node->size;
         cv.data = node->seg;
 
-        void* last_ele = Zeta_CircularVector_Access(&cv, NULL, n_size - 1);
+        void* last_ele = Zeta_CircularVector_Access(&cv, NULL, cv.size - 1);
 
         if (Compare(context, last_ele)) {
             first_pos_base_idx = base + nl_acc_size;
             first_pos_n = n;
             n = nl;
         } else {
-            base += nl_acc_size + n_size;
+            base += nl_acc_size + cv.size;
             n = nr;
         }
     }

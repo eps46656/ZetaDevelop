@@ -399,6 +399,40 @@ def AddDeps(builder):
     )
 
     builder.Add(
+        f"{ZetaDir}/DebugPipe.h",
+        {
+            f"{File}",
+            f"{ZetaDir}/define.h",
+        },
+        None
+    )
+
+    builder.Add(
+        f"{ZetaDir}/DebugPipe.cpp",
+        {
+            f"{File}",
+            f"{ZetaDir}/DebugPipe.h",
+        },
+        None
+    )
+
+    builder.Add(
+        f"{ZetaDir}/DebugPipe.o",
+        {
+            f"{File}",
+            f"{ZetaDir}/DebugPipe.cpp",
+        },
+        lambda : os.system(" ".join([
+            cppc,
+            f"--output {ZetaDir}/DebugPipe.o",
+            *cppargs,
+            f"-c",
+            f"-fPIC",
+            f"{ZetaDir}/DebugPipe.cpp",
+        ]))
+    )
+
+    builder.Add(
         f"{ZetaDir}/DebugTreeMap.h",
         {
             f"{File}",
@@ -549,6 +583,73 @@ def AddDeps(builder):
             f"-c",
             *cargs,
             f"{ZetaDir}/DiskPartMBR.c",
+        ]))
+    )
+
+    builder.Add(
+        f"{ZetaDir}/DummyBlockVector.h",
+        {
+            f"{File}",
+            f"{ZetaDir}/BlockVector.h",
+        },
+        None
+    )
+
+    builder.Add(
+        f"{ZetaDir}/DummyBlockVector.c",
+        {
+            f"{File}",
+            f"{ZetaDir}/DummyBlockVector.h",
+            f"{ZetaDir}/utils.h",
+        },
+        None
+    )
+
+    builder.Add(
+        f"{ZetaDir}/DummyBlockVector.o",
+        {
+            f"{File}",
+            f"{ZetaDir}/DummyBlockVector.c",
+        },
+        lambda : os.system(" ".join([
+            cc,
+            f"--output {ZetaDir}/DummyBlockVector.o",
+            f"-c",
+            *cargs,
+            f"{ZetaDir}/DummyBlockVector.c",
+        ]))
+    )
+
+    builder.Add(
+        f"{ZetaDir}/DummyCacheManager.h",
+        {
+            f"{File}",
+            f"{ZetaDir}/BlockVector.h",
+        },
+        None
+    )
+
+    builder.Add(
+        f"{ZetaDir}/DummyCacheManager.c",
+        {
+            f"{File}",
+            f"{ZetaDir}/DummyCacheManager.h",
+        },
+        None
+    )
+
+    builder.Add(
+        f"{ZetaDir}/DummyCacheManager.o",
+        {
+            f"{File}",
+            f"{ZetaDir}/DummyCacheManager.c",
+        },
+        lambda : os.system(" ".join([
+            cc,
+            f"--output {ZetaDir}/DummyCacheManager.o",
+            f"-c",
+            *cargs,
+            f"{ZetaDir}/DummyCacheManager.c",
         ]))
     )
 
@@ -1021,7 +1122,6 @@ def AddDeps(builder):
             f"{ZetaDir}/Algorithm.h",
             f"{ZetaDir}/DebugTreeMap.h",
             f"{ZetaDir}/RBTree.h",
-            f"{ZetaDir}/RawVector.h",
             f"{ZetaDir}/utils.h",
         },
         None
@@ -1175,38 +1275,6 @@ def AddDeps(builder):
     )
 
     builder.Add(
-        f"{ZetaDir}/RawVector.h",
-        {
-            f"{File}",
-        },
-        None
-    )
-
-    builder.Add(
-        f"{ZetaDir}/RawVector.c",
-        {
-            f"{File}",
-            f"{ZetaDir}/RawVector.h",
-        },
-        None
-    )
-
-    builder.Add(
-        f"{ZetaDir}/RawVector.o",
-        {
-            f"{File}",
-            f"{ZetaDir}/RawVector.c",
-        },
-        lambda : os.system(" ".join([
-            cc,
-            f"--output {ZetaDir}/RawVector.o",
-            f"-c",
-            *cargs,
-            f"{ZetaDir}/RawVector.c",
-        ]))
-    )
-
-    builder.Add(
         f"{ZetaDir}/RBTree.h",
         {
             f"{File}",
@@ -1297,7 +1365,6 @@ def AddDeps(builder):
             f"{ZetaDir}/BinTree.h",
             f"{ZetaDir}/CircularVector.h",
             f"{ZetaDir}/RBTree.h",
-            f"{ZetaDir}/RawVector.h",
             f"{ZetaDir}/utils.h",
         },
         None
