@@ -23,8 +23,8 @@ Zeta_DummyBlockVector dummy_blk_vec_b;
 Zeta_BlockVector blk_vec_a;
 Zeta_BlockVector blk_vec_b;
 
-StdAllocator u_node_allocator_;
-Zeta_Allocator u_node_allocator;
+StdAllocator s_node_allocator_;
+Zeta_Allocator s_node_allocator;
 
 StdAllocator c_node_allocator_;
 Zeta_Allocator c_node_allocator;
@@ -38,7 +38,7 @@ Zeta_Allocator frame_allocator;
 Zeta_LRUCacheManager lrucm;
 Zeta_DummyCacheManager dcm;
 
-std::unordered_set<void*> recorded_u_nodes;
+std::unordered_set<void*> recorded_s_nodes;
 
 #define BLOCK_SIZE (512)
 #define BLOCK_NUM (64)
@@ -93,18 +93,18 @@ void DummyBlockVector_Init() {
 }
 
 void LRUCM_Init() {
-    Zeta_Allocator_Init(&u_node_allocator);
+    Zeta_Allocator_Init(&s_node_allocator);
     Zeta_Allocator_Init(&c_node_allocator);
     Zeta_Allocator_Init(&x_node_allocator);
     Zeta_Allocator_Init(&frame_allocator);
 
-    StdAllocator_DeployAllocator(&u_node_allocator_, &u_node_allocator);
+    StdAllocator_DeployAllocator(&s_node_allocator_, &s_node_allocator);
     StdAllocator_DeployAllocator(&c_node_allocator_, &c_node_allocator);
     StdAllocator_DeployAllocator(&x_node_allocator_, &x_node_allocator);
     StdAllocator_DeployAllocator(&frame_allocator_, &frame_allocator);
 
     lrucm.blk_vec = &blk_vec_a;
-    lrucm.u_node_allocator = &u_node_allocator;
+    lrucm.s_node_allocator = &s_node_allocator;
     lrucm.c_node_allocator = &c_node_allocator;
     lrucm.x_node_allocator = &x_node_allocator;
     lrucm.frame_allocator = &frame_allocator;
@@ -125,22 +125,22 @@ void DummyCM_Init() {
 // -----------------------------------------------------------------------------
 
 void* LRUCM_LogIn(size_t max_caches_num) {
-    void* u_node = Zeta_LRUCacheManager_LogIn(&lrucm, max_caches_num);
-    recorded_u_nodes.insert(u_node);
-    return u_node;
+    void* s_node = Zeta_LRUCacheManager_Open(&lrucm, max_caches_num);
+    recorded_s_nodes.insert(s_node);
+    return s_node;
 }
 
-void LRUCM_LogOut(void* u_node) {
-    ZETA_DebugAssert(0 < recorded_u_nodes.erase(u_node));
-    Zeta_LRUCacheManager_LogOut(&lrucm, u_node);
+void LRUCM_LogOut(void* s_node) {
+    ZETA_DebugAssert(0 < recorded_s_nodes.erase(s_node));
+    Zeta_LRUCacheManager_Close(&lrucm, s_node);
 }
 
 void* DummyCM_LogIn(size_t max_caches_num) {
-    return Zeta_DummyCacheManager_LogIn(&dcm, max_caches_num);
+    return Zeta_DummyCacheManager_Open(&dcm, max_caches_num);
 }
 
-void DummyCM_LogOut(void* u_node) {
-    Zeta_DummyCacheManager_LogOut(&dcm, u_node);
+void DummyCM_LogOut(void* s_node) {
+    Zeta_DummyCacheManager_Close(&dcm, s_node);
 }
 
 // -----------------------------------------------------------------------------
@@ -152,37 +152,37 @@ void LRUCM_Check() {
     Zeta_BinTree_InitOpr(&rbtn_opr);
     Zeta_OrdRBTreeNode_DeployBinTreeNodeOperator(NULL, &rbtn_opr);
 
-    std::unordered_set<Zeta_LRUCacheManager_UNode*> u_nodes;
+    std::unordered_set<Zeta_LRUCacheManager_SNode*> s_nodes;
     std::unordered_set<Zeta_LRUCacheManager_CNode*> c_nodes;
     std::unordered_set<Zeta_LRUCacheManager_XNode*> x_nodes;
     std::unordered_set<size_t> blk_idxes;
 
-    std::unordered_map<Zeta_LRUCacheManager_UNode*,
+    std::unordered_map<Zeta_LRUCacheManager_SNode*,
                        std::unordered_set<Zeta_LRUCacheManager_XNode*>>
-        u_node_to_x_nodes;
+        s_node_to_x_nodes;
 
-    std::unordered_map<Zeta_LRUCacheManager_UNode*,
+    std::unordered_map<Zeta_LRUCacheManager_SNode*,
                        std::unordered_set<Zeta_LRUCacheManager_CNode*>>
-        u_node_to_c_nodes;
+        s_node_to_c_nodes;
 
-    std::unordered_map<Zeta_LRUCacheManager_UNode*, std::unordered_set<size_t>>
-        u_node_to_blk_idxes;
+    std::unordered_map<Zeta_LRUCacheManager_SNode*, std::unordered_set<size_t>>
+        s_node_to_blk_idxes;
 
     std::unordered_set<Zeta_LRUCacheManager_CNode*> refered_c_nodes;
     std::unordered_set<Zeta_LRUCacheManager_CNode*> unrefered_c_nodes;
 
     // check al
-    for (auto u_iter{ recorded_u_nodes.begin() },
-         u_end{ recorded_u_nodes.end() };
+    for (auto u_iter{ recorded_s_nodes.begin() },
+         u_end{ recorded_s_nodes.end() };
          u_iter != u_end; ++u_iter) {
-        Zeta_LRUCacheManager_UNode* u_node =
-            (Zeta_LRUCacheManager_UNode*)(*u_iter);
+        Zeta_LRUCacheManager_SNode* s_node =
+            (Zeta_LRUCacheManager_SNode*)(*u_iter);
 
-        ZETA_DebugAssert(u_nodes.insert(u_node).second);
+        ZETA_DebugAssert(s_nodes.insert(s_node).second);
 
-        for (void* al_node = &u_node->al_head;;) {
+        for (void* al_node = &s_node->al_head;;) {
             al_node = Zeta_OrdLinkedListNode_GetR(al_node);
-            if (&u_node->al_head == al_node) { break; }
+            if (&s_node->al_head == al_node) { break; }
 
             Zeta_LRUCacheManager_XNode* x_node = ZETA_GetStructFromMember(
                 Zeta_LRUCacheManager_XNode, al_node, al_node);
@@ -193,14 +193,14 @@ void LRUCM_Check() {
 
             ZETA_DebugAssert(x_nodes.insert(x_node).second);
 
-            ZETA_DebugAssert(x_node->u_node == u_node);
+            ZETA_DebugAssert(x_node->s_node == s_node);
 
-            ZETA_DebugAssert(u_node_to_x_nodes[u_node].insert(x_node).second);
+            ZETA_DebugAssert(s_node_to_x_nodes[s_node].insert(x_node).second);
 
             ZETA_DebugAssert(
-                u_node_to_c_nodes[u_node].insert(x_node->c_node).second);
+                s_node_to_c_nodes[s_node].insert(x_node->c_node).second);
 
-            ZETA_DebugAssert(u_node_to_blk_idxes[u_node]
+            ZETA_DebugAssert(s_node_to_blk_idxes[s_node]
                                  .insert(x_node->c_node->blk_idx)
                                  .second);
         }
@@ -211,8 +211,8 @@ void LRUCM_Check() {
         c_node_to_x_nodes;
 
     std::unordered_map<Zeta_LRUCacheManager_CNode*,
-                       std::unordered_set<Zeta_LRUCacheManager_UNode*>>
-        c_node_to_u_nodes;
+                       std::unordered_set<Zeta_LRUCacheManager_SNode*>>
+        c_node_to_s_nodes;
 
     // check ct
     {
@@ -259,7 +259,7 @@ void LRUCM_Check() {
                     c_node_to_x_nodes[c_node].insert(x_node).second);
 
                 ZETA_DebugAssert(
-                    c_node_to_u_nodes[c_node].insert(x_node->u_node).second);
+                    c_node_to_s_nodes[c_node].insert(x_node->s_node).second);
             }
         }
 
@@ -267,10 +267,10 @@ void LRUCM_Check() {
     }
 
     // check from u to c
-    for (auto u_iter{ u_node_to_x_nodes.begin() },
-         u_end{ u_node_to_x_nodes.end() };
+    for (auto u_iter{ s_node_to_x_nodes.begin() },
+         u_end{ s_node_to_x_nodes.end() };
          u_iter != u_end; ++u_iter) {
-        Zeta_LRUCacheManager_UNode* u_node = u_iter->first;
+        Zeta_LRUCacheManager_SNode* s_node = u_iter->first;
 
         for (auto x_iter{ u_iter->second.begin() },
              x_end{ u_iter->second.end() };
@@ -280,7 +280,7 @@ void LRUCM_Check() {
             Zeta_LRUCacheManager_CNode* c_node = x_node->c_node;
 
             ZETA_DebugAssert(0 < c_node_to_x_nodes[c_node].count(x_node));
-            ZETA_DebugAssert(0 < c_node_to_u_nodes[c_node].count(u_node));
+            ZETA_DebugAssert(0 < c_node_to_s_nodes[c_node].count(s_node));
         }
     }
 
@@ -295,14 +295,14 @@ void LRUCM_Check() {
              x_iter != x_end; ++x_iter) {
             Zeta_LRUCacheManager_XNode* x_node = *x_iter;
 
-            Zeta_LRUCacheManager_UNode* u_node = x_node->u_node;
+            Zeta_LRUCacheManager_SNode* s_node = x_node->s_node;
 
-            ZETA_DebugAssert(0 < u_node_to_x_nodes[u_node].count(x_node));
+            ZETA_DebugAssert(0 < s_node_to_x_nodes[s_node].count(x_node));
 
-            ZETA_DebugAssert(0 < u_node_to_c_nodes[u_node].count(c_node));
+            ZETA_DebugAssert(0 < s_node_to_c_nodes[s_node].count(c_node));
 
             ZETA_DebugAssert(
-                0 < u_node_to_blk_idxes[u_node].count(c_node->blk_idx));
+                0 < s_node_to_blk_idxes[s_node].count(c_node->blk_idx));
         }
     }
 
@@ -319,16 +319,16 @@ void LRUCM_Check() {
     }
 
     // check at
-    for (auto u_iter{ recorded_u_nodes.begin() },
-         u_end{ recorded_u_nodes.end() };
+    for (auto u_iter{ recorded_s_nodes.begin() },
+         u_end{ recorded_s_nodes.end() };
          u_iter != u_end; ++u_iter) {
-        Zeta_LRUCacheManager_UNode* u_node =
-            (Zeta_LRUCacheManager_UNode*)(*u_iter);
+        Zeta_LRUCacheManager_SNode* s_node =
+            (Zeta_LRUCacheManager_SNode*)(*u_iter);
 
         Zeta_DebugPipe ns;
         Zeta_DebugPipe_Create(&ns);
 
-        Zeta_RBTree_Check(&rbtn_opr, &ns, u_node->at_root);
+        Zeta_RBTree_Check(&rbtn_opr, &ns, s_node->at_root);
 
         std::unordered_set<Zeta_LRUCacheManager_XNode*> cur_x_nodes;
 
@@ -350,7 +350,7 @@ void LRUCM_Check() {
             blk_idx_lb = c_node->blk_idx + 1;
         }
 
-        ZETA_DebugAssert(u_node_to_x_nodes[u_node] == cur_x_nodes);
+        ZETA_DebugAssert(s_node_to_x_nodes[s_node] == cur_x_nodes);
 
         Zeta_DebugPipe_Destroy(&ns);
     }
@@ -381,8 +381,8 @@ void main1() {
     size_t blk_size = lrucm.blk_vec->GetBlockSize(lrucm.blk_vec->context);
     ZETA_PrintVar(blk_size);
 
-    void* a_u_node = LRUCM_LogIn(16);
-    void* b_u_node = DummyCM_LogIn(16);
+    void* a_s_node = LRUCM_LogIn(16);
+    void* b_s_node = DummyCM_LogIn(16);
 
     byte_t buffer[BLOCK_SIZE];
 
@@ -393,11 +393,11 @@ void main1() {
         if (type == 0) {
             std::cout << "read  " << blk_idx << "\n";
 
-            byte_t const* ra =
-                Zeta_LRUCacheManager_ReadBlock(&lrucm, a_u_node, blk_idx);
+            byte_t const* ra = (byte_t const*)Zeta_LRUCacheManager_ReadBlock(
+                &lrucm, a_s_node, blk_idx);
 
-            byte_t const* rb =
-                Zeta_DummyCacheManager_ReadBlock(&dcm, b_u_node, blk_idx);
+            byte_t const* rb = (byte_t const*)Zeta_DummyCacheManager_ReadBlock(
+                &dcm, b_s_node, blk_idx);
 
             ZETA_DebugAssert(IsEqual(ra, rb, BLOCK_SIZE));
         } else {
@@ -405,15 +405,15 @@ void main1() {
 
             RandomFill(buffer, BLOCK_SIZE);
 
-            Zeta_LRUCacheManager_WriteBlock(&lrucm, a_u_node, blk_idx, buffer);
-            Zeta_DummyCacheManager_WriteBlock(&dcm, b_u_node, blk_idx, buffer);
+            Zeta_LRUCacheManager_WriteBlock(&lrucm, a_s_node, blk_idx, buffer);
+            Zeta_DummyCacheManager_WriteBlock(&dcm, b_s_node, blk_idx, buffer);
         }
 
         LRUCM_Check();
     }
 
-    LRUCM_LogOut(a_u_node);
-    DummyCM_LogOut(b_u_node);
+    LRUCM_LogOut(a_s_node);
+    DummyCM_LogOut(b_s_node);
 
     Zeta_LRUCacheManager_FlushAll(&lrucm);
     Zeta_DummyCacheManager_FlushAll(&dcm);

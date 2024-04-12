@@ -13,7 +13,7 @@ void Zeta_DummyCacheManager_Init(void* dcm_) {
     ZETA_DebugAssert(dcm->buffer != NULL);
 }
 
-void* Zeta_DummyCacheManager_LogIn(void* dcm_, size_t max_caches_num) {
+void* Zeta_DummyCacheManager_Open(void* dcm_, size_t max_caches_num) {
     Zeta_DummyCacheManager* dcm = dcm_;
     ZETA_DebugAssert(dcm != NULL);
 
@@ -23,30 +23,30 @@ void* Zeta_DummyCacheManager_LogIn(void* dcm_, size_t max_caches_num) {
     return NULL;
 }
 
-void Zeta_DummyCacheManager_LogOut(void* dcm_, void* u_node) {
+void Zeta_DummyCacheManager_Close(void* dcm_, void* sd) {
     Zeta_DummyCacheManager* dcm = dcm_;
     ZETA_DebugAssert(dcm != NULL);
 
     ZETA_Unused(dcm);
-    ZETA_Unused(u_node);
+    ZETA_Unused(sd);
 }
 
-void Zeta_DummyCacheManager_SetCachesNumMax(void* dcm_, void* u_node,
+void Zeta_DummyCacheManager_SetMaxCachesNum(void* dcm_, void* sd,
                                             size_t max_caches_num) {
     Zeta_DummyCacheManager* dcm = dcm_;
     ZETA_DebugAssert(dcm != NULL);
 
     ZETA_Unused(dcm);
-    ZETA_Unused(u_node);
+    ZETA_Unused(sd);
     ZETA_Unused(max_caches_num);
 }
 
-const byte_t* Zeta_DummyCacheManager_ReadBlock(void* dcm_, void* u_node,
-                                               size_t blk_idx) {
+void const* Zeta_DummyCacheManager_ReadBlock(void* dcm_, void* sd,
+                                             size_t blk_idx) {
     Zeta_DummyCacheManager* dcm = dcm_;
     ZETA_DebugAssert(dcm != NULL);
 
-    ZETA_Unused(u_node);
+    ZETA_Unused(sd);
 
     ZETA_DebugAssert(dcm->blk_vec != NULL);
     ZETA_DebugAssert(dcm->blk_vec->ReadBlock != NULL);
@@ -56,12 +56,12 @@ const byte_t* Zeta_DummyCacheManager_ReadBlock(void* dcm_, void* u_node,
     return dcm->buffer;
 }
 
-void Zeta_DummyCacheManager_WriteBlock(void* dcm_, void* u_node, size_t blk_idx,
-                                       byte_t* data) {
+void Zeta_DummyCacheManager_WriteBlock(void* dcm_, void* sd, size_t blk_idx,
+                                       void const* data) {
     Zeta_DummyCacheManager* dcm = dcm_;
     ZETA_DebugAssert(dcm != NULL);
 
-    ZETA_Unused(u_node);
+    ZETA_Unused(sd);
 
     ZETA_DebugAssert(dcm->blk_vec != NULL);
     ZETA_DebugAssert(dcm->blk_vec->WriteBlock != NULL);
@@ -69,12 +69,24 @@ void Zeta_DummyCacheManager_WriteBlock(void* dcm_, void* u_node, size_t blk_idx,
     dcm->blk_vec->WriteBlock(dcm->blk_vec->context, blk_idx, data);
 }
 
-void Zeta_DummyCacheManager_Flush(void* dcm_, void* u_node) {
+void Zeta_DummyCacheManager_FlushBlock(void* dcm_, size_t blk_idx) {
     Zeta_DummyCacheManager* dcm = dcm_;
     ZETA_DebugAssert(dcm != NULL);
 
     ZETA_Unused(dcm);
-    ZETA_Unused(u_node);
+
+    ZETA_DebugAssert(dcm->blk_vec != NULL);
+    ZETA_DebugAssert(dcm->blk_vec->GetBlockNum != NULL);
+    ZETA_DebugAssert(blk_idx <
+                     dcm->blk_vec->GetBlockNum(dcm->blk_vec->context));
+}
+
+void Zeta_DummyCacheManager_Flush(void* dcm_, void* sd) {
+    Zeta_DummyCacheManager* dcm = dcm_;
+    ZETA_DebugAssert(dcm != NULL);
+
+    ZETA_Unused(dcm);
+    ZETA_Unused(sd);
 }
 
 void Zeta_DummyCacheManager_FlushAll(void* dcm_) {
@@ -82,4 +94,24 @@ void Zeta_DummyCacheManager_FlushAll(void* dcm_) {
     ZETA_DebugAssert(dcm != NULL);
 
     ZETA_Unused(dcm);
+}
+
+void Zeta_DummyCacheManager_DeployCacheManager(void* dcm_,
+                                               Zeta_CacheManager* dst) {
+    Zeta_DummyCacheManager* dcm = dcm_;
+    ZETA_DebugAssert(dcm != NULL);
+
+    dst->context = dcm;
+
+    dst->Open = Zeta_DummyCacheManager_Open;
+    dst->Close = Zeta_DummyCacheManager_Close;
+
+    dst->SetMaxCachesNum = Zeta_DummyCacheManager_SetMaxCachesNum;
+
+    dst->ReadBlock = Zeta_DummyCacheManager_ReadBlock;
+    dst->WriteBlock = Zeta_DummyCacheManager_WriteBlock;
+
+    dst->FlushBlock = Zeta_DummyCacheManager_FlushBlock;
+    dst->Flush = Zeta_DummyCacheManager_Flush;
+    dst->FlushAll = Zeta_DummyCacheManager_FlushAll;
 }

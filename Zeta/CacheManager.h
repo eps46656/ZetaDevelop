@@ -4,28 +4,28 @@
 
 ZETA_ExternC_Beg;
 
-typedef struct Zeta_CacheManager_Node Zeta_CacheManager_Node;
-
-struct Zeta_CacheManager_Node {
-    size_t key;
-    void* frame;
-    size_t flags;
-};
-
 typedef struct Zeta_CacheManager Zeta_CacheManager;
 
 struct Zeta_CacheManager {
     void* context;
 
-    Zeta_CacheManager_Node* (*Find)(void* context, size_t key);
+    void* (*Open)(void* context, size_t max_caches_num);
 
-    Zeta_CacheManager_Node* (*Push)(void* context, size_t key);
+    void (*Close)(void* context, void* sd);
 
-    Zeta_CacheManager_Node (*Pop)(void* context);
+    void (*SetMaxCachesNum)(void* context, void* sd, size_t max_caches_num);
 
-    Zeta_CacheManager_Node (*PopWithKey)(void* context, size_t key);
+    void const* (*ReadBlock)(void* context, void* sd, size_t blk_idx);
 
-    Zeta_CacheManager_Node (*PopWithFrame)(void* context, void* frame);
+    void (*WriteBlock)(void* context, void* sd, size_t blk_idx,
+                       void const* data);
+
+    void (*FlushBlock)(void* context, size_t blk_idx);
+
+    void (*Flush)(void* context, void* sd);
+    void (*FlushAll)(void* context);
 };
+
+void Zeta_CacheManager_Init(Zeta_CacheManager* cm);
 
 ZETA_ExternC_End;

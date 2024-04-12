@@ -26,7 +26,7 @@ size_t Zeta_DummyBlockVector_GetBlockNum(void* dbv_) {
     return dbv->blk_num;
 }
 
-void Zeta_DummyBlockVector_ReadBlock(void* dbv_, size_t blk_idx, byte_t* dst) {
+void Zeta_DummyBlockVector_ReadBlock(void* dbv_, size_t blk_idx, void* dst) {
     Zeta_DummyBlockVector* dbv = dbv_;
     ZETA_DebugAssert(dbv != NULL);
 
@@ -38,7 +38,7 @@ void Zeta_DummyBlockVector_ReadBlock(void* dbv_, size_t blk_idx, byte_t* dst) {
 }
 
 void Zeta_DummyBlockVector_WriteBlock(void* dbv_, size_t blk_idx,
-                                      byte_t const* src) {
+                                      void const* src) {
     Zeta_DummyBlockVector* dbv = dbv_;
     ZETA_DebugAssert(dbv != NULL);
 

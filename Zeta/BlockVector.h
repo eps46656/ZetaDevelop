@@ -13,9 +13,9 @@ struct Zeta_BlockVector {
 
     size_t (*GetBlockNum)(void* context);
 
-    void (*ReadBlock)(void* context, size_t blk_idx, byte_t* dst);
+    void (*ReadBlock)(void* context, size_t blk_idx, void* dst);
 
-    void (*WriteBlock)(void* context, size_t blk_idx, byte_t const* src);
+    void (*WriteBlock)(void* context, size_t blk_idx, void const* src);
 };
 
 void Zeta_BlockVector_Init(void* bv);

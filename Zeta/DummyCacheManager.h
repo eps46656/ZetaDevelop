@@ -1,6 +1,7 @@
 #pragma once
 
 #include "BlockVector.h"
+#include "CacheManager.h"
 
 ZETA_ExternC_Beg;
 
@@ -13,20 +14,22 @@ struct Zeta_DummyCacheManager {
 
 void Zeta_DummyCacheManager_Init(void* dcm);
 
-void* Zeta_DummyCacheManager_LogIn(void* dcm, size_t max_caches_num);
+void* Zeta_DummyCacheManager_Open(void* dcm, size_t max_caches_num);
 
-void Zeta_DummyCacheManager_LogOut(void* dcm, void* u_node);
+void Zeta_DummyCacheManager_Close(void* dcm, void* sd);
 
-void Zeta_DummyCacheManager_SetCachesNumMax(void* dcm, void* u_node,
+void Zeta_DummyCacheManager_SetMaxCachesNum(void* dcm, void* sd,
                                             size_t max_caches_num);
 
-const byte_t* Zeta_DummyCacheManager_ReadBlock(void* dcm, void* u_node,
-                                               size_t blk_idx);
+void const* Zeta_DummyCacheManager_ReadBlock(void* dcm, void* sd,
+                                             size_t blk_idx);
 
-void Zeta_DummyCacheManager_WriteBlock(void* dcm, void* u_node, size_t blk_idx,
-                                       byte_t* data);
+void Zeta_DummyCacheManager_WriteBlock(void* dcm, void* sd, size_t blk_idx,
+                                       void const* data);
 
-void Zeta_DummyCacheManager_Flush(void* dcm, void* u_node);
+void Zeta_DummyCacheManager_FlushBlock(void* dcm, size_t blk_idx);
+
+void Zeta_DummyCacheManager_Flush(void* dcm, void* sd);
 
 void Zeta_DummyCacheManager_FlushAll(void* dcm);
 

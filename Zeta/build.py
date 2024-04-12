@@ -237,6 +237,43 @@ def AddDeps(builder):
     )
 
     builder.Add(
+        f"{ZetaDir}/CacheManager.h",
+        {
+            f"{File}",
+            f"{ZetaDir}/define.h",
+        },
+        None
+    )
+
+    builder.Add(
+        f"{ZetaDir}/CacheManager.c",
+        {
+            f"{File}",
+            f"{ZetaDir}/CacheManager.h",
+        },
+        None
+    )
+
+    builder.Add(
+        f"{ZetaDir}/CacheManager.o",
+        {
+            f"{File}",
+            f"{ZetaDir}/CacheManager.c",
+        },
+        lambda : os.system(" ".join([
+            cc,
+
+            f"--output {ZetaDir}/CacheManager.o",
+
+            f"-c",
+
+            *cargs,
+
+            f"{ZetaDir}/CacheManager.c",
+        ]))
+    )
+
+    builder.Add(
         f"{ZetaDir}/CircularVector.h",
         {
             f"{File}",

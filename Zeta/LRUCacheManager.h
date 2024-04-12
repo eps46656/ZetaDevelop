@@ -2,15 +2,16 @@
 
 #include "Allocator.h"
 #include "BlockVector.h"
+#include "CacheManager.h"
 #include "DebugPipe.h"
 #include "OrdLinkedListNode.h"
 #include "OrdRBTreeNode.h"
 
 ZETA_ExternC_Beg;
 
-typedef struct Zeta_LRUCacheManager_UNode Zeta_LRUCacheManager_UNode;
+typedef struct Zeta_LRUCacheManager_SNode Zeta_LRUCacheManager_SNode;
 
-struct Zeta_LRUCacheManager_UNode {
+struct Zeta_LRUCacheManager_SNode {
     unsigned int max_al_num;
     unsigned int al_num;
 
@@ -23,7 +24,7 @@ typedef struct Zeta_LRUCacheManager_CNode Zeta_LRUCacheManager_CNode;
 
 struct Zeta_LRUCacheManager_CNode {
     size_t blk_idx;
-    byte_t* frame;
+    void* frame;
 
     bool_t refered;
     bool_t dirty;
@@ -56,7 +57,7 @@ struct Zeta_LRUCacheManager_XNode {
     Zeta_OrdLinkedListNode bl_node;
     // to next x_node which also ref to same c_node
 
-    Zeta_LRUCacheManager_UNode* u_node;
+    Zeta_LRUCacheManager_SNode* s_node;
     Zeta_LRUCacheManager_CNode* c_node;
 };
 
@@ -68,7 +69,7 @@ struct Zeta_LRUCacheManager {
 
     Zeta_BlockVector* blk_vec;
 
-    Zeta_Allocator* u_node_allocator;
+    Zeta_Allocator* s_node_allocator;
     Zeta_Allocator* c_node_allocator;
     Zeta_Allocator* x_node_allocator;
     Zeta_Allocator* frame_allocator;
@@ -80,23 +81,26 @@ struct Zeta_LRUCacheManager {
 
 void Zeta_LRUCacheManager_Init(void* lrucm);
 
-void* Zeta_LRUCacheManager_LogIn(void* lrucm, size_t max_caches_num);
+void* Zeta_LRUCacheManager_Open(void* lrucm, size_t max_caches_num);
 
-void Zeta_LRUCacheManager_LogOut(void* lrucm, void* u_node);
+void Zeta_LRUCacheManager_Close(void* lrucm, void* sd);
 
-void Zeta_LRUCacheManager_SetCachesNumMax(void* lrucm, void* u_node,
+void Zeta_LRUCacheManager_SetMaxCachesNum(void* lrucm, void* sd,
                                           size_t max_caches_num);
 
-const byte_t* Zeta_LRUCacheManager_ReadBlock(void* lrucm, void* u_node,
-                                             size_t blk_idx);
+void const* Zeta_LRUCacheManager_ReadBlock(void* lrucm, void* sd,
+                                           size_t blk_idx);
 
-void Zeta_LRUCacheManager_WriteBlock(void* lrucm, void* u_node, size_t blk_idx,
-                                     byte_t* data);
+void Zeta_LRUCacheManager_WriteBlock(void* lrucm, void* sd, size_t blk_idx,
+                                     void const* data);
 
-void Zeta_LRUCacheManager_Flush(void* lrucm, void* u_node);
+void Zeta_LRUCacheManager_FlushBlock(void* lrucm, size_t blk_idx);
+
+void Zeta_LRUCacheManager_Flush(void* lrucm, void* sd);
 
 void Zeta_LRUCacheManager_FlushAll(void* lrucm);
 
-void Zeta_LRUCacheManager_Check(void* lrucm, Zeta_DebugPipe* u_nodes);
+void Zeta_LRUCacheManager_DeployCacheManager(void* lrucm,
+                                             Zeta_CacheManager* dst);
 
 ZETA_ExternC_End;

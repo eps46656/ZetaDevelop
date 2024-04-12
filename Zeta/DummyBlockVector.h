@@ -21,10 +21,10 @@ size_t Zeta_DummyBlockVector_GetBlockSize(void* dbv);
 
 size_t Zeta_DummyBlockVector_GetBlockNum(void* dbv);
 
-void Zeta_DummyBlockVector_ReadBlock(void* dbv, size_t blk_idx, byte_t* dst);
+void Zeta_DummyBlockVector_ReadBlock(void* dbv, size_t blk_idx, void* dst);
 
 void Zeta_DummyBlockVector_WriteBlock(void* dbv, size_t blk_idx,
-                                      byte_t const* src);
+                                      void const* src);
 
 void Zeta_DummyBlockVector_DeployBlockVector(void* dbv,
                                              Zeta_BlockVector* blk_vec);

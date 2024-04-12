@@ -1,6 +1,7 @@
 #pragma once
 
-#include "Disk.h"
+#include "BlockVector.h"
+#include "CacheManager.h"
 #include "SegVector.h"
 
 typedef struct Zeta_FileSysFAT32_Header Zeta_FileSysFAT32_Header;
@@ -85,3 +86,52 @@ typedef struct Zeta_FileSysFAT32_Dir Zeta_FileSysFAT32_Dir;
 struct Zeta_FileSysFAT32_Dir {
     Zeta_SegVector entries;
 };
+
+typedef struct Zeta_FileSysFAT32_SNode Zeta_FileSysFAT32_SNode;
+
+struct Zeta_FileSysFAT32_SNode {
+    void* cm_sd;
+
+    //
+};
+
+typedef struct Zeta_FileSysFAT32_Manager Zeta_FileSysFAT32_Manager;
+
+struct Zeta_FileSysFAT32_Manager {
+    //
+};
+
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+
+void* Zeta_FileSysFAT32_Manager_Open(void* fs_fat32_manager);
+
+void Zeta_FileSysFAT32_Manager_Close(void* fs_fat32_manager, void* sd);
+
+// --
+
+/*
+
+Some basic file system operations
+
+GetDirectoryInfo
+    Return the info of working directory.
+
+GetInfo(filename)
+    Return the info of file(dir) with filename under working directory.
+    If there is not a file(dir) with filename, return a null info.
+
+ChangeDirectory(path)
+    cd command
+
+Make(filename, type, mod)
+    Make a file(dir) under working directory.
+
+    type indicates it is a file or dir.
+    mod indicated its permission.
+
+Remove
+
+
+*/
