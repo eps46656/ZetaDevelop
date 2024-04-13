@@ -60,3 +60,33 @@ void StdAllocator_DeployAllocator(void* sa_, Zeta_Allocator* dst) {
 
     dst->Deallocate = StdAllocator_Deallocate;
 }
+
+void StdAllocator_CheckRecords(void* sa_, Zeta_DebugTreeMap const* records) {
+    if (!ZETA_IsDebug) { return; }
+
+    StdAllocator* sa = (StdAllocator*)sa_;
+    ZETA_DebugAssert(sa != NULL);
+
+    std::map<size_t, size_t>* m1 = &sa->records;
+
+    std::map<size_t, size_t>* m2 = (std::map<size_t, size_t>*)records->tree_map;
+
+    for (auto iter{ m1->begin() }, end{ m1->end() }; iter != end; ++iter) {
+        auto iter_b{ m2->find(iter->first) };
+
+        ZETA_DebugAssert(iter_b->second);
+        // leak: user misses allocated memory
+
+        ZETA_DebugAssert(iter_b->second <= iter->second);
+        // overflow: usee uses more memory than allocated
+    }
+
+    for (auto iter{ m2->begin() }, end{ m2->end() }; iter != end; ++iter) {
+        auto iter_b{ m1->find(iter->first) };
+        ZETA_DebugAssert(iter_b->second);
+        // hallucination: user use XXX memory
+
+        ZETA_DebugAssert(iter->second <= iter_b->second);
+        // overflow: user uses more memory than allocated
+    }
+}

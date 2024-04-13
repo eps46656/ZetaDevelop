@@ -20,7 +20,7 @@ INCLUDE_DIRS = [
 ]
 
 def AddDeps(builder):
-    debug = True
+    debug = False
 
     cc = "clang"
 
@@ -1254,6 +1254,7 @@ def AddDeps(builder):
         {
             f"{File}",
             f"{ZetaDir}/MultiLevelVector.h",
+            f"{ZetaExeDir}/StdAllocator.h",
         },
         None
     )
@@ -1262,6 +1263,7 @@ def AddDeps(builder):
         f"{ZetaExeDir}/test_mlv.exe",
         {
             f"{File}",
+            f"{ZetaDir}/Allocator.o",
             f"{ZetaDir}/DebugTreeMap.o",
             f"{ZetaDir}/MultiLevelVector.o",
             f"{ZetaDir}/utils.o",
@@ -1272,6 +1274,8 @@ def AddDeps(builder):
             cppc,
             f"--output {ZetaExeDir}/test_mlv.exe",
             *cppargs,
+
+            f"{ZetaDir}/Allocator.o",
             f"{ZetaDir}/DebugTreeMap.o",
             f"{ZetaDir}/MultiLevelVector.o",
             f"{ZetaDir}/utils.o",
@@ -1309,6 +1313,40 @@ def AddDeps(builder):
 
             f"{ZetaExeDir}/OkMap.o",
             f"{ZetaExeDir}/test_OkMap.cpp",
+        ]))
+    )
+
+    builder.Add(
+        f"{ZetaExeDir}/test_o1sh.cpp",
+        {
+            f"{File}",
+            f"{ZetaDir}/MultiLevelVector.h",
+            f"{ZetaExeDir}/StdAllocator.h",
+        },
+        None
+    )
+
+    builder.Add(
+        f"{ZetaExeDir}/test_o1sh.exe",
+        {
+            f"{File}",
+
+            f"{ZetaDir}/Allocator.o",
+            f"{ZetaDir}/DebugTreeMap.o",
+            f"{ZetaDir}/MultiLevelVector.o",
+
+            f"{ZetaExeDir}/test_o1sh.cpp",
+        },
+        lambda : os.system(" ".join([
+            cppc,
+            f"--output {ZetaExeDir}/test_o1sh.exe",
+            *cppargs,
+
+            f"{ZetaDir}/Allocator.o",
+            f"{ZetaDir}/DebugTreeMap.o",
+            f"{ZetaDir}/MultiLevelVector.o",
+
+            f"{ZetaExeDir}/test_o1sh.cpp",
         ]))
     )
 

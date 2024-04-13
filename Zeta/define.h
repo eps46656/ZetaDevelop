@@ -58,8 +58,8 @@ typedef s32_t unichar_t;
 #define ZETA_Concat(x, y) ZETA_Concat_(x, y)
 
 #if defined(__cplusplus)
-#define ZETA_PrintVar(var)                                                     \
-    std::cout << __FILE__ ":" << ZETA_ToStr(__LINE__) "\t" #var " = " << (var) \
+#define ZETA_PrintVar(var)                                                  \
+    std::cout << __FILE__ ":" ZETA_ToStr(__LINE__) "\t" #var " = " << (var) \
               << '\n';
 #else
 #define ZETA_PrintVar(var)                                     \
@@ -131,6 +131,7 @@ typedef s32_t unichar_t;
     } else {                                                         \
         printf("assert at " __FILE__                                 \
                ":" ZETA_ToStr(__LINE__) "\n" ZETA_ToStr(cond) "\n"); \
+        fflush(stdout);                                              \
         exit(0);                                                     \
     }                                                                \
     ZETA_StaticAssert(TRUE)
@@ -219,8 +220,9 @@ typedef s32_t unichar_t;
 
 #define ZETA_GetPtrFromAddr(x) ((void*)(uintptr_t)(x))
 
-#define ZETA_GetStructFromMember(type, mem, ptr) \
-    ((type*)((unsigned char*)(ptr)-offsetof(type, mem)))
+#define ZETA_GetStructFromMember(struct_type, member_name, member_ptr) \
+    ((struct_type*)((unsigned char*)(member_ptr)-offsetof(struct_type, \
+                                                          member_name)))
 
 #define ZETA_Swap(x, y)      \
     {                        \

@@ -16,7 +16,7 @@ INCLUDE_DIRS = [
 ]
 
 def AddDeps(builder):
-    debug = True
+    debug = False
 
     cc = "clang"
 

@@ -13,17 +13,15 @@ ZETA_ExternC_Beg;
 /**
  * The maximum branch number of each level.
  */
-#define ZETA_MultiLevelVector_branch_num_max \
-    ZETA_GetRangeMax(Zeta_MultiLevelVector_idx_t)
+#define ZETA_MultiLevelVector_max_branch_num 4096
 
-typedef struct Zeta_MultiLevelVector_idx_t unsigned short;
+typedef u32_t Zeta_MultiLevelVector_mask_t;
 
-typedef struct Zeta_MultiLevelVector_Cursor Zeta_MultiLevelVector_Cursor;
+typedef struct Zeta_MultiLevelVector_Node Zeta_MultiLevelVector_Node;
 
-struct Zeta_MultiLevelVector_Cursor {
-    size_t idx;
-    unsigned short idxes[ZETA_MultiLevelVector_max_level];
-    void** ele;
+struct Zeta_MultiLevelVector_Node {
+    void** table;
+    Zeta_MultiLevelVector_mask_t mask[1];
 };
 
 typedef struct Zeta_MultiLevelVector Zeta_MultiLevelVector;
@@ -32,9 +30,12 @@ struct Zeta_MultiLevelVector {
     int level;
     size_t branch_nums[ZETA_MultiLevelVector_max_level];
 
+    size_t size;
+
     void* root;
 
-    Zeta_Allocator* allocator;
+    Zeta_Allocator* node_allocator;
+    Zeta_Allocator* table_allocator;
 };
 
 /**
@@ -43,6 +44,13 @@ struct Zeta_MultiLevelVector {
  * @param mlv The target mlv.
  */
 void Zeta_MultiLevelVector_Init(void* mlv);
+
+/**
+ * @brief Get the number of entries in mlv.
+ *
+ * @param mlv The target mlv.
+ */
+size_t Zeta_MultiLevelVector_GetSize(void* mlv);
 
 /**
  * @brief Get the total capacity of mlv. Assume the value does not overflow max
@@ -61,16 +69,16 @@ size_t Zeta_MultiLevelVector_GetCapacity(void* mlv);
  * @return The reference of target entry. If the it is not inserted, return
  * NULL.
  */
-void** Zeta_MultiLevelVector_Access(void* mlv, void* dst_cursor, size_t idx);
+void** Zeta_MultiLevelVector_Access(void* mlv, size_t const* idxes);
 
-void** Zeta_MultiLevelVector_FindFirstNotNull(void* mlv, void* dst_cursor);
+void** Zeta_MultiLevelVector_FindFirstNotNull(void* mlv, size_t* idxes);
 
-void** Zeta_MultiLevelVector_FindLastNotNull(void* mlv, void* dst_cursor);
+void** Zeta_MultiLevelVector_FindLastNotNull(void* mlv, size_t* idxes);
 
-void** Zeta_MultiLevelVector_FindPrevNotNull(void* mlv, void* cursor,
+void** Zeta_MultiLevelVector_FindPrevNotNull(void* mlv, size_t* idxes,
                                              bool_t included);
 
-void** Zeta_MultiLevelVector_FindNextNotNull(void* mlv, void* cursor,
+void** Zeta_MultiLevelVector_FindNextNotNull(void* mlv, size_t* idxes,
                                              bool_t included);
 
 /**
@@ -101,15 +109,7 @@ void Zeta_MultiLevelVector_Erase(void* mlv, size_t* idxes);
  */
 void Zeta_MultiLevelVector_EraseAll(void* mlv);
 
-bool_t Zeta_MultiLevelVector_IsClean(void* mlv);
-
-/**
- * @brief Erase all existed entries which contain NULL.
- *
- * @param mlv The target mlv.
- */
-void Zeta_MultiLevelVector_Clear(void* mlv);
-
-void Zeta_MultiLevelVector_GetAllPages(void* mlv, Zeta_DebugTreeMap* dst);
+void Zeta_MultiLevelVector_GetAllPages(void* mlv, Zeta_DebugTreeMap* dst_node,
+                                       Zeta_DebugTreeMap* dst_table);
 
 ZETA_ExternC_End;
