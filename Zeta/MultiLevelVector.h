@@ -15,7 +15,7 @@ ZETA_ExternC_Beg;
  */
 #define ZETA_MultiLevelVector_max_branch_num 4096
 
-typedef u32_t Zeta_MultiLevelVector_mask_t;
+typedef unsigned long long Zeta_MultiLevelVector_mask_t;
 
 typedef struct Zeta_MultiLevelVector_Node Zeta_MultiLevelVector_Node;
 
@@ -32,7 +32,7 @@ struct Zeta_MultiLevelVector {
 
     size_t size;
 
-    void* root;
+    Zeta_MultiLevelVector_Node* root;
 
     Zeta_Allocator* node_allocator;
     Zeta_Allocator* table_allocator;

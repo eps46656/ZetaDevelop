@@ -1,7 +1,7 @@
 #include "SegList.h"
 
 void Zeta_SegList_Init(void* sl_) {
-    Zeta_SegList* sl = sl_;
+    Zeta_SegList* sl = (Zeta_SegList*)sl_;
     ZETA_DebugAssert(sl != NULL);
 
     ZETA_DebugAssert(0 < sl->width);
@@ -22,21 +22,21 @@ void Zeta_SegList_Init(void* sl_) {
 }
 
 size_t Zeta_SegList_GetWidth(void* sl_) {
-    Zeta_SegList* sl = sl_;
+    Zeta_SegList* sl = (Zeta_SegList*)sl_;
     ZETA_DebugAssert(sl != NULL);
 
     return sl->width;
 }
 
 size_t Zeta_SegList_GetSize(void* sl_) {
-    Zeta_SegList* sl = sl_;
+    Zeta_SegList* sl = (Zeta_SegList*)sl_;
     ZETA_DebugAssert(sl != NULL);
 
     return sl->size;
 }
 
 void* Zeta_SegList_PeekL(void* sl_) {
-    Zeta_SegList* sl = sl_;
+    Zeta_SegList* sl = (Zeta_SegList*)sl_;
     ZETA_DebugAssert(sl != NULL);
 
     size_t size = Zeta_SegList_GetSize(sl);
@@ -49,7 +49,7 @@ void* Zeta_SegList_PeekL(void* sl_) {
 }
 
 void* Zeta_SegList_PeekR(void* sl_) {
-    Zeta_SegList* sl = sl_;
+    Zeta_SegList* sl = (Zeta_SegList*)sl_;
     ZETA_DebugAssert(sl != NULL);
 
     size_t size = Zeta_SegList_GetSize(sl);
@@ -113,7 +113,7 @@ void DeallocateNode_(Zeta_SegList* sl, Zeta_SegList_Node* node) {
 }
 
 void* Zeta_SegList_PushL(void* sl_) {
-    Zeta_SegList* sl = sl_;
+    Zeta_SegList* sl = (Zeta_SegList*)sl_;
     ZETA_DebugAssert(sl != NULL);
 
     Zeta_SegList_Node* node;
@@ -134,7 +134,7 @@ void* Zeta_SegList_PushL(void* sl_) {
 }
 
 void* Zeta_SegList_PushR(void* sl_) {
-    Zeta_SegList* sl = sl_;
+    Zeta_SegList* sl = (Zeta_SegList*)sl_;
     ZETA_DebugAssert(sl != NULL);
 
     size_t i = (sl->offset + sl->size) % sl->seg_capacity;
@@ -155,7 +155,7 @@ void* Zeta_SegList_PushR(void* sl_) {
 }
 
 void Zeta_SegList_PopL(void* sl_) {
-    Zeta_SegList* sl = sl_;
+    Zeta_SegList* sl = (Zeta_SegList*)sl_;
     ZETA_DebugAssert(sl != NULL);
 
     ZETA_DebugAssert(0 < sl->size);
@@ -178,7 +178,7 @@ void Zeta_SegList_PopL(void* sl_) {
 }
 
 void Zeta_SegList_PopR(void* sl_) {
-    Zeta_SegList* sl = sl_;
+    Zeta_SegList* sl = (Zeta_SegList*)sl_;
     ZETA_DebugAssert(sl != NULL);
 
     ZETA_DebugAssert(0 < sl->size);
@@ -204,7 +204,7 @@ void Zeta_SegList_PopR(void* sl_) {
 
 void Zeta_SegList_Check(void* sl_, Zeta_DebugTreeMap* dst_node_tm,
                         Zeta_DebugTreeMap* dst_seg_tm) {
-    Zeta_SegList* sl = sl_;
+    Zeta_SegList* sl = (Zeta_SegList*)sl_;
     ZETA_DebugAssert(sl != NULL);
 
     size_t idx = sl->offset;
@@ -233,13 +233,13 @@ void Zeta_SegList_Check(void* sl_, Zeta_DebugTreeMap* dst_node_tm,
 
             ZETA_DebugAssert(kvp.b);
 
-            kvp.val = sizeof(sl->width) * sl->seg_capacity;
+            *kvp.val = sizeof(sl->width) * sl->seg_capacity;
         }
     }
 }
 
-void Zeta_SegList_ToVector(void* sl_, Zeta_Vector* dst) {
-    Zeta_SegList* sl = sl_;
+void Zeta_SegList_DeploySeqContainer(void* sl_, Zeta_SeqContainer* dst) {
+    Zeta_SegList* sl = (Zeta_SegList*)sl_;
     ZETA_DebugAssert(sl != NULL);
 
     ZETA_DebugAssert(dst != NULL);

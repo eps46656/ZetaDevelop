@@ -10,11 +10,11 @@ void Zeta_LCGRandomGenerator_Set(void* lcgrg_, size_t seed) {
     if (48 <= CHAR_BIT * sizeof(size_t)) {
         a = 25214903917;
         c = 11;
-        m = (size_t)1 << 48;
+        m = 281474976710656;
     } else {
         a = 1103515245;
         c = 12345;
-        m = (size_t)1 << 31;
+        m = 2147483648;
     }
 
     while (seed < m) { seed = seed * a + c; }
@@ -32,5 +32,5 @@ void Zeta_LCGRandomGenerator_Rotate(void* lcgrg_) {
 
 size_t Zeta_LCGRandomGenerator_Fetch(void* lcgrg_) {
     Zeta_LCGRandomGenerator* lcgrg = lcgrg_;
-    return lcgrg->seed >> 16;
+    return lcgrg->seed / (size_t)65536;
 }

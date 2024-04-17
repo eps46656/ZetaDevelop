@@ -224,12 +224,12 @@ typedef s32_t unichar_t;
     ((struct_type*)((unsigned char*)(member_ptr)-offsetof(struct_type, \
                                                           member_name)))
 
-#define ZETA_Swap(x, y)      \
-    {                        \
-        typeof(x) tmp = (x); \
-        (x) = (y);           \
-        (y) = tmp;           \
-    }                        \
+#define ZETA_Swap(type, x, y) \
+    {                         \
+        type tmp = (x);       \
+        (x) = (y);            \
+        (y) = tmp;            \
+    }                         \
     ZETA_StaticAssert(TRUE)
 
 #define ZETA_GetMaxMod(type) (ZETA_GetRangeMax(type) / 2 + 1)

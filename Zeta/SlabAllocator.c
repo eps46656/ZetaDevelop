@@ -44,7 +44,7 @@ void Zeta_SlabAllocator_Init(void* sa_) {
 
     stride = Zeta_FindNextConMod(stride, 0, align);
 
-    sa->width = width = stride - sizeof(unsigned char);
+    sa->width = stride - sizeof(unsigned char);
 
     Zeta_Allocator* allocator = sa->allocator;
     ZETA_DebugAssert(allocator != NULL);
@@ -95,10 +95,9 @@ void* Zeta_SlabAllocator_Allocate(void* sa_, size_t size) {
 
     if (size == 0 || width < size) { return NULL; }
 
-    Zeta_OrdLinkedListNode* hot_unit_head = &sa->hot_unit_head;
+    void* hot_unit_head = &sa->hot_unit_head;
 
-    Zeta_OrdLinkedListNode* hot_unit_n =
-        Zeta_OrdLinkedListNode_GetR(hot_unit_head);
+    void* hot_unit_n = Zeta_OrdLinkedListNode_GetR(hot_unit_head);
 
     if (hot_unit_n != hot_unit_head) {
         SlabHead* slab_head = GetSlabHeadFromSlabUnit_(hot_unit_n);
@@ -123,7 +122,7 @@ void* Zeta_SlabAllocator_Allocate(void* sa_, size_t size) {
     void* slab = sa->allocator->Allocate(sa->allocator->context, ZETA_SlabSize);
     ZETA_DebugAssert(slab != NULL);
 
-    SlabHead* slab_head = (SlabHead*)((unsigned char*)slab + stride * num);
+    SlabHead* slab_head = (void*)((unsigned char*)slab + stride * num);
 
     Zeta_OrdLinkedListNode_Init(&slab_head->n);
     Zeta_OrdLinkedListNode_InsertL(&sa->occupied_slab_n_list_head,
@@ -146,7 +145,7 @@ void* Zeta_SlabAllocator_Allocate(void* sa_, size_t size) {
     sa->num_of_vacant_units += num - 1;
     ++sa->num_of_occupied_units;
 
-    return (Zeta_OrdLinkedListNode*)first_chunk;
+    return first_chunk;
 }
 
 void Zeta_SlabAllocator_Deallocate(void* sa_, void* ptr) {
@@ -177,11 +176,9 @@ void Zeta_SlabAllocator_Deallocate(void* sa_, void* ptr) {
 
     if (4 * sa->num_of_vacant_units < sa->num_of_occupied_units) { return; }
 
-    Zeta_OrdLinkedListNode* vacant_slab_n_list_head =
-        &sa->vacant_slab_n_list_head;
+    void* vacant_slab_n_list_head = &sa->vacant_slab_n_list_head;
 
-    Zeta_OrdLinkedListNode* vacant_slab_n =
-        Zeta_OrdLinkedListNode_GetR(vacant_slab_n_list_head);
+    void* vacant_slab_n = Zeta_OrdLinkedListNode_GetR(vacant_slab_n_list_head);
 
     if (vacant_slab_n == vacant_slab_n_list_head) { return; }
 
@@ -245,18 +242,15 @@ void Zeta_SlabAllocator_Check(void* sa_,
         hot_unit = Zeta_OrdLinkedListNode_GetR(hot_unit);
         if (hot_unit == &sa->hot_unit_head) { break; }
 
-        Zeta_DebugTreeMap_KeyValPair p = Zeta_DebugTreeMap_Insert(
-            &vacant_unit_mt, ZETA_GetAddrFromPtr(hot_unit));
-
-        ZETA_DebugAssert(p.b);
+        ZETA_DebugAssert(Zeta_DebugTreeMap_Insert(&vacant_unit_mt,
+                                                  ZETA_GetAddrFromPtr(hot_unit))
+                             .b);
     }
 
     size_t check_num_of_vacant_units = 0;
     size_t check_num_of_occupied_units = 0;
 
-    for (Zeta_OrdLinkedListNode* occupied_slab_n =
-             &sa->occupied_slab_n_list_head;
-         ;) {
+    for (void* occupied_slab_n = &sa->occupied_slab_n_list_head;;) {
         occupied_slab_n = Zeta_OrdLinkedListNode_GetR(occupied_slab_n);
         if (occupied_slab_n == &sa->occupied_slab_n_list_head) { break; }
 
@@ -304,8 +298,7 @@ void Zeta_SlabAllocator_Check(void* sa_,
         *p.val = slab_size;
     }
 
-    for (Zeta_OrdLinkedListNode* vacant_slab_n = &sa->vacant_slab_n_list_head;
-         ;) {
+    for (void* vacant_slab_n = &sa->vacant_slab_n_list_head;;) {
         vacant_slab_n = Zeta_OrdLinkedListNode_GetR(vacant_slab_n);
         if (vacant_slab_n == &sa->vacant_slab_n_list_head) { break; }
 

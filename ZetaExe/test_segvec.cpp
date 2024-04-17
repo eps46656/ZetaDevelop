@@ -48,7 +48,7 @@ Zeta_DebugTreeMap seg_tm;
 void SetupDebugDeque() {
     dd_.width = WIDTH;
     Zeta_DebugDeque_Create(&dd_);
-    Zeta_DebugDeque_ToVector(&dd_, &dd);
+    Zeta_DebugDeque_DeploySeqContainer(&dd_, &dd);
 }
 
 void SetupSegVector() {
@@ -57,7 +57,7 @@ void SetupSegVector() {
     sv_.node_allocator = &node_allocator;
     sv_.seg_allocator = &seg_allocator;
     Zeta_SegVector_Init(&sv_);
-    Zeta_SegVector_DeployVector(&sv_, &sv);
+    Zeta_SegVector_DeploySeqContainer(&sv_, &sv);
 };
 
 void Check() {
@@ -65,8 +65,8 @@ void Check() {
     ZETA_DebugAssert(sv.GetSize(sv.context) == size);
 
     for (size_t i = 0; i < size; ++i) {
-        ZETA_DebugAssert(
-            CmpVal(dd.Access(dd.context, i), sv.Access(sv.context, i)));
+        ZETA_DebugAssert(CmpVal(dd.Access(dd.context, NULL, i),
+                                sv.Access(sv.context, NULL, i)));
     }
 
     std::map<size_t, size_t>* node_tree_map =

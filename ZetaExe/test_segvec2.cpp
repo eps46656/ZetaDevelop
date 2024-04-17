@@ -2,7 +2,6 @@
 #include <map>
 #include <random>
 
-#include "../Zeta/DebugDeque.h"
 #include "../Zeta/SegVector.h"
 #include "../Zeta/utils.h"
 #include "MemAllocatorCheck.h"
@@ -35,8 +34,6 @@ Zeta_DebugTreeMap seg_tm;
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 
-void SetupDebugDeque() {}
-
 void SetupSegVector() {
     StdAllocator_DeployAllocator(&node_allocator_, &node_allocator);
     StdAllocator_DeployAllocator(&seg_allocator_, &seg_allocator);
@@ -46,7 +43,12 @@ void SetupSegVector() {
     sv.node_allocator = &node_allocator;
     sv.seg_allocator = &seg_allocator;
 
+    ZETA_PrintPos;
+
     Zeta_SegVector_Init(&sv);
+
+    ZETA_PrintPos;
+
     Zeta_SegVector_DeploySeqContainer(&sv, &seq_cntr);
 
     Zeta_SegVector_Cursor_DeployCursorOperator(&sv, &seq_cntr_cursor_opr);
@@ -170,12 +172,13 @@ void main1() {
     StdAllocator_DeployAllocator(&seg_allocator_, &seg_allocator);
 
     SetupSegVector();
-    SetupDebugDeque();
 
     Zeta_DebugTreeMap_Create(&node_tm);
     Zeta_DebugTreeMap_Create(&seg_tm);
 
     Check();
+
+    ZETA_PrintPos;
 
     for (int i = 0; i < 1000; ++i) {
         size_t val = val_generator(en);

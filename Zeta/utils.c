@@ -25,7 +25,7 @@ void Zeta_MemSwap(void* x_, void* y_, size_t size) {
     ZETA_DebugAssert(x != NULL);
     ZETA_DebugAssert(y != NULL);
 
-    for (size_t i = 0; i < size; ++i) { ZETA_Swap(x[i], y[i]); }
+    for (size_t i = 0; i < size; ++i) { ZETA_Swap(unsigned char, x[i], y[i]); }
 }
 
 void* Zeta_MemRotate(void* beg_, void* mid_, void* end_) {
@@ -54,7 +54,9 @@ void* Zeta_MemRotate(void* beg_, void* mid_, void* end_) {
         a -= r;
         b = r;
 
-        for (; mid != end; ++beg, ++mid) { ZETA_Swap(*beg, *mid); }
+        for (; mid != end; ++beg, ++mid) {
+            ZETA_Swap(unsigned char, *beg, *mid);
+        }
 
         mid -= r;
     }
@@ -154,7 +156,7 @@ u128_t Zeta_GetMulMod(u128_t x, u128_t y, u128_t mod) {
 
     if (x == 0 || y <= ZETA_GetRangeMax(u128_t) / x) { return (x * y) % mod; }
 
-    if (x < y) { ZETA_Swap(x, y); }
+    if (x < y) { ZETA_Swap(unsigned char, x, y); }
 
     u128_t ret = 0;
 
@@ -218,11 +220,25 @@ int Zeta_GetLSB(size_t x) {
 
     int ret = 0;
 
-    for (; x % 256 == 0; x /= 256) { ret += 8; }
+    size_t tmp;
 
-    x %= 256;
+    for (; (tmp = x % 65536) == 0; x /= 65536) { ret += 16; }
 
-    return ret + (x % 16 == 0 ? (4 + table[x / 16]) : table[x % 16]);
+    if ((tmp = x % 256) == 0) {
+        ret += 8;
+        x /= 256;
+    } else {
+        x = tmp;
+    }
+
+    if ((tmp = x % 16) == 0) {
+        ret += 4;
+        x /= 16;
+    } else {
+        x = tmp;
+    }
+
+    return ret + table[x % 16];
 }
 
 int Zeta_GetMSB(size_t x) {
@@ -232,9 +248,22 @@ int Zeta_GetMSB(size_t x) {
 
     int ret = 0;
 
-    for (; 256 <= x; x /= 256) { ret += 8; }
+    if (65536 <= x) {
+        ret += 16;
+        x /= 65536;
+    }
 
-    return ret + (x < 16 ? table[x % 16] : (4 + table[x / 16]));
+    if (256 <= x) {
+        ret += 8;
+        x /= 256;
+    }
+
+    if (16 <= x) {
+        ret += 4;
+        x /= 16;
+    }
+
+    return ret + table[x];
 }
 
 void* Zeta_GetMostLink(void* context, void* (*GetLink)(void* context, void* n),

@@ -72,6 +72,6 @@ void* Zeta_SegList_Erase(void* sl, void* dst_cursor, size_t idx);
 void Zeta_SegList_Check(void* sl, Zeta_DebugTreeMap* dst_node_tm,
                         Zeta_DebugTreeMap* dst_seg_tm);
 
-void Zeta_SegList_ToVector(void* sl, Zeta_Vector* dst);
+void Zeta_SegList_DeploySeqContainer(void* sl, Zeta_SeqContainer* dst);
 
 ZETA_ExternC_End;

@@ -53,12 +53,9 @@ void MLV_Init() {
     StdAllocator_DeployAllocator(&mlv_node_allocator_, &mlv_node_allocator);
     StdAllocator_DeployAllocator(&mlv_table_allocator_, &mlv_table_allocator);
 
-    mlv.level = 5;
-    mlv.branch_nums[0] = 5;
-    mlv.branch_nums[1] = 6;
-    mlv.branch_nums[2] = 4;
-    mlv.branch_nums[3] = 5;
-    mlv.branch_nums[4] = 7;
+    mlv.level = 2;
+    mlv.branch_nums[0] = 128;
+    mlv.branch_nums[1] = 64;
     mlv.node_allocator = &mlv_node_allocator;
     mlv.table_allocator = &mlv_table_allocator;
 
@@ -204,6 +201,8 @@ void main1() {
             SyncSetVal(idx, val);
             Check();
         }
+
+        ZETA_PrintPos;
 
         for (int test_j = 0; test_j < 20; ++test_j) {
             ZETA_PrintVar(test_i);

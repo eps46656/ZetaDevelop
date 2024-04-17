@@ -87,7 +87,7 @@ static bool_t IsVacant_(Zeta_TreeAllocator_Head* head) {
     return Zeta_OrdRBLinkedListNode_GetColor(&head->hn) == vacant_color;
 }
 
-static Zeta_TreeAllocator_Head* GetHeadFromHN_(void* hn) {
+static Zeta_TreeAllocator_Head* GetHeadFromHN_(Zeta_OrdRBLinkedListNode* hn) {
     return ZETA_GetStructFromMember(Zeta_TreeAllocator_Head, hn, hn);
 }
 
@@ -105,7 +105,7 @@ static size_t GetStride_(Zeta_TreeAllocator_Head* head) {
 static Zeta_OrdRBTreeNode* FindBlock_(Zeta_OrdRBTreeNode* sn_root,
                                       size_t stride) {
     Zeta_OrdRBTreeNode* sn = sn_root;
-    void* ret = NULL;
+    Zeta_OrdRBTreeNode* ret = NULL;
 
     while (sn != NULL) {
         size_t sn_stride = GetStride_(GetHeadFromSN_(sn));
@@ -197,9 +197,8 @@ void* Zeta_TreeAllocator_Allocate(void* ta_, size_t size) {
     size_t align = ta->align;
 
     Zeta_TreeAllocator_Head* m_head =
-        (Zeta_TreeAllocator_Head*)((unsigned char*)(l_head) +
-                                   GetNxtAlign_(occupied_head_size + size,
-                                                align));
+        (void*)((unsigned char*)(l_head) +
+                GetNxtAlign_(occupied_head_size + size, align));
 
     Zeta_TreeAllocator_Head* r_head =
         GetHeadFromHN_(Zeta_OrdRBLinkedListNode_GetR(&l_head->hn));
@@ -230,7 +229,7 @@ void Zeta_TreeAllocator_Deallocate(void* ta_, void* ptr) {
     Zeta_OrdRBTreeNode_DeployBinTreeNodeOperator(NULL, &btn_opr);
 
     Zeta_TreeAllocator_Head* m_head =
-        (Zeta_TreeAllocator_Head*)((unsigned char*)ptr - occupied_head_size);
+        (void*)((unsigned char*)ptr - occupied_head_size);
 
     Zeta_TreeAllocator_Head* l_head =
         GetHeadFromHN_(Zeta_OrdRBLinkedListNode_GetL(&m_head->hn));
@@ -265,7 +264,7 @@ void Zeta_TreeAllocator_Deallocate(void* ta_, void* ptr) {
         &btn_opr, ta->sn_root,
         FindBlock_(ta->sn_root,
                    ZETA_GetAddrFromPtr(r_head) - ZETA_GetAddrFromPtr(l_head)),
-        &m_head->sn);
+        &l_head->sn);
 }
 
 static void GetVacantHead_(Zeta_DebugTreeMap* dst_head_mt,

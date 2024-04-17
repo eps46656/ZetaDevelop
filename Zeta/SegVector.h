@@ -21,7 +21,7 @@ typedef struct Zeta_SegVector_Cursor Zeta_SegVector_Cursor;
 
 struct Zeta_SegVector_Cursor {
     size_t idx;
-    Zeta_OrdCntRBTreeNode* n;
+    void* n;
     size_t seg_idx;
     void* ele;
 };
@@ -35,13 +35,13 @@ struct Zeta_SegVector {
     /** The max number of elements in one seg. */
     size_t seg_capacity;
 
+    Zeta_OrdCntRBTreeNode* lb;
+    Zeta_OrdCntRBTreeNode* rb;
+
+    void* root;
+
     Zeta_Allocator* node_allocator;
     Zeta_Allocator* seg_allocator;
-
-    Zeta_OrdCntRBTreeNode lb;
-    Zeta_OrdCntRBTreeNode rb;
-
-    Zeta_OrdCntRBTreeNode* root;
 };
 
 void Zeta_SegVector_Init(void* sv);

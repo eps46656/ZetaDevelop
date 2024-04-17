@@ -104,7 +104,7 @@
                                                                                \
         if (GetY(context, np) == n) {                                          \
             RotateX(btn_opr, np);                                              \
-            ZETA_Swap(n, np);                                                  \
+            ZETA_Swap(void*, n, np);                                           \
         }                                                                      \
                                                                                \
         SetColor(context, ng, Red);                                            \

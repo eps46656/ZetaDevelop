@@ -97,6 +97,46 @@ void Zeta_OrdRBLinkedListNode_InsertR(void* n, void* m) {
     SetL_(nr, m);
 }
 
+void Zeta_OrdRBLinkedListNode_InsertSegL(void* n, void* m_beg, void* m_end) {
+    ZETA_DebugAssert(n != NULL);
+    ZETA_DebugAssert(m_beg != NULL);
+    ZETA_DebugAssert(m_end != NULL);
+
+    void* nl = GetL_(n);
+
+    void* m_beg_l = GetL_(m_beg);
+    void* m_end_r = GetR_(m_end);
+
+    SetL_(m_end_r, m_beg_l);
+    SetR_(m_beg_l, m_end_r);
+
+    SetL_(n, m_end);
+    SetR_(m_end, n);
+
+    SetL_(m_beg, nl);
+    SetR_(nl, m_beg);
+}
+
+void Zeta_OrdRBLinkedListNode_InsertSegR(void* n, void* m_beg, void* m_end) {
+    ZETA_DebugAssert(n != NULL);
+    ZETA_DebugAssert(m_beg != NULL);
+    ZETA_DebugAssert(m_end != NULL);
+
+    void* nr = GetR_(n);
+
+    void* m_beg_l = GetL_(m_beg);
+    void* m_end_r = GetR_(m_end);
+
+    SetR_(m_beg_l, m_end_r);
+    SetL_(m_end_r, m_beg_l);
+
+    SetR_(n, m_beg);
+    SetL_(m_beg, n);
+
+    SetR_(m_end, nr);
+    SetL_(nr, m_end);
+}
+
 void Zeta_OrdRBLinkedListNode_Extract(void* n_) {
     Zeta_OrdRBLinkedListNode* n = n_;
     ZETA_DebugAssert(n != NULL);

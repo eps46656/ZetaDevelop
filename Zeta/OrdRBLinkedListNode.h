@@ -14,16 +14,16 @@ struct Zeta_OrdRBLinkedListNode {
 void Zeta_OrdRBLinkedListNode_Init(void* n);
 
 void* Zeta_OrdRBLinkedListNode_GetL(void* n);
-
 void* Zeta_OrdRBLinkedListNode_GetR(void* n);
 
 int Zeta_OrdRBLinkedListNode_GetColor(void* n);
-
 void Zeta_OrdRBLinkedListNode_SetColor(void* n, int r_color);
 
 void Zeta_OrdRBLinkedListNode_InsertL(void* n, void* m);
-
 void Zeta_OrdRBLinkedListNode_InsertR(void* n, void* m);
+
+void Zeta_OrdRBLinkedListNode_InsertSegL(void* n, void* m_beg, void* m_end);
+void Zeta_OrdRBLinkedListNode_InsertSegR(void* n, void* m_beg, void* m_end);
 
 void Zeta_OrdRBLinkedListNode_Extract(void* n);
 

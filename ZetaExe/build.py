@@ -20,7 +20,7 @@ INCLUDE_DIRS = [
 ]
 
 def AddDeps(builder):
-    debug = False
+    debug = True
 
     cc = "clang"
 
@@ -28,7 +28,7 @@ def AddDeps(builder):
 
     cargs = [
         "--verbose",
-        "-std=gnu17",
+        "-std=c2x",
         *[f"-I \"{path}\"" for path in INCLUDE_DIRS],
         "-m64",
         "-Wall",
@@ -634,6 +634,7 @@ def AddDeps(builder):
 
             f"{ZetaDir}/BinTree.o",
             f"{ZetaDir}/DebugTreeMap.o",
+            f"{ZetaDir}/DebugPipe.o",
             f"{ZetaDir}/TreeAllocator.o",
             f"{ZetaDir}/RBTree.o",
             f"{ZetaDir}/OrdRBLinkedListNode.o",
@@ -649,6 +650,7 @@ def AddDeps(builder):
 
             f"{ZetaDir}/BinTree.o",
             f"{ZetaDir}/DebugTreeMap.o",
+            f"{ZetaDir}/DebugPipe.o",
             f"{ZetaDir}/TreeAllocator.o",
             f"{ZetaDir}/RBTree.o",
             f"{ZetaDir}/OrdRBLinkedListNode.o",
@@ -781,8 +783,8 @@ def AddDeps(builder):
             f"{ZetaDir}/SegVector.o",
             f"{ZetaDir}/BinTree.o",
             f"{ZetaDir}/CircularVector.o",
-            f"{ZetaDir}/DebugDeque.o",
             f"{ZetaDir}/DebugTreeMap.o",
+            f"{ZetaDir}/DebugPipe.o",
             f"{ZetaDir}/RBTree.o",
             f"{ZetaDir}/OrdCntRBTreeNode.o",
             f"{ZetaDir}/utils.o",
@@ -795,8 +797,8 @@ def AddDeps(builder):
             f"{ZetaDir}/SegVector.o",
             f"{ZetaDir}/BinTree.o",
             f"{ZetaDir}/CircularVector.o",
-            f"{ZetaDir}/DebugDeque.o",
             f"{ZetaDir}/DebugTreeMap.o",
+            f"{ZetaDir}/DebugPipe.o",
             f"{ZetaDir}/RBTree.o",
             f"{ZetaDir}/OrdCntRBTreeNode.o",
             f"{ZetaDir}/utils.o",

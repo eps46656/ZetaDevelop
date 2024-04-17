@@ -38,7 +38,7 @@ void* Zeta_OrdBinTreeNode_GetR(void* context, void* n_) {
     return n->r;
 }
 
-void Zeta_OrdBinTreeNode_SetP(void* context, void* n, void* m) {
+void Zeta_OrdBinTreeNode_SetP(void* context, void* n_, void* m) {
     ZETA_Unused(context);
 
     Zeta_OrdBinTreeNode* n = n_;
@@ -47,7 +47,7 @@ void Zeta_OrdBinTreeNode_SetP(void* context, void* n, void* m) {
     n->p = m;
 }
 
-void Zeta_OrdBinTreeNode_SetL(void* context, void* n, void* m) {
+void Zeta_OrdBinTreeNode_SetL(void* context, void* n_, void* m) {
     ZETA_Unused(context);
 
     Zeta_OrdBinTreeNode* n = n_;
@@ -56,7 +56,7 @@ void Zeta_OrdBinTreeNode_SetL(void* context, void* n, void* m) {
     n->l = m;
 }
 
-void Zeta_OrdBinTreeNode_SetR(void* context, void* n, void* m) {
+void Zeta_OrdBinTreeNode_SetR(void* context, void* n_, void* m) {
     ZETA_Unused(context);
 
     Zeta_OrdBinTreeNode* n = n_;

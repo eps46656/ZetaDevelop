@@ -16,7 +16,7 @@ INCLUDE_DIRS = [
 ]
 
 def AddDeps(builder):
-    debug = False
+    debug = True
 
     cc = "clang"
 
@@ -24,7 +24,7 @@ def AddDeps(builder):
 
     cargs = [
         "--verbose",
-        "-std=gnu17",
+        "-std=c2x",
         *[f"-I \"{path}\"" for path in INCLUDE_DIRS],
         "-m64",
         "-Wall",
@@ -47,9 +47,9 @@ def AddDeps(builder):
     ]
 
     if debug:
-        cargs += ["-O3", "-g", "-D DEBUG"]
+        cargs += ["-O3", "-flto", "-g", "-D DEBUG"]
 
-        cppargs += ["-O3", "-g", "-D DEBUG"]
+        cppargs += ["-O3", "-flto", "-g", "-D DEBUG"]
     else:
         cargs += ["-O3", "-flto"]
 

@@ -1,9 +1,11 @@
 #pragma once
 
 #include "Allocator.h"
+#include "BinHeap.h"
 #include "BlockVector.h"
 #include "CacheManager.h"
 #include "DebugPipe.h"
+#include "OrdBinTreeNode.h"
 #include "OrdLinkedListNode.h"
 #include "OrdRBTreeNode.h"
 
@@ -14,6 +16,8 @@ typedef struct Zeta_LRUCacheManager_SNode Zeta_LRUCacheManager_SNode;
 struct Zeta_LRUCacheManager_SNode {
     unsigned int max_al_num;
     unsigned int al_num;
+
+    Zeta_OrdBinTreeNode sh_node;
 
     Zeta_OrdRBTreeNode* at_root;
 
@@ -73,6 +77,12 @@ struct Zeta_LRUCacheManager {
     Zeta_Allocator* c_node_allocator;
     Zeta_Allocator* x_node_allocator;
     Zeta_Allocator* frame_allocator;
+
+    size_t norm_sh_size;
+    Zeta_OrdBinTreeNode* norm_sh_root;
+
+    size_t over_sh_size;
+    Zeta_OrdBinTreeNode* over_sh_root;
 
     Zeta_OrdRBTreeNode* ct_root;
 

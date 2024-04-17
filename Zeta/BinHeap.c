@@ -93,10 +93,8 @@ void* Zeta_BinHeap_Extract(void* bh_, void* n) {
 
     ZETA_DebugAssert(n != NULL);
 
-    void* context = bh->btn_opr->context;
-
-    ZETA_DebugAssert(bh->root ==
-                     Zeta_GetMostLink(context, bh->btn_opr->GetP, n));
+    ZETA_DebugAssert(bh->root == Zeta_GetMostLink(bh->btn_opr->context,
+                                                  bh->btn_opr->GetP, n));
 
     void* m = Zeta_BinHeap_Access(bh, bh->size - 1);
 

@@ -193,8 +193,8 @@ void Zeta_BinTree_Swap(Zeta_BinTreeNodeOperator const* btn_opr, void* n,
     void* mp = GetP(context, m);
 
     if (np == m) {
-        ZETA_Swap(n, m);
-        ZETA_Swap(np, mp);
+        ZETA_Swap(void*, n, m);
+        ZETA_Swap(void*, np, mp);
     }
 
     size_t n_acc_size;
