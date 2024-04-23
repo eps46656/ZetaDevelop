@@ -69,6 +69,17 @@ void Zeta_OrdRBLinkedListNode_SetColor(void* n_, int color) {
         ZETA_GetPtrFromAddr(ZETA_GetAddrFromPtr(n->r) / 2 * 2 + (uintptr_t)rc);
 }
 
+size_t Zeta_OrdRBLinkedListNode_Count(void* n, void* m) {
+    ZETA_DebugAssert(n != NULL);
+    ZETA_DebugAssert(m != NULL);
+
+    size_t ret = 1;
+
+    for (; n != m; n = GetR_(n)) { ++ret; }
+
+    return ret;
+}
+
 void Zeta_OrdRBLinkedListNode_InsertL(void* n, void* m) {
     ZETA_DebugAssert(n != NULL);
     ZETA_DebugAssert(m != NULL);

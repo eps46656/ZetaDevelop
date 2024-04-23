@@ -1,6 +1,12 @@
 #include "MultiLevelVector.h"
 
-#define mask_width (64)
+#define mask_width                                                    \
+    (1 + __builtin_clzll(1) -                                         \
+     __builtin_clzll(ZETA_GetRangeMax(Zeta_MultiLevelVector_mask_t) - \
+                     ZETA_GetRangeMax(Zeta_MultiLevelVector_mask_t) / \
+                         (Zeta_MultiLevelVector_mask_t)2))
+
+ZETA_StaticAssert(mask_width == mask_width);
 
 static void CheckIdxes_(void* mlv_, size_t const* idxes) {
     Zeta_MultiLevelVector* mlv = mlv_;
@@ -19,34 +25,6 @@ static void CheckIdxes_(void* mlv_, size_t const* idxes) {
         ZETA_DebugAssert(idx < branch_num);
     }
 }
-
-/*
-static int FindLSB_(Zeta_MultiLevelVector_mask_t x) {
-    if (x == 0) { return -1; }
-
-    const int table[] = { 0, 0, 1, 0, 2, 0, 1, 0, 3, 0, 1, 0, 2, 0, 1, 0 };
-
-    int ret = 0;
-
-    for (; x % 256 == 0; x /= 256) { ret += 8; }
-
-    x %= 256;
-
-    return ret + (x % 16 == 0 ? (4 + table[x / 16]) : table[x % 16]);
-}
-
-static int FindMSB_(Zeta_MultiLevelVector_mask_t x) {
-    if (x == 0) { return -1; }
-
-    const int table[] = { 0, 0, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 3, 3 };
-
-    int ret = 0;
-
-    for (; 256 <= x; x /= 256) { ret += 8; }
-
-    return ret + (x < 16 ? table[x % 16] : (4 + table[x / 16]));
-}
-*/
 
 static int FindLSB_(Zeta_MultiLevelVector_mask_t x) {
     return x == 0 ? -1 : __builtin_ctzll(x);
@@ -150,23 +128,8 @@ void Zeta_MultiLevelVector_Init(void* mlv_) {
     ZETA_DebugAssert(mlv != NULL);
 
     int level = mlv->level;
-
-    if (level <= 0) {
-        level = 6;
-        ZETA_StaticAssert(6 <= ZETA_MultiLevelVector_max_level);
-
-        mlv->level = level;
-
-        mlv->branch_nums[0] = 64;
-        mlv->branch_nums[1] = 64;
-        mlv->branch_nums[2] = 128;
-        mlv->branch_nums[3] = 128;
-        mlv->branch_nums[4] = 256;
-        mlv->branch_nums[5] = 256;
-    }
-
     ZETA_DebugAssert(0 < level);
-    ZETA_DebugAssert(level < ZETA_MultiLevelVector_max_level);
+    ZETA_DebugAssert(level <= ZETA_MultiLevelVector_max_level);
 
     for (int level_i = 0; level_i < level; ++level_i) {
         size_t branch_num = mlv->branch_nums[level_i];
@@ -192,6 +155,10 @@ void Zeta_MultiLevelVector_Init(void* mlv_) {
         mlv->table_allocator->GetAlign(mlv->table_allocator->context) %
             alignof(void*) ==
         0);
+}
+
+void Zeta_MultiLevelVector_Deinit(void* mlv) {
+    Zeta_MultiLevelVector_EraseAll(mlv);
 }
 
 size_t Zeta_MultiLevelVector_GetSize(void* mlv_) {
@@ -483,7 +450,7 @@ void** Zeta_MultiLevelVector_Insert(void* mlv_, size_t* idxes) {
 
         SetMask_(node, idxes[level_i]);
 
-        node->table[idxes[level_i]] = node =
+        node = node->table[idxes[level_i]] =
             AllocatePage_(branch_nums[level_i + 1], node_allocator_context,
                           AllocateNode, table_allocator_context, AllocateTable);
     }

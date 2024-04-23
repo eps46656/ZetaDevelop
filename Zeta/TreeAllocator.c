@@ -76,6 +76,24 @@ void Zeta_TreeAllocator_Init(void* ta_) {
     ta->sn_root = &beg_head->sn;
 }
 
+void Zeta_TreeAllocator_Deinit(void* ta_) {
+    Zeta_TreeAllocator* ta = ta_;
+    ZETA_DebugAssert(ta != NULL);
+
+    void* data_beg = ta->data_beg;
+    void* data_end = ta->data_end;
+
+    Zeta_TreeAllocator_Head* beg_head = ZETA_GetPtrFromAddr(data_beg);
+    Zeta_TreeAllocator_Head* end_head =
+        ZETA_GetPtrFromAddr(data_end - occupied_head_size);
+
+    ZETA_DebugAssert(Zeta_OrdRBLinkedListNode_GetColor(&beg_head->hn) ==
+                     vacant_color);
+
+    ZETA_DebugAssert(Zeta_OrdRBLinkedListNode_GetR(&beg_head->hn) ==
+                     &end_head->hn);
+}
+
 size_t Zeta_TreeAllocator_GetAlign(void* ta_) {
     Zeta_TreeAllocator* ta = ta_;
     ZETA_DebugAssert(ta != NULL);

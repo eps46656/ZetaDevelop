@@ -46,6 +46,13 @@ struct Zeta_MultiLevelVector {
 void Zeta_MultiLevelVector_Init(void* mlv);
 
 /**
+ * @brief Deinitialize the mlv.
+ *
+ * @param mlv The target mlv.
+ */
+void Zeta_MultiLevelVector_Deinit(void* mlv);
+
+/**
  * @brief Get the number of entries in mlv.
  *
  * @param mlv The target mlv.

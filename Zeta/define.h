@@ -58,51 +58,44 @@ typedef s32_t unichar_t;
 #define ZETA_Concat(x, y) ZETA_Concat_(x, y)
 
 #if defined(__cplusplus)
-#define ZETA_PrintVar(var)                                                  \
-    std::cout << __FILE__ ":" ZETA_ToStr(__LINE__) "\t" #var " = " << (var) \
-              << '\n';
+#define ZETA_PrintVar(var)                                                    \
+    std::cout << __FILE__ ":" ZETA_ToStr(__LINE__) "\t" ZETA_ToStr(var) " = " \
+              << (var) << '\n';
 #else
-#define ZETA_PrintVar(var)                                     \
-    printf(__FILE__ ":" ZETA_ToStr(__LINE__) "\t" #var " = "); \
-                                                               \
-    _Generic((var),                                            \
-        char: printf("%c\n", (var)),                           \
-        unsigned char: printf("%X\n", (var)),                  \
-        signed char: printf("%c\n", (var)),                    \
-                                                               \
-        short: printf("%i\n", (var)),                          \
-        unsigned short: printf("%u\n", (var)),                 \
-                                                               \
-        int: printf("%i\n", (var)),                            \
-        unsigned int: printf("%u\n", (var)),                   \
-                                                               \
-        long int: printf("%li\n", (var)),                      \
-        unsigned long int: printf("%llu\n", (var)),            \
-                                                               \
-        long long int: printf("%lli\n", (var)),                \
-        unsigned long long int: printf("%llu\n", (var)),       \
-                                                               \
-        float: printf("%g\n", (var)),                          \
-                                                               \
-        double: printf("%g\n", (var)),                         \
-        long double: printf("%g\n", (var)),                    \
-                                                               \
-        void*: printf("%p\n", (var)),                          \
-        const void*: printf("%p\n", (var)),                    \
-                                                               \
-        char*: printf("%s\n", (var)),                          \
-        const char*: printf("%s\n", (var)));                   \
-                                                               \
-    fflush(stdout);                                            \
+#define ZETA_PrintVar(var)                                                \
+    printf(__FILE__ ":" ZETA_ToStr(__LINE__) "\t" ZETA_ToStr(var) " = "); \
+                                                                          \
+    _Generic((var),                                                       \
+        char: printf("%c\n", (var)),                                      \
+        unsigned char: printf("%X\n", (var)),                             \
+        signed char: printf("%c\n", (var)),                               \
+                                                                          \
+        short: printf("%i\n", (var)),                                     \
+        unsigned short: printf("%u\n", (var)),                            \
+                                                                          \
+        int: printf("%i\n", (var)),                                       \
+        unsigned int: printf("%u\n", (var)),                              \
+                                                                          \
+        long int: printf("%li\n", (var)),                                 \
+        unsigned long int: printf("%llu\n", (var)),                       \
+                                                                          \
+        long long int: printf("%lli\n", (var)),                           \
+        unsigned long long int: printf("%llu\n", (var)),                  \
+                                                                          \
+        float: printf("%g\n", (var)),                                     \
+                                                                          \
+        double: printf("%g\n", (var)),                                    \
+        long double: printf("%g\n", (var)),                               \
+                                                                          \
+        void*: printf("%p\n", (var)),                                     \
+        const void*: printf("%p\n", (var)),                               \
+                                                                          \
+        char*: printf("%s\n", (var)),                                     \
+        const char*: printf("%s\n", (var)));                              \
+                                                                          \
+    fflush(stdout);                                                       \
     ZETA_StaticAssert(TRUE)
 #endif
-
-/*
-#define ZETA_PrintVar(formater, var)                                    \
-    printf(__FILE__ ":%i\t" #var " = " formater "\n", __LINE__, (var)); \
-    fflush(stdout);                                                     \
-    ZETA_StaticAssert(TRUE)
-*/
 
 #define ZETA_Print(...)                                         \
     printf(__FILE__ ":" ZETA_ToStr(__LINE__) "\t" __VA_ARGS__); \

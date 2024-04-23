@@ -1,7 +1,7 @@
+#include <deque>
 #include <map>
 #include <random>
 
-#include "../Zeta/DebugDeque.h"
 #include "../Zeta/SegVector.h"
 #include "../Zeta/utils.h"
 #include "MemAllocatorCheck.h"
@@ -9,13 +9,13 @@
 
 typedef unsigned int val_t;
 
-#define WIDTH sizeof(val_t)
+#define CURSOR_WIDTH ((size_t)(sizeof(void*) * 8))
 
-void SetVal(void* dst, val_t x) { Zeta_MemCopy(dst, &x, WIDTH); }
+void SetVal(void* dst, val_t x) { Zeta_MemCopy(dst, &x, sizeof(val_t)); }
 
 void PrintVal(void* x) {
     unsigned int xi;
-    Zeta_MemCopy(&xi, x, WIDTH);
+    Zeta_MemCopy(&xi, x, sizeof(val_t));
     printf("%x\n", xi);
 }
 
@@ -23,7 +23,7 @@ bool CmpVal(void* x_, void* y_) {
     char* x = (char*)x_;
     char* y = (char*)y_;
 
-    for (size_t i = 0; i < WIDTH; ++i) {
+    for (size_t i = 0; i < sizeof(val_t); ++i) {
         if (x[i] != y[i]) { return FALSE; }
     }
 
@@ -36,37 +36,56 @@ Zeta_Allocator node_allocator;
 StdAllocator seg_allocator_;
 Zeta_Allocator seg_allocator;
 
-Zeta_DebugDeque dd_;
-Zeta_SegVector sv_;
-
-Zeta_SeqContainer dd;
-Zeta_SeqContainer sv;
+std::deque<val_t> dd;
+Zeta_SegVector sv;
 
 Zeta_DebugTreeMap node_tm;
 Zeta_DebugTreeMap seg_tm;
 
-void SetupDebugDeque() {
-    dd_.width = WIDTH;
-    Zeta_DebugDeque_Create(&dd_);
-    Zeta_DebugDeque_DeploySeqContainer(&dd_, &dd);
-}
+void DD_Init() {}
 
-void SetupSegVector() {
-    sv_.width = WIDTH;
-    sv_.seg_capacity = 4;
-    sv_.node_allocator = &node_allocator;
-    sv_.seg_allocator = &seg_allocator;
-    Zeta_SegVector_Init(&sv_);
-    Zeta_SegVector_DeploySeqContainer(&sv_, &sv);
+size_t DD_GetSize() { return dd.size(); }
+
+val_t DD_Access(size_t idx) { return dd[idx]; }
+
+void DD_Insert(size_t idx, val_t val) { dd.insert(dd.begin() + idx, val); }
+
+void DD_Erase(size_t idx) { dd.erase(dd.begin() + idx); }
+
+void SV_Init() {
+    sv.width = sizeof(val_t);
+    sv.seg_capacity = 4;
+    sv.node_allocator = &node_allocator;
+    sv.seg_allocator = &seg_allocator;
+    Zeta_SegVector_Init(&sv);
 };
 
+size_t SV_GetSize() { return Zeta_SegVector_GetSize(&sv); }
+
+val_t SV_Access(size_t idx) {
+    return *(val_t*)Zeta_SegVector_Access(&sv, NULL, idx);
+}
+
+void SV_Insert(size_t idx, val_t val) {
+    byte_t cursor[CURSOR_WIDTH] __attribute__((aligned(alignof(max_align_t))));
+
+    Zeta_SegVector_Access(&sv, &cursor, idx);
+
+    *(val_t*)Zeta_SegVector_Insert(&sv, &cursor) = val;
+}
+
+void SV_Erase(size_t idx) {
+    byte_t cursor[CURSOR_WIDTH] __attribute__((aligned(alignof(max_align_t))));
+    Zeta_SegVector_Access(&sv, &cursor, idx);
+    Zeta_SegVector_Erase(&sv, &cursor);
+}
+
 void Check() {
-    size_t size = dd.GetSize(dd.context);
-    ZETA_DebugAssert(sv.GetSize(sv.context) == size);
+    size_t size = DD_GetSize();
+    ZETA_DebugAssert(SV_GetSize() == size);
 
     for (size_t i = 0; i < size; ++i) {
-        ZETA_DebugAssert(CmpVal(dd.Access(dd.context, NULL, i),
-                                sv.Access(sv.context, NULL, i)));
+        ZETA_DebugAssert(DD_Access(i) == SV_Access(i));
     }
 
     std::map<size_t, size_t>* node_tree_map =
@@ -78,7 +97,7 @@ void Check() {
     node_tree_map->clear();
     seg_tree_map->clear();
 
-    Zeta_SegVector_Check(&sv_, &node_tm, &seg_tm);
+    Zeta_SegVector_Check(&sv, &node_tm, &seg_tm);
 
     CheckFullContains(node_allocator_.records, *node_tree_map);
     CheckFullContains(seg_allocator_.records, *seg_tree_map);
@@ -98,8 +117,8 @@ void main1() {
     StdAllocator_DeployAllocator(&node_allocator_, &node_allocator);
     StdAllocator_DeployAllocator(&seg_allocator_, &seg_allocator);
 
-    SetupSegVector();
-    SetupDebugDeque();
+    DD_Init();
+    SV_Init();
 
     Zeta_DebugTreeMap_Create(&node_tm);
     Zeta_DebugTreeMap_Create(&seg_tm);
@@ -107,31 +126,31 @@ void main1() {
     Check();
 
     for (int i = 0; i < 1000; ++i) {
-        size_t idx = size_generator(en) % (dd.GetSize(dd.context) + 1);
-        size_t val = val_generator(en);
+        size_t idx = size_generator(en) % (DD_GetSize() + 1);
+        val_t val = val_generator(en);
 
-        SetVal(dd.Insert(dd.context, idx), val);
-        SetVal(sv.Insert(sv.context, idx), val);
+        DD_Insert(idx, val);
+        SV_Insert(idx, val);
 
         Check();
     }
 
     for (int _ = 0; _ < 100; ++_) {
         for (int i = 0; i < 2000; ++i) {
-            size_t idx = size_generator(en) % (dd.GetSize(dd.context) + 1);
-            size_t val = val_generator(en);
+            size_t idx = size_generator(en) % (DD_GetSize() + 1);
+            val_t val = val_generator(en);
 
-            SetVal(dd.Insert(dd.context, idx), val);
-            SetVal(sv.Insert(sv.context, idx), val);
+            DD_Insert(idx, val);
+            SV_Insert(idx, val);
 
             Check();
         }
 
         for (int i = 0; i < 2000; ++i) {
-            size_t idx = size_generator(en) % dd.GetSize(dd.context);
+            size_t idx = size_generator(en) % DD_GetSize();
 
-            dd.Erase(dd.context, idx);
-            sv.Erase(sv.context, idx);
+            DD_Erase(idx);
+            SV_Erase(idx);
 
             Check();
         }

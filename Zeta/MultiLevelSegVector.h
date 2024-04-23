@@ -1,0 +1,148 @@
+#pragma once
+
+#include "Allocator.h"
+#include "CircularVector.h"
+#include "MultiLevelVector.h"
+#include "SeqContainer.h"
+
+ZETA_ExternC_Beg;
+
+#define Zeta_MultiLevelSegVector_max_seg_capacity \
+    ZETA_GetRangeMax(unsigned short)
+
+typedef struct Zeta_MultiLevelSegVector_Node Zeta_MultiLevelSegVector_Node;
+
+struct Zeta_MultiLevelSegVector_Node {
+    unsigned short offset;
+    void* data;
+};
+
+typedef struct Zeta_MultiLevelSegVector Zeta_MultiLevelSegVector;
+
+/**
+ * @brief A double-ended vector.
+ */
+struct Zeta_MultiLevelSegVector {
+    /** The width(byte) of an element occupying. */
+    size_t width;
+
+    /** The number of elements in a cluster. */
+    size_t seg_capacity;
+
+    /** The offset(element) of begin. */
+    size_t offset;
+
+    /** The number of elements in vector. */
+    size_t size;
+
+    /** The multi level entry table to provide large entry space. */
+    Zeta_MultiLevelVector mlv;
+
+    /** The allocator to allocate node. */
+    Zeta_Allocator* node_allocator;
+
+    /** The allocator to allocate data */
+    Zeta_Allocator* data_allocator;
+};
+
+/**
+ * @brief Initialize the dv.
+ *
+ * @param dv The target MultiLevelSegVector
+ */
+void Zeta_MultiLevelSegVector_Init(void* dv);
+
+/**
+ * @brief Get the width(byte) of an element occupying.
+ */
+size_t Zeta_MultiLevelSegVector_GetWidth(void* dv);
+
+/**
+ * @brief Get the number of elements.
+ *
+ * @param dv The target MultiLevelSegVector
+ */
+size_t Zeta_MultiLevelSegVector_GetSize(void* dv);
+
+/**
+ * @brief Access the target element by idx.
+ *
+ * @param dv The target MultiLevelSegVector.
+ * @param idx The index of target element.
+ *
+ * @return The target element.
+ */
+void* Zeta_MultiLevelSegVector_Access(void* dv, size_t idx);
+
+/**
+ * @brief Insert an new element at idx. Auto shift left or right elements to
+ * insert new element at idx.
+ *
+ * @param dv The target MultiLevelSegVector.
+ * @param idx The index of target element.
+ *
+ * @return The target element.
+ */
+void* Zeta_MultiLevelSegVector_Insert(void* dv, size_t idx);
+
+/**
+ * @brief Push an element at left end of dv. A syntatic sugar of
+ * Zeta_MultiLevelSegVector_Insert(dv, 0).
+ *
+ * @param dv The target MultiLevelSegVector.
+ *
+ * @return The target element.
+ */
+void* Zeta_MultiLevelSegVector_PushL(void* dv);
+
+/**
+ * @brief Push an element at right end of dv. A syntatic sugar of
+ * Zeta_MultiLevelSegVector_Insert(dv, dv->size).
+ *
+ * @param dv The target MultiLevelSegVector.
+ *
+ * @return The target element.
+ */
+void* Zeta_MultiLevelSegVector_PushR(void* dv);
+
+/**
+ * @brief Erase the target element by index. Auto shift left or right elements.
+ *
+ * @param dv The target MultiLevelSegVector.
+ * @param idx The index of target element.
+ */
+void Zeta_MultiLevelSegVector_Erase(void* dv, size_t idx);
+
+/**
+ * @brief Pop an element at left end of dv. A syntatic sugar of
+ * Zeta_MultiLevelSegVector_Insert(dv, 0).
+ *
+ * @param dv The target MultiLevelSegVector.
+ */
+void Zeta_MultiLevelSegVector_PopL(void* dv);
+
+/**
+ * @brief Pop an element at right end of dv. A syntatic sugar of
+ * Zeta_MultiLevelSegVector_Insert(dv, dv->size - 1).
+ *
+ * @param dv The target MultiLevelSegVector.
+ */
+void Zeta_MultiLevelSegVector_PopR(void* dv);
+
+/**
+ * @brief Erase all existed entries. Call Callback for each entry  before
+ * erased. If Callback is NULL, it will be ignored and not called.
+ *
+ * @param dv The target dv.
+ */
+void Zeta_MultiLevelSegVector_EraseAll(void* dv);
+
+/**
+ * @brief Construct a vector interface from dv. Place result at dst.
+ *
+ * @param dv The target MultiLevelSegVector.
+ * @param dst The destination of Vector.
+ */
+void Zeta_MultiLevelSegVector_ToVector(void* dv, Zeta_Vector* dst);
+
+ZETA_ExternC_End;

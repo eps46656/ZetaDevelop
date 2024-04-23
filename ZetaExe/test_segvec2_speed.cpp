@@ -31,9 +31,7 @@ Zeta_CursorOperator seq_cntr_cursor_opr;
 Zeta_DebugTreeMap node_tm;
 Zeta_DebugTreeMap seg_tm;
 
-void SetupDebugDeque() {}
-
-void SetupSegVector() {
+void SV_Init() {
     StdAllocator_DeployAllocator(&node_allocator_, &node_allocator);
     StdAllocator_DeployAllocator(&seg_allocator_, &seg_allocator);
 
@@ -117,8 +115,7 @@ void main1() {
     StdAllocator_DeployAllocator(&node_allocator_, &node_allocator);
     StdAllocator_DeployAllocator(&seg_allocator_, &seg_allocator);
 
-    SetupSegVector();
-    SetupDebugDeque();
+    SV_Init();
 
     Zeta_DebugTreeMap_Create(&node_tm);
     Zeta_DebugTreeMap_Create(&seg_tm);

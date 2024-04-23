@@ -53,7 +53,7 @@ DirMode/FileMode:
     GetPath:
         Return the path of opening directory/file.
 
-    GetRLockCnt:
+    GetReadLockCnt:
         The working directory/file is called "locked" if and only if it's
         rlock_cnt is greater than zero.
 
@@ -61,23 +61,25 @@ DirMode/FileMode:
 
         Return rlock_cnt of the working directory/file.
 
-    GetWLockCnt:
-
-
-    RLock:
+    AcquireReadLock:
         Lock the state of the working directory/file.
 
-        Increase the rlock_cnt of the working directory/file.
+        Increase the read_lock_cnt of the working directory/file.
 
         After RLock and before Unlock, modification and WLock operator will be
         blocked.
 
         Still accept other RLock operatorions.
 
-    WLock:
+    AcquireWriteLock:
         Lock the state of the working directory/file.
 
-        Increase the wlock_cnt of the working directory/file.
+        If this session is holding write lock, do nothing.
+
+        If this session and only this session is holding read lock
+            release read lock and acquire write lock.
+
+        Increase the write_lock_cnt of the working directory/file.
 
         After RLock and before Unlock, modification, RLock and WLock operator
         will be blocked.
@@ -85,7 +87,7 @@ DirMode/FileMode:
     Unlock:
         Unlock the state of the working directory/file.
 
-        Increase the lock_cnt of the working directory/file.
+        Increase the write_lock_cnt of the working directory/file.
 
         Return if the working directory/file is locked.
 

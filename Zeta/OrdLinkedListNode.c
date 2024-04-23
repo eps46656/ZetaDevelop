@@ -22,6 +22,20 @@ void* Zeta_OrdLinkedListNode_GetR(void* n_) {
     return n->r;
 }
 
+size_t Zeta_OrdLinkedListNode_Count(void* n_, void* m_) {
+    Zeta_OrdLinkedListNode* n = n_;
+    Zeta_OrdLinkedListNode* m = m_;
+
+    ZETA_DebugAssert(n != NULL);
+    ZETA_DebugAssert(m != NULL);
+
+    size_t ret = 1;
+
+    for (; n != m; n = n->r) { ++ret; }
+
+    return ret;
+}
+
 void Zeta_OrdLinkedListNode_InsertL(void* n_, void* m_) {
     Zeta_OrdLinkedListNode* n = n_;
     Zeta_OrdLinkedListNode* m = m_;

@@ -45,6 +45,13 @@ struct Zeta_TreeAllocator {
  */
 void Zeta_TreeAllocator_Init(void* ta);
 
+/**
+ * @brief Deinitialize the tree allocator
+ *
+ * @param ta The target tree allocator.
+ */
+void Zeta_TreeAllocator_Deinit(void* ta);
+
 size_t Zeta_TreeAllocator_GetAlign(void* ta);
 
 /**

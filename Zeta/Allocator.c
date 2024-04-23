@@ -2,6 +2,7 @@
 
 void Zeta_Allocator_Init(void* allocator_) {
     Zeta_Allocator* allocator = allocator_;
+    ZETA_DebugAssert(allocator != NULL);
 
     allocator->context = NULL;
 

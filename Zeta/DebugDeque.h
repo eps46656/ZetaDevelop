@@ -34,7 +34,7 @@ void* Zeta_DebugDeque_Insert(void* dd, void* pos_cursor);
 void Zeta_DebugDeque_PopL(void* dd);
 void Zeta_DebugDeque_PopR(void* dd);
 
-void Zeta_DebugDeque_Erase(void* dd, void* pos_cursor);
+void* Zeta_DebugDeque_Erase(void* dd, void* pos_cursor);
 
 void Zeta_DebugDeque_EraseAll(void* dd, void* callback_context,
                               void (*Callback)(void* context, void* ele));
