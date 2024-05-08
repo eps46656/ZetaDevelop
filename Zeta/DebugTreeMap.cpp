@@ -3,7 +3,7 @@
 #include <iostream>
 #include <map>
 
-typedef std::map<size_t, size_t> tree_map_t;
+typedef std::map<unsigned long long, unsigned long long> tree_map_t;
 
 void Zeta_DebugTreeMap_Create(void* tm_) {
     Zeta_DebugTreeMap* tm = (Zeta_DebugTreeMap*)tm_;
@@ -50,7 +50,8 @@ void Zeta_DebugTreeMap_Move(void* tm_, void* src_tm_) {
     *tree_map = std::move(*src_tree_map);
 }
 
-Zeta_DebugTreeMap_KeyValPair Zeta_DebugTreeMap_Find(void* tm_, size_t key) {
+Zeta_DebugTreeMap_KeyValPair Zeta_DebugTreeMap_Find(void* tm_,
+                                                    unsigned long long key) {
     Zeta_DebugTreeMap* tm = (Zeta_DebugTreeMap*)tm_;
     ZETA_DebugAssert(tm != NULL);
 
@@ -65,7 +66,8 @@ Zeta_DebugTreeMap_KeyValPair Zeta_DebugTreeMap_Find(void* tm_, size_t key) {
                                                &iter->second };
 }
 
-Zeta_DebugTreeMap_KeyValPair Zeta_DebugTreeMap_Insert(void* tm_, size_t key) {
+Zeta_DebugTreeMap_KeyValPair Zeta_DebugTreeMap_Insert(void* tm_,
+                                                      unsigned long long key) {
     Zeta_DebugTreeMap* tm = (Zeta_DebugTreeMap*)tm_;
     ZETA_DebugAssert(tm != NULL);
 
@@ -77,7 +79,7 @@ Zeta_DebugTreeMap_KeyValPair Zeta_DebugTreeMap_Insert(void* tm_, size_t key) {
     return { iter_b.second, &iter_b.first->first, &iter_b.first->second };
 }
 
-bool_t Zeta_DebugTreeMap_Erase(void* tm_, size_t key) {
+bool_t Zeta_DebugTreeMap_Erase(void* tm_, unsigned long long key) {
     Zeta_DebugTreeMap* tm = (Zeta_DebugTreeMap*)tm_;
     ZETA_DebugAssert(tm != NULL);
 

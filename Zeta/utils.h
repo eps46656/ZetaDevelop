@@ -75,13 +75,13 @@ u128_t Zeta_ReadBigEndian(byte_t const* data, unsigned int length);
  */
 u128_t Zeta_WriteBigEndian(byte_t* dst, u128_t val, unsigned int length);
 
-u128_t Zeta_SimpleRandom(u128_t x);
+size_t Zeta_SimpleRandom(size_t x);
 
 size_t Zeta_SimpleHash(size_t x);
 
-u128_t Zeta_GetGCD(u128_t x, u128_t y);
+size_t Zeta_GetGCD(size_t x, size_t y);
 
-u128_t Zeta_GetLCM(u128_t x, u128_t y);
+size_t Zeta_GetLCM(size_t x, size_t y);
 
 /**
  * @brief Calculate base^exp.
@@ -91,7 +91,7 @@ u128_t Zeta_GetLCM(u128_t x, u128_t y);
  *
  * @return base^exp.
  */
-u128_t Zeta_GetPower(u128_t base, u128_t exp);
+size_t Zeta_GetPower(size_t base, size_t exp);
 
 /**
  * @brief Calculate base^exp % mod.
@@ -102,13 +102,13 @@ u128_t Zeta_GetPower(u128_t base, u128_t exp);
  *
  * @return base^exp % mod.
  */
-u128_t Zeta_GetPowerMod(u128_t base, u128_t exp, u128_t mod);
+size_t Zeta_GetPowerMod(size_t base, size_t exp, size_t mod);
 
-int Zeta_GetLogFloor(u128_t val, u128_t base);
+int Zeta_GetLogFloor(size_t val, size_t base);
 
-int Zeta_GetLogCeil(u128_t val, u128_t base);
+int Zeta_GetLogCeil(size_t val, size_t base);
 
-u128_t Zeta_FindNextConMod(u128_t beg, u128_t target, u128_t mod);
+size_t Zeta_FindNextConMod(size_t beg, size_t target, size_t mod);
 
 int Zeta_GetLSB(size_t x);
 

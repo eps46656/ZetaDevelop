@@ -15,13 +15,11 @@ ZETA_ExternC_Beg;
  */
 #define ZETA_MultiLevelVector_max_branch_num 4096
 
-typedef unsigned long long Zeta_MultiLevelVector_mask_t;
-
 typedef struct Zeta_MultiLevelVector_Node Zeta_MultiLevelVector_Node;
 
 struct Zeta_MultiLevelVector_Node {
     void** table;
-    Zeta_MultiLevelVector_mask_t mask[1];
+    unsigned long long mask[];
 };
 
 typedef struct Zeta_MultiLevelVector Zeta_MultiLevelVector;

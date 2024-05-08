@@ -4,7 +4,12 @@
 #include "../Zeta/Allocator.h"
 
 struct StdAllocator {
-    std::map<size_t, size_t> records;
+    std::unordered_map<unsigned long long, unsigned long long> records;
+    size_t usage;
+
+    size_t buffered_size_;
+    size_t max_buffered_ptrs_num_;
+    std::vector<void*> buffered_ptrs_;
 };
 
 size_t StdAllocator_GetAlign(void* sa_) {
@@ -25,8 +30,12 @@ void* StdAllocator_Allocate(void* sa_, size_t size) {
 
     void* ptr = malloc(size);
 
+    ZETA_PrintVar(size);
+
 #if ZETA_IsDebug
-    sa->records.insert({ ZETA_GetAddrFromPtr(ptr), size });
+    bool b{ sa->records.insert({ ZETA_GetAddrFromPtr(ptr), size }).second };
+    ZETA_DebugAssert(b);
+    sa->usage += size;
 #endif
 
     return ptr;
@@ -39,8 +48,10 @@ void StdAllocator_Deallocate(void* sa_, void* ptr) {
     if (ptr == NULL) { return; }
 
 #if ZETA_IsDebug
-    bool_t b = sa->records.erase(ZETA_GetAddrFromPtr(ptr)) != 0;
-    ZETA_DebugAssert(b);
+    auto iter{ sa->records.find(ZETA_GetAddrFromPtr(ptr)) };
+    ZETA_DebugAssert(iter != sa->records.end());
+    sa->usage -= iter->second;
+    sa->records.erase(iter);
 #endif
 
     free(ptr);
@@ -67,14 +78,16 @@ void StdAllocator_CheckRecords(void* sa_, Zeta_DebugTreeMap const* records) {
     StdAllocator* sa = (StdAllocator*)sa_;
     ZETA_DebugAssert(sa != NULL);
 
-    std::map<size_t, size_t>* m1 = &sa->records;
+    std::unordered_map<unsigned long long, unsigned long long>* m1 =
+        &sa->records;
 
-    std::map<size_t, size_t>* m2 = (std::map<size_t, size_t>*)records->tree_map;
+    std::map<unsigned long long, unsigned long long>* m2 =
+        (std::map<unsigned long long, unsigned long long>*)records->tree_map;
 
     for (auto iter{ m1->begin() }, end{ m1->end() }; iter != end; ++iter) {
         auto iter_b{ m2->find(iter->first) };
 
-        ZETA_DebugAssert(iter_b->second);
+        ZETA_DebugAssert(iter_b != m2->end());
         // leak: user misses allocated memory
 
         ZETA_DebugAssert(iter_b->second <= iter->second);
@@ -83,7 +96,7 @@ void StdAllocator_CheckRecords(void* sa_, Zeta_DebugTreeMap const* records) {
 
     for (auto iter{ m2->begin() }, end{ m2->end() }; iter != end; ++iter) {
         auto iter_b{ m1->find(iter->first) };
-        ZETA_DebugAssert(iter_b->second);
+        ZETA_DebugAssert(iter_b != m1->end());
         // hallucination: user use XXX memory
 
         ZETA_DebugAssert(iter->second <= iter_b->second);

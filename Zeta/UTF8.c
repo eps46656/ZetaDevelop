@@ -26,7 +26,6 @@ static byte_t* EncodeChar_(byte_t* dst, unichar_t data_) {
 
         if (data <= ub) {
             *(dst++) = lead % 0b100000000 + data;
-            // *(tmp_p++) = lead % 0b100000000 + data;
             while (tmp < tmp_p) { *(dst++) = *(--tmp_p); }
             return dst;
         }

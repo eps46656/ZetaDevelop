@@ -3,7 +3,7 @@
 #include <unordered_map>
 #include <vector>
 
-#include "../Zeta/MultiLevelVector.h"
+#include "../Zeta/MultiLevelTable.h"
 #include "StdAllocator.h"
 
 StdAllocator mlv_node_allocator_;
@@ -12,7 +12,7 @@ StdAllocator mlv_table_allocator_;
 Zeta_Allocator mlv_node_allocator;
 Zeta_Allocator mlv_table_allocator;
 
-Zeta_MultiLevelVector mlv;
+Zeta_MultiLevelTable mlv;
 
 std::map<size_t, void*> vet;
 
@@ -53,34 +53,34 @@ void MLV_Init() {
     StdAllocator_DeployAllocator(&mlv_node_allocator_, &mlv_node_allocator);
     StdAllocator_DeployAllocator(&mlv_table_allocator_, &mlv_table_allocator);
 
-    mlv.level = 2;
-    mlv.branch_nums[0] = 128;
+    mlv.level = 3;
+    mlv.branch_nums[0] = 48;
     mlv.branch_nums[1] = 64;
+    mlv.branch_nums[2] = 37;
     mlv.node_allocator = &mlv_node_allocator;
-    mlv.table_allocator = &mlv_table_allocator;
 
-    Zeta_MultiLevelVector_Init(&mlv);
+    Zeta_MultiLevelTable_Init(&mlv);
 }
 
 void* MLV_GetVal(size_t idx) {
-    size_t idxes[ZETA_MultiLevelVector_max_level];
+    size_t idxes[ZETA_MultiLevelTable_max_level];
     GetIdxes(idxes, idx);
-    void** p = Zeta_MultiLevelVector_Access(&mlv, idxes);
+    void** p = Zeta_MultiLevelTable_Access(&mlv, idxes);
     return p == NULL ? NULL : *p;
 }
 
 void MLV_SetVal(size_t idx, void* val) {
-    size_t idxes[ZETA_MultiLevelVector_max_level];
+    size_t idxes[ZETA_MultiLevelTable_max_level];
     GetIdxes(idxes, idx);
 
-    *Zeta_MultiLevelVector_Insert(&mlv, idxes) = val;
+    *Zeta_MultiLevelTable_Insert(&mlv, idxes) = val;
 }
 
 void MLV_Erase(size_t idx) {
-    size_t idxes[ZETA_MultiLevelVector_max_level];
+    size_t idxes[ZETA_MultiLevelTable_max_level];
     GetIdxes(idxes, idx);
 
-    Zeta_MultiLevelVector_Erase(&mlv, idxes);
+    Zeta_MultiLevelTable_Erase(&mlv, idxes);
 }
 
 size_t FindPrevCri(size_t idx, bool_t included) {
@@ -96,7 +96,7 @@ size_t FindPrevCri(size_t idx, bool_t included) {
 }
 
 size_t FindNextCri(size_t idx, bool_t included) {
-    size_t capacity = Zeta_MultiLevelVector_GetCapacity(&mlv);
+    size_t capacity = Zeta_MultiLevelTable_GetCapacity(&mlv);
 
     if (!included) {
         if (idx == capacity - 1) { return ZETA_GetRangeMax(size_t); }
@@ -109,32 +109,32 @@ size_t FindNextCri(size_t idx, bool_t included) {
 }
 
 size_t MLVFindPrev(size_t idx, bool_t included) {
-    size_t idxes[ZETA_MultiLevelVector_max_level];
+    size_t idxes[ZETA_MultiLevelTable_max_level];
     GetIdxes(idxes, idx);
 
-    void** p = Zeta_MultiLevelVector_FindPrevNotNull(&mlv, idxes, included);
+    void** p = Zeta_MultiLevelTable_FindPrev(&mlv, idxes, included);
 
     if (p == NULL) { return ZETA_GetRangeMax(size_t); }
 
-    ZETA_DebugAssert(p == Zeta_MultiLevelVector_Access(&mlv, idxes));
+    ZETA_DebugAssert(p == Zeta_MultiLevelTable_Access(&mlv, idxes));
 
     return GetIdx(idxes);
 }
 
 size_t MLVFindNext(size_t idx, bool_t included) {
-    size_t idxes[ZETA_MultiLevelVector_max_level];
+    size_t idxes[ZETA_MultiLevelTable_max_level];
     GetIdxes(idxes, idx);
 
-    void** p = Zeta_MultiLevelVector_FindNextNotNull(&mlv, idxes, included);
+    void** p = Zeta_MultiLevelTable_FindNext(&mlv, idxes, included);
 
     if (p == NULL) { return ZETA_GetRangeMax(size_t); }
 
-    ZETA_DebugAssert(p == Zeta_MultiLevelVector_Access(&mlv, idxes));
+    ZETA_DebugAssert(p == Zeta_MultiLevelTable_Access(&mlv, idxes));
 
     return GetIdx(idxes);
 }
 
-void MLVEraseAll() { Zeta_MultiLevelVector_EraseAll(&mlv); }
+void MLVEraseAll() { Zeta_MultiLevelTable_EraseAll(&mlv); }
 
 void SyncSetVal(size_t idx, void* val) {
     vet[idx] = val;
@@ -153,9 +153,9 @@ void SyncEraseAll() {
 }
 
 void Check() {
-    ZETA_DebugAssert(vet.size() == Zeta_MultiLevelVector_GetSize(&mlv));
+    ZETA_DebugAssert(vet.size() == Zeta_MultiLevelTable_GetSize(&mlv));
 
-    size_t capacity = Zeta_MultiLevelVector_GetCapacity(&mlv);
+    size_t capacity = Zeta_MultiLevelTable_GetCapacity(&mlv);
 
     for (size_t i = 0; i < capacity; ++i) {
         auto iter{ vet.find(i) };
@@ -169,10 +169,10 @@ void Check() {
     Zeta_DebugTreeMap_Create(&node_records);
     Zeta_DebugTreeMap_Create(&table_records);
 
-    Zeta_MultiLevelVector_GetAllPages(&mlv, &node_records, &table_records);
+    Zeta_MultiLevelTable_GetAllPages(&mlv, &node_records);
 
     StdAllocator_CheckRecords(&mlv_node_allocator_, &node_records);
-    StdAllocator_CheckRecords(&mlv_table_allocator_, &table_records);
+    // StdAllocator_CheckRecords(&mlv_table_allocator_, &table_records);
 
     Zeta_DebugTreeMap_Destroy(&node_records);
     Zeta_DebugTreeMap_Destroy(&table_records);
@@ -182,7 +182,7 @@ void main1() {
     // time_t seed = time(NULL);
     time_t seed = 1712994798;
 
-    printf("seed: %d\n", seed);
+    printf("seed: %lld\n", seed);
 
     rand_en.seed(seed);
 
@@ -190,7 +190,7 @@ void main1() {
 
     Check();
 
-    size_t capacity = Zeta_MultiLevelVector_GetCapacity(&mlv);
+    size_t capacity = Zeta_MultiLevelTable_GetCapacity(&mlv);
 
     for (int test_i = 0; test_i < 16; ++test_i) {
         ZETA_PrintVar(test_i);
@@ -201,8 +201,6 @@ void main1() {
             SyncSetVal(idx, val);
             Check();
         }
-
-        ZETA_PrintPos;
 
         for (int test_j = 0; test_j < 20; ++test_j) {
             ZETA_PrintVar(test_i);
@@ -215,8 +213,6 @@ void main1() {
                 Check();
             }
 
-            ZETA_PrintPos;
-
             for (size_t i = 0; i < capacity; ++i) {
                 ZETA_DebugAssert(MLVFindPrev(i, TRUE) == FindPrevCri(i, TRUE));
                 ZETA_DebugAssert(MLVFindPrev(i, FALSE) ==
@@ -227,15 +223,11 @@ void main1() {
                                  FindNextCri(i, FALSE));
             }
 
-            ZETA_PrintPos;
-
             for (size_t i = 0; i < 2000; ++i) {
                 size_t idx = size_generator(rand_en) % capacity;
                 SyncErase(idx);
                 Check();
             }
-
-            ZETA_PrintPos;
 
             for (size_t i = 0; i < capacity; ++i) {
                 ZETA_DebugAssert(MLVFindPrev(i, TRUE) == FindPrevCri(i, TRUE));

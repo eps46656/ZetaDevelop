@@ -55,7 +55,7 @@ void main1() {
 
     size_t width = sizeof(uintptr_t) * 3 + sizeof(size_t);
 
-    allocator_.align = 16;
+    allocator_.align = 8;
     allocator_.width = width;
     allocator_.num = 32;
     allocator_.allocator = &std_allocator;

@@ -1,8 +1,8 @@
 import os
 import time
 
-def GetABSPath(path):
-    return os.path.abspath(path).replace("\\", "/")
+class EmptyClass:
+    pass
 
 def GetMTime(path):
     try:

@@ -28,12 +28,12 @@
 #define ZETA_DebugAssert(cond) ZETA_Assert(cond)
 #else
 #define ZETA_IsDebug FALSE
-#define ZETA_DebugAssert(cond) ZETA_Unused(cond)
+#define ZETA_DebugAssert(cond)
 #endif
 
 typedef unsigned char byte_t;
 
-typedef long long int diff_t;
+typedef long long diff_t;
 
 typedef signed _BitInt(8) s8_t;
 typedef signed _BitInt(16) s16_t;
@@ -58,43 +58,48 @@ typedef s32_t unichar_t;
 #define ZETA_Concat(x, y) ZETA_Concat_(x, y)
 
 #if defined(__cplusplus)
+
 #define ZETA_PrintVar(var)                                                    \
     std::cout << __FILE__ ":" ZETA_ToStr(__LINE__) "\t" ZETA_ToStr(var) " = " \
               << (var) << '\n';
+
 #else
+
 #define ZETA_PrintVar(var)                                                \
     printf(__FILE__ ":" ZETA_ToStr(__LINE__) "\t" ZETA_ToStr(var) " = "); \
                                                                           \
-    _Generic((var),                                                       \
-        char: printf("%c\n", (var)),                                      \
-        unsigned char: printf("%X\n", (var)),                             \
-        signed char: printf("%c\n", (var)),                               \
+    printf(_Generic((var),                                                \
+           char: "%c\n",                                                  \
+           unsigned char: "%X\n",                                         \
+           signed char: "%c\n",                                           \
                                                                           \
-        short: printf("%i\n", (var)),                                     \
-        unsigned short: printf("%u\n", (var)),                            \
+           short: "%i\n",                                                 \
+           unsigned short: "%u\n",                                        \
                                                                           \
-        int: printf("%i\n", (var)),                                       \
-        unsigned int: printf("%u\n", (var)),                              \
+           int: "%i\n",                                                   \
+           unsigned: "%u\n",                                              \
                                                                           \
-        long int: printf("%li\n", (var)),                                 \
-        unsigned long int: printf("%llu\n", (var)),                       \
+           long: "%li\n",                                                 \
+           unsigned long: "%llu\n",                                       \
                                                                           \
-        long long int: printf("%lli\n", (var)),                           \
-        unsigned long long int: printf("%llu\n", (var)),                  \
+           long long: "%lli\n",                                           \
+           unsigned long long: "%llu\n",                                  \
                                                                           \
-        float: printf("%g\n", (var)),                                     \
+           float: "%g\n",                                                 \
                                                                           \
-        double: printf("%g\n", (var)),                                    \
-        long double: printf("%g\n", (var)),                               \
+           double: "%g\n",                                                \
+           long double: "%g\n",                                           \
                                                                           \
-        void*: printf("%p\n", (var)),                                     \
-        const void*: printf("%p\n", (var)),                               \
+           void*: "%p\n",                                                 \
+           const void*: "%p\n",                                           \
                                                                           \
-        char*: printf("%s\n", (var)),                                     \
-        const char*: printf("%s\n", (var)));                              \
+           char*: "%s\n",                                                 \
+           const char*: "%s\n"),                                          \
+           (var));                                                        \
                                                                           \
     fflush(stdout);                                                       \
     ZETA_StaticAssert(TRUE)
+
 #endif
 
 #define ZETA_Print(...)                                         \
@@ -122,8 +127,7 @@ typedef s32_t unichar_t;
 #define ZETA_Assert(cond)                                            \
     if (cond) {                                                      \
     } else {                                                         \
-        printf("assert at " __FILE__                                 \
-               ":" ZETA_ToStr(__LINE__) "\n" ZETA_ToStr(cond) "\n"); \
+        printf("assert at " __FILE__ ":" ZETA_ToStr(__LINE__) "\n"); \
         fflush(stdout);                                              \
         exit(0);                                                     \
     }                                                                \
@@ -151,13 +155,13 @@ typedef s32_t unichar_t;
         unsigned short: 0,                   \
                                              \
         int: INT_MIN,                        \
-        unsigned int: 0,                     \
+        unsigned: 0,                         \
                                              \
-        long int: LONG_MIN,                  \
-        unsigned long int: 0,                \
+        long: LONG_MIN,                      \
+        unsigned long: 0,                    \
                                              \
-        long long int: LLONG_MIN,            \
-        unsigned long long int: 0,           \
+        long long: LLONG_MIN,                \
+        unsigned long long: 0,               \
                                              \
         u8_t: ((u8_t)0),                     \
         s8_t: ((s8_t)(-((s8_t)1 << 7))),     \
@@ -186,11 +190,11 @@ typedef s32_t unichar_t;
         int: INT_MAX,                           \
         unsigned int: UINT_MAX,                 \
                                                 \
-        long int: LONG_MAX,                     \
-        unsigned long int: ULONG_MAX,           \
+        long: LONG_MAX,                         \
+        unsigned long: ULONG_MAX,               \
                                                 \
-        long long int: LLONG_MAX,               \
-        unsigned long long int: ULLONG_MAX,     \
+        long long: LLONG_MAX,                   \
+        unsigned long long: ULLONG_MAX,         \
                                                 \
         u8_t: ((u8_t)(~(u8_t)0)),               \
         s8_t: ((s8_t)(((s8_t)1 << 7) - 1)),     \
@@ -209,13 +213,29 @@ typedef s32_t unichar_t;
 
 #define ZETA_IsSigned(type) (ZETA_GetRangeMin(type) != 0)
 
+#define ZETA_GetWidth(type)                           \
+    _Generic((type)0,                                 \
+        char: CHAR_BIT,                               \
+        unsigned char: CHAR_BIT,                      \
+        signed char: CHAR_BIT,                        \
+                                                      \
+        unsigned: (__builtin_clz(1) + 1),             \
+        unsigned long: (__builtin_clzl(1) + 1),       \
+        unsigned long long: (__builtin_clzll(1) + 1), \
+                                                      \
+        u8_t: (8),                                    \
+        u16_t: (16),                                  \
+        u32_t: (32),                                  \
+        u64_t: (64),                                  \
+        u128_t: (128))
+
 #define ZETA_GetAddrFromPtr(x) ((uintptr_t)(void*)(x))
 
 #define ZETA_GetPtrFromAddr(x) ((void*)(uintptr_t)(x))
 
 #define ZETA_GetStructFromMember(struct_type, member_name, member_ptr) \
-    ((struct_type*)((unsigned char*)(member_ptr)-offsetof(struct_type, \
-                                                          member_name)))
+    ((struct_type*)((unsigned char*)(member_ptr) -                     \
+                    offsetof(struct_type, member_name)))
 
 #define ZETA_Swap(type, x, y) \
     {                         \

@@ -108,10 +108,10 @@ u128_t Zeta_WriteBigEndian(byte_t* dst, u128_t val, unsigned int length) {
     return val;
 }
 
-u128_t Zeta_SimpleRandom(u128_t x) {
-    u128_t mask = 0xFFFF;  // 2^16 - 1
-    u128_t a = 25214903917;
-    u128_t c = 11;
+size_t Zeta_SimpleRandom(size_t x) {
+    size_t mask = 0xFFFF;  // 2^16 - 1
+    size_t a = 25214903917;
+    size_t c = 11;
 
     return ((x * a + c) >> 16) & mask;
 }
@@ -123,7 +123,7 @@ size_t Zeta_SimpleHash(size_t x) {
     return x;
 }
 
-u128_t Zeta_GetGCD(u128_t x, u128_t y) {
+size_t Zeta_GetGCD(size_t x, size_t y) {
     if (x == 0 && y == 0) { return 1; }
 
     for (;;) {
@@ -134,10 +134,10 @@ u128_t Zeta_GetGCD(u128_t x, u128_t y) {
     }
 }
 
-u128_t Zeta_GetLCM(u128_t x, u128_t y) { return x / Zeta_GetGCD(x, y) * y; }
+size_t Zeta_GetLCM(size_t x, size_t y) { return x / Zeta_GetGCD(x, y) * y; }
 
-u128_t Zeta_GetPower(u128_t base, u128_t exp) {
-    u128_t ret = 1;
+size_t Zeta_GetPower(size_t base, size_t exp) {
+    size_t ret = 1;
 
     for (; 0 < exp; exp /= 2) {
         if (exp % 2 == 1) { ret *= base; }
@@ -147,18 +147,18 @@ u128_t Zeta_GetPower(u128_t base, u128_t exp) {
     return ret;
 }
 
-u128_t Zeta_GetMulMod(u128_t x, u128_t y, u128_t mod) {
+size_t Zeta_GetMulMod(size_t x, size_t y, size_t mod) {
     ZETA_DebugAssert(0 < mod);
-    ZETA_DebugAssert(mod <= ZETA_GetMaxMod(u128_t));
+    ZETA_DebugAssert(mod <= ZETA_GetMaxMod(size_t));
 
     x %= mod;
     y %= mod;
 
-    if (x == 0 || y <= ZETA_GetRangeMax(u128_t) / x) { return (x * y) % mod; }
+    if (x == 0 || y <= ZETA_GetRangeMax(size_t) / x) { return (x * y) % mod; }
 
     if (x < y) { ZETA_Swap(unsigned char, x, y); }
 
-    u128_t ret = 0;
+    size_t ret = 0;
 
     for (; 0 < y; y /= 2) {
         if (y % 2 == 1) { ret = (ret + x) % mod; }
@@ -168,15 +168,15 @@ u128_t Zeta_GetMulMod(u128_t x, u128_t y, u128_t mod) {
     return ret;
 }
 
-u128_t Zeta_GetPowerMod(u128_t base, u128_t exp, u128_t mod) {
+size_t Zeta_GetPowerMod(size_t base, size_t exp, size_t mod) {
     ZETA_DebugAssert(0 < mod);
-    ZETA_DebugAssert(mod <= ZETA_GetMaxMod(u128_t));
+    ZETA_DebugAssert(mod <= ZETA_GetMaxMod(size_t));
 
     base %= mod;
 
     if (base == 0) { return 0; }
 
-    u128_t ret = 1;
+    size_t ret = 1;
 
     for (; 0 < exp; exp /= 2) {
         if (exp % 2 == 1) { ret = Zeta_GetMulMod(ret, base, mod); }
@@ -186,7 +186,7 @@ u128_t Zeta_GetPowerMod(u128_t base, u128_t exp, u128_t mod) {
     return ret;
 }
 
-int Zeta_GetLogFloor(u128_t val, u128_t base) {
+int Zeta_GetLogFloor(size_t val, size_t base) {
     ZETA_DebugAssert(0 < val);
     ZETA_DebugAssert(1 < base);
 
@@ -197,7 +197,7 @@ int Zeta_GetLogFloor(u128_t val, u128_t base) {
     return ret;
 }
 
-int Zeta_GetLogCeil(u128_t val, u128_t base) {
+int Zeta_GetLogCeil(size_t val, size_t base) {
     ZETA_DebugAssert(0 < val);
     ZETA_DebugAssert(1 < base);
 
@@ -208,7 +208,7 @@ int Zeta_GetLogCeil(u128_t val, u128_t base) {
     return ret;
 }
 
-u128_t Zeta_FindNextConMod(u128_t beg, u128_t target, u128_t mod) {
+size_t Zeta_FindNextConMod(size_t beg, size_t target, size_t mod) {
     ZETA_DebugAssert(0 < mod);
     return beg + (target + mod - beg % mod) % mod;
 }

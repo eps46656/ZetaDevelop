@@ -1,4 +1,5 @@
 #include <chrono>
+#include <deque>
 #include <iostream>
 #include <map>
 #include <random>
@@ -11,26 +12,7 @@
 
 typedef unsigned int val_t;
 
-#define WIDTH sizeof(val_t)
-
-void SetVal(void* dst, val_t x) { Zeta_MemCopy(dst, &x, WIDTH); }
-
-void PrintVal(void* x) {
-    unsigned int xi;
-    Zeta_MemCopy(&xi, x, WIDTH);
-    printf("%x\n", xi);
-}
-
-bool CmpVal(void* x_, void* y_) {
-    char* x = (char*)x_;
-    char* y = (char*)y_;
-
-    for (size_t i = 0; i < WIDTH; ++i) {
-        if (x[i] != y[i]) { return FALSE; }
-    }
-
-    return TRUE;
-}
+#define CURSOR_WIDTH ((size_t)(sizeof(void*) * 8))
 
 StdAllocator node_allocator_;
 Zeta_Allocator node_allocator;
@@ -38,53 +20,65 @@ Zeta_Allocator node_allocator;
 StdAllocator seg_allocator_;
 Zeta_Allocator seg_allocator;
 
-Zeta_DebugDeque dd_;
-Zeta_SegVector sv_;
-
-Zeta_Vector dd;
-Zeta_Vector sv;
+std::deque<val_t> dd;
+Zeta_SegVector sv;
 
 Zeta_DebugTreeMap node_tm;
 Zeta_DebugTreeMap seg_tm;
 
-void SetupDebugDeque() {
-    dd_.width = WIDTH;
-    Zeta_DebugDeque_Create(&dd_);
-    Zeta_DebugDeque_ToVector(&dd_, &dd);
+// ---------------------------------------------------------------------------------------
+// ---------------------------------------------------------------------------------------
+// ---------------------------------------------------------------------------------------
+
+void SV_Init() {
+    StdAllocator_DeployAllocator(&node_allocator_, &node_allocator);
+    StdAllocator_DeployAllocator(&seg_allocator_, &seg_allocator);
+
+    sv.width = sizeof(val_t);
+    sv.seg_capacity = 32;
+    sv.node_allocator = &node_allocator;
+    sv.seg_allocator = &seg_allocator;
+
+    Zeta_SegVector_Init(&sv);
 }
 
-void SetupSegVector() {
-    sv_.width = WIDTH;
-    sv_.seg_capacity = 32;
-    sv_.node_allocator = &node_allocator;
-    sv_.seg_allocator = &seg_allocator;
-    Zeta_SegVector_Init(&sv_);
-    Zeta_SegVector_ToVector(&sv_, &sv);
-};
+size_t SV_GetSize() { return Zeta_SegVector_GetSize(&sv); }
 
-void Check() {
-    size_t size = dd.GetSize(dd.context);
-    ZETA_DebugAssert(sv.GetSize(sv.context) == size);
-
-    for (size_t i = 0; i < size; ++i) {
-        ZETA_DebugAssert(
-            CmpVal(dd.Access(dd.context, i), sv.Access(sv.context, i)));
-    }
-
-    std::map<size_t, size_t>* node_tree_map =
-        (std::map<size_t, size_t>*)node_tm.tree_map;
-
-    std::map<size_t, size_t>* seg_tree_map =
-        (std::map<size_t, size_t>*)seg_tm.tree_map;
-
-    node_tree_map->clear();
-    seg_tree_map->clear();
-
-    Zeta_SegVector_Check(&sv_, &node_tm, &seg_tm);
-
-    CheckFullContains(node_allocator_.records, *node_tree_map);
-    CheckFullContains(seg_allocator_.records, *seg_tree_map);
+val_t* SV_Access(size_t idx) {
+    return (val_t*)Zeta_SegVector_Access(&sv, NULL, idx);
 }
+
+void SV_Insert(size_t idx, val_t val) {
+    byte_t cursor[CURSOR_WIDTH] __attribute__((aligned(alignof(max_align_t))));
+
+    Zeta_SegVector_Access(&sv, &cursor, idx);
+
+    *(val_t*)Zeta_SegVector_Insert(&sv, &cursor) = val;
+}
+
+void SV_Erase(size_t idx) {
+    byte_t cursor[CURSOR_WIDTH] __attribute__((aligned(alignof(max_align_t))));
+
+    Zeta_SegVector_Access(&sv, &cursor, idx);
+
+    Zeta_SegVector_Erase(&sv, &cursor);
+}
+
+// ---------------------------------------------------------------------------------------
+// ---------------------------------------------------------------------------------------
+// ---------------------------------------------------------------------------------------
+
+size_t DD_GetSize() { return dd.size(); }
+
+val_t* DD_Access(size_t idx) { return &dd[idx]; }
+
+void DD_Insert(size_t idx, val_t val) { dd.insert(dd.begin() + idx, val); }
+
+void DD_Erase(size_t idx) { dd.erase(dd.begin() + idx); }
+
+// ---------------------------------------------------------------------------------------
+// ---------------------------------------------------------------------------------------
+// ---------------------------------------------------------------------------------------
 
 void main1() {
     unsigned int seed = time(NULL);
@@ -100,49 +94,58 @@ void main1() {
     StdAllocator_DeployAllocator(&node_allocator_, &node_allocator);
     StdAllocator_DeployAllocator(&seg_allocator_, &seg_allocator);
 
-    SetupSegVector();
-    SetupDebugDeque();
+    SV_Init();
 
-    // Zeta_DebugTreeMap_Create(&node_tm);
-    // Zeta_DebugTreeMap_Create(&seg_tm);
+    size_t (*GetSize)();
+    val_t* (*Access)(size_t idx);
+    void (*Insert)(size_t idx, val_t val);
+    void (*Erase)(size_t idx);
 
-    // Check();
+    bool_t is_sv = TRUE;
 
-#define V dd
+    if (is_sv) {
+        GetSize = SV_GetSize;
+        Access = SV_Access;
+        Insert = SV_Insert;
+        Erase = SV_Erase;
+    } else {
+        GetSize = DD_GetSize;
+        Access = DD_Access;
+        Insert = DD_Insert;
+        Erase = DD_Erase;
+    }
 
     std::chrono::steady_clock::time_point begin =
         std::chrono::steady_clock::now();
 
     for (int i = 0; i < 1000; ++i) {
-        size_t idx = size_generator(en) % (V.GetSize(V.context) + 1);
+        size_t idx = size_generator(en) % (GetSize() + 1);
         size_t val = val_generator(en);
 
-        SetVal(V.Insert(V.context, idx), val);
+        Insert(idx, val);
     }
 
     for (int _ = 0; _ < 100; ++_) {
-        for (int i = 0; i < 200000; ++i) {
-            size_t idx = size_generator(en) % (V.GetSize(V.context) + 1);
+        for (int i = 0; i < 20000; ++i) {
+            size_t idx = size_generator(en) % (GetSize() + 1);
             size_t val = val_generator(en);
 
-            SetVal(V.Insert(V.context, idx), val);
+            Insert(idx, val);
         }
 
-        for (int i = 0; i < 200000; ++i) {
-            size_t idx = size_generator(en) % V.GetSize(V.context);
+        for (int i = 0; i < 20000; ++i) {
+            size_t idx = size_generator(en) % GetSize();
 
-            V.Erase(V.context, idx);
+            Erase(idx);
         }
     }
 
     {
-        int size = V.GetSize(V.context);
+        size_t size = GetSize();
 
         val_t sum = 0;
 
-        for (int i = 0; i < size; ++i) {
-            sum += *(val_t*)(V.Access(V.context, i));
-        }
+        for (int i = 0; i < size; ++i) { sum += *Access(i); }
 
         ZETA_PrintVar(sum);
     }

@@ -17,7 +17,7 @@ struct Zeta_LRUCacheManager_SNode {
     unsigned int max_al_num;
     unsigned int al_num;
 
-    Zeta_OrdLinkedListNode sl_node;
+    Zeta_OrdBinTreeNode sh_node;
 
     Zeta_OrdRBTreeNode* at_root;
 
@@ -78,9 +78,11 @@ struct Zeta_LRUCacheManager {
     Zeta_Allocator* x_node_allocator;
     Zeta_Allocator* frame_allocator;
 
-    Zeta_OrdLinkedListNode* norm_sl_head;
+    size_t norm_sh_size;
+    Zeta_OrdBinTreeNode* norm_sh_root;
 
-    Zeta_OrdLinkedListNode* over_sl_head;
+    size_t over_sh_size;
+    Zeta_OrdBinTreeNode* over_sh_root;
 
     Zeta_OrdRBTreeNode* ct_root;
 
@@ -107,8 +109,6 @@ void Zeta_LRUCacheManager_FlushBlock(void* lrucm, size_t blk_idx);
 void Zeta_LRUCacheManager_Flush(void* lrucm, void* sd);
 
 void Zeta_LRUCacheManager_FlushAll(void* lrucm);
-
-bool_t Zeta_LRUCacheManager_ClearBuffer(void* lrcum);
 
 void Zeta_LRUCacheManager_DeployCacheManager(void* lrucm,
                                              Zeta_CacheManager* dst);

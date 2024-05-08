@@ -10,7 +10,7 @@ static byte_t* EncodeChar_(byte_t* dst, unichar_t data_,
     u32_t data = data_;
 
     if (data < 0xFFFF) {
-        Write(dst, 2, data);
+        Write(dst, data, 2);
         return dst + 2;
     }
 

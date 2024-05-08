@@ -46,6 +46,8 @@ struct Zeta_SegVector {
 
 void Zeta_SegVector_Init(void* sv);
 
+void Zeta_SegVector_Deinit(void* sv);
+
 size_t Zeta_SegVector_GetWidth(void* sv);
 
 size_t Zeta_SegVector_GetSize(void* sv);

@@ -13,7 +13,7 @@ ZETA_StaticAssert(alignof(Zeta_SlabAllocator_SlabHead) % alignof(uintptr_t) ==
                                                       width))))
 
 #define GetSlabFromSlabHead_(slab_head) \
-    ((void*)((unsigned char*)(slab_head)-stride * num))
+    ((void*)((unsigned char*)(slab_head) - stride * num))
 
 #define ZETA_GetFirstChunkFromSlab(slab) ((unsigned char*)(slab))
 
@@ -253,6 +253,13 @@ void Zeta_SlabAllocator_Deallocate(void* sa_, void* ptr) {
     if (sa->buffer_units_num <= sa->vacant_units_num - sa->num) {
         ReleaseLastSlab_(sa);
     }
+}
+
+bool_t Zeta_SlabAllocator_ReleaseBuffer(void* sa_) {
+    Zeta_SlabAllocator* sa = sa_;
+    ZETA_DebugAssert(sa != NULL);
+
+    return ReleaseLastSlab_(sa);
 }
 
 void Zeta_SlabAllocator_DeployAllocator(void* sa_, Zeta_Allocator* dst) {
