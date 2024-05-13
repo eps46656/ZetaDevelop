@@ -2,8 +2,9 @@
 #include <map>
 #include <random>
 
-#include "../Zeta/DebugTreeMap.h"
+#include "../Zeta/DebugHashMap.h"
 #include "../Zeta/TreeAllocator.h"
+#include "MemAllocatorCheck.h"
 
 typedef long long unsigned llu;
 
@@ -11,14 +12,14 @@ byte_t mem[128 * 1024 * 1024];
 
 Zeta_TreeAllocator allocator;
 
-std::map<size_t, size_t> req_ptr_size_tm;
+std::map<size_t, size_t> req_ptr_size_hm;
 
 std::mt19937_64 en;
 std::uniform_int_distribution<size_t> size_generator{ 16, 2 * 1024 };
 std::uniform_int_distribution<size_t> idx_generator{ 0,
                                                      ZETA_GetRangeMax(size_t) };
 
-void CheckNoCross(std::map<size_t, size_t> const& m) {
+void CheckNoCross(std::unordered_map<size_t, size_t> const& m) {
     if (m.empty()) { return; }
 
     auto iter = m.begin();
@@ -58,16 +59,16 @@ void* MyAlloc(size_t size) {
     ZETA_DebugAssert(ZETA_GetAddrFromPtr(allocator.data_beg) <= m_beg);
     ZETA_DebugAssert(m_end <= ZETA_GetAddrFromPtr(allocator.data_end));
 
-    auto iter = req_ptr_size_tm.insert({ m_beg, size }).first;
+    auto iter = req_ptr_size_hm.insert({ m_beg, size }).first;
 
-    if (iter != req_ptr_size_tm.begin()) {
+    if (iter != req_ptr_size_hm.begin()) {
         auto pre_iter{ std::prev(iter) };
         ZETA_DebugAssert(pre_iter->first + pre_iter->second <= m_beg);
     }
 
     auto nxt_iter{ std::next(iter) };
 
-    if (nxt_iter != req_ptr_size_tm.end()) {
+    if (nxt_iter != req_ptr_size_hm.end()) {
         ZETA_DebugAssert(m_end <= nxt_iter->first);
     }
 
@@ -80,36 +81,22 @@ void* MyAlloc(size_t size) {
 
 void MyFree(void* ptr) {
     Zeta_TreeAllocator_Deallocate(&allocator, ptr);
-    size_t b = req_ptr_size_tm.erase(ZETA_GetAddrFromPtr(ptr));
+    size_t b = req_ptr_size_hm.erase(ZETA_GetAddrFromPtr(ptr));
     ZETA_DebugAssert(b);
 }
 
 void CheckAllocator(bool_t print_state) {
-    Zeta_DebugTreeMap ptr_size_tm_;
-    Zeta_DebugTreeMap_Create(&ptr_size_tm_);
+    Zeta_DebugHashMap records;
+    Zeta_DebugHashMap_Create(&records);
 
-    std::map<size_t, size_t>& ptr_size_tm =
-        *static_cast<std::map<size_t, size_t>*>(ptr_size_tm_.tree_map);
+    std::unordered_map<unsigned long long, unsigned long long>&
+        records_hash_map = *static_cast<
+            std::unordered_map<unsigned long long, unsigned long long>*>(
+            records.hash_map);
 
-    Zeta_TreeAllocator_Check(&allocator, print_state, &ptr_size_tm_);
+    Zeta_TreeAllocator_Check(&allocator, print_state, &records);
 
-    CheckNoCross(ptr_size_tm);
-
-    for (auto iter{ req_ptr_size_tm.begin() }, end{ req_ptr_size_tm.end() };
-         iter != end; ++iter) {
-        auto jter = ptr_size_tm.find(iter->first);
-
-        ZETA_DebugAssert(jter != ptr_size_tm.end());
-        ZETA_DebugAssert(iter->second <= jter->second);
-    }
-
-    for (auto iter{ ptr_size_tm.begin() }, end{ ptr_size_tm.end() };
-         iter != end; ++iter) {
-        auto jter = req_ptr_size_tm.find(iter->first);
-
-        ZETA_DebugAssert(jter != ptr_size_tm.end());
-        ZETA_DebugAssert(jter->second <= iter->second);
-    }
+    CheckNoOverlap(records_hash_map);
 }
 
 void main1() {
@@ -166,9 +153,9 @@ void main1() {
         ZETA_PrintPos;
     }
 
-    // Zeta_TreeAllocator_Check(&allocator, 1, ptr_size_tm);
+    // Zeta_TreeAllocator_Check(&allocator, 1, ptr_size_hm);
 
-    // DebugTreeMap_Print(ptr_size_tm);
+    // DebugHashMap_Print(ptr_size_hm);
 }
 
 int main() {

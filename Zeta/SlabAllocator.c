@@ -278,30 +278,29 @@ void Zeta_SlabAllocator_DeployAllocator(void* sa_, Zeta_Allocator* dst) {
     dst->Deallocate = Zeta_SlabAllocator_Deallocate;
 }
 
-void Zeta_SlabAllocator_Check(void* sa_,
-                              Zeta_DebugTreeMap* dst_used_ptr_size_tm,
-                              Zeta_DebugTreeMap* dst_released_ptr_size_tm) {
+void Zeta_SlabAllocator_Check(void* sa_, Zeta_DebugHashMap* dst_used_records,
+                              Zeta_DebugHashMap* dst_released_records) {
     Zeta_SlabAllocator* sa = sa_;
     ZETA_DebugAssert(sa != NULL);
 
-    ZETA_DebugAssert(dst_used_ptr_size_tm != NULL);
-    ZETA_DebugAssert(dst_released_ptr_size_tm != NULL);
+    ZETA_DebugAssert(dst_used_records != NULL);
+    ZETA_DebugAssert(dst_released_records != NULL);
 
     size_t width = sa->width;
     size_t stride = width + sizeof(unsigned char);
     size_t num = sa->num;
 
-    Zeta_DebugTreeMap vacant_unit_mt;
-    Zeta_DebugTreeMap_Create(&vacant_unit_mt);
+    Zeta_DebugHashMap vacant_unit_mt;
+    Zeta_DebugHashMap_Create(&vacant_unit_mt);
 
-    Zeta_DebugTreeMap occupied_unit_mt;
-    Zeta_DebugTreeMap_Create(&occupied_unit_mt);
+    Zeta_DebugHashMap occupied_unit_mt;
+    Zeta_DebugHashMap_Create(&occupied_unit_mt);
 
     if (sa->hot_unit_head != NULL) {
         Zeta_OrdLinkedListNode* hot_unit = sa->hot_unit_head;
 
         for (;;) {
-            ZETA_DebugAssert(Zeta_DebugTreeMap_Insert(
+            ZETA_DebugAssert(Zeta_DebugHashMap_Insert(
                                  &vacant_unit_mt, ZETA_GetAddrFromPtr(hot_unit))
                                  .b);
 
@@ -332,12 +331,12 @@ void Zeta_SlabAllocator_Check(void* sa_,
             for (size_t i = 0; i < num; ++i, chunk += stride) {
                 ZETA_DebugAssert(i == *(chunk + width));
 
-                if (Zeta_DebugTreeMap_Find(&vacant_unit_mt,
+                if (Zeta_DebugHashMap_Find(&vacant_unit_mt,
                                            ZETA_GetAddrFromPtr(chunk))
                         .b) {
                     ++check_slab_vacant_units_num;
                 } else {
-                    Zeta_DebugTreeMap_KeyValPair p = Zeta_DebugTreeMap_Insert(
+                    Zeta_DebugHashMap_KeyValPair p = Zeta_DebugHashMap_Insert(
                         &occupied_unit_mt, ZETA_GetAddrFromPtr(chunk));
 
                     ZETA_DebugAssert(p.b);
@@ -357,8 +356,8 @@ void Zeta_SlabAllocator_Check(void* sa_,
                                sizeof(Zeta_SlabAllocator_SlabHead) -
                                ZETA_GetAddrFromPtr(occupied_slab);
 
-            Zeta_DebugTreeMap_KeyValPair p = Zeta_DebugTreeMap_Insert(
-                dst_used_ptr_size_tm, ZETA_GetAddrFromPtr(occupied_slab_head));
+            Zeta_DebugHashMap_KeyValPair p = Zeta_DebugHashMap_Insert(
+                dst_used_records, ZETA_GetAddrFromPtr(occupied_slab_head));
 
             ZETA_DebugAssert(p.b);
 
@@ -386,7 +385,7 @@ void Zeta_SlabAllocator_Check(void* sa_,
             for (size_t i = 0; i < num; ++i, chunk += stride) {
                 ZETA_DebugAssert(i == *(chunk + width));
                 ZETA_DebugAssert(
-                    Zeta_DebugTreeMap_Find(&vacant_unit_mt,
+                    Zeta_DebugHashMap_Find(&vacant_unit_mt,
                                            ZETA_GetAddrFromPtr(chunk))
                         .b);
             }
@@ -397,8 +396,8 @@ void Zeta_SlabAllocator_Check(void* sa_,
                                sizeof(Zeta_SlabAllocator_SlabHead) -
                                ZETA_GetAddrFromPtr(vacant_slab);
 
-            Zeta_DebugTreeMap_KeyValPair p = Zeta_DebugTreeMap_Insert(
-                dst_used_ptr_size_tm, ZETA_GetAddrFromPtr(vacant_slab_head));
+            Zeta_DebugHashMap_KeyValPair p = Zeta_DebugHashMap_Insert(
+                dst_used_records, ZETA_GetAddrFromPtr(vacant_slab_head));
 
             ZETA_DebugAssert(p.b);
 
@@ -412,8 +411,8 @@ void Zeta_SlabAllocator_Check(void* sa_,
     ZETA_DebugAssert(check_vacant_units_num == sa->vacant_units_num);
     ZETA_DebugAssert(check_occupied_units_num == sa->occupied_units_num);
 
-    Zeta_DebugTreeMap_Move(dst_released_ptr_size_tm, &occupied_unit_mt);
+    Zeta_DebugHashMap_Move(dst_released_records, &occupied_unit_mt);
 
-    Zeta_DebugTreeMap_Destroy(&vacant_unit_mt);
-    Zeta_DebugTreeMap_Destroy(&occupied_unit_mt);
+    Zeta_DebugHashMap_Destroy(&vacant_unit_mt);
+    Zeta_DebugHashMap_Destroy(&occupied_unit_mt);
 }

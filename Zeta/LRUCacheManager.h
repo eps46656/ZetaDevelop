@@ -1,7 +1,6 @@
 #pragma once
 
 #include "Allocator.h"
-#include "BinHeap.h"
 #include "BlockVector.h"
 #include "CacheManager.h"
 #include "DebugPipe.h"
@@ -14,14 +13,14 @@ ZETA_ExternC_Beg;
 typedef struct Zeta_LRUCacheManager_SNode Zeta_LRUCacheManager_SNode;
 
 struct Zeta_LRUCacheManager_SNode {
+    Zeta_OrdLinkedListNode sl_node;
+
     unsigned int max_al_num;
     unsigned int al_num;
 
-    Zeta_OrdLinkedListNode sl_node;
+    Zeta_OrdLinkedListNode al_head;
 
     Zeta_OrdRBTreeNode* at_root;
-
-    Zeta_OrdLinkedListNode al_head;
 };
 
 typedef struct Zeta_LRUCacheManager_CNode Zeta_LRUCacheManager_CNode;
@@ -108,7 +107,9 @@ void Zeta_LRUCacheManager_Flush(void* lrucm, void* sd);
 
 void Zeta_LRUCacheManager_FlushAll(void* lrucm);
 
-bool_t Zeta_LRUCacheManager_ClearBuffer(void* lrcum);
+bool_t Zeta_LRUCacheManager_UnrefOverRef(void* lrcum);
+
+bool_t Zeta_LRUCacheManager_UnrefOverCache(void* lrcum);
 
 void Zeta_LRUCacheManager_DeployCacheManager(void* lrucm,
                                              Zeta_CacheManager* dst);

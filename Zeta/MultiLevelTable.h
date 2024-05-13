@@ -1,7 +1,7 @@
 #pragma once
 
 #include "Allocator.h"
-#include "DebugTreeMap.h"
+#include "DebugHashMap.h"
 
 ZETA_ExternC_Beg;
 
@@ -78,6 +78,17 @@ void** Zeta_MultiLevelTable_FindLast(void* mlt, size_t* idxes);
 
 void** Zeta_MultiLevelTable_FindPrev(void* mlt, size_t* idxes, bool_t included);
 
+/**
+ * @brief Find the next inserted element after idxes pointing.
+ *
+ * @param mlt The target mlt.
+ * @param idxes The indexes of beginning of searching range in each level. If
+ * the element is found, they will be set as the indexes of the element,
+ * otherwise they will be set to 0.
+ * @param included Indicates wheather idxes is included in the searching range.
+ *
+ * @return The reference of target entry.
+ */
 void** Zeta_MultiLevelTable_FindNext(void* mlt, size_t* idxes, bool_t included);
 
 /**
@@ -108,6 +119,6 @@ void Zeta_MultiLevelTable_Erase(void* mlt, size_t* idxes);
  */
 void Zeta_MultiLevelTable_EraseAll(void* mlt);
 
-void Zeta_MultiLevelTable_GetAllPages(void* mlt, Zeta_DebugTreeMap* dst_node);
+void Zeta_MultiLevelTable_Check(void* mlt, Zeta_DebugHashMap* dst_node);
 
 ZETA_ExternC_End;

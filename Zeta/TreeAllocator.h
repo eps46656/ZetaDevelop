@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Allocator.h"
+#include "DebugHashMap.h"
 #include "OrdRBLinkedListNode.h"
 #include "OrdRBTreeNode.h"
 
@@ -85,7 +86,7 @@ void* Zeta_TreeAllocator_Allocate(void* ta, size_t size);
 void Zeta_TreeAllocator_Deallocate(void* ta, void* ptr);
 
 void Zeta_TreeAllocator_Check(void* ta, bool_t print_state,
-                              void* dst_ptr_size_tm);
+                              Zeta_DebugHashMap* dst_ptr_size_hm);
 
 void Zeta_TreeAllocator_DeployAllocator(void* ta, Zeta_Allocator* dst);
 

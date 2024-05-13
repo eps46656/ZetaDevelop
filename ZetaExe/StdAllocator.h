@@ -2,13 +2,14 @@
 #include <map>
 
 #include "../Zeta/Allocator.h"
+#include "../Zeta/DebugHashMap.h"
 
 struct StdAllocator {
     std::unordered_map<unsigned long long, unsigned long long> records;
     size_t usage;
 
-    size_t buffered_size_;
-    size_t max_buffered_ptrs_num_;
+    size_t buffered_size_{ 0 };
+    size_t max_buffered_ptrs_num_{ 0 };
     std::vector<void*> buffered_ptrs_;
 };
 
@@ -29,8 +30,6 @@ void* StdAllocator_Allocate(void* sa_, size_t size) {
     if (size == 0) { return NULL; }
 
     void* ptr = malloc(size);
-
-    ZETA_PrintVar(size);
 
 #if ZETA_IsDebug
     bool b{ sa->records.insert({ ZETA_GetAddrFromPtr(ptr), size }).second };
@@ -70,36 +69,4 @@ void StdAllocator_DeployAllocator(void* sa_, Zeta_Allocator* dst) {
     dst->Allocate = StdAllocator_Allocate;
 
     dst->Deallocate = StdAllocator_Deallocate;
-}
-
-void StdAllocator_CheckRecords(void* sa_, Zeta_DebugTreeMap const* records) {
-    if (!ZETA_IsDebug) { return; }
-
-    StdAllocator* sa = (StdAllocator*)sa_;
-    ZETA_DebugAssert(sa != NULL);
-
-    std::unordered_map<unsigned long long, unsigned long long>* m1 =
-        &sa->records;
-
-    std::map<unsigned long long, unsigned long long>* m2 =
-        (std::map<unsigned long long, unsigned long long>*)records->tree_map;
-
-    for (auto iter{ m1->begin() }, end{ m1->end() }; iter != end; ++iter) {
-        auto iter_b{ m2->find(iter->first) };
-
-        ZETA_DebugAssert(iter_b != m2->end());
-        // leak: user misses allocated memory
-
-        ZETA_DebugAssert(iter_b->second <= iter->second);
-        // overflow: usee uses more memory than allocated
-    }
-
-    for (auto iter{ m2->begin() }, end{ m2->end() }; iter != end; ++iter) {
-        auto iter_b{ m1->find(iter->first) };
-        ZETA_DebugAssert(iter_b != m1->end());
-        // hallucination: user use XXX memory
-
-        ZETA_DebugAssert(iter->second <= iter_b->second);
-        // overflow: user uses more memory than allocated
-    }
 }

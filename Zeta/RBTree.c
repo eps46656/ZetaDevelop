@@ -322,7 +322,9 @@ static size_t Check_(Zeta_BinTreeNodeOperator const* btn_opr,
 
     int nc = btn_opr->GetColor(context, n);
 
-    if (nc == 0) { return lbh + 1; }
+    ZETA_DebugAssert(nc == Black || nc == Red);
+
+    if (nc == Black) { return lbh + 1; }
 
     ZETA_Assert(btn_opr->GetColor(context, nl) == Black);
     ZETA_Assert(btn_opr->GetColor(context, nr) == Black);
@@ -341,6 +343,7 @@ void Zeta_RBTree_Check(Zeta_BinTreeNodeOperator const* btn_opr,
     if (root == NULL) { return; }
 
     ZETA_DebugAssert(btn_opr->GetP(btn_opr->context, root) == NULL);
+    ZETA_DebugAssert(btn_opr->GetColor(btn_opr->context, root) == Black);
 
     Check_(btn_opr, dst_ns, root);
 }

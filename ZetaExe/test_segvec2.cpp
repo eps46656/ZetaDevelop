@@ -27,8 +27,8 @@ Zeta_SegVector sv;
 Zeta_SeqContainer seq_cntr;
 Zeta_CursorOperator seq_cntr_cursor_opr;
 
-Zeta_DebugTreeMap node_tm;
-Zeta_DebugTreeMap seg_tm;
+Zeta_DebugHashMap node_records;
+Zeta_DebugHashMap seg_records;
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
@@ -144,15 +144,15 @@ void Check() {
     }
 
     std::map<size_t, size_t>* node_tree_map =
-        (std::map<size_t, size_t>*)node_tm.tree_map;
+        (std::map<size_t, size_t>*)node_records.tree_map;
 
     std::map<size_t, size_t>* seg_tree_map =
-        (std::map<size_t, size_t>*)seg_tm.tree_map;
+        (std::map<size_t, size_t>*)seg_records.tree_map;
 
     node_tree_map->clear();
     seg_tree_map->clear();
 
-    Zeta_SegVector_Check(&sv, &node_tm, &seg_tm);
+    Zeta_SegVector_Check(&sv, &node_records, &seg_records);
 
     CheckFullContains(node_allocator_.records, *node_tree_map);
     CheckFullContains(seg_allocator_.records, *seg_tree_map);
@@ -173,8 +173,8 @@ void main1() {
 
     SetupSegVector();
 
-    Zeta_DebugTreeMap_Create(&node_tm);
-    Zeta_DebugTreeMap_Create(&seg_tm);
+    Zeta_DebugHashMap_Create(&node_records);
+    Zeta_DebugHashMap_Create(&seg_records);
 
     Check();
 

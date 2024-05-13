@@ -4,6 +4,7 @@
 #include <vector>
 
 #include "../Zeta/MultiLevelTable.h"
+#include "MemAllocatorCheck.h"
 #include "StdAllocator.h"
 
 StdAllocator mlv_node_allocator_;
@@ -163,19 +164,23 @@ void Check() {
         ZETA_DebugAssert(MLV_GetVal(i) == x);
     }
 
-    Zeta_DebugTreeMap node_records;
-    Zeta_DebugTreeMap table_records;
+    Zeta_DebugHashMap node_records;
+    Zeta_DebugHashMap table_records;
 
-    Zeta_DebugTreeMap_Create(&node_records);
-    Zeta_DebugTreeMap_Create(&table_records);
+    Zeta_DebugHashMap_Create(&node_records);
+    Zeta_DebugHashMap_Create(&table_records);
 
-    Zeta_MultiLevelTable_GetAllPages(&mlv, &node_records);
+    Zeta_MultiLevelTable_Check(&mlv, &node_records);
 
-    StdAllocator_CheckRecords(&mlv_node_allocator_, &node_records);
+    CheckRecords(mlv_node_allocator_.records,
+                 *(std::unordered_map<unsigned long long, unsigned long long>*)
+                      node_records.hash_map);
+
+    // StdAllocator_CheckRecords(&mlv_node_allocator_, &node_records);
     // StdAllocator_CheckRecords(&mlv_table_allocator_, &table_records);
 
-    Zeta_DebugTreeMap_Destroy(&node_records);
-    Zeta_DebugTreeMap_Destroy(&table_records);
+    Zeta_DebugHashMap_Destroy(&node_records);
+    Zeta_DebugHashMap_Destroy(&table_records);
 }
 
 void main1() {

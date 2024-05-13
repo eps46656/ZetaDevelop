@@ -2,7 +2,7 @@
 #include <map>
 #include <random>
 
-#include "../Zeta/DebugTreeMap.h"
+#include "../Zeta/DebugHashMap.h"
 #include "../Zeta/SlabAllocator.h"
 #include "MemAllocatorCheck.h"
 #include "StdAllocator.h"
@@ -15,31 +15,28 @@ Zeta_Allocator std_allocator;
 Zeta_SlabAllocator allocator_;
 Zeta_Allocator allocator;
 
-std::map<size_t, size_t> req_ptr_size_tm;
-
 std::vector<void*> ptrs;
 
 void Check() {
-    Zeta_DebugTreeMap used_ptr_size_tm;
-    Zeta_DebugTreeMap released_ptr_size_tm;
+    Zeta_DebugHashMap used_records;
+    Zeta_DebugHashMap released_records;
 
-    Zeta_DebugTreeMap_Create(&used_ptr_size_tm);
-    Zeta_DebugTreeMap_Create(&released_ptr_size_tm);
+    Zeta_DebugHashMap_Create(&used_records);
+    Zeta_DebugHashMap_Create(&released_records);
 
-    Zeta_SlabAllocator_Check(&allocator_, &used_ptr_size_tm,
-                             &released_ptr_size_tm);
+    Zeta_SlabAllocator_Check(&allocator_, &used_records, &released_records);
 
     for (auto iter{ ptrs.begin() }, end{ ptrs.end() }; iter != end; ++iter) {
-        bool_t b = Zeta_DebugTreeMap_Erase(&released_ptr_size_tm,
+        bool_t b = Zeta_DebugHashMap_Erase(&released_records,
                                            ZETA_GetAddrFromPtr(*iter));
 
         ZETA_DebugAssert(b);
     }
 
-    ZETA_DebugAssert(Zeta_DebugTreeMap_GetSize(&released_ptr_size_tm) == 0);
+    ZETA_DebugAssert(Zeta_DebugHashMap_GetSize(&released_records) == 0);
 
     CheckFullContains(std_allocator_.records,
-                      *(std::map<size_t, size_t>*)used_ptr_size_tm.tree_map);
+                      *(std::map<size_t, size_t>*)used_records.tree_map);
 }
 
 void main1() {

@@ -1,6 +1,6 @@
 #include <deque>
-#include <map>
 #include <random>
+#include <unordered_map>
 
 #include "../Zeta/SegVector.h"
 #include "../Zeta/utils.h"
@@ -39,8 +39,8 @@ Zeta_Allocator seg_allocator;
 std::deque<val_t> dd;
 Zeta_SegVector sv;
 
-Zeta_DebugTreeMap node_tm;
-Zeta_DebugTreeMap seg_tm;
+Zeta_DebugHashMap node_hm;
+Zeta_DebugHashMap seg_hm;
 
 void DD_Init() {}
 
@@ -88,19 +88,22 @@ void Check() {
         ZETA_DebugAssert(DD_Access(i) == SV_Access(i));
     }
 
-    std::map<size_t, size_t>* node_tree_map =
-        (std::map<size_t, size_t>*)node_tm.tree_map;
+    std::unordered_map<unsigned long long, unsigned long long>* node_hash_map =
+        (std::unordered_map<unsigned long long, unsigned long long>*)
+            node_hm.hash_map;
 
-    std::map<size_t, size_t>* seg_tree_map =
-        (std::map<size_t, size_t>*)seg_tm.tree_map;
+    std::unordered_map<unsigned long long, unsigned long long>* seg_hash_map =
+        (std::unordered_map<unsigned long long, unsigned long long>*)
+            seg_hm.hash_map;
 
-    node_tree_map->clear();
-    seg_tree_map->clear();
+    node_hash_map->clear();
+    seg_hash_map->clear();
 
-    Zeta_SegVector_Check(&sv, &node_tm, &seg_tm);
+    Zeta_SegVector_Check(&sv, &node_hm, &seg_hm);
 
-    CheckFullContains(node_allocator_.records, *node_tree_map);
-    CheckFullContains(seg_allocator_.records, *seg_tree_map);
+    CheckFullContains(node_allocator_.records, *node_hash_map);
+
+    CheckFullContains(seg_allocator_.records, *seg_hash_map);
 }
 
 void main1() {
@@ -120,8 +123,8 @@ void main1() {
     DD_Init();
     SV_Init();
 
-    Zeta_DebugTreeMap_Create(&node_tm);
-    Zeta_DebugTreeMap_Create(&seg_tm);
+    Zeta_DebugHashMap_Create(&node_hm);
+    Zeta_DebugHashMap_Create(&seg_hm);
 
     Check();
 

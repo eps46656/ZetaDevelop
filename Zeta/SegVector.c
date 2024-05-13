@@ -1097,53 +1097,59 @@ void Zeta_SegVector_EraseAll(void* sv_, void* callback_context,
     Zeta_SegVector_Init(sv);
 }
 
-void Check_(Zeta_SegVector* sv, Zeta_DebugTreeMap* dst_node_tm,
-            Zeta_DebugTreeMap* dst_seg_tm, Zeta_BinTreeNodeOperator* btn_opr,
+void Check_(Zeta_SegVector* sv, Zeta_DebugHashMap* dst_node_hm,
+            Zeta_DebugHashMap* dst_seg_hm, Zeta_BinTreeNodeOperator* btn_opr,
             void* n) {
     if (sv->lb == n) {
         ZETA_DebugAssert(Zeta_BinTree_StepL(btn_opr, n) == NULL);
-        return;
-    }
 
-    if (sv->rb == n) {
+        Zeta_DebugHashMap_KeyValPair p =
+            Zeta_DebugHashMap_Insert(dst_node_hm, ZETA_GetAddrFromPtr(sv->lb));
+        ZETA_DebugAssert(p.b);
+        *p.val = sizeof(Zeta_OrdCntRBTreeNode);
+    } else if (sv->rb == n) {
         ZETA_DebugAssert(Zeta_BinTree_StepR(btn_opr, n) == NULL);
-        return;
-    }
 
-    Zeta_SegVector_Node* node =
-        ZETA_GetStructFromMember(Zeta_SegVector_Node, n, n);
-
-    {
-        Zeta_DebugTreeMap_KeyValPair p =
-            Zeta_DebugTreeMap_Insert(dst_node_tm, ZETA_GetAddrFromPtr(node));
+        Zeta_DebugHashMap_KeyValPair p =
+            Zeta_DebugHashMap_Insert(dst_node_hm, ZETA_GetAddrFromPtr(sv->rb));
         ZETA_DebugAssert(p.b);
-        *p.val = sizeof(Zeta_SegVector_Node);
-    }
+        *p.val = sizeof(Zeta_OrdCntRBTreeNode);
+    } else {
+        Zeta_SegVector_Node* node =
+            ZETA_GetStructFromMember(Zeta_SegVector_Node, n, n);
 
-    size_t size = node->size;
+        {
+            Zeta_DebugHashMap_KeyValPair p = Zeta_DebugHashMap_Insert(
+                dst_node_hm, ZETA_GetAddrFromPtr(node));
+            ZETA_DebugAssert(p.b);
+            *p.val = sizeof(Zeta_SegVector_Node);
+        }
 
-    ZETA_DebugAssert(size == Zeta_BinTree_GetSize(btn_opr, n));
+        size_t size = node->size;
 
-    ZETA_DebugAssert(0 < size);
-    ZETA_DebugAssert(size <= sv->seg_capacity);
-    ZETA_DebugAssert(node->offset < sv->seg_capacity);
+        ZETA_DebugAssert(size == Zeta_BinTree_GetSize(btn_opr, n));
 
-    {
-        Zeta_DebugTreeMap_KeyValPair p = Zeta_DebugTreeMap_Insert(
-            dst_seg_tm, ZETA_GetAddrFromPtr(node->seg));
-        ZETA_DebugAssert(p.b);
-        *p.val = sv->width * sv->seg_capacity;
+        ZETA_DebugAssert(0 < size);
+        ZETA_DebugAssert(size <= sv->seg_capacity);
+        ZETA_DebugAssert(node->offset < sv->seg_capacity);
+
+        {
+            Zeta_DebugHashMap_KeyValPair p = Zeta_DebugHashMap_Insert(
+                dst_seg_hm, ZETA_GetAddrFromPtr(node->seg));
+            ZETA_DebugAssert(p.b);
+            *p.val = sv->width * sv->seg_capacity;
+        }
     }
 
     void* l_n = Zeta_OrdCntRBTreeNode_GetL(NULL, n);
-    if (l_n != NULL) { Check_(sv, dst_node_tm, dst_seg_tm, btn_opr, l_n); }
+    if (l_n != NULL) { Check_(sv, dst_node_hm, dst_seg_hm, btn_opr, l_n); }
 
     void* r_n = Zeta_OrdCntRBTreeNode_GetR(NULL, n);
-    if (r_n != NULL) { Check_(sv, dst_node_tm, dst_seg_tm, btn_opr, r_n); }
+    if (r_n != NULL) { Check_(sv, dst_node_hm, dst_seg_hm, btn_opr, r_n); }
 }
 
-void Zeta_SegVector_Check(void* sv_, Zeta_DebugTreeMap* dst_node_tm,
-                          Zeta_DebugTreeMap* dst_seg_tm) {
+void Zeta_SegVector_Check(void* sv_, Zeta_DebugHashMap* dst_node_hm,
+                          Zeta_DebugHashMap* dst_seg_hm) {
     Zeta_SegVector* sv = sv_;
     ZETA_DebugAssert(sv != NULL);
 
@@ -1151,7 +1157,7 @@ void Zeta_SegVector_Check(void* sv_, Zeta_DebugTreeMap* dst_node_tm,
     Zeta_BinTree_InitOpr(&btn_opr);
     Zeta_OrdCntRBTreeNode_DeployBinTreeNodeOperator(NULL, &btn_opr);
 
-    Check_(sv, dst_node_tm, dst_seg_tm, &btn_opr, sv->root);
+    Check_(sv, dst_node_hm, dst_seg_hm, &btn_opr, sv->root);
 }
 
 void Zeta_SegVector_DeploySeqContainer(void* sv_, Zeta_SeqContainer* seq_cntr) {

@@ -2,10 +2,6 @@
 
 #include "utils.h"
 
-#define ASSERT_RET(cond)           \
-    if (!(cond)) { goto ERR_RET; } \
-    ZETA_StaticAssert(TRUE)
-
 #define READ(dst, length)                      \
     dst = Zeta_ReadLittleEndian(data, length); \
     data += length;                            \
@@ -74,13 +70,10 @@ byte_t const* Zeta_DiskPartMBR_ReadMBR(Zeta_DiskPartMBR_MBR* dst,
         data = ReadPartInfo_(dst->part_entries + i, data);
     }
 
-    ASSERT_RET(data[0] == 0x55 && data[1] == 0xAA);
+    if (data[0] != 0x55 || data[1] != 0xAA) { return NULL; }
+
     data += 2;
-
     return data;
-
-ERR_RET:
-    return NULL;
 }
 
 byte_t* Zeta_DiskPartMBR_WriteMBR(byte_t* dst, byte_t* dst_end,

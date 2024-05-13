@@ -4,7 +4,7 @@
 
 ZETA_ExternC_Beg;
 
-typedef uintptr_t Zeta_DebugPipe_val_t;
+typedef unsigned long long Zeta_DebugPipe_val_t;
 
 typedef struct Zeta_DebugPipe Zeta_DebugPipe;
 

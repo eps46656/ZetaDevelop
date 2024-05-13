@@ -1,7 +1,7 @@
 #pragma once
 
 #include "Allocator.h"
-#include "DebugTreeMap.h"
+#include "DebugHashMap.h"
 #include "OrdLinkedListNode.h"
 
 ZETA_ExternC_Beg;
@@ -59,7 +59,7 @@ bool_t Zeta_SlabAllocator_ReleaseBuffer(void* sa);
 
 void Zeta_SlabAllocator_DeployAllocator(void* sa, Zeta_Allocator* dst);
 
-void Zeta_SlabAllocator_Check(void* sa, Zeta_DebugTreeMap* dst_used_ptr_size_tm,
-                              Zeta_DebugTreeMap* dst_released_ptr_size_tm);
+void Zeta_SlabAllocator_Check(void* sa, Zeta_DebugHashMap* dst_used_records_tm,
+                              Zeta_DebugHashMap* dst_released_records);
 
 ZETA_ExternC_End;

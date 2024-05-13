@@ -53,6 +53,8 @@ u128_t Zeta_ReadLittleEndian(byte_t const* data, unsigned int length);
  * @param dst The destination byte array.
  * @param length The number of bytes the integer occupied.
  * @param val The target integer.
+ *
+ * @return The remaining value after
  */
 u128_t Zeta_WriteLittleEndian(byte_t* dst, u128_t val, unsigned int length);
 

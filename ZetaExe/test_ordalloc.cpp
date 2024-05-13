@@ -2,7 +2,7 @@
 #include <map>
 #include <random>
 
-#include "../Zeta/DebugTreeMap.h"
+#include "../Zeta/DebugHashMap.h"
 #include "../Zeta/OrdAllocator.h"
 
 typedef long long unsigned llu;
@@ -80,8 +80,8 @@ void MyFree(void* ptr) {
 void CheckAllocator(bool_t print_state) {
     ZETA_Unused(print_state);
 
-    Zeta_DebugTreeMap ptr_size_tm_;
-    Zeta_DebugTreeMap_Create(&ptr_size_tm_);
+    Zeta_DebugHashMap ptr_size_tm_;
+    Zeta_DebugHashMap_Create(&ptr_size_tm_);
 
     std::map<size_t, size_t>& ptr_size_tm =
         *static_cast<std::map<size_t, size_t>*>(ptr_size_tm_.tree_map);
@@ -163,7 +163,7 @@ void main1() {
 
     // Zeta_OrdAllocator_Check(&allocator, ptr_size_tm);
 
-    // DebugTreeMap_Print(ptr_size_tm);
+    // DebugHashMap_Print(ptr_size_tm);
 }
 
 int main() {

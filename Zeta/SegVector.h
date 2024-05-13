@@ -2,7 +2,7 @@
 
 #include "Allocator.h"
 #include "Cursor.h"
-#include "DebugTreeMap.h"
+#include "DebugHashMap.h"
 #include "OrdCntRBTreeNode.h"
 #include "SeqContainer.h"
 
@@ -80,8 +80,8 @@ void* Zeta_SegVector_Erase(void* sv, void* pos_cursor);
 void Zeta_SegVector_EraseAll(void* sv, void* callabck_context,
                              void (*Callback)(void* context, void* ele));
 
-void Zeta_SegVector_Check(void* sv, Zeta_DebugTreeMap* dst_node_tm,
-                          Zeta_DebugTreeMap* dst_seg_tm);
+void Zeta_SegVector_Check(void* sv, Zeta_DebugHashMap* dst_node_hm,
+                          Zeta_DebugHashMap* dst_seg_hm);
 
 void Zeta_SegVector_DeploySeqContainer(void* sv, Zeta_SeqContainer* seq_cntr);
 

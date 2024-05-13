@@ -23,8 +23,8 @@ Zeta_Allocator seg_allocator;
 std::deque<val_t> dd;
 Zeta_SegVector sv;
 
-Zeta_DebugTreeMap node_tm;
-Zeta_DebugTreeMap seg_tm;
+Zeta_DebugHashMap node_hm;
+Zeta_DebugHashMap seg_hm;
 
 // ---------------------------------------------------------------------------------------
 // ---------------------------------------------------------------------------------------

@@ -202,8 +202,8 @@ void Zeta_SegList_PopR(void* sl_) {
     if (sl->size == 0) { sl->offset = 0; }
 }
 
-void Zeta_SegList_Check(void* sl_, Zeta_DebugTreeMap* dst_node_tm,
-                        Zeta_DebugTreeMap* dst_seg_tm) {
+void Zeta_SegList_Check(void* sl_, Zeta_DebugHashMap* dst_node_records,
+                        Zeta_DebugHashMap* dst_seg_records) {
     Zeta_SegList* sl = (Zeta_SegList*)sl_;
     ZETA_DebugAssert(sl != NULL);
 
@@ -219,8 +219,8 @@ void Zeta_SegList_Check(void* sl_, Zeta_DebugTreeMap* dst_node_tm,
             ZETA_GetStructFromMember(Zeta_SegList_Node, n, n);
 
         {
-            Zeta_DebugTreeMap_KeyValPair kvp = Zeta_DebugTreeMap_Insert(
-                dst_node_tm, ZETA_GetAddrFromPtr(node));
+            Zeta_DebugHashMap_KeyValPair kvp = Zeta_DebugHashMap_Insert(
+                dst_node_records, ZETA_GetAddrFromPtr(node));
 
             ZETA_DebugAssert(kvp.b);
 
@@ -228,8 +228,8 @@ void Zeta_SegList_Check(void* sl_, Zeta_DebugTreeMap* dst_node_tm,
         }
 
         {
-            Zeta_DebugTreeMap_KeyValPair kvp = Zeta_DebugTreeMap_Insert(
-                dst_seg_tm, ZETA_GetAddrFromPtr(node->seg));
+            Zeta_DebugHashMap_KeyValPair kvp = Zeta_DebugHashMap_Insert(
+                dst_seg_records, ZETA_GetAddrFromPtr(node->seg));
 
             ZETA_DebugAssert(kvp.b);
 
