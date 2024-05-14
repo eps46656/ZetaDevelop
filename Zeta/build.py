@@ -21,7 +21,7 @@ def AddDeps(builder, ZetaBuildDir, mode):
     c_to_ll_args = [
         "--verbose",
         "-std=c2x",
-        *[f"-I \"{dir}\"" for dir in c_include_dirs],
+        *[f"-I {ToPath(dir)}" for dir in c_include_dirs],
         "-m64",
         "-O3",
     ]
@@ -29,7 +29,7 @@ def AddDeps(builder, ZetaBuildDir, mode):
     cpp_to_ll_args = [
         "--verbose",
         "-std=c++17",
-        *[f"-I \"{dir}\"" for dir in cpp_include_dirs],
+        *[f"-I {ToPath(dir)}" for dir in cpp_include_dirs],
         "-m64",
         "-O3",
     ]
@@ -51,19 +51,15 @@ def AddDeps(builder, ZetaBuildDir, mode):
             "-Werror",
         ]
 
-    def to_path(path):
-        path = path.strip("\'\"")
-        return f"\"{path}\""
-
     def c_to_ll_func(dst, src):
         os.makedirs(os.path.dirname(dst), exist_ok=True)
 
         cmd = " ".join([
             f"clang",
-            f"-o {to_path(dst)}",
+            f"-o {ToPath(dst)}",
             f"-emit-llvm -S",
             *c_to_ll_args,
-            to_path(src),
+            ToPath(src),
         ])
 
         HighLightPrint(f"cmd = {cmd}")
@@ -77,10 +73,10 @@ def AddDeps(builder, ZetaBuildDir, mode):
 
         cmd = " ".join([
             f"clang++",
-            f"-o {to_path(dst)}",
+            f"-o {ToPath(dst)}",
             f"-emit-llvm -S",
             *cpp_to_ll_args,
-            to_path(src),
+            ToPath(src),
         ])
 
         HighLightPrint(f"cmd = {cmd}")

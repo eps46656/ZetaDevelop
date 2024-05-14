@@ -1,22 +1,20 @@
 #pragma once
 
-#include <map>
-#include <vector>
+#include <set>
 
-#include "../Zeta/OrdLinkedListNode.h"
 #include "CppStdAllocator.h"
 
-class ChainingStdRBTScheduler {
+class StdRBTScheduler {
 public:
     struct TaskNode {
         size_t id;
         Zeta_OrdLinkedListNode n;
     };
 
-    using rbt_t = std::map<size_t, void*, std::less<size_t>,
+    using rbt_t = std::set<std::pair<size_t, size_t>, std::less<size_t>,
                            CppStdAllocator<std::pair<const size_t, void*>>>;
 
-    ChainingStdRBTScheduler(size_t priority_beg, size_t tasks_num);
+    StdRBTScheduler(size_t priority_beg, size_t tasks_num);
 
     void PushTask(size_t priority, size_t task_id);
 
@@ -32,8 +30,7 @@ private:
     rbt_t::iterator cur_iter_;
 };
 
-ChainingStdRBTScheduler::ChainingStdRBTScheduler(size_t priority_beg,
-                                                 size_t tasks_num)
+StdRBTScheduler::StdRBTScheduler(size_t priority_beg, size_t tasks_num)
     : tasks_num_{ tasks_num },
       rbt_{ CppStdAllocator<rbt_t::value_type>{ sizeof(rbt_t::value_type),
                                                 tasks_num + 4 } } {
@@ -48,7 +45,7 @@ ChainingStdRBTScheduler::ChainingStdRBTScheduler(size_t priority_beg,
     this->cur_iter_ = this->rbt_.insert({ priority_beg, NULL }).first;
 }
 
-void ChainingStdRBTScheduler::PushTask(size_t priority, size_t task_id) {
+void StdRBTScheduler::PushTask(size_t priority, size_t task_id) {
     auto iter_b{ this->rbt_.insert({ priority, NULL }) };
 
     auto iter{ iter_b.first };
@@ -61,7 +58,7 @@ void ChainingStdRBTScheduler::PushTask(size_t priority, size_t task_id) {
     }
 }
 
-std::pair<size_t, size_t> ChainingStdRBTScheduler::PopTask() {
+std::pair<size_t, size_t> StdRBTScheduler::PopTask() {
     if (this->cur_iter_->second == NULL) {
         if (this->rbt_.size() == 1) { return { 0, this->tasks_num_ }; }
 

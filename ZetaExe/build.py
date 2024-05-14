@@ -26,7 +26,7 @@ def AddDeps(builder, ZetaBuildDir, ZetaExeBuildDir, mode):
     c_to_ll_args = [
         "--verbose",
         "-std=c2x",
-        *[f"-I \"{dir}\"" for dir in c_include_dirs],
+        *[f"-I {ToPath(dir)}" for dir in c_include_dirs],
         "-m64",
         "-O3",
     ]
@@ -34,7 +34,7 @@ def AddDeps(builder, ZetaBuildDir, ZetaExeBuildDir, mode):
     cpp_to_ll_args = [
         "--verbose",
         "-std=c++17",
-        *[f"-I \"{dir}\"" for dir in cpp_include_dirs],
+        *[f"-I {ToPath(dir)}" for dir in cpp_include_dirs],
         "-m64",
         "-O3",
     ]
@@ -56,19 +56,15 @@ def AddDeps(builder, ZetaBuildDir, ZetaExeBuildDir, mode):
             "-Werror",
         ]
 
-    def to_path(path):
-        path = path.strip("\'\"")
-        return f"\"{path}\""
-
     def c_to_ll_func(dst, src):
         os.makedirs(os.path.dirname(dst), exist_ok=True)
 
         cmd = " ".join([
             f"clang",
-            f"-o {to_path(dst)}",
+            f"-o {ToPath(dst)}",
             f"-emit-llvm -S",
             *c_to_ll_args,
-            to_path(src),
+            ToPath(src),
         ])
 
         HighLightPrint(f"cmd = {cmd}")
@@ -82,10 +78,10 @@ def AddDeps(builder, ZetaBuildDir, ZetaExeBuildDir, mode):
 
         cmd = " ".join([
             f"clang++",
-            f"-o {to_path(dst)}",
+            f"-o {ToPath(dst)}",
             f"-emit-llvm -S",
             *cpp_to_ll_args,
-            to_path(src),
+            ToPath(src),
         ])
 
         HighLightPrint(f"cmd = {cmd}")
@@ -107,10 +103,10 @@ def AddDeps(builder, ZetaBuildDir, ZetaExeBuildDir, mode):
 
         cmd = " ".join([
             f"llvm-link",
-            f"-o {to_path(linked_tmp_file)}",
+            f"-o {ToPath(linked_tmp_file)}",
             f"-v",
             f"-S",
-            *[to_path(src) for src in srcs],
+            *[ToPath(src) for src in srcs],
         ])
 
         HighLightPrint(f"cmd = {cmd}")
@@ -122,10 +118,10 @@ def AddDeps(builder, ZetaBuildDir, ZetaExeBuildDir, mode):
 
         cmd = " ".join([
             f"opt",
-            f"-o {to_path(opted_tmp_file)}",
+            f"-o {ToPath(opted_tmp_file)}",
             f"-S",
             f"--O3",
-            to_path(linked_tmp_file),
+            ToPath(linked_tmp_file),
         ])
 
         HighLightPrint(f"cmd = {cmd}")
@@ -137,13 +133,13 @@ def AddDeps(builder, ZetaBuildDir, ZetaExeBuildDir, mode):
 
         cmd = " ".join([
             f"clang",
-            f"-o {to_path(dst)}",
+            f"-o {ToPath(dst)}",
             "--verbose",
             "-m64",
             "-O3",
-            *[to_path(lib) for lib in runtime_libs],
+            *[ToPath(lib) for lib in runtime_libs],
             "-lstdc++",
-            to_path(opted_tmp_file),
+            ToPath(opted_tmp_file),
         ])
 
         HighLightPrint(f"cmd = {cmd}")
@@ -174,6 +170,27 @@ def AddDeps(builder, ZetaBuildDir, ZetaExeBuildDir, mode):
         f"{ZetaExeDir}/CppStdAllocator.h",
         {
             f"{ZetaDir}/define.h",
+        },
+        None
+    )
+
+    builder.Add(
+        f"{ZetaExeDir}/ChainingMLTScheduler.h",
+        {
+            f"{File}",
+            f"{ZetaDir}/MultiLevelTable.h",
+            f"{ZetaDir}/OrdLinkedListNode.h",
+            f"{ZetaExeDir}/ZetaPoolAllocator.h",
+        },
+        None
+    )
+
+    builder.Add(
+        f"{ZetaExeDir}/ChainingStdRBTScheduler.h",
+        {
+            f"{File}",
+            f"{ZetaDir}/OrdLinkedListNode.h",
+            f"{ZetaExeDir}/CppStdAllocator.h",
         },
         None
     )
@@ -308,6 +325,15 @@ def AddDeps(builder, ZetaBuildDir, ZetaExeBuildDir, mode):
         f"{ZetaExeDir}/MemAllocatorCheck.h",
         {
             f"{File}",
+        },
+        None
+    )
+
+    builder.Add(
+        f"{ZetaExeDir}/NaiveStdRBTScheduler.h",
+        {
+            f"{File}",
+            f"{ZetaExeDir}/CppStdAllocator.h",
         },
         None
     )
@@ -996,6 +1022,59 @@ def AddDeps(builder, ZetaBuildDir, ZetaExeBuildDir, mode):
             f"{ZetaDir}/OrdAllocator.h",
         },
         None
+    )
+
+    builder.Add(
+        f"{ZetaExeDir}/test_scheduler.cpp",
+        {
+            f"{File}",
+            f"{ZetaExeDir}/ChainingMLTScheduler.h",
+            f"{ZetaExeDir}/ChainingStdRBTScheduler.h",
+            f"{ZetaExeDir}/NaiveStdRBTScheduler.h",
+        },
+        None
+    )
+
+    builder.Add(
+        f"{ZetaExeBuildDir}/test_scheduler.ll",
+        {
+            f"{File}",
+            f"{ZetaDir}/MultiLevelTable.h",
+            f"{ZetaExeDir}/StdAllocator.h",
+            f"{ZetaExeDir}/test_scheduler.cpp",
+        },
+        lambda : cpp_to_ll_func(
+            f"{ZetaExeBuildDir}/test_scheduler.ll",
+            f"{ZetaExeDir}/test_scheduler.cpp",
+        )
+    )
+
+    builder.Add(
+        f"{ZetaExeBuildDir}/test_scheduler.exe",
+        {
+            f"{File}",
+
+            f"{ZetaBuildDir}/Allocator.ll",
+            f"{ZetaBuildDir}/DebugHashMap.ll",
+            f"{ZetaBuildDir}/MultiLevelTable.ll",
+            f"{ZetaBuildDir}/OrdLinkedListNode.ll",
+            f"{ZetaBuildDir}/utils.ll",
+
+            f"{ZetaExeBuildDir}/test_scheduler.ll",
+        },
+        lambda : lls_to_exe_func(
+            f"{ZetaExeBuildDir}/test_scheduler.exe",
+
+            [
+                f"{ZetaBuildDir}/Allocator.ll",
+                f"{ZetaBuildDir}/DebugHashMap.ll",
+                f"{ZetaBuildDir}/MultiLevelTable.ll",
+                f"{ZetaBuildDir}/OrdLinkedListNode.ll",
+                f"{ZetaBuildDir}/utils.ll",
+
+                f"{ZetaExeBuildDir}/test_scheduler.ll",
+            ]
+        )
     )
 
     builder.Add(
