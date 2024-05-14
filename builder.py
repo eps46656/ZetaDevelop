@@ -16,6 +16,9 @@ def SetMTime(path, mtime):
     except:
         pass
 
+def HighLightPrint(x):
+    print(f"\033[93m{x}\033[0m")
+
 def CheckAdjList(adj_list):
     # adj_list = {
     #   "v 0": {"adj 0 0", "adj 0 1", "adj 0 2", ...},

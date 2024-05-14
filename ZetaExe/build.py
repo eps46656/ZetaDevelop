@@ -56,29 +56,41 @@ def AddDeps(builder, ZetaBuildDir, ZetaExeBuildDir, mode):
             "-Werror",
         ]
 
+    def to_path(path):
+        path = path.strip("\'\"")
+        return f"\"{path}\""
+
     def c_to_ll_func(dst, src):
         os.makedirs(os.path.dirname(dst), exist_ok=True)
 
-        rc = os.system(" ".join([
+        cmd = " ".join([
             f"clang",
-            f"-o {dst}",
+            f"-o {to_path(dst)}",
             f"-emit-llvm -S",
             *c_to_ll_args,
-            src,
-        ]))
+            to_path(src),
+        ])
+
+        HighLightPrint(f"cmd = {cmd}")
+
+        rc = os.system(cmd)
 
         return rc
 
     def cpp_to_ll_func(dst, src):
         os.makedirs(os.path.dirname(dst), exist_ok=True)
 
-        rc = os.system(" ".join([
+        cmd = " ".join([
             f"clang++",
-            f"-o {dst}",
+            f"-o {to_path(dst)}",
             f"-emit-llvm -S",
             *cpp_to_ll_args,
-            src,
-        ]))
+            to_path(src),
+        ])
+
+        HighLightPrint(f"cmd = {cmd}")
+
+        rc = os.system(cmd)
 
         return rc
 
@@ -95,13 +107,13 @@ def AddDeps(builder, ZetaBuildDir, ZetaExeBuildDir, mode):
 
         cmd = " ".join([
             f"llvm-link",
-            f"-o {linked_tmp_file}",
+            f"-o {to_path(linked_tmp_file)}",
             f"-v",
             f"-S",
-            *srcs
+            *[to_path(src) for src in srcs],
         ])
 
-        print(f"cmd = {cmd}")
+        HighLightPrint(f"cmd = {cmd}")
 
         rc = os.system(cmd)
 
@@ -110,13 +122,13 @@ def AddDeps(builder, ZetaBuildDir, ZetaExeBuildDir, mode):
 
         cmd = " ".join([
             f"opt",
-            f"-o {opted_tmp_file}",
+            f"-o {to_path(opted_tmp_file)}",
             f"-S",
             f"--O3",
-            linked_tmp_file,
+            to_path(linked_tmp_file),
         ])
 
-        print(f"cmd = {cmd}")
+        HighLightPrint(f"cmd = {cmd}")
 
         rc = os.system(cmd)
 
@@ -125,15 +137,16 @@ def AddDeps(builder, ZetaBuildDir, ZetaExeBuildDir, mode):
 
         cmd = " ".join([
             f"clang",
-            f"-o {dst}",
+            f"-o {to_path(dst)}",
             "--verbose",
-            *[f"\"{lib}\"" for lib in runtime_libs],
             "-m64",
             "-O3",
-            opted_tmp_file,
+            *[to_path(lib) for lib in runtime_libs],
+            "-lstdc++",
+            to_path(opted_tmp_file),
         ])
 
-        print(f"cmd = {cmd}")
+        HighLightPrint(f"cmd = {cmd}")
 
         rc = os.system(cmd)
 
@@ -1081,7 +1094,7 @@ def main():
 
     args = parser.parse_args(sys.argv[1:])
 
-    print(f"args = {args}")
+    HighLightPrint(f"args = {args}")
 
     mode = {
         "debug": DEBUG_MODE,
@@ -1111,17 +1124,17 @@ def main():
     ybeg = "\033[93m"
     yend = "\033[0m"
 
-    print("success")
+    HighLightPrint("success")
 
     non_built.sort()
     built.sort()
 
-    print(f"{ybeg}not_built:{yend}")
+    HighLightPrint("not_built:")
 
     for i in non_built:
         print(f"\t{i}")
 
-    print(f"{ybeg}built:{yend}")
+    HighLightPrint("built:")
 
     for i in built:
         print(f"\t{i}")

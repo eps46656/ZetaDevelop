@@ -51,29 +51,41 @@ def AddDeps(builder, ZetaBuildDir, mode):
             "-Werror",
         ]
 
+    def to_path(path):
+        path = path.strip("\'\"")
+        return f"\"{path}\""
+
     def c_to_ll_func(dst, src):
         os.makedirs(os.path.dirname(dst), exist_ok=True)
 
-        rc = os.system(" ".join([
+        cmd = " ".join([
             f"clang",
-            f"-o {dst}",
+            f"-o {to_path(dst)}",
             f"-emit-llvm -S",
             *c_to_ll_args,
-            src,
-        ]))
+            to_path(src),
+        ])
+
+        HighLightPrint(f"cmd = {cmd}")
+
+        rc = os.system(cmd)
 
         return rc
 
     def cpp_to_ll_func(dst, src):
         os.makedirs(os.path.dirname(dst), exist_ok=True)
 
-        rc = os.system(" ".join([
+        cmd = " ".join([
             f"clang++",
-            f"-o {dst}",
+            f"-o {to_path(dst)}",
             f"-emit-llvm -S",
             *cpp_to_ll_args,
-            src,
-        ]))
+            to_path(src),
+        ])
+
+        HighLightPrint(f"cmd = {cmd}")
+
+        rc = os.system(cmd)
 
         return rc
 

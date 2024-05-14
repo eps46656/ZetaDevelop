@@ -12,13 +12,18 @@
 #include "ZetaPoolAllocator.h"
 
 size_t time_ring{ (size_t)1 << 32 };
-size_t tasks_num{ 1024 * 1024 };
+size_t tasks_num{ (size_t)1 << 8 };
 
 std::mt19937_64 rand_en;
 
+size_t min_priority_stride{ 1 };
+size_t max_priority_stride{ (size_t)1 << 30 };
+
 std::uniform_int_distribution<size_t> time_generator{ 0, time_ring - 1 };
 
-std::uniform_int_distribution<size_t> time_stride_generator{ 20, 200000 };
+std::uniform_int_distribution<size_t> time_stride_generator{
+    min_priority_stride, max_priority_stride
+};
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
@@ -128,7 +133,7 @@ void MLTScheduler::PushTask(size_t time, size_t task_id) {
 
     size_t new_size{ Zeta_MultiLevelTable_GetSize(&this->mlt) };
 
-    if (old_size == new_size) {
+    if (old_size == new_size && *ele != NULL) {
         Zeta_OrdLinkedListNode_InsertL(*ele, &this->task_nodes[task_id].n);
     } else {
         *ele = &this->task_nodes[task_id].n;
@@ -209,11 +214,13 @@ RBTScheduler::RBTScheduler(size_t time_capacity, size_t tasks_num)
 }
 
 void RBTScheduler::PushTask(size_t time, size_t task_id) {
-    auto iter_b{ this->rbt.insert({ time, &this->task_nodes[task_id].n }) };
+    auto iter_b{ this->rbt.insert({ time, NULL }) };
 
     auto iter{ iter_b.first };
 
-    if (!iter_b.second) {
+    if (iter_b.second) {
+        iter->second = &this->task_nodes[task_id].n;
+    } else {
         Zeta_OrdLinkedListNode_InsertL(iter->second,
                                        &this->task_nodes[task_id].n);
     }
@@ -259,8 +266,7 @@ void main1() {
     ZETA_PrintPos;
 
     time_t seed = time(NULL);
-
-    printf("seed: %lld\n", seed);
+    ZETA_PrintVar(seed);
 
     rand_en.seed(seed);
 
@@ -311,8 +317,7 @@ void main1() {
 
 void main2() {
     time_t seed = time(NULL);
-
-    printf("seed: %lld\n", seed);
+    ZETA_PrintVar(seed);
 
     rand_en.seed(seed);
 
@@ -320,19 +325,38 @@ void main2() {
     RBTScheduler scheduler{ time_ring, tasks_num };
 
     for (size_t task_id{ 0 }; task_id < tasks_num; ++task_id) {
-        size_t time = time_generator(rand_en);
+        size_t time = time_stride_generator(rand_en);
 
         scheduler.PushTask(time, task_id);
     }
 
     size_t hash_code{ 0 };
 
+    size_t pre_scheduling_num{ 1 * 1024 * 1024 };
     size_t scheduling_num{ 16 * 1024 * 1024 };
 
     std::deque<size_t> time_strides;
 
     for (size_t s{ 0 }; s < scheduling_num; ++s) {
         time_strides.push_back(time_stride_generator(rand_en));
+    }
+
+    for (size_t s{ 0 }; s < pre_scheduling_num; ++s) {
+        std::pair<size_t, size_t> p{ scheduler.PopTask() };
+
+        size_t nxt_time{ p.first };
+        size_t nxt_task_id{ p.second };
+
+        hash_code = hash_code * 23 + nxt_time;
+
+        ZETA_DebugAssert(nxt_task_id != tasks_num);
+
+        size_t time_stride{ time_strides.front() };
+        time_strides.pop_front();
+
+        nxt_time = (nxt_time + time_stride) % time_ring;
+
+        scheduler.PushTask(nxt_time, nxt_task_id);
     }
 
     std::chrono::steady_clock::time_point begin =
@@ -344,7 +368,7 @@ void main2() {
         size_t nxt_time{ p.first };
         size_t nxt_task_id{ p.second };
 
-        hash_code = hash_code * 17 + nxt_time;
+        hash_code = hash_code * 23 + nxt_time;
 
         ZETA_DebugAssert(nxt_task_id != tasks_num);
 
