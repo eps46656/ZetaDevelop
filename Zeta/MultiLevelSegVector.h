@@ -7,17 +7,15 @@
 
 ZETA_ExternC_Beg;
 
+ZETA_DeclareStruct(Zeta_MultiLevelSegVector);
+ZETA_DeclareStruct(Zeta_MultiLevelSegVector_Node);
+
 #define Zeta_MultiLevelSegVector_max_seg_capacity \
     ZETA_GetRangeMax(unsigned short)
 
-typedef struct Zeta_MultiLevelSegVector_Node Zeta_MultiLevelSegVector_Node;
-
-struct Zeta_MultiLevelSegVector_Node {
-    unsigned short offset;
-    void* data;
-};
-
-typedef struct Zeta_MultiLevelSegVector Zeta_MultiLevelSegVector;
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
 
 /**
  * @brief A double-ended vector.
@@ -44,6 +42,15 @@ struct Zeta_MultiLevelSegVector {
     /** The allocator to allocate data */
     Zeta_Allocator* data_allocator;
 };
+
+struct Zeta_MultiLevelSegVector_Node {
+    unsigned short offset;
+    void* data;
+};
+
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
 
 /**
  * @brief Initialize the dv.

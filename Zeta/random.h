@@ -6,7 +6,7 @@ ZETA_ExternC_Beg;
 
 ZETA_StaticAssert(32 <= CHAR_BIT * sizeof(size_t));
 
-typedef struct Zeta_LCGRandomGenerator Zeta_LCGRandomGenerator;
+ZETA_DeclareStruct(Zeta_LCGRandomGenerator);
 
 struct Zeta_LCGRandomGenerator {
     size_t a;

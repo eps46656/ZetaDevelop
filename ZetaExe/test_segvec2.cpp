@@ -27,9 +27,6 @@ Zeta_SegVector sv;
 Zeta_SeqContainer seq_cntr;
 Zeta_CursorOperator seq_cntr_cursor_opr;
 
-Zeta_DebugHashMap node_records;
-Zeta_DebugHashMap seg_records;
-
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
@@ -39,6 +36,7 @@ void SetupSegVector() {
     StdAllocator_DeployAllocator(&seg_allocator_, &seg_allocator);
 
     sv.width = sizeof(val_t);
+    sv.stride = sizeof(val_t);
     sv.seg_capacity = 32;
     sv.node_allocator = &node_allocator;
     sv.seg_allocator = &seg_allocator;
@@ -50,8 +48,6 @@ void SetupSegVector() {
     ZETA_PrintPos;
 
     Zeta_SegVector_DeploySeqContainer(&sv, &seq_cntr);
-
-    Zeta_SegVector_Cursor_DeployCursorOperator(&sv, &seq_cntr_cursor_opr);
 }
 
 bool_t SV_LowerBound_(void* val, void* ele) {
@@ -65,48 +61,48 @@ bool_t SV_UpperBound_(void* val, void* ele) {
 size_t SV_LowerBound(val_t val) {
     byte_t cursor[CURSOR_WIDTH] __attribute__((aligned(alignof(max_align_t))));
 
-    Zeta_SegVector_FindFirst(&sv, &cursor, &val, SV_LowerBound_);
+    Zeta_SegVector_FindFirst(&sv, &cursor, NULL, &val, SV_LowerBound_);
 
     Zeta_SegVector_Cursor_Check(&sv, &cursor);
 
     byte_t beg_cursor[CURSOR_WIDTH]
         __attribute__((aligned(alignof(max_align_t))));
 
-    Zeta_SegVector_PeekL(&sv, &beg_cursor);
+    Zeta_SegVector_PeekL(&sv, &beg_cursor, NULL);
 
-    return Zeta_SegVector_Cursor_Differ(&sv, &cursor, &beg_cursor);
+    return Zeta_SegVector_Cursor_GetDist(&sv, &cursor, &beg_cursor);
 }
 
 size_t SV_UpperBound(val_t val) {
     byte_t cursor[CURSOR_WIDTH] __attribute__((aligned(alignof(max_align_t))));
 
-    Zeta_SegVector_FindFirst(&sv, &cursor, &val, SV_UpperBound_);
+    Zeta_SegVector_FindFirst(&sv, &cursor, NULL, &val, SV_UpperBound_);
 
     Zeta_SegVector_Cursor_Check(&sv, &cursor);
 
     byte_t beg_cursor[CURSOR_WIDTH]
         __attribute__((aligned(alignof(max_align_t))));
 
-    Zeta_SegVector_PeekL(&sv, &beg_cursor);
+    Zeta_SegVector_PeekL(&sv, &beg_cursor, NULL);
 
-    return Zeta_SegVector_Cursor_Differ(&sv, &cursor, &beg_cursor);
+    return Zeta_SegVector_Cursor_GetDist(&sv, &cursor, &beg_cursor);
 }
 
 size_t SV_Insert(val_t val) {
     byte_t cursor[CURSOR_WIDTH] __attribute__((aligned(alignof(max_align_t))));
 
-    Zeta_SegVector_FindFirst(&sv, &cursor, &val, SV_UpperBound_);
+    Zeta_SegVector_FindFirst(&sv, &cursor, NULL, &val, SV_UpperBound_);
 
     Zeta_SegVector_Cursor_Check(&sv, &cursor);
 
     byte_t beg_cursor[CURSOR_WIDTH]
         __attribute__((aligned(alignof(max_align_t))));
 
-    Zeta_SegVector_PeekL(&sv, &beg_cursor);
+    Zeta_SegVector_PeekL(&sv, &beg_cursor, NULL);
 
-    size_t idx = Zeta_SegVector_Cursor_Differ(&sv, &cursor, &beg_cursor);
+    size_t idx = Zeta_SegVector_Cursor_GetDist(&sv, &cursor, &beg_cursor);
 
-    *(val_t*)Zeta_SegVector_Insert(&sv, &cursor) = val;
+    *(val_t*)Zeta_SegVector_Insert(&sv, &cursor, 1) = val;
 
     return idx;
 }
@@ -114,9 +110,9 @@ size_t SV_Insert(val_t val) {
 void SV_Erase(size_t idx) {
     byte_t cursor[CURSOR_WIDTH] __attribute__((aligned(alignof(max_align_t))));
 
-    Zeta_SegVector_Access(&sv, &cursor, idx);
+    Zeta_SegVector_Access(&sv, &cursor, NULL, idx);
 
-    Zeta_SegVector_Erase(&sv, &cursor);
+    Zeta_SegVector_Erase(&sv, &cursor, 1);
 }
 
 size_t DD_LowerBound(val_t val) {
@@ -140,22 +136,25 @@ void Check() {
     ZETA_DebugAssert(Zeta_SegVector_GetSize(&sv) == size);
 
     for (size_t i = 0; i < size; ++i) {
-        ZETA_DebugAssert(dd[i] == *(val_t*)Zeta_SegVector_Access(&sv, NULL, i));
+        ZETA_DebugAssert(dd[i] ==
+                         *(val_t*)Zeta_SegVector_Access(&sv, NULL, NULL, i));
     }
 
-    std::map<size_t, size_t>* node_tree_map =
-        (std::map<size_t, size_t>*)node_records.tree_map;
+    using record_t = std::unordered_map<unsigned long long, unsigned long long>;
 
-    std::map<size_t, size_t>* seg_tree_map =
-        (std::map<size_t, size_t>*)seg_records.tree_map;
+    Zeta_DebugHashMap node_hm;
+    Zeta_DebugHashMap seg_hm;
 
-    node_tree_map->clear();
-    seg_tree_map->clear();
+    Zeta_DebugHashMap_Create(&node_hm);
+    Zeta_DebugHashMap_Create(&seg_hm);
 
-    Zeta_SegVector_Check(&sv, &node_records, &seg_records);
+    Zeta_SegVector_Check(&sv, &node_hm, &seg_hm);
 
-    CheckFullContains(node_allocator_.records, *node_tree_map);
-    CheckFullContains(seg_allocator_.records, *seg_tree_map);
+    using record_t = std::unordered_map<unsigned long long, unsigned long long>;
+
+    CheckRecords(node_allocator_.records, *(record_t*)node_hm.hash_map);
+
+    CheckRecords(seg_allocator_.records, *(record_t*)seg_hm.hash_map);
 }
 
 void main1() {
@@ -172,9 +171,6 @@ void main1() {
     StdAllocator_DeployAllocator(&seg_allocator_, &seg_allocator);
 
     SetupSegVector();
-
-    Zeta_DebugHashMap_Create(&node_records);
-    Zeta_DebugHashMap_Create(&seg_records);
 
     Check();
 

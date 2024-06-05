@@ -16,6 +16,8 @@ public:
 
     std::pair<size_t, size_t> PopTask();
 
+    size_t GetMemUsage() const;
+
 private:
     size_t tasks_num_;
 
@@ -48,4 +50,8 @@ std::pair<size_t, size_t> NaiveStdRBTScheduler::PopTask() {
     this->rbt_.erase(iter);
 
     return ret;
+}
+
+size_t NaiveStdRBTScheduler::GetMemUsage() const {
+    return this->rbt_.get_allocator().usage();
 }

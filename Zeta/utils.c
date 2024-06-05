@@ -1,5 +1,9 @@
 #include "utils.h"
 
+size_t Zeta_GetMinOf2(size_t x, size_t y) { return x < y ? x : y; }
+
+size_t Zeta_GetMaxOf2(size_t x, size_t y) { return x < y ? y : x; }
+
 void Zeta_MemCopy(void* dst_, void const* src_, size_t size) {
     unsigned char* dst = dst_;
     unsigned char const* src = src_;

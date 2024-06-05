@@ -7,21 +7,22 @@ ZETA_ExternC_Beg;
 
 #define ZETA_CircularVector_max_capacity (ZETA_GetRangeMax(size_t) / 2 + 1)
 
-typedef struct Zeta_CircularVector Zeta_CircularVector;
+ZETA_DeclareStruct(Zeta_CircularVector);
+ZETA_DeclareStruct(Zeta_CircularVector_Cursor);
 
 struct Zeta_CircularVector {
+    void* data;
     size_t width;
     size_t stride;
     size_t offset;
     size_t size;
     size_t capacity;
-    void* data;
 };
 
-typedef struct Zeta_CircularVector_Cursor Zeta_CircularVector_Cursor;
-
 struct Zeta_CircularVector_Cursor {
+    Zeta_CircularVector* cv;
     size_t idx;
+    void* ele;
 };
 
 void Zeta_CircularVector_Init(void* cv);
@@ -40,35 +41,37 @@ void Zeta_CircularVector_GetLBCursor(void* cv, void* dst_cursor);
 
 void Zeta_CircularVector_GetRBCursor(void* cv, void* dst_cursor);
 
-void* Zeta_CircularVector_PeekL(void* cv, void* dst_cursor);
+void* Zeta_CircularVector_PeekL(void* cv, void* dst_cursor, void* dst_ele);
 
-void* Zeta_CircularVector_PeekR(void* cv, void* dst_cursor);
+void* Zeta_CircularVector_PeekR(void* cv, void* dst_cursor, void* dst_ele);
 
-void* Zeta_CircularVector_Access(void* cv, void* dst_cursor, size_t idx);
+void* Zeta_CircularVector_Access(void* cv, void* dst_cursor, void* dst_ele,
+                                 size_t idx);
+
+void* Zeta_CircularVector_Refer(void* cv, void* pos_cursor);
+
+void Zeta_CircularVector_Read(void* cv, void* pos_cursor, size_t cnt, void* dst,
+                              void* dst_cursor);
+
+void Zeta_CircularVector_Write(void* cv, void* pos_cursor, size_t cnt,
+                               void const* src, void* dst_cursor);
 
 void* Zeta_CircularVector_PushL(void* cv, void* dst_cursor);
 
 void* Zeta_CircularVector_PushR(void* cv, void* dst_cursor);
 
-void* Zeta_CircularVector_Insert(void* cv, void* pos_cursor);
+void* Zeta_CircularVector_Insert(void* cv, void* pos_cursor, size_t cnt);
 
 void Zeta_CircularVector_PopL(void* cv);
 
 void Zeta_CircularVector_PopR(void* cv);
 
-void* Zeta_CircularVector_Erase(void* cv, void* pos_cursor);
+void Zeta_CircularVector_Erase(void* cv, void* pos_cursor, size_t cnt);
 
 void Zeta_CircularVector_EraseAll(void* cv, void* callback_context,
                                   void (*Callback)(void* context, void* ele));
 
-void Zeta_CircularVector_DeploySeqContainer(void* cv,
-                                            Zeta_SeqContainer* seq_cntr);
-
-// -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
-
-void Zeta_CircularVector_Cursor_Check(void* sv, void const* cursor);
+void Zeta_CircularVector_Check(void* cv);
 
 bool_t Zeta_CircularVector_Cursor_IsEqual(void* cv, void const* cursor_a,
                                           void const* cursor_b);
@@ -76,10 +79,10 @@ bool_t Zeta_CircularVector_Cursor_IsEqual(void* cv, void const* cursor_a,
 int Zeta_CircularVector_Cursor_Compare(void* cv, void const* cursor_a,
                                        void const* cursor_b);
 
-size_t Zeta_CircularVector_Cursor_Differ(void* cv, void const* cursor_a,
-                                         void const* cursor_b);
+size_t Zeta_CircularVector_Cursor_GetDist(void* cv, void const* cursor_a,
+                                          void const* cursor_b);
 
-void* Zeta_CircularVector_Cursor_Refer(void* cv, void const* cursor);
+size_t Zeta_CircularVector_Cursor_GetIdx(void* cv, void const* cursor);
 
 void Zeta_CircularVector_Cursor_StepL(void* cv, void* cursor);
 
@@ -89,7 +92,9 @@ void Zeta_CircularVector_Cursor_AdvanceL(void* cv, void* cursor, size_t step);
 
 void Zeta_CircularVector_Cursor_AdvanceR(void* cv, void* cursor, size_t step);
 
-void Zeta_CircularVector_Cursor_DeployCursorOperator(
-    void* cv, Zeta_CursorOperator* cursor_opr);
+void Zeta_CircularVector_Cursor_Check(void* cv, void const* cursor);
+
+void Zeta_CircularVector_DeploySeqContainer(void* cv,
+                                            Zeta_SeqContainer* seq_cntr);
 
 ZETA_ExternC_End;

@@ -4,9 +4,10 @@
 
 ZETA_ExternC_Beg;
 
-#define ZETA_DiskPartMBR_size_of_bootstrap (446)
+ZETA_DeclareStruct(Zeta_DiskPartMBR_MBR);
+ZETA_DeclareStruct(Zeta_DiskPartMBR_PartEntry);
 
-typedef struct Zeta_DiskPartMBR_PartEntry Zeta_DiskPartMBR_PartEntry;
+#define ZETA_DiskPartMBR_size_of_bootstrap (446)
 
 struct Zeta_DiskPartMBR_PartEntry {
     byte_t state;
@@ -14,8 +15,6 @@ struct Zeta_DiskPartMBR_PartEntry {
     u64_t beg;
     u64_t end;
 };
-
-typedef struct Zeta_DiskPartMBR_MBR Zeta_DiskPartMBR_MBR;
 
 struct Zeta_DiskPartMBR_MBR {
     byte_t bootstrap[ZETA_DiskPartMBR_size_of_bootstrap];

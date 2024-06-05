@@ -4,7 +4,7 @@
 
 ZETA_ExternC_Beg;
 
-typedef struct Zeta_BinHeap Zeta_BinHeap;
+ZETA_DeclareStruct(Zeta_BinHeap);
 
 struct Zeta_BinHeap {
     size_t size;

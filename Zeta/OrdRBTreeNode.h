@@ -4,7 +4,7 @@
 
 ZETA_ExternC_Beg;
 
-typedef struct Zeta_OrdRBTreeNode Zeta_OrdRBTreeNode;
+ZETA_DeclareStruct(Zeta_OrdRBTreeNode);
 
 struct Zeta_OrdRBTreeNode {
     uintptr_t p;

@@ -4,7 +4,7 @@
 
 ZETA_ExternC_Beg;
 
-typedef struct Zeta_CRCHasher Zeta_CRCHasher;
+ZETA_DeclareStruct(Zeta_CRCHasher);
 
 struct Zeta_CRCHasher {
     unsigned _BitInt(64) div;

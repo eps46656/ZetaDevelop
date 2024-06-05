@@ -28,19 +28,24 @@ Zeta_SegVector sv;
 Zeta_SeqContainer seq_cntr;
 Zeta_CursorOperator seq_cntr_cursor_opr;
 
+struct Cursor {
+    static constexpr size_t width{ sizeof(void*) * 8 };
+
+    unsigned char data[width];
+} __attribute__((aligned(alignof(max_align_t))));
+
 void SV_Init() {
     StdAllocator_DeployAllocator(&node_allocator_, &node_allocator);
     StdAllocator_DeployAllocator(&seg_allocator_, &seg_allocator);
 
     sv.width = sizeof(val_t);
+    sv.stride = sizeof(val_t);
     sv.seg_capacity = 32;
     sv.node_allocator = &node_allocator;
     sv.seg_allocator = &seg_allocator;
 
     Zeta_SegVector_Init(&sv);
     Zeta_SegVector_DeploySeqContainer(&sv, &seq_cntr);
-
-    Zeta_SegVector_Cursor_DeployCursorOperator(&sv, &seq_cntr_cursor_opr);
 }
 
 bool_t SV_LowerBound_(void* val, void* ele) {
@@ -53,31 +58,31 @@ bool_t SV_UpperBound_(void* val, void* ele) {
 
 val_t SV_LowerBound(val_t val) {
     val_t* ele =
-        (val_t*)Zeta_SegVector_FindFirst(&sv, NULL, &val, SV_LowerBound_);
+        (val_t*)Zeta_SegVector_FindFirst(&sv, NULL, NULL, &val, SV_LowerBound_);
     return ele == NULL ? ZETA_GetRangeMax(val_t) : *ele;
 }
 
 val_t SV_UpperBound(val_t val) {
     val_t* ele =
-        (val_t*)Zeta_SegVector_FindFirst(&sv, NULL, &val, SV_UpperBound_);
+        (val_t*)Zeta_SegVector_FindFirst(&sv, NULL, NULL, &val, SV_UpperBound_);
     return ele == NULL ? ZETA_GetRangeMax(val_t) : *ele;
 }
 
 void SV_Insert(val_t val) {
-    byte_t cursor[CURSOR_WIDTH] __attribute__((aligned(alignof(max_align_t))));
+    Cursor cursor;
 
-    Zeta_SegVector_FindFirst(&sv, &cursor, &val, SV_UpperBound_);
+    Zeta_SegVector_FindFirst(&sv, &cursor, NULL, &val, SV_UpperBound_);
 
-    *(val_t*)Zeta_SegVector_Insert(&sv, &cursor) = val;
+    *(val_t*)Zeta_SegVector_Insert(&sv, &cursor, 1) = val;
 }
 
 void SV_Erase(val_t val) {
-    byte_t cursor[CURSOR_WIDTH] __attribute__((aligned(alignof(max_align_t))));
+    Cursor cursor;
 
-    val_t* ele =
-        (val_t*)Zeta_SegVector_FindFirst(&sv, &cursor, &val, SV_LowerBound_);
+    val_t* ele = (val_t*)Zeta_SegVector_FindFirst(&sv, &cursor, NULL, &val,
+                                                  SV_LowerBound_);
 
-    if (ele != NULL && *ele == val) { Zeta_SegVector_Erase(&sv, &cursor); }
+    if (ele != NULL && *ele == val) { Zeta_SegVector_Erase(&sv, &cursor, 1); }
 }
 
 val_t MS_LowerBound(val_t val) {
@@ -98,8 +103,8 @@ void MS_Erase(val_t val) {
 }
 
 void main1() {
-    // unsigned int seed = time(NULL);
-    unsigned int seed = 1714030320;
+    unsigned int seed = time(NULL);
+    // unsigned int seed = 1714030320;
 
     ZETA_PrintVar(seed);
 

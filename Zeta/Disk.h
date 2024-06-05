@@ -2,18 +2,17 @@
 
 #include "define.h"
 
+ZETA_DeclareStruct(Zeta_Disk);
+ZETA_DeclareStruct(Zeta_Disk_Sec);
+
 #define ZETA_Disk_Sec_Flag_read ((u32_t)0b001)
 #define ZETA_Disk_Sec_Flag_write ((u32_t)0b010)
 #define ZETA_Disk_Sec_Flag_dirty ((u32_t)0b100)
-
-typedef struct Zeta_Disk_Sec Zeta_Disk_Sec;
 
 struct Zeta_Disk_Sec {
     unsigned int flag;
     byte_t* data;
 };
-
-typedef struct Zeta_Disk Zeta_Disk;
 
 struct Zeta_Disk {
     void* context;

@@ -4,6 +4,11 @@
 
 ZETA_ExternC_Beg;
 
+ZETA_DeclareStruct(Zeta_ELF_Ret);
+ZETA_DeclareStruct(Zeta_ELF_Header);
+ZETA_DeclareStruct(Zeta_ELF_ProgramHeader);
+ZETA_DeclareStruct(Zeta_ELF_SectionHeader);
+
 #define ZETA_ELF_PT_NULL 0
 #define ZETA_ELF_PT_LOAD 1
 #define ZETA_ELF_PT_DYNAMIC 2
@@ -35,15 +40,11 @@ ZETA_ExternC_Beg;
 #define ZETA_ELF_SHT_LOUSER 0x80000000
 #define ZETA_ELF_SHT_HIUSER 0xFFFFFFFF
 
-typedef struct Zeta_ELF_Ret Zeta_ELF_Ret;
-
 struct Zeta_ELF_Ret {
     int rc;
     byte_t* nxt_dst;
     byte_t const* nxt_data;
 };
-
-typedef struct Zeta_ELF_Header Zeta_ELF_Header;
 
 struct Zeta_ELF_Header {
     byte_t ei_class;
@@ -74,8 +75,6 @@ struct Zeta_ELF_Header {
     u16_t e_shstrndx;
 };
 
-typedef struct Zeta_ELF_ProgramHeader Zeta_ELF_ProgramHeader;
-
 struct Zeta_ELF_ProgramHeader {
     u32_t p_type;
 
@@ -89,8 +88,6 @@ struct Zeta_ELF_ProgramHeader {
 
     u64_t p_align;
 };
-
-typedef struct Zeta_ELF_SectionHeader Zeta_ELF_SectionHeader;
 
 struct Zeta_ELF_SectionHeader {
     u32_t sh_name;

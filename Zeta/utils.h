@@ -4,6 +4,10 @@
 
 ZETA_ExternC_Beg;
 
+size_t Zeta_GetMinOf2(size_t x, size_t y);
+
+size_t Zeta_GetMaxOf2(size_t x, size_t y);
+
 /**
  * @brief Copy byte array from dst to src
  *

@@ -7,26 +7,13 @@
 
 ZETA_ExternC_Beg;
 
-typedef struct Zeta_SegList_Node Zeta_SegList_Node;
+ZETA_DeclareStruct(Zeta_SegList);
+ZETA_DeclareStruct(Zeta_SegList_Cursor);
+ZETA_DeclareStruct(Zeta_SegList_Node);
 
-struct Zeta_SegList_Node {
-    char padding[8];
-    Zeta_OrdLinkedListNode n;
-    size_t offset;
-    size_t size;
-    void* seg;
-};
-
-typedef struct Zeta_SegList_Cursor Zeta_SegList_Cursor;
-
-struct Zeta_SegList_Cursor {
-    size_t idx;
-    Zeta_OrdLinkedListNode* n;
-    size_t seg_idx;
-    void* ele;
-};
-
-typedef struct Zeta_SegList Zeta_SegList;
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
 
 struct Zeta_SegList {
     /** The width(bytes) of element occupying. */
@@ -46,6 +33,25 @@ struct Zeta_SegList {
 
     Zeta_OrdLinkedListNode head;
 };
+
+struct Zeta_SegList_Cursor {
+    size_t idx;
+    Zeta_OrdLinkedListNode* n;
+    size_t seg_idx;
+    void* ele;
+};
+
+struct Zeta_SegList_Node {
+    char padding[8];
+    Zeta_OrdLinkedListNode n;
+    size_t offset;
+    size_t size;
+    void* seg;
+};
+
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
 
 void Zeta_SegList_Init(void* sl);
 

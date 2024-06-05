@@ -4,7 +4,7 @@
 
 ZETA_ExternC_Beg;
 
-typedef struct Zeta_BlockVector Zeta_BlockVector;
+ZETA_DeclareStruct(Zeta_BlockVector);
 
 struct Zeta_BlockVector {
     void* context;

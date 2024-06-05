@@ -2,7 +2,7 @@
 
 #include "define.h"
 
-typedef struct Zeta_CursorOperator Zeta_CursorOperator;
+ZETA_DeclareStruct(Zeta_CursorOperator);
 
 struct Zeta_CursorOperator {
     void* context;

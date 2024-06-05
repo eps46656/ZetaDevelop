@@ -4,13 +4,12 @@
 
 ZETA_ExternC_Beg;
 
-typedef struct Zeta_DebugHashMap Zeta_DebugHashMap;
+ZETA_DeclareStruct(Zeta_DebugHashMap);
+ZETA_DeclareStruct(Zeta_DebugHashMap_KeyValPair);
 
 struct Zeta_DebugHashMap {
     void* hash_map;
 };
-
-typedef struct Zeta_DebugHashMap_KeyValPair Zeta_DebugHashMap_KeyValPair;
 
 struct Zeta_DebugHashMap_KeyValPair {
     bool_t b;

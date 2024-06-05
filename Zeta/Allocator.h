@@ -4,7 +4,7 @@
 
 ZETA_ExternC_Beg;
 
-typedef struct Zeta_Allocator Zeta_Allocator;
+ZETA_DeclareStruct(Zeta_Allocator);
 
 struct Zeta_Allocator {
     void* context;

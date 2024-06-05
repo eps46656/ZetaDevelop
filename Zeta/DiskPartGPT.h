@@ -8,7 +8,10 @@ ZETA_ExternC_Beg;
 
 #define Zeta_DiskPartGPT_size_of_Header 92
 
-typedef struct Zeta_DiskPartGPT_Header Zeta_DiskPartGPT_Header;
+ZETA_DeclareStruct(Zeta_DiskPartGPT_Header);
+ZETA_DeclareStruct(Zeta_DiskPartGPT_PartEntry);
+
+#define Zeta_DiskPartGPT_size_of_PartEntry 128
 
 struct Zeta_DiskPartGPT_Header {
     u32_t revision_num;
@@ -28,10 +31,6 @@ struct Zeta_DiskPartGPT_Header {
     u64_t size_of_part_entry;
     u64_t crc32_of_part_entries;
 };
-
-#define Zeta_DiskPartGPT_size_of_PartEntry 128
-
-typedef struct Zeta_DiskPartGPT_PartEntry Zeta_DiskPartGPT_PartEntry;
 
 struct Zeta_DiskPartGPT_PartEntry {
     byte_t type_guid[16];

@@ -1,4 +1,5 @@
 #include "FileSysFAT.h"
+
 #include "utils.h"
 
 #define READ(dst, length)                          \
@@ -8,7 +9,10 @@
     }                                              \
     ZETA_StaticAssert(TRUE)
 
-typedef struct Header Header;
+ZETA_DeclareStruct(Header);
+ZETA_DeclareStruct(BPB);
+ZETA_DeclareStruct(ExtBPB_1216);
+ZETA_DeclareStruct(ExtBPB_32);
 
 struct Header {
     unsigned int type;
@@ -46,8 +50,6 @@ struct Header {
     byte_t vol_lab[11];
 };
 
-typedef struct BPB BPB;
-
 struct BPB {
     byte_t jmpBoot[3];
 
@@ -78,8 +80,6 @@ struct BPB {
     unsigned int TotSec32;
 };
 
-typedef struct ExtBPB_1216 ExtBPB_1216;
-
 struct ExtBPB_1216 {
     unsigned int DrvNum;
 
@@ -91,8 +91,6 @@ struct ExtBPB_1216 {
 
     byte_t FilSysType[8];
 };
-
-typedef struct ExtBPB_32 ExtBPB_32;
 
 struct ExtBPB_32 {
     u32_t FatSz32;

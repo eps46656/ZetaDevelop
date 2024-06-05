@@ -4,7 +4,7 @@
 #include "RBTree.h"
 #include "utils.h"
 
-typedef struct Zeta_TreeAllocator_Head Zeta_TreeAllocator_Head;
+ZETA_DeclareStruct(Zeta_TreeAllocator_Head);
 
 struct Zeta_TreeAllocator_Head {
     Zeta_OrdRBLinkedListNode hn;  // link to other heads

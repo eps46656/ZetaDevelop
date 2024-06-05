@@ -4,7 +4,7 @@
 
 ZETA_ExternC_Beg;
 
-typedef struct Zeta_DiskInfo Zeta_DiskInfo;
+ZETA_DeclareStruct(Zeta_DiskInfo);
 
 struct Zeta_DiskInfo {
     size_t sec_size;

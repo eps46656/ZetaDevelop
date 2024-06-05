@@ -5,14 +5,13 @@
 
 ZETA_ExternC_Beg;
 
-typedef struct Zeta_MultiLevelHashTableNode Zeta_MultiLevelHashTableNode;
+ZETA_DeclareStruct(Zeta_MultiLevelHashTableNode);
+ZETA_DeclareStruct(Zeta_MultiLevelHashTable);
 
 struct Zeta_MultiLevelHashTableNode {
     size_t hash_code;
     Zeta_MultiLevelHashTableNode* nxt;
 };
-
-typedef struct Zeta_MultiLevelHashTable Zeta_MultiLevelHashTable;
 
 struct Zeta_MultiLevelHashTable {
     Zeta_MultiLevelVector mlv;

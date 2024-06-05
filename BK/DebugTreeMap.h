@@ -4,13 +4,12 @@
 
 ZETA_ExternC_Beg;
 
-typedef struct Zeta_DebugTreeMap Zeta_DebugTreeMap;
+ZETA_DeclareStruct(Zeta_DebugTreeMap);
+ZETA_DeclareStruct(Zeta_DebugTreeMap_KeyValPair);
 
 struct Zeta_DebugTreeMap {
     void* tree_map;
 };
-
-typedef struct Zeta_DebugTreeMap_KeyValPair Zeta_DebugTreeMap_KeyValPair;
 
 struct Zeta_DebugTreeMap_KeyValPair {
     bool_t b;

@@ -7,7 +7,7 @@
 
 ZETA_ExternC_Beg;
 
-typedef struct Zeta_DynamicVector Zeta_DynamicVector;
+ZETA_DeclareStruct(Zeta_DynamicVector);
 
 /**
  * @brief A double-ended vector.

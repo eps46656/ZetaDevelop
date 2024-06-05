@@ -4,7 +4,7 @@
 
 ZETA_ExternC_Beg;
 
-typedef struct Zeta_CacheManager Zeta_CacheManager;
+ZETA_DeclareStruct(Zeta_CacheManager);
 
 struct Zeta_CacheManager {
     void* context;

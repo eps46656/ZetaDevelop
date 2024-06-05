@@ -22,6 +22,8 @@ public:
 
     std::pair<size_t, size_t> PopTask();
 
+    size_t GetMemUsage() const;
+
 private:
     size_t tasks_num_;
 
@@ -87,4 +89,9 @@ std::pair<size_t, size_t> ChainingStdRBTScheduler::PopTask() {
     }
 
     return ret;
+}
+
+size_t ChainingStdRBTScheduler::GetMemUsage() const {
+    return sizeof(TaskNode) * this->task_nodes_.size() +
+           this->rbt_.get_allocator().usage();
 }

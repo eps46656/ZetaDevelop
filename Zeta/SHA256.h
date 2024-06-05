@@ -4,7 +4,7 @@
 
 ZETA_ExternC_Beg;
 
-typedef struct Zeta_SHA256Hasher Zeta_SHA256Hasher;
+ZETA_DeclareStruct(Zeta_SHA256Hasher);
 
 /**
  * @brief The sha256 hasher.

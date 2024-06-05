@@ -10,7 +10,10 @@
 
 ZETA_ExternC_Beg;
 
-typedef struct Zeta_LRUCacheManager_SNode Zeta_LRUCacheManager_SNode;
+ZETA_DeclareStruct(Zeta_LRUCacheManager);
+ZETA_DeclareStruct(Zeta_LRUCacheManager_SNode);
+ZETA_DeclareStruct(Zeta_LRUCacheManager_CNode);
+ZETA_DeclareStruct(Zeta_LRUCacheManager_XNode);
 
 struct Zeta_LRUCacheManager_SNode {
     Zeta_OrdLinkedListNode sl_node;
@@ -22,8 +25,6 @@ struct Zeta_LRUCacheManager_SNode {
 
     Zeta_OrdRBTreeNode* at_root;
 };
-
-typedef struct Zeta_LRUCacheManager_CNode Zeta_LRUCacheManager_CNode;
 
 struct Zeta_LRUCacheManager_CNode {
     size_t blk_idx;
@@ -48,8 +49,6 @@ struct Zeta_LRUCacheManager_CNode {
     };
 };
 
-typedef struct Zeta_LRUCacheManager_XNode Zeta_LRUCacheManager_XNode;
-
 struct Zeta_LRUCacheManager_XNode {
     Zeta_OrdRBTreeNode at_node;
     // in blk_idx order
@@ -63,8 +62,6 @@ struct Zeta_LRUCacheManager_XNode {
     Zeta_LRUCacheManager_SNode* s_node;
     Zeta_LRUCacheManager_CNode* c_node;
 };
-
-typedef struct Zeta_LRUCacheManager Zeta_LRUCacheManager;
 
 struct Zeta_LRUCacheManager {
     size_t c_nodes_num;

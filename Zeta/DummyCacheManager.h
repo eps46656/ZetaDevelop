@@ -5,7 +5,7 @@
 
 ZETA_ExternC_Beg;
 
-typedef struct Zeta_DummyCacheManager Zeta_DummyCacheManager;
+ZETA_DeclareStruct(Zeta_DummyCacheManager);
 
 struct Zeta_DummyCacheManager {
     Zeta_BlockVector* blk_vec;

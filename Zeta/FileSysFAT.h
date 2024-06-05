@@ -2,7 +2,7 @@
 
 #include "define.h"
 
-typedef struct Zeta_FileSys_FAT32_BPB Zeta_FileSys_FAT32_BPB;
+ZETA_DeclareStruct(Zeta_FileSys_FAT32_BPB);
 
 struct Zeta_FileSys_FAT32_BPB {
     byte_t jmp_boot[3];

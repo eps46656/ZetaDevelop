@@ -4,7 +4,8 @@
 
 ZETA_ExternC_Beg;
 
-typedef struct Zeta_UTF8_EncodeRet Zeta_UTF8_EncodeRet;
+ZETA_DeclareStruct(Zeta_UTF8_EncodeRet);
+ZETA_DeclareStruct(Zeta_UTF8_DecodeRet);
 
 /**
  * @brief Indicate the encode result.
@@ -16,8 +17,6 @@ struct Zeta_UTF8_EncodeRet {
     byte_t* nxt_dst;
     unichar_t const* nxt_data;
 };
-
-typedef struct Zeta_UTF8_DecodeRet Zeta_UTF8_DecodeRet;
 
 /**
  * @brief Indicate the decode result.

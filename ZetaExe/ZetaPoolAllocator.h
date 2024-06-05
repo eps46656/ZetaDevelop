@@ -14,69 +14,76 @@ struct ZetaPoolAllocator {
     size_t usage;
 };
 
-size_t ZetaPoolAllocator_GetAlign(void* sa_) {
-    ZETA_Unused(sa_);
+size_t ZetaPoolAllocator_GetAlign(void* pa_) {
+    ZETA_Unused(pa_);
     return alignof(max_align_t);
 }
 
-size_t ZetaPoolAllocator_Query(void* sa_, size_t size) {
-    ZetaPoolAllocator* sa = (ZetaPoolAllocator*)sa_;
-    ZETA_DebugAssert(sa != NULL);
+size_t ZetaPoolAllocator_Query(void* pa_, size_t size) {
+    ZetaPoolAllocator* pa = (ZetaPoolAllocator*)pa_;
+    ZETA_DebugAssert(pa != NULL);
 
     if (size == 0) { return 0; }
-    if (size <= sa->size) { return sa->size; }
+    if (size <= pa->size) { return pa->size; }
     return 0;
 }
 
-void* ZetaPoolAllocator_Allocate(void* sa_, size_t size) {
-    ZetaPoolAllocator* sa = (ZetaPoolAllocator*)sa_;
-    ZETA_DebugAssert(sa != NULL);
+void* ZetaPoolAllocator_Allocate(void* pa_, size_t size) {
+    ZetaPoolAllocator* pa = (ZetaPoolAllocator*)pa_;
+    ZETA_DebugAssert(pa != NULL);
 
-    if (size == 0 || sa->size < size) { return NULL; }
+    if (size == 0 || pa->size < size) { return NULL; }
 
     void* ptr;
 
-    if (!sa->buffered_ptrs.empty()) {
-        ptr = sa->buffered_ptrs.back();
-        sa->buffered_ptrs.pop_back();
+    if (!pa->buffered_ptrs.empty()) {
+        ptr = pa->buffered_ptrs.back();
+        pa->buffered_ptrs.pop_back();
     } else {
-        ptr = malloc(sa->size);
+        ptr = malloc(pa->size);
     }
 
 #if ZETA_IsDebug
-    bool b{ sa->records.insert({ ZETA_GetAddrFromPtr(ptr), sa->size }).second };
+    bool b{ pa->records.insert({ ZETA_GetAddrFromPtr(ptr), pa->size }).second };
     ZETA_DebugAssert(b);
-    sa->usage += sa->size;
+    pa->usage += pa->size;
 #endif
 
     return ptr;
 }
 
-void ZetaPoolAllocator_Deallocate(void* sa_, void* ptr) {
-    ZetaPoolAllocator* sa = (ZetaPoolAllocator*)sa_;
-    ZETA_DebugAssert(sa != NULL);
+void ZetaPoolAllocator_Deallocate(void* pa_, void* ptr) {
+    ZetaPoolAllocator* pa = (ZetaPoolAllocator*)pa_;
+    ZETA_DebugAssert(pa != NULL);
 
     if (ptr == NULL) { return; }
 
 #if ZETA_IsDebug
-    auto iter{ sa->records.find(ZETA_GetAddrFromPtr(ptr)) };
-    ZETA_DebugAssert(iter != sa->records.end());
-    sa->usage -= iter->second;
-    sa->records.erase(iter);
+    auto iter{ pa->records.find(ZETA_GetAddrFromPtr(ptr)) };
+    ZETA_DebugAssert(iter != pa->records.end());
+    pa->usage -= iter->second;
+    pa->records.erase(iter);
 #endif
 
-    if (sa->buffered_ptrs.size() < sa->max_buffered_ptrs_num) {
-        sa->buffered_ptrs.push_back(ptr);
+    if (pa->buffered_ptrs.size() < pa->max_buffered_ptrs_num) {
+        pa->buffered_ptrs.push_back(ptr);
     } else {
         free(ptr);
     }
 }
 
-void ZetaPoolAllocator_DeployAllocator(void* sa_, Zeta_Allocator* dst) {
-    ZetaPoolAllocator* sa = (ZetaPoolAllocator*)sa_;
-    ZETA_DebugAssert(sa != NULL);
+size_t ZetaPoolAllocator_GetUsage(const void* pa_) {
+    ZetaPoolAllocator* pa = (ZetaPoolAllocator*)pa_;
+    ZETA_DebugAssert(pa != NULL);
 
-    dst->context = sa;
+    return pa->usage;
+}
+
+void ZetaPoolAllocator_DeployAllocator(void* pa_, Zeta_Allocator* dst) {
+    ZetaPoolAllocator* pa = (ZetaPoolAllocator*)pa_;
+    ZETA_DebugAssert(pa != NULL);
+
+    dst->context = pa;
 
     dst->GetAlign = ZetaPoolAllocator_GetAlign;
 

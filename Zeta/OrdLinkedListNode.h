@@ -4,7 +4,7 @@
 
 ZETA_ExternC_Beg;
 
-typedef struct Zeta_OrdLinkedListNode Zeta_OrdLinkedListNode;
+ZETA_DeclareStruct(Zeta_OrdLinkedListNode);
 
 struct Zeta_OrdLinkedListNode {
     Zeta_OrdLinkedListNode* l;

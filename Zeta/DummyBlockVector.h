@@ -4,7 +4,7 @@
 
 ZETA_ExternC_Beg;
 
-typedef struct Zeta_DummyBlockVector Zeta_DummyBlockVector;
+ZETA_DeclareStruct(Zeta_DummyBlockVector);
 
 struct Zeta_DummyBlockVector {
     size_t blk_size;

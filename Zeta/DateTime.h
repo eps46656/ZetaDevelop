@@ -4,7 +4,7 @@
 
 ZETA_ExternC_Beg;
 
-typedef struct Zeta_DateTime Zeta_DateTime;
+ZETA_DeclareStruct(Zeta_DateTime);
 
 struct Zeta_DateTime {
     int year;

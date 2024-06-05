@@ -4,9 +4,9 @@
 
 ZETA_ExternC_Beg;
 
-typedef unsigned long long Zeta_DebugPipe_val_t;
+ZETA_DeclareStruct(Zeta_DebugPipe);
 
-typedef struct Zeta_DebugPipe Zeta_DebugPipe;
+typedef unsigned long long Zeta_DebugPipe_val_t;
 
 struct Zeta_DebugPipe {
     void* deque;

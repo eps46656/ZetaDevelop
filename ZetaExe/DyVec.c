@@ -3,7 +3,7 @@
 
 typedef unsigned long long data_t;
 
-typedef struct DyVec DyVec;
+ZETA_DeclareStruct(DyVec);
 
 struct DyVec {
     Zeta_DynamicVector dv;

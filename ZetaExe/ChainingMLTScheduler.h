@@ -21,8 +21,9 @@ public:
 
     std::pair<size_t, size_t> PopTask();
 
+    size_t GetMemUsage() const;
+
 private:
-    size_t priority_capacity_;
     size_t tasks_num_;
 
     std::vector<TaskNode> task_nodes_;
@@ -42,7 +43,7 @@ private:
 ChainingMLTScheduler::ChainingMLTScheduler(size_t priority_beg,
                                            size_t priority_capacity,
                                            size_t tasks_num)
-    : priority_capacity_{ priority_capacity }, tasks_num_{ tasks_num } {
+    : tasks_num_{ tasks_num } {
     this->task_nodes_.resize(this->tasks_num_);
 
     for (size_t task_id{ 0 }; task_id < this->tasks_num_; ++task_id) {
@@ -53,16 +54,22 @@ ChainingMLTScheduler::ChainingMLTScheduler(size_t priority_beg,
 
     int level{ 0 };
 
-    for (size_t k{ this->priority_capacity_ }; 1 < k;
-         k /= ZETA_MultiLevelTable_max_branch_num, ++level) {
-        this->mlt_.branch_nums[level] = ZETA_MultiLevelTable_max_branch_num;
+    size_t branch_num{ ZETA_MultiLevelTable_max_branch_num };
+
+    for (size_t k{ std::max(priority_capacity, branch_num) }; 1 < k;
+         k = (k + branch_num - 1) / branch_num, ++level) {
+        this->mlt_.branch_nums[level] = branch_num;
     }
 
     this->mlt_.level = level;
 
     ZETA_PrintVar(this->mlt_.level);
 
-    this->mlt_node_allocator_.size = 512 + 8;
+    ZETA_DebugAssert(priority_capacity <=
+                     Zeta_MultiLevelTable_GetCapacity(&this->mlt_));
+
+    this->mlt_node_allocator_.size =
+        sizeof(unsigned long long) + sizeof(void*) * branch_num;
     this->mlt_node_allocator_.max_buffered_ptrs_num = this->tasks_num_ * level;
 
     Zeta_Allocator_Init(&this->mlt_node_allocator_i_);
@@ -107,11 +114,16 @@ std::pair<size_t, size_t> ChainingMLTScheduler::PopTask() {
 
         Zeta_MultiLevelTable_Erase(&this->mlt_, this->cur_priority_idxes_);
 
-        do {
+        this->cur_ele_ = Zeta_MultiLevelTable_FindNext(
+            &this->mlt_, this->cur_priority_idxes_, TRUE);
+
+        if (this->cur_ele_ == NULL) {
             this->cur_ele_ = Zeta_MultiLevelTable_FindNext(
                 &this->mlt_, this->cur_priority_idxes_, TRUE);
-        } while (this->cur_ele_ == NULL);
+        }
     }
+
+    ZETA_DebugAssert(*this->cur_ele_ != NULL);
 
     TaskNode* task_node{ ZETA_GetStructFromMember(TaskNode, n,
                                                   *this->cur_ele_) };
@@ -126,6 +138,11 @@ std::pair<size_t, size_t> ChainingMLTScheduler::PopTask() {
     }
 
     return { this->GetIdx_(this->cur_priority_idxes_), task_node->id };
+}
+
+size_t ChainingMLTScheduler::GetMemUsage() const {
+    return sizeof(TaskNode) * this->task_nodes_.size() +
+           ZetaPoolAllocator_GetUsage(&this->mlt_node_allocator_);
 }
 
 size_t ChainingMLTScheduler::GetIdx_(size_t const* idxes) const {

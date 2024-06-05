@@ -14,12 +14,12 @@ from builder import *
 DEBUG_MODE = 0
 RELEASE_MODE = 1
 
-def AddDeps(builder, ZetaBuildDir, mode):
+def AddDeps(builder, ZetaBuildDir, verbose, mode):
     c_include_dirs = []
     cpp_include_dirs = []
 
     c_to_ll_args = [
-        "--verbose",
+        "--verbose" if verbose else "",
         "-std=c2x",
         *[f"-I {ToPath(dir)}" for dir in c_include_dirs],
         "-m64",
@@ -27,7 +27,7 @@ def AddDeps(builder, ZetaBuildDir, mode):
     ]
 
     cpp_to_ll_args = [
-        "--verbose",
+        "--verbose" if verbose else "",
         "-std=c++17",
         *[f"-I {ToPath(dir)}" for dir in cpp_include_dirs],
         "-m64",
@@ -360,6 +360,7 @@ def AddDeps(builder, ZetaBuildDir, mode):
         {
             f"{File}",
             f"{ZetaDir}/DebugDeque.h",
+            f"{ZetaDir}/utils.h",
         },
         None
     )
@@ -1061,6 +1062,36 @@ def AddDeps(builder, ZetaBuildDir, mode):
     )
 
     builder.Add(
+        f"{ZetaDir}/OrdCnt3RBTreeNode.h",
+        {
+            f"{File}",
+            f"{ZetaDir}/BinTree.h",
+        },
+        None
+    )
+
+    builder.Add(
+        f"{ZetaDir}/OrdCnt3RBTreeNode.c",
+        {
+            f"{File}",
+            f"{ZetaDir}/OrdCntRBTreeNode.h",
+        },
+        None
+    )
+
+    builder.Add(
+        f"{ZetaBuildDir}/OrdCnt3RBTreeNode.ll",
+        {
+            f"{File}",
+            f"{ZetaDir}/OrdCnt3RBTreeNode.c",
+        },
+        lambda : c_to_ll_func(
+            f"{ZetaBuildDir}/OrdCnt3RBTreeNode.ll",
+            f"{ZetaDir}/OrdCnt3RBTreeNode.c",
+        )
+    )
+
+    builder.Add(
         f"{ZetaDir}/OrdCntRBTreeNode.h",
         {
             f"{File}",
@@ -1510,6 +1541,10 @@ def main():
                         action="store",
                         required=True,)
 
+    parser.add_argument("--verbose",
+                        dest="verbose",
+                        action="store_true")
+
     parser.add_argument("--mode",
                         dest="mode",
                         action="store",
@@ -1543,7 +1578,7 @@ def main():
 
     builder = Builder()
 
-    AddDeps(builder, ZetaBuildDir, mode)
+    AddDeps(builder, ZetaBuildDir, args.verbose, mode)
     builder.Add("all", builder.units(), None)
 
     target = f"{ZetaBuildDir}/{args.target}"

@@ -4,7 +4,11 @@
 #include "CacheManager.h"
 #include "SegVector.h"
 
-typedef struct Zeta_FileSysFAT32_Header Zeta_FileSysFAT32_Header;
+ZETA_DeclareStruct(Zeta_FileSysFAT32_Header);
+ZETA_DeclareStruct(Zeta_FileSysFAT32_DirEntry);
+ZETA_DeclareStruct(Zeta_FileSysFAT32_Dir);
+ZETA_DeclareStruct(Zeta_FileSysFAT32_SNode);
+ZETA_DeclareStruct(Zeta_FileSysFAT32_Manager);
 
 struct Zeta_FileSysFAT32_Header {
     u64_t base_idx;
@@ -52,8 +56,6 @@ struct Zeta_FileSysFAT32_Header {
     byte_t fs_type[8];
 };
 
-typedef struct Zeta_FileSysFAT32_DirEntry Zeta_FileSysFAT32_DirEntry;
-
 struct Zeta_FileSysFAT32_DirEntry {
     Zeta_SegVector name;
 
@@ -81,21 +83,15 @@ struct Zeta_FileSysFAT32_DirEntry {
     u8_t wrt_sec;
 };
 
-typedef struct Zeta_FileSysFAT32_Dir Zeta_FileSysFAT32_Dir;
-
 struct Zeta_FileSysFAT32_Dir {
     Zeta_SegVector entries;
 };
-
-typedef struct Zeta_FileSysFAT32_SNode Zeta_FileSysFAT32_SNode;
 
 struct Zeta_FileSysFAT32_SNode {
     void* cm_sd;
 
     //
 };
-
-typedef struct Zeta_FileSysFAT32_Manager Zeta_FileSysFAT32_Manager;
 
 struct Zeta_FileSysFAT32_Manager {
     //

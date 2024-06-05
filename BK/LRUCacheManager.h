@@ -5,7 +5,7 @@
 
 ZETA_ExternC_Beg;
 
-typedef struct Zeta_LRUCacheManager Zeta_LRUCacheManager;
+ZETA_DeclareStruct(Zeta_LRUCacheManager);
 
 struct Zeta_LRUCacheManager {
     Zeta_MultiLevelVector mlv;

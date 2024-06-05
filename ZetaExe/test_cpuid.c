@@ -3,7 +3,7 @@
 typedef unsigned EX;
 typedef unsigned long long RX;
 
-typedef struct CpuInfo CpuInfo;
+ZETA_DeclareStruct(CpuInfo);
 
 struct CpuInfo {
     EX max_func_num;

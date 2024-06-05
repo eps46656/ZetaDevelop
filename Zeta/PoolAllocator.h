@@ -2,7 +2,7 @@
 
 #include "Allocator.h"
 
-typedef struct Zeta_PoolAllocator Zeta_PoolAllocator;
+ZETA_DeclareStruct(Zeta_PoolAllocator);
 
 struct Zeta_PoolAllocator {
     void* n;

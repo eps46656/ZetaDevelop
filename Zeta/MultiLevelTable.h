@@ -5,6 +5,9 @@
 
 ZETA_ExternC_Beg;
 
+ZETA_DeclareStruct(Zeta_MultiLevelTable);
+ZETA_DeclareStruct(Zeta_MultiLevelTable_Node);
+
 /**
  * The maximum number of level.
  */
@@ -12,14 +15,9 @@ ZETA_ExternC_Beg;
 
 #define ZETA_MultiLevelTable_max_branch_num ZETA_GetWidth(unsigned long long)
 
-typedef struct Zeta_MultiLevelTable_Node Zeta_MultiLevelTable_Node;
-
-struct Zeta_MultiLevelTable_Node {
-    unsigned long long hot;
-    void* ptrs[];
-};
-
-typedef struct Zeta_MultiLevelTable Zeta_MultiLevelTable;
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
 
 struct Zeta_MultiLevelTable {
     int level;
@@ -31,6 +29,15 @@ struct Zeta_MultiLevelTable {
 
     Zeta_Allocator* node_allocator;
 };
+
+struct Zeta_MultiLevelTable_Node {
+    unsigned long long hot;
+    void* ptrs[];
+};
+
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
 
 /**
  * @brief Initialize the mlt.

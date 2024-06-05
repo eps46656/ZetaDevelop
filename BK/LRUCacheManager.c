@@ -1,6 +1,6 @@
 #include "LRUCacheManager.h"
 
-typedef struct Zeta_LRUCacheManager_Node Zeta_LRUCacheManager_Node;
+ZETA_DeclareStruct(Zeta_LRUCacheManager_Node);
 
 struct Zeta_LRUCacheManager_Node {
     Zeta_OrdLinkedListNode n;

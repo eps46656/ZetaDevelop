@@ -3,13 +3,20 @@
 #include "../Zeta/utils.h"
 
 int main() {
-    int x = 0b1;
+    size_t a = 5;
+    size_t b = 3;
+    size_t c = 7;
+    size_t d = 2;
 
-    int ans = __builtin_clz(x);
+    /*
+    size_t ans =
+        (size_t tmp1 = a + b, tmp2 = c + d, (tmp1 < tmp2 ? tmp1 : tmp2));
+    */
 
-    // printf("%d", ans);
+    size_t ans =
+        (size_t tmp1 = a + b; size_t tmp1 = c + d; (tmp1 < tmp2 ? tmp1 : tmp2));
 
-    ZETA_PrintVar(ans);
+    printf("%zu\n", ans);
 
     return 0;
 }

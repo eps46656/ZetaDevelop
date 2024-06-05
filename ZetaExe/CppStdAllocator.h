@@ -20,13 +20,13 @@ public:
 
     size_t usage() const;
 
-    T* allocate(std::size_t size);
+    T* allocate(size_t size);
 
-    void deallocate(T* ptr, std::size_t size);
+    void deallocate(T* ptr, size_t size);
 
 private:
-    std::unordered_map<void*, std::size_t> records_;
-    std::shared_ptr<std::size_t> usage_;
+    std::unordered_map<void*, size_t> records_;
+    std::shared_ptr<size_t> usage_;
 
     size_t buffered_size_;
     size_t max_buffered_ptrs_num_;
@@ -48,7 +48,7 @@ constexpr bool operator!=(const CppStdAllocator<T>& a,
 template <typename T>
 CppStdAllocator<T>::CppStdAllocator(size_t buffered_size,
                                     size_t max_buffered_ptrs_num)
-    : usage_{ new std::size_t{ 0 } },
+    : usage_{ new size_t{ 0 } },
       buffered_size_{ buffered_size },
       max_buffered_ptrs_num_{ max_buffered_ptrs_num } {}
 
@@ -60,12 +60,12 @@ CppStdAllocator<T>::CppStdAllocator(const CppStdAllocator<U>& cpp_std_allocator)
       max_buffered_ptrs_num_{ cpp_std_allocator.max_buffered_ptrs_num_ } {}
 
 template <typename T>
-std::size_t CppStdAllocator<T>::usage() const {
+size_t CppStdAllocator<T>::usage() const {
     return *this->usage_;
 }
 
 template <typename T>
-T* CppStdAllocator<T>::allocate(std::size_t size) {
+T* CppStdAllocator<T>::allocate(size_t size) {
     if (size == 0) { return nullptr; }
 
     size *= sizeof(T);
@@ -94,7 +94,7 @@ T* CppStdAllocator<T>::allocate(std::size_t size) {
 }
 
 template <typename T>
-void CppStdAllocator<T>::deallocate(T* ptr, std::size_t size) {
+void CppStdAllocator<T>::deallocate(T* ptr, size_t size) {
     if (ptr == nullptr) {
         ZETA_DebugAssert(size == 0);
         return;

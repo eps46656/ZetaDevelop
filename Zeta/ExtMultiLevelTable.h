@@ -5,6 +5,9 @@
 
 ZETA_ExternC_Beg;
 
+ZETA_DeclareStruct(Zeta_ExtMultiLevelTable);
+ZETA_DeclareStruct(Zeta_ExtMultiLevelTable_Node);
+
 /**
  * The maximum number of level.
  */
@@ -13,14 +16,10 @@ ZETA_ExternC_Beg;
 #define ZETA_ExtMultiLevelTable_max_branch_num \
     (ZETA_GetWidth(unsigned long long) * 4)
 
-typedef struct Zeta_ExtMultiLevelTable_Node Zeta_ExtMultiLevelTable_Node;
-
 struct Zeta_ExtMultiLevelTable_Node {
     unsigned long long hot[4];
     void* ptrs[];
 };
-
-typedef struct Zeta_ExtMultiLevelTable Zeta_ExtMultiLevelTable;
 
 struct Zeta_ExtMultiLevelTable {
     int level;

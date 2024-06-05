@@ -6,7 +6,7 @@
 
 #define ZETA_StdOutStream_buffer_size 128
 
-typedef struct Zeta_StdOutStream Zeta_StdOutStream;
+ZETA_DeclareStruct(Zeta_StdOutStream);
 
 struct Zeta_StdOutStream {
     int fd;

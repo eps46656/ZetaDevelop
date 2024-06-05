@@ -1,6 +1,6 @@
 #include "../Zeta/define.h"
 
-typedef struct PCB PCB;
+ZETA_DeclareStruct(PCB);
 
 struct PCB {
     unsigned long long rax;
@@ -35,7 +35,7 @@ void __stdcall SwitchTo(PCB* pcb);
 
 typedef unsigned long long RX;
 
-typedef struct Thread Thread;
+ZETA_DeclareStruct(Thread);
 
 struct Thread {
     RX stack;

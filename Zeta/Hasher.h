@@ -2,7 +2,7 @@
 
 #include "define.h"
 
-typedef struct Zeta_Hasher Zeta_Hasher;
+ZETA_DeclareStruct(Zeta_Hasher);
 
 /**
  * @brief An interface of hasher.

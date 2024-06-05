@@ -3,6 +3,8 @@
 #include "Disk.h"
 #include "utils.h"
 
+ZETA_DeclareStruct(DirEntry);
+
 #define UNUSED_CLUSTER (0)
 
 #define BAD_CLUSTER (0x0FFFFFF7)
@@ -17,8 +19,6 @@
     dst = Zeta_ReadLittleEndian(data, length); \
     data += length;                            \
     ZETA_StaticAssert(TRUE)
-
-typedef struct DirEntry DirEntry;
 
 struct DirEntry {
     bool_t is_long_name;
