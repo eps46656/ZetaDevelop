@@ -15,6 +15,8 @@ struct Zeta_SeqContainer {
 
     size_t (*GetWidth)(void* context);
 
+    size_t (*GetStride)(void* context);
+
     size_t (*GetSize)(void* context);
 
     void (*GetLBCursor)(void* context, void* dst_cursor);

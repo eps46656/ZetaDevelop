@@ -1284,6 +1284,43 @@ def AddDeps(builder, ZetaBuildDir, verbose, mode):
     )
 
     builder.Add(
+        f"{ZetaDir}/StageVector.h",
+        {
+            f"{File}",
+            f"{ZetaDir}/Allocator.h",
+            f"{ZetaDir}/Cursor.h",
+            f"{ZetaDir}/OrdCnt3RBTreeNode.h",
+            f"{ZetaDir}/SeqContainer.h",
+        },
+        None
+    )
+
+    builder.Add(
+        f"{ZetaDir}/StageVector.c",
+        {
+            f"{File}",
+            f"{ZetaDir}/StageVector.h",
+
+            f"{ZetaDir}/CircularVector.h",
+            f"{ZetaDir}/RBTree.h",
+            f"{ZetaDir}/utils.h",
+        },
+        None
+    )
+
+    builder.Add(
+        f"{ZetaBuildDir}/StageVector.ll",
+        {
+            f"{File}",
+            f"{ZetaDir}/StageVector.c",
+        },
+        lambda : c_to_ll_func(
+            f"{ZetaBuildDir}/StageVector.ll",
+            f"{ZetaDir}/StageVector.c",
+        )
+    )
+
+    builder.Add(
         f"{ZetaDir}/SeqContainer.h",
         {
             f"{File}",

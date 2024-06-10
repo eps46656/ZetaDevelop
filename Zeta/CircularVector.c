@@ -184,21 +184,20 @@ void Zeta_CircularVector_Read(void* cv_, void* pos_cursor_, size_t cnt,
     size_t size = cv->size;
     size_t capacity = cv->capacity;
 
-    size_t beg = pos_cursor->idx;
-    size_t end = beg + cnt;
+    size_t idx = pos_cursor->idx;
 
-    ZETA_DebugAssert(beg <= size);
-    ZETA_DebugAssert(end <= size);
+    ZETA_DebugAssert(idx <= size);
+    ZETA_DebugAssert(idx + cnt <= size);
 
-    for (size_t idx = beg; idx < end; ++idx, dst += stride) {
+    for (size_t end = idx + cnt; idx < end; ++idx, dst += stride) {
         Zeta_MemCopy(dst, Refer_(data, stride, offset, idx, capacity), width);
     }
 
     if (dst_cursor != NULL) {
         dst_cursor->cv = cv;
-        dst_cursor->idx = end;
+        dst_cursor->idx = idx;
         dst_cursor->ele =
-            end == size ? NULL : Refer_(data, stride, offset, end, capacity);
+            idx == size ? NULL : Refer_(data, stride, offset, idx, capacity);
     }
 }
 
@@ -229,21 +228,20 @@ void Zeta_CircularVector_Write(void* cv_, void* pos_cursor_, size_t cnt,
     size_t size = cv->size;
     size_t capacity = cv->capacity;
 
-    size_t beg = pos_cursor->idx;
-    size_t end = beg + cnt;
+    size_t idx = pos_cursor->idx;
 
-    ZETA_DebugAssert(beg <= size);
-    ZETA_DebugAssert(end <= size);
+    ZETA_DebugAssert(idx <= size);
+    ZETA_DebugAssert(idx + cnt <= size);
 
-    for (size_t idx = beg; idx < end; ++idx, src += stride) {
+    for (size_t end = idx + cnt; idx < end; ++idx, src += stride) {
         Zeta_MemCopy(Refer_(data, stride, offset, idx, capacity), src, width);
     }
 
     if (dst_cursor != NULL) {
         dst_cursor->cv = cv;
-        dst_cursor->idx = end;
+        dst_cursor->idx = idx;
         dst_cursor->ele =
-            end == size ? NULL : Refer_(data, stride, offset, end, capacity);
+            idx == size ? NULL : Refer_(data, stride, offset, idx, capacity);
     }
 }
 
@@ -309,9 +307,11 @@ void* Zeta_CircularVector_Insert(void* cv_, void* pos_cursor_, size_t cnt) {
     size_t l_size = idx;
     size_t r_size = size - idx;
 
+    size_t rand_seed =
+        ZETA_GetAddrFromPtr(data) + ZETA_GetAddrFromPtr(pos_cursor) + idx + cnt;
+
     if ((l_size < r_size) ||
-        (l_size == r_size &&
-         Zeta_SimpleHash(ZETA_GetAddrFromPtr(data) + idx) % 2 == 0)) {
+        (l_size == r_size && Zeta_SimpleRandomRotate(&rand_seed) % 2 == 0)) {
         cv->offset = offset = (offset + capacity - cnt) % capacity;
         cv->size = size += cnt;
 
@@ -374,28 +374,28 @@ void Zeta_CircularVector_Erase(void* cv_, void* pos_cursor_, size_t cnt) {
     size_t size = cv->size;
     size_t capacity = cv->capacity;
 
-    size_t beg = pos_cursor->idx;
-    size_t end = beg + cnt;
-
-    ZETA_DebugAssert(beg <= size);
-    ZETA_DebugAssert(end <= size);
+    size_t idx = pos_cursor->idx;
+    ZETA_DebugAssert(idx <= size);
+    ZETA_DebugAssert(idx + cnt <= size);
 
     if (cnt == 0) { return; }
 
-    size_t l_size = beg;
-    size_t r_size = size - end;
+    size_t l_size = idx;
+    size_t r_size = size - idx - cnt;
+
+    size_t rand_seed =
+        ZETA_GetAddrFromPtr(data) + ZETA_GetAddrFromPtr(pos_cursor) + idx + cnt;
 
     if ((l_size < r_size) ||
-        (l_size == r_size &&
-         Zeta_SimpleHash(ZETA_GetAddrFromPtr(data) + beg) % 2 == 0)) {
-        for (size_t i = beg; 0 < i--;) {
+        (l_size == r_size && Zeta_SimpleRandomRotate(&rand_seed) % 2 == 0)) {
+        for (size_t i = idx; 0 < i--;) {
             Zeta_MemCopy(Refer_(data, stride, offset, i + cnt, capacity),
                          Refer_(data, stride, offset, i, capacity), width);
         }
 
         cv->offset = offset = (offset + cnt) % capacity;
     } else {
-        for (size_t i = beg, i_end = beg + r_size; i < i_end; ++i) {
+        for (size_t i = idx, i_end = idx + r_size; i < i_end; ++i) {
             Zeta_MemCopy(Refer_(data, stride, offset, i, capacity),
                          Refer_(data, stride, offset, i + cnt, capacity),
                          width);
@@ -406,8 +406,8 @@ void Zeta_CircularVector_Erase(void* cv_, void* pos_cursor_, size_t cnt) {
 
     if (size == 0) { cv->offset = offset = 0; }
 
-    if (beg < size) {
-        pos_cursor->ele = Refer_(data, stride, offset, beg, capacity);
+    if (idx < size) {
+        pos_cursor->ele = Refer_(data, stride, offset, idx, capacity);
     }
 }
 
@@ -564,32 +564,6 @@ void Zeta_CircularVector_Cursor_Check(void* cv_, void const* cursor_) {
     }
 }
 
-void Zeta_CircularVector_Cursor_DeployCursorOperator(
-    void* cv_, Zeta_CursorOperator* cursor_opr) {
-    Zeta_CircularVector* cv = cv_;
-    ZETA_DebugAssert(cv != NULL);
-
-    ZETA_DebugAssert(cursor_opr != NULL);
-
-    cursor_opr->context = cv;
-
-    cursor_opr->cursor_width = sizeof(Zeta_CircularVector_Cursor);
-
-    /*
-    cursor_opr->IsEqual = Zeta_CircularVector_Cursor_IsEqual;
-    cursor_opr->Compare = Zeta_CircularVector_Cursor_Compare;
-    cursor_opr->Differ = Zeta_CircularVector_Cursor_Differ;
-
-    cursor_opr->Refer = Zeta_CircularVector_Cursor_Refer;
-
-    cursor_opr->StepL = Zeta_CircularVector_Cursor_StepL;
-    cursor_opr->StepR = Zeta_CircularVector_Cursor_StepR;
-
-    cursor_opr->AdvanceL = Zeta_CircularVector_Cursor_AdvanceL;
-    cursor_opr->AdvanceR = Zeta_CircularVector_Cursor_AdvanceR;
-    */
-}
-
 void Zeta_CircularVector_DeploySeqContainer(void* cv_,
                                             Zeta_SeqContainer* seq_cntr) {
     Zeta_CircularVector* cv = cv_;
@@ -600,6 +574,8 @@ void Zeta_CircularVector_DeploySeqContainer(void* cv_,
     seq_cntr->context = cv;
 
     seq_cntr->cursor_width = sizeof(Zeta_CircularVector_Cursor);
+
+    seq_cntr->GetStride = Zeta_CircularVector_GetStride;
 
     seq_cntr->GetWidth = Zeta_CircularVector_GetWidth;
 

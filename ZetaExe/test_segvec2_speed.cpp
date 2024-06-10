@@ -26,13 +26,6 @@ std::deque<val_t> dd;
 Zeta_SegVector sv;
 
 Zeta_SeqContainer seq_cntr;
-Zeta_CursorOperator seq_cntr_cursor_opr;
-
-struct Cursor {
-    static constexpr size_t width{ sizeof(void*) * 8 };
-
-    unsigned char data[width];
-} __attribute__((aligned(alignof(max_align_t))));
 
 void SV_Init() {
     StdAllocator_DeployAllocator(&node_allocator_, &node_allocator);
@@ -69,7 +62,7 @@ val_t SV_UpperBound(val_t val) {
 }
 
 void SV_Insert(val_t val) {
-    Cursor cursor;
+    Zeta_Cursor cursor;
 
     Zeta_SegVector_FindFirst(&sv, &cursor, NULL, &val, SV_UpperBound_);
 
@@ -77,7 +70,7 @@ void SV_Insert(val_t val) {
 }
 
 void SV_Erase(val_t val) {
-    Cursor cursor;
+    Zeta_Cursor cursor;
 
     val_t* ele = (val_t*)Zeta_SegVector_FindFirst(&sv, &cursor, NULL, &val,
                                                   SV_LowerBound_);

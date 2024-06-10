@@ -4,10 +4,6 @@
 
 ZETA_ExternC_Beg;
 
-size_t Zeta_GetMinOf2(size_t x, size_t y);
-
-size_t Zeta_GetMaxOf2(size_t x, size_t y);
-
 /**
  * @brief Copy byte array from dst to src
  *
@@ -82,6 +78,8 @@ u128_t Zeta_ReadBigEndian(byte_t const* data, unsigned int length);
 u128_t Zeta_WriteBigEndian(byte_t* dst, u128_t val, unsigned int length);
 
 size_t Zeta_SimpleRandom(size_t x);
+
+size_t Zeta_SimpleRandomRotate(size_t* x);
 
 size_t Zeta_SimpleHash(size_t x);
 

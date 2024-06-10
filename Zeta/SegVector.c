@@ -89,6 +89,7 @@ void Zeta_SegVector_GetLBCursor(void* sv_, void* dst_cursor_) {
 
     if (dst_cursor == NULL) { return; }
 
+    dst_cursor->sv = sv;
     dst_cursor->idx = -1;
     dst_cursor->n = sv->lb;
     dst_cursor->seg_idx = 0;
@@ -103,6 +104,7 @@ void Zeta_SegVector_GetRBCursor(void* sv_, void* dst_cursor_) {
 
     if (dst_cursor == NULL) { return; }
 
+    dst_cursor->sv = sv;
     dst_cursor->idx = Zeta_SegVector_GetSize(sv);
     dst_cursor->n = sv->rb;
     dst_cursor->seg_idx = 0;
@@ -127,6 +129,7 @@ void* Zeta_SegVector_PeekL(void* sv_, void* dst_cursor_, void* dst_ele) {
 
     if (sv->rb == n) {
         if (dst_cursor != NULL) {
+            dst_cursor->sv = sv;
             dst_cursor->idx = 0;
             dst_cursor->n = n;
             dst_cursor->seg_idx = 0;
@@ -150,6 +153,7 @@ void* Zeta_SegVector_PeekL(void* sv_, void* dst_cursor_, void* dst_ele) {
     void* ele = Zeta_CircularVector_PeekL(&cv, NULL, NULL);
 
     if (dst_cursor != NULL) {
+        dst_cursor->sv = sv;
         dst_cursor->idx = 0;
         dst_cursor->n = n;
         dst_cursor->seg_idx = 0;
@@ -180,6 +184,7 @@ void* Zeta_SegVector_PeekR(void* sv_, void* dst_cursor_, void* dst_ele) {
 
     if (sv->lb == n) {
         if (dst_cursor != NULL) {
+            dst_cursor->sv = sv;
             dst_cursor->idx = -1;
             dst_cursor->n = n;
             dst_cursor->seg_idx = 0;
@@ -202,6 +207,7 @@ void* Zeta_SegVector_PeekR(void* sv_, void* dst_cursor_, void* dst_ele) {
     void* ele = Zeta_CircularVector_PeekR(&cv, NULL, NULL);
 
     if (dst_cursor != NULL) {
+        dst_cursor->sv = sv;
         dst_cursor->idx = size - 1;
         dst_cursor->n = n;
         dst_cursor->seg_idx = cv.size - 1;
@@ -256,6 +262,7 @@ void* Zeta_SegVector_Access(void* sv_, void* dst_cursor_, void* dst_ele,
     }
 
     if (dst_cursor != NULL) {
+        dst_cursor->sv = sv;
         dst_cursor->idx = idx;
         dst_cursor->n = n;
         dst_cursor->seg_idx = seg_idx;
@@ -370,6 +377,7 @@ void* Zeta_SegVector_FindFirst(void* sv_, void* dst_cursor_, void* dst_ele,
     }
 
     if (dst_cursor != NULL) {
+        dst_cursor->sv = sv;
         dst_cursor->idx = ret_base_idx + ret_seg_idx;
         dst_cursor->n = ret_n;
         dst_cursor->seg_idx = ret_seg_idx;
@@ -430,10 +438,10 @@ void Zeta_SegVector_Read(void* sv_, void* pos_cursor_, size_t cnt, void* dst_,
     unsigned char* dst = dst_;
     ZETA_DebugAssert(dst != NULL);
 
-    size_t seg_idx = pos_cursor->seg_idx;
-
     void* n = pos_cursor->n;
     Zeta_SegVector_Node* node;
+
+    size_t seg_idx = pos_cursor->seg_idx;
 
     Zeta_CircularVector cv;
     cv.width = width;
@@ -447,8 +455,7 @@ void Zeta_SegVector_Read(void* sv_, void* pos_cursor_, size_t cnt, void* dst_,
         cv.offset = node->offset;
         cv.size = node->size;
 
-        size_t cur_cnt = cv.size - seg_idx;
-        if (cnt < cur_cnt) { cur_cnt = cnt; }
+        size_t cur_cnt = ZETA_GetMinOf(cnt, cv.size - seg_idx);
 
         Zeta_CircularVector cv_cursor;
         Zeta_CircularVector_Access(&cv, &cv_cursor, NULL, seg_idx);
@@ -498,7 +505,7 @@ void Zeta_SegVector_Write(void* sv_, void* pos_cursor_, size_t cnt,
 
     if (cnt == 0) {
         if (dst_cursor != NULL) {
-            dst_cursor->sv = pos_cursor->sv;
+            dst_cursor->sv = sv;
             dst_cursor->idx = pos_cursor->idx;
             dst_cursor->n = pos_cursor->n;
             dst_cursor->seg_idx = pos_cursor->seg_idx;
@@ -523,10 +530,10 @@ void Zeta_SegVector_Write(void* sv_, void* pos_cursor_, size_t cnt,
     unsigned char const* src = src_;
     ZETA_DebugAssert(src != NULL);
 
-    size_t seg_idx = pos_cursor->seg_idx;
-
     void* n = pos_cursor->n;
     Zeta_SegVector_Node* node;
+
+    size_t seg_idx = pos_cursor->seg_idx;
 
     Zeta_CircularVector cv;
     cv.width = width;
@@ -540,8 +547,7 @@ void Zeta_SegVector_Write(void* sv_, void* pos_cursor_, size_t cnt,
         cv.offset = node->offset;
         cv.size = node->size;
 
-        size_t cur_cnt = cv.size - seg_idx;
-        if (cnt < cur_cnt) { cur_cnt = cnt; }
+        size_t cur_cnt = ZETA_GetMinOf(cnt, cv.size - seg_idx);
 
         Zeta_CircularVector cv_cursor;
         Zeta_CircularVector_Access(&cv, &cv_cursor, NULL, seg_idx);
@@ -583,9 +589,9 @@ static Zeta_SegVector_Node* InsertSeg_(Zeta_SegVector* sv,
                                        Zeta_BinTreeNodeOperator* btn_opr,
                                        void* pos) {
     ZETA_DebugAssert(sv->node_allocator != NULL);
-    ZETA_DebugAssert(sv->seg_allocator != NULL);
-
     ZETA_DebugAssert(sv->node_allocator->Allocate != NULL);
+
+    ZETA_DebugAssert(sv->seg_allocator != NULL);
     ZETA_DebugAssert(sv->seg_allocator->Allocate != NULL);
 
     void* node_ = sv->node_allocator->Allocate(sv->node_allocator->context,
@@ -599,11 +605,12 @@ static Zeta_SegVector_Node* InsertSeg_(Zeta_SegVector* sv,
     Zeta_OrdCntRBTreeNode_Init(NULL, &node->n);
     Zeta_OrdCntRBTreeNode_SetAccSize(NULL, &node->n, 0);
 
-    node->offset = 0;
-    node->size = 0;
-
     node->seg = sv->seg_allocator->Allocate(sv->seg_allocator->context,
                                             sv->stride * sv->seg_capacity);
+    ZETA_DebugAssert(node->seg != NULL);
+
+    node->offset = 0;
+    node->size = 0;
 
     sv->root = Zeta_RBTree_InsertL(btn_opr, pos, &node->n);
 
@@ -642,7 +649,7 @@ void* Zeta_SegVector_PushL(void* sv_, void* dst_cursor_) {
     Zeta_SegVector_Insert(sv, &pos_cursor, 1);
 
     if (dst_cursor != NULL) {
-        dst_cursor->sv = pos_cursor.sv;
+        dst_cursor->sv = sv;
         dst_cursor->idx = pos_cursor.idx;
         dst_cursor->n = pos_cursor.n;
         dst_cursor->seg_idx = pos_cursor.seg_idx;
@@ -664,7 +671,7 @@ void* Zeta_SegVector_PushR(void* sv_, void* dst_cursor_) {
     Zeta_SegVector_Insert(sv, &pos_cursor, 1);
 
     if (dst_cursor != NULL) {
-        dst_cursor->sv = pos_cursor.sv;
+        dst_cursor->sv = sv;
         dst_cursor->idx = pos_cursor.idx;
         dst_cursor->n = pos_cursor.n;
         dst_cursor->seg_idx = pos_cursor.seg_idx;
@@ -677,8 +684,8 @@ void* Zeta_SegVector_PushR(void* sv_, void* dst_cursor_) {
 static void ShoveL_(Zeta_CircularVector* l_cv, Zeta_CircularVector* r_cv,
                     size_t width, size_t rl_cnt, size_t ins_cnt,
                     size_t rot_cnt) {
-    size_t num_a = Zeta_GetMinOf2(rl_cnt, rot_cnt);
-    size_t num_b = Zeta_GetMinOf2(ins_cnt, rot_cnt - num_a);
+    size_t num_a = ZETA_GetMinOf(rl_cnt, rot_cnt);
+    size_t num_b = ZETA_GetMinOf(ins_cnt, rot_cnt - num_a);
     size_t num_c = rot_cnt - num_a - num_b;
 
     Zeta_CircularVector_Cursor l_cv_cursor;
@@ -720,8 +727,8 @@ static void ShoveL_(Zeta_CircularVector* l_cv, Zeta_CircularVector* r_cv,
 static void ShoveR_(Zeta_CircularVector* l_cv, Zeta_CircularVector* r_cv,
                     size_t width, size_t lr_cnt, size_t ins_cnt,
                     size_t rot_cnt) {
-    size_t num_a = Zeta_GetMinOf2(lr_cnt, rot_cnt);
-    size_t num_b = Zeta_GetMinOf2(ins_cnt, rot_cnt - num_a);
+    size_t num_a = ZETA_GetMinOf(lr_cnt, rot_cnt);
+    size_t num_b = ZETA_GetMinOf(ins_cnt, rot_cnt - num_a);
     size_t num_c = rot_cnt - num_a - num_b;
 
     Zeta_CircularVector_Cursor l_cv_cursor;
@@ -789,36 +796,25 @@ void* Zeta_SegVector_Insert(void* sv_, void* pos_cursor_, size_t cnt) {
     Zeta_SegVector_Node* m_node;
 
     if (size == 0) {
-        size_t res_cnt = cnt % seg_capacity;
-        size_t new_seg_cnt = cnt / seg_capacity;
+        while (0 < cnt) {
+            size_t cur_cnt = cnt / ((cnt + seg_capacity - 1) / seg_capacity);
 
-        while (0 < new_seg_cnt--) {
             m_node = InsertSeg_(sv, &btn_opr, m_n);
             m_n = &m_node->n;
 
-            Zeta_BinTree_SetSize(&btn_opr, m_n, seg_capacity);
-            m_node->size = seg_capacity;
+            m_node->size = cur_cnt;
+            Zeta_BinTree_SetSize(&btn_opr, m_n, m_node->size);
+
+            cnt -= cur_cnt;
         }
 
         Zeta_CircularVector m_cv;
+        m_cv.data = m_node->seg;
         m_cv.width = width;
         m_cv.stride = stride;
         m_cv.offset = 0;
+        m_cv.size = m_node->size;
         m_cv.capacity = seg_capacity;
-
-        if (res_cnt == 0) {
-            m_cv.size = seg_capacity;
-        } else {
-            m_node = InsertSeg_(sv, &btn_opr, m_n);
-            m_n = &m_node->n;
-
-            Zeta_BinTree_SetSize(&btn_opr, m_n, res_cnt);
-            m_node->size = res_cnt;
-
-            m_cv.size = res_cnt;
-        }
-
-        m_cv.data = m_node->seg;
 
         pos_cursor->n = m_n;
         pos_cursor->seg_idx = 0;
@@ -851,9 +847,9 @@ void* Zeta_SegVector_Insert(void* sv_, void* pos_cursor_, size_t cnt) {
 
         void* ele = Zeta_CircularVector_Insert(&m_cv, &cv_cursor, cnt);
 
-        Zeta_BinTree_SetSize(&btn_opr, m_n, m_cv.size);
         m_node->offset = m_cv.offset;
         m_node->size = m_cv.size;
+        Zeta_BinTree_SetSize(&btn_opr, m_n, m_node->size);
 
         pos_cursor->n = m_n;
         pos_cursor->seg_idx = seg_idx;
@@ -898,7 +894,7 @@ void* Zeta_SegVector_Insert(void* sv_, void* pos_cursor_, size_t cnt) {
     if (m_l_move_cnt < m_r_move_cnt) { goto TRY_L_SHOVE; }
     if (m_r_move_cnt < m_l_move_cnt) { goto TRY_R_SHOVE; }
 
-    if (rand == 0) {
+    if (Zeta_SimpleRandomRotate(&rand) % 2 == 0) {
         goto TRY_L_SHOVE;
     } else {
         goto TRY_R_SHOVE;
@@ -926,13 +922,13 @@ TRY_L_SHOVE:;
 
     ShoveL_(&l_cv, &m_cv, width, m_l_move_cnt, cnt, new_l_size - old_l_size);
 
-    Zeta_BinTree_SetSize(&btn_opr, l_n, l_cv.size);
     l_node->offset = l_cv.offset;
     l_node->size = l_cv.size;
+    Zeta_BinTree_SetSize(&btn_opr, l_n, l_node->size);
 
-    Zeta_BinTree_SetSize(&btn_opr, m_n, m_cv.size);
     m_node->offset = m_cv.offset;
     m_node->size = m_cv.size;
+    Zeta_BinTree_SetSize(&btn_opr, m_n, m_node->size);
 
     if (seg_idx < l_cv.size) {
         pos_cursor->n = l_n;
@@ -972,13 +968,13 @@ TRY_R_SHOVE:;
 
     ShoveR_(&m_cv, &r_cv, width, m_r_move_cnt, cnt, new_r_size - old_r_size);
 
-    Zeta_BinTree_SetSize(&btn_opr, m_n, m_cv.size);
     m_node->offset = m_cv.offset;
     m_node->size = m_cv.size;
+    Zeta_BinTree_SetSize(&btn_opr, m_n, m_node->size);
 
-    Zeta_BinTree_SetSize(&btn_opr, r_n, r_cv.size);
     r_node->offset = r_cv.offset;
     r_node->size = r_cv.size;
+    Zeta_BinTree_SetSize(&btn_opr, r_n, r_node->size);
 
     if (seg_idx < m_cv.size) {
         pos_cursor->n = m_n;
@@ -1007,8 +1003,9 @@ TRY_SPLIT:;
     Zeta_SegVector_Node* ml_node;
     Zeta_SegVector_Node* mr_node;
 
-    bool_t l_split = m_l_move_cnt < m_r_move_cnt ||
-                     ((m_l_move_cnt == m_r_move_cnt) && rand == 1);
+    bool_t l_split =
+        m_l_move_cnt < m_r_move_cnt ||
+        ((m_l_move_cnt == m_r_move_cnt) && Zeta_SimpleRandomRotate(&rand) == 1);
 
     if (m_cv.size == 0) { l_split = true; }
 
@@ -1076,8 +1073,8 @@ TRY_SPLIT:;
         if (0 < m_l_move_cnt || 0 < res_cnt) {
             size_t new_mlr_size = m_cv.size + res_cnt;
             size_t new_ml_size = new_mlr_size / 2;
-            new_ml_size = Zeta_GetMaxOf2(new_ml_size, m_l_move_cnt);
-            new_ml_size = Zeta_GetMinOf2(new_ml_size, m_l_move_cnt + res_cnt);
+            new_ml_size = ZETA_GetMaxOf(new_ml_size, m_l_move_cnt);
+            new_ml_size = ZETA_GetMinOf(new_ml_size, m_l_move_cnt + res_cnt);
 
             ZETA_DebugAssert(0 < new_ml_size);
 
@@ -1087,8 +1084,8 @@ TRY_SPLIT:;
         if (0 < m_r_move_cnt || 0 < res_cnt) {
             size_t new_mlr_size = m_cv.size + res_cnt;
             size_t new_mr_size = new_mlr_size / 2;
-            new_mr_size = Zeta_GetMaxOf2(new_mr_size, m_r_move_cnt);
-            new_mr_size = Zeta_GetMinOf2(new_mr_size, m_r_move_cnt + res_cnt);
+            new_mr_size = ZETA_GetMaxOf(new_mr_size, m_r_move_cnt);
+            new_mr_size = ZETA_GetMinOf(new_mr_size, m_r_move_cnt + res_cnt);
 
             ZETA_DebugAssert(0 < new_mr_size);
 
@@ -1097,23 +1094,23 @@ TRY_SPLIT:;
     }
 
     if (sv->lb != ml_n) {
-        Zeta_BinTree_SetSize(&btn_opr, ml_n, ml_cv.size);
         ml_node->offset = ml_cv.offset;
         ml_node->size = ml_cv.size;
+        Zeta_BinTree_SetSize(&btn_opr, ml_n, ml_node->size);
     }
 
     if (sv->rb != mr_n) {
-        Zeta_BinTree_SetSize(&btn_opr, mr_n, mr_cv.size);
         mr_node->offset = mr_cv.offset;
         mr_node->size = mr_cv.size;
+        Zeta_BinTree_SetSize(&btn_opr, mr_n, mr_node->size);
     }
 
     while (0 < new_seg_cnt--) {
         mr_node = InsertSeg_(sv, &btn_opr, mr_n);
         mr_n = &mr_node->n;
 
-        Zeta_BinTree_SetSize(&btn_opr, mr_n, seg_capacity);
         mr_node->size = seg_capacity;
+        Zeta_BinTree_SetSize(&btn_opr, mr_n, mr_node->size);
     }
 
     if (seg_idx < ml_cv.size) {
@@ -1177,18 +1174,12 @@ void Zeta_SegVector_Erase(void* sv_, void* pos_cursor_, size_t cnt) {
     size_t seg_capacity = sv->seg_capacity;
     size_t size = Zeta_SegVector_GetSize(sv);
 
-    size_t beg = pos_cursor->idx;
-    size_t end = beg + cnt;
-
-    ZETA_DebugAssert(beg <= size);
-    ZETA_DebugAssert(end <= size);
+    ZETA_DebugAssert(pos_cursor->idx <= size);
+    ZETA_DebugAssert(pos_cursor->idx + cnt <= size);
 
     if (cnt == 0) { return; }
 
     void* m_n = pos_cursor->n;
-
-    ZETA_DebugAssert(sv->lb != m_n);
-    ZETA_DebugAssert(sv->rb != m_n);
 
     Zeta_SegVector_Node* m_node =
         ZETA_GetStructFromMember(Zeta_SegVector_Node, n, m_n);
@@ -1205,10 +1196,8 @@ void Zeta_SegVector_Erase(void* sv_, void* pos_cursor_, size_t cnt) {
     m_cv.size = m_node->size;
     m_cv.capacity = seg_capacity;
 
-    ZETA_DebugAssert(seg_idx < m_cv.size);
-
     {
-        size_t k = Zeta_GetMinOf2(cnt, m_cv.size - seg_idx);
+        size_t k = ZETA_GetMinOf(cnt, m_cv.size - seg_idx);
 
         Zeta_CircularVector_Cursor cv_cursor;
         Zeta_CircularVector_Access(&m_cv, &cv_cursor, NULL, seg_idx);
@@ -1293,14 +1282,14 @@ void Zeta_SegVector_Erase(void* sv_, void* pos_cursor_, size_t cnt) {
     }
 
     if (seg_capacity <= m_cv.size * 2) {
-        Zeta_BinTree_SetSize(&btn_opr, m_n, m_cv.size);
         m_node->offset = m_cv.offset;
         m_node->size = m_cv.size;
+        Zeta_BinTree_SetSize(&btn_opr, m_n, m_node->size);
 
         if (sv->rb != r_n) {
-            Zeta_BinTree_SetSize(&btn_opr, r_n, r_cv.size);
             r_node->offset = r_cv.offset;
             r_node->size = r_cv.size;
+            Zeta_BinTree_SetSize(&btn_opr, r_n, r_node->size);
         }
 
         if (seg_idx < m_cv.size) {
@@ -1345,7 +1334,6 @@ void Zeta_SegVector_Erase(void* sv_, void* pos_cursor_, size_t cnt) {
     size_t mr_vacant = m_vacant + r_vacant;
 
     void* a_n;
-    void* b_n;
 
     Zeta_CircularVector* a_cv;
     Zeta_CircularVector* b_cv;
@@ -1353,16 +1341,15 @@ void Zeta_SegVector_Erase(void* sv_, void* pos_cursor_, size_t cnt) {
     size_t a_vacant;
     size_t b_vacant;
 
+    size_t rand = ZETA_GetAddrFromPtr(l_n) + ZETA_GetAddrFromPtr(m_n) +
+                  ZETA_GetAddrFromPtr(r_n);
+
     if (lm_vacant < mr_vacant ||
-        (lm_vacant == mr_vacant &&
-         Zeta_SimpleHash(ZETA_GetAddrFromPtr(l_n) + ZETA_GetAddrFromPtr(r_n)) %
-                 2 ==
-             0)) {
+        (lm_vacant == mr_vacant && Zeta_SimpleRandomRotate(&rand) % 2 == 0)) {
         a_n = m_n;
         a_cv = &m_cv;
         a_vacant = m_vacant;
 
-        b_n = r_n;
         b_cv = &r_cv;
         b_vacant = r_vacant;
     } else {
@@ -1370,7 +1357,6 @@ void Zeta_SegVector_Erase(void* sv_, void* pos_cursor_, size_t cnt) {
         a_cv = &l_cv;
         a_vacant = l_vacant;
 
-        b_n = m_n;
         b_cv = &m_cv;
         b_vacant = m_vacant;
     }
@@ -1379,14 +1365,14 @@ void Zeta_SegVector_Erase(void* sv_, void* pos_cursor_, size_t cnt) {
 
     // if (ab_vacant < seg_capacity * 1.5) { return; }
     if (ab_vacant * 4 < seg_capacity * 5) {
-        Zeta_BinTree_SetSize(&btn_opr, m_n, m_cv.size);
         m_node->offset = m_cv.offset;
         m_node->size = m_cv.size;
+        Zeta_BinTree_SetSize(&btn_opr, m_n, m_node->size);
 
         if (sv->rb != r_n) {
-            Zeta_BinTree_SetSize(&btn_opr, r_n, r_cv.size);
             r_node->offset = r_cv.offset;
             r_node->size = r_cv.size;
+            Zeta_BinTree_SetSize(&btn_opr, r_n, r_node->size);
         }
 
         if (seg_idx < m_cv.size) {
@@ -1402,10 +1388,8 @@ void Zeta_SegVector_Erase(void* sv_, void* pos_cursor_, size_t cnt) {
 
     if (a_vacant < b_vacant ||
         (a_vacant == b_vacant &&
-         Zeta_SimpleHash(ZETA_GetAddrFromPtr(a_n) + ZETA_GetAddrFromPtr(b_n)) %
-                 2 ==
-             0)) {         // b to a
-        if (a_n == m_n) {  // r(b) to m(a)
+         Zeta_SimpleRandomRotate(&rand) % 2 == 0)) {  // b to a
+        if (a_n == m_n) {                             // r(b) to m(a)
             ret_n = m_n;
             ret_seg_idx = seg_idx;
         } else if (seg_idx < m_cv.size) {  // m(b) to l(a)
@@ -1436,27 +1420,27 @@ void Zeta_SegVector_Erase(void* sv_, void* pos_cursor_, size_t cnt) {
         if (l_cv.size == 0) {
             EraseSeg_(sv, &btn_opr, l_node);
         } else {
-            Zeta_BinTree_SetSize(&btn_opr, l_n, l_cv.size);
             l_node->offset = l_cv.offset;
             l_node->size = l_cv.size;
+            Zeta_BinTree_SetSize(&btn_opr, l_n, l_node->size);
         }
     }
 
     if (m_cv.size == 0) {
         EraseSeg_(sv, &btn_opr, m_node);
     } else {
-        Zeta_BinTree_SetSize(&btn_opr, m_n, m_cv.size);
         m_node->offset = m_cv.offset;
         m_node->size = m_cv.size;
+        Zeta_BinTree_SetSize(&btn_opr, m_n, m_node->size);
     }
 
     if (sv->rb != r_n) {
         if (r_cv.size == 0) {
             EraseSeg_(sv, &btn_opr, r_node);
         } else {
-            Zeta_BinTree_SetSize(&btn_opr, r_n, r_cv.size);
             r_node->offset = r_cv.offset;
             r_node->size = r_cv.size;
+            Zeta_BinTree_SetSize(&btn_opr, r_n, r_node->size);
         }
     }
 
@@ -1730,9 +1714,7 @@ void Zeta_SegVector_Cursor_AdvanceL(void* sv_, void* cursor_, size_t step) {
     Zeta_SegVector_Node* dst_node =
         ZETA_GetStructFromMember(Zeta_SegVector_Node, n, dst_n);
 
-    size_t dst_n_size = dst_node->size;
-
-    dst_seg_idx = dst_n_size - 1 - dst_seg_idx;
+    dst_seg_idx = dst_node->size - 1 - dst_seg_idx;
 
     cursor->seg_idx = dst_seg_idx;
 
@@ -1741,7 +1723,7 @@ void Zeta_SegVector_Cursor_AdvanceL(void* sv_, void* cursor_, size_t step) {
     cv.width = sv->width;
     cv.stride = sv->stride;
     cv.offset = dst_node->offset;
-    cv.size = dst_n_size;
+    cv.size = dst_node->size;
     cv.capacity = sv->seg_capacity;
 
     cursor->ele = Zeta_CircularVector_Access(&cv, NULL, NULL, dst_seg_idx);
@@ -1807,6 +1789,7 @@ void Zeta_SegVector_Cursor_Check(void* sv_, void const* cursor_) {
     Zeta_SegVector_Cursor re_cursor;
     Zeta_SegVector_Access(sv, &re_cursor, NULL, cursor->idx);
 
+    ZETA_DebugAssert(re_cursor.sv == cursor->sv);
     ZETA_DebugAssert(re_cursor.idx == cursor->idx);
     ZETA_DebugAssert(re_cursor.n == cursor->n);
     ZETA_DebugAssert(re_cursor.seg_idx == cursor->seg_idx);

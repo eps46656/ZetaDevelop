@@ -2,27 +2,12 @@
 
 #include "define.h"
 
-ZETA_DeclareStruct(Zeta_CursorOperator);
+ZETA_ExternC_Beg;
 
-struct Zeta_CursorOperator {
-    void* context;
+ZETA_DeclareStruct(Zeta_Cursor);
 
-    size_t cursor_width;
+struct Zeta_Cursor {
+    unsigned char data[sizeof(void*) * 8];
+} __attribute__((aligned(alignof(max_align_t))));
 
-    bool_t (*IsEqual)(void* context, void const* cursor_a,
-                      void const* cursor_b);
-
-    int (*Compare)(void* context, void const* cursor_a, void const* cursor_b);
-
-    size_t (*Differ)(void* context, void const* cursor_a, void const* cursor_b);
-
-    void* (*Refer)(void* context, void const* cursor);
-
-    void (*StepL)(void* context, void* cursor);
-
-    void (*StepR)(void* context, void* cursor);
-
-    void (*AdvanceL)(void* context, void* cursor, size_t step);
-
-    void (*AdvanceR)(void* context, void* cursor, size_t step);
-};
+ZETA_ExternC_End;

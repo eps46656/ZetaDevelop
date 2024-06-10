@@ -807,6 +807,71 @@ def AddDeps(builder, ZetaBuildDir, ZetaExeBuildDir, verbose, mode):
     )
 
     builder.Add(
+        f"{ZetaExeDir}/test_stagevec.cpp",
+        {
+            f"{File}",
+            f"{ZetaDir}/DebugDeque.h",
+            f"{ZetaDir}/CircularVector.h",
+            f"{ZetaDir}/SegVector.h",
+            f"{ZetaDir}/StageVector.h",
+            f"{ZetaExeDir}/MemAllocatorCheck.h",
+            f"{ZetaExeDir}/StdAllocator.h",
+        },
+        None
+    )
+
+    builder.Add(
+        f"{ZetaExeBuildDir}/test_stagevec.ll",
+        {
+            f"{File}",
+            f"{ZetaExeDir}/test_stagevec.cpp",
+        },
+        lambda : cpp_to_ll_func(
+            f"{ZetaExeBuildDir}/test_stagevec.ll",
+            f"{ZetaExeDir}/test_stagevec.cpp",
+        )
+    )
+
+    builder.Add(
+        f"{ZetaExeBuildDir}/test_stagevec.exe",
+        {
+            f"{File}",
+
+            f"{ZetaBuildDir}/BinTree.ll",
+            f"{ZetaBuildDir}/CircularVector.ll",
+            f"{ZetaBuildDir}/DebugDeque.ll",
+            f"{ZetaBuildDir}/DebugHashMap.ll",
+            f"{ZetaBuildDir}/DebugPipe.ll",
+            f"{ZetaBuildDir}/RBTree.ll",
+            f"{ZetaBuildDir}/OrdCnt3RBTreeNode.ll",
+            f"{ZetaBuildDir}/OrdCntRBTreeNode.ll",
+            f"{ZetaBuildDir}/SegVector.ll",
+            f"{ZetaBuildDir}/StageVector.ll",
+            f"{ZetaBuildDir}/utils.ll",
+
+            f"{ZetaExeBuildDir}/test_stagevec.ll",
+        },
+        lambda : lls_to_exe_func(
+            f"{ZetaExeBuildDir}/test_stagevec.exe",
+            [
+                f"{ZetaBuildDir}/BinTree.ll",
+                f"{ZetaBuildDir}/CircularVector.ll",
+                f"{ZetaBuildDir}/DebugDeque.ll",
+                f"{ZetaBuildDir}/DebugHashMap.ll",
+                f"{ZetaBuildDir}/DebugPipe.ll",
+                f"{ZetaBuildDir}/RBTree.ll",
+                f"{ZetaBuildDir}/OrdCnt3RBTreeNode.ll",
+                f"{ZetaBuildDir}/OrdCntRBTreeNode.ll",
+                f"{ZetaBuildDir}/SegVector.ll",
+                f"{ZetaBuildDir}/StageVector.ll",
+                f"{ZetaBuildDir}/utils.ll",
+
+                f"{ZetaExeBuildDir}/test_stagevec.ll",
+            ]
+        )
+    )
+
+    builder.Add(
         f"{ZetaExeDir}/test_stdio.c",
         {
             f"{File}",

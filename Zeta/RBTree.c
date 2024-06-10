@@ -104,7 +104,7 @@
                                                                                \
         if (GetY(context, np) == n) {                                          \
             RotateX(btn_opr, np);                                              \
-            ZETA_Swap(void*, n, np);                                           \
+            ZETA_Swap(n, np);                                                  \
         }                                                                      \
                                                                                \
         SetColor(context, ng, Red);                                            \
@@ -256,11 +256,10 @@ void* Zeta_RBTree_Extract(Zeta_BinTreeNodeOperator const* btn_opr, void* pos) {
     void* nr = GetR(context, n);
 
     if (nl != NULL && nr != NULL) {
-        int ran =
-            Zeta_SimpleHash(ZETA_GetAddrFromPtr(nl) + ZETA_GetAddrFromPtr(nr)) %
-            2;
+        size_t rand_seed = ZETA_GetAddrFromPtr(nl) + ZETA_GetAddrFromPtr(nr);
 
-        void* m = ran ? Zeta_GetMostLink(context, GetL, nr)
+        void* m = Zeta_SimpleRandomRotate(&rand_seed) % 2 == 0
+                      ? Zeta_GetMostLink(context, GetL, nr)
                       : Zeta_GetMostLink(context, GetR, nl);
 
         Zeta_BinTree_Swap(btn_opr, n, m);

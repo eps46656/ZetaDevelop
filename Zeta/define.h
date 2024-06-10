@@ -13,6 +13,12 @@
 #include <iostream>
 #endif
 
+#if defined(DEBUG)
+#define ZETA_IsDebug TRUE
+#else
+#define ZETA_IsDebug FALSE
+#endif
+
 #if defined(__cplusplus)
 #define bool_t bool
 #else
@@ -23,14 +29,6 @@
 #define FALSE (0 != 0)
 
 #define ZETA_StaticAssert(cond) _Static_assert(cond, "")
-
-#if defined(DEBUG)
-#define ZETA_IsDebug TRUE
-#define ZETA_DebugAssert(cond) ZETA_Assert(cond)
-#else
-#define ZETA_IsDebug FALSE
-#define ZETA_DebugAssert(cond)
-#endif
 
 typedef unsigned char byte_t;
 
@@ -57,6 +55,8 @@ typedef s32_t unichar_t;
 
 #define ZETA_Concat_(x, y) x##y
 #define ZETA_Concat(x, y) ZETA_Concat_(x, y)
+
+#define ZETA_UniqueName(prefix) ZETA_Concat(prefix, __COUNTER__)
 
 #define ZETA_DeclareStruct(struct_name)     \
     typedef struct struct_name struct_name; \
@@ -148,6 +148,14 @@ typedef s32_t unichar_t;
         exit(0);              \
     }                         \
     ZETA_StaticAssert(TRUE)
+
+#if ZETA_IsDebug
+#define ZETA_DebugAssert(cond) ZETA_Assert(cond)
+#else
+#define ZETA_DebugAssert(cond)
+#endif
+
+#define ZETA_CheckAssert(cond) ZETA_DebugAssert(cond)
 
 #if defined(__cplusplus)
 #define ZETA_ExternC_Beg \
@@ -253,13 +261,35 @@ typedef s32_t unichar_t;
     ((struct_type*)((unsigned char*)(member_ptr) -                     \
                     offsetof(struct_type, member_name)))
 
-#define ZETA_Swap(type, x, y) \
+#define ZETA_GetMinOf_(x, y, x_tmp, y_tmp) \
+    ({                                     \
+        typeof(x) x_tmp = (x);             \
+        typeof(x) y_tmp = (y);             \
+        x_tmp < y_tmp ? x_tmp : y_tmp;     \
+    })
+
+#define ZETA_GetMinOf(x, y) \
+    ZETA_GetMinOf_(x, y, ZETA_UniqueName(ZETA_tmp_), ZETA_UniqueName(ZETA_tmp_))
+
+#define ZETA_GetMaxOf_(x, y, x_tmp, y_tmp) \
+    ({                                     \
+        typeof(x) x_tmp = (x);             \
+        typeof(x) y_tmp = (y);             \
+        x_tmp < y_tmp ? y_tmp : x_tmp;     \
+    })
+
+#define ZETA_GetMaxOf(x, y) \
+    ZETA_GetMaxOf_(x, y, ZETA_UniqueName(ZETA_tmp_), ZETA_UniqueName(ZETA_tmp_))
+
+#define ZETA_Swap_(x, y, tmp) \
     {                         \
-        type tmp = (x);       \
+        typeof(x) tmp = (x);  \
         (x) = (y);            \
         (y) = tmp;            \
     }                         \
     ZETA_StaticAssert(TRUE)
+
+#define ZETA_Swap(x, y) ZETA_Swap_(x, y, ZETA_UniqueName(ZETA_tmp_))
 
 #define ZETA_GetMaxMod(type) (ZETA_GetRangeMax(type) / 2 + 1)
 

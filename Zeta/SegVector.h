@@ -17,12 +17,13 @@ ZETA_DeclareStruct(Zeta_SegVector_Node);
 // -----------------------------------------------------------------------------
 
 struct Zeta_SegVector {
-    /** The width(bytes) of element occupying. */
+    /** The number of bytes an element occupying. */
     size_t width;
 
+    /** The number of bytes between the begins of two adjacent elements. */
     size_t stride;
 
-    /** The max number of elements in one seg. */
+    /** The maximum number of elements in a segment. */
     size_t seg_capacity;
 
     Zeta_OrdCntRBTreeNode* lb;
