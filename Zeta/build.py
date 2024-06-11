@@ -1289,6 +1289,7 @@ def AddDeps(builder, ZetaBuildDir, verbose, mode):
             f"{File}",
             f"{ZetaDir}/Allocator.h",
             f"{ZetaDir}/Cursor.h",
+            f"{ZetaDir}/DebugHashMap.h",
             f"{ZetaDir}/OrdCnt3RBTreeNode.h",
             f"{ZetaDir}/SeqContainer.h",
         },

@@ -69,6 +69,7 @@ typedef s32_t unichar_t;
 
 #define ZETA_PrintPos \
     ZETA_PrintPos_;   \
+    printf("\n");     \
     fflush(stdout);   \
     ZETA_StaticAssert(TRUE)
 
@@ -120,17 +121,21 @@ typedef s32_t unichar_t;
 
 #endif
 
-#define ZETA_Pause            \
-    {                         \
-        ZETA_PrintPos_;       \
-                              \
-        printf("\tpause..."); \
-                              \
-        fflush(stdout);       \
-                              \
-        char tmp;             \
-        scanf("%c", &tmp);    \
-    }                         \
+#define ZETA_Pause               \
+    {                            \
+        ZETA_PrintPos_;          \
+                                 \
+        printf("\tpause...");    \
+                                 \
+        if (FALSE) {             \
+            fflush(stdout);      \
+            char tmp;            \
+            scanf_s("%c", &tmp); \
+        } else {                 \
+            printf("\n");        \
+            fflush(stdout);      \
+        }                        \
+    }                            \
     ZETA_StaticAssert(TRUE)
 
 #define ZETA_Unused(x)          \

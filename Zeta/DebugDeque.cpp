@@ -11,6 +11,7 @@ void Zeta_DebugDeque_Init(void* dd_) {
     dd->deque = new std::deque<void*>;
 
     ZETA_DebugAssert(0 < dd->width);
+    ZETA_DebugAssert(dd->width <= dd->stride);
 }
 
 void Zeta_DebugDeque_Deinit(void* dd_) {
@@ -31,6 +32,13 @@ size_t Zeta_DebugDeque_GetWidth(void* dd_) {
     Zeta_DebugDeque_Check(dd);
 
     return dd->width;
+}
+
+size_t Zeta_DebugDeque_GetStride(void* dd_) {
+    Zeta_DebugDeque* dd = (Zeta_DebugDeque*)dd_;
+    Zeta_DebugDeque_Check(dd);
+
+    return dd->stride;
 }
 
 size_t Zeta_DebugDeque_GetSize(void* dd_) {
@@ -155,7 +163,7 @@ void Zeta_DebugDeque_Read(void* dd_, void* pos_cursor_, size_t cnt, void* dst_,
 
     for (size_t idx = beg; idx < end; ++idx) {
         Zeta_MemCopy(dst, (*deque)[idx], dd->width);
-        dst += dd->width;
+        dst += dd->stride;
     }
 }
 
@@ -178,7 +186,7 @@ void Zeta_DebugDeque_Write(void* dd_, void* pos_cursor_, size_t cnt,
 
     if (dst_cursor != NULL) { *dst_cursor = end; }
 
-    for (size_t idx = beg; idx < end; ++idx, src += dd->width) {
+    for (size_t idx = beg; idx < end; ++idx, src += dd->stride) {
         Zeta_MemCopy((*deque)[idx], src, dd->width);
     }
 }
@@ -421,6 +429,8 @@ void Zeta_DebugDeque_DeploySeqContainer(void* dd_,
     seq_cntr->cursor_width = sizeof(size_t*);
 
     seq_cntr->GetWidth = Zeta_DebugDeque_GetWidth;
+
+    seq_cntr->GetStride = Zeta_DebugDeque_GetStride;
 
     seq_cntr->GetSize = Zeta_DebugDeque_GetSize;
 

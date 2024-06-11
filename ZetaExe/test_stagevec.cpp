@@ -83,6 +83,8 @@ void InitDD(Zeta_SeqContainer* seq_cntr) {
         std::malloc(sizeof(Zeta_DebugDeque))) };
 
     dd->width = sizeof(Val);
+    dd->stride = sizeof(Val);
+
     Zeta_DebugDeque_Init(dd);
     Zeta_DebugDeque_DeploySeqContainer(dd, seq_cntr);
 }
@@ -166,6 +168,50 @@ void SV_Check(Zeta_SeqContainer* seq_cntr);
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
+
+struct StageVectorPack {
+    StdAllocator node_allocator_;
+    Zeta_Allocator node_allocator;
+
+    StdAllocator seg_allocator_;
+    Zeta_Allocator seg_allocator;
+
+    Zeta_StageVector stage_vec;
+};
+
+void InitStageVec(Zeta_SeqContainer* seq_cntr,
+                  Zeta_SeqContainer* origin_seq_cntr) {
+    StageVectorPack* stage_vec_pack{ static_cast<StageVectorPack*>(
+        std::malloc(sizeof(StageVectorPack))) };
+
+    new (&stage_vec_pack->node_allocator_) StdAllocator{};
+    new (&stage_vec_pack->seg_allocator_) StdAllocator{};
+
+    StdAllocator_DeployAllocator(&stage_vec_pack->node_allocator_,
+                                 &stage_vec_pack->node_allocator);
+    StdAllocator_DeployAllocator(&stage_vec_pack->seg_allocator_,
+                                 &stage_vec_pack->seg_allocator);
+
+    stage_vec_pack->stage_vec.origin = origin_seq_cntr;
+    stage_vec_pack->stage_vec.seg_capacity = 6;
+    stage_vec_pack->stage_vec.node_allocator = &stage_vec_pack->node_allocator;
+    stage_vec_pack->stage_vec.seg_allocator = &stage_vec_pack->seg_allocator;
+
+    Zeta_StageVector_Init(&stage_vec_pack->stage_vec);
+    Zeta_StageVector_DeploySeqContainer(&stage_vec_pack->stage_vec, seq_cntr);
+}
+
+Zeta_SeqContainer* CreateStageVec(Zeta_SeqContainer* origin_seq_cntr) {
+    Zeta_SeqContainer* seq_cntr{ new Zeta_SeqContainer{} };
+    InitStageVec(seq_cntr, origin_seq_cntr);
+    return seq_cntr;
+}
+
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+
+void SC_Check(Zeta_SeqContainer* seq_cntr);
 
 size_t SC_GetSize(Zeta_SeqContainer* seq_cntr) {
     return seq_cntr->GetSize(seq_cntr->context);
@@ -251,35 +297,65 @@ void SC_Insert(Zeta_SeqContainer* seq_cntr, size_t idx, size_t cnt,
 
     seq_cntr->Access(seq_cntr->context, &pos_cursor, NULL, idx);
 
+    ZETA_Pause;
+
     ZETA_DebugAssert(seq_cntr->Cursor_GetIdx(seq_cntr->context, &pos_cursor) ==
                      idx);
+
+    ZETA_Pause;
 
     seq_cntr->Insert(seq_cntr->context, &pos_cursor, cnt);
 
-    SV_Check(seq_cntr);
+    ZETA_Pause;
+
+    SC_Check(seq_cntr);
+
+    ZETA_Pause;
 
     ZETA_DebugAssert(seq_cntr->Cursor_GetIdx(seq_cntr->context, &pos_cursor) ==
                      idx);
 
+    ZETA_Pause;
+
     seq_cntr->Write(seq_cntr->context, &pos_cursor, cnt, src, &pos_cursor);
 
-    SV_Check(seq_cntr);
+    ZETA_Pause;
+
+    SC_Check(seq_cntr);
+
+    ZETA_Pause;
 
     ZETA_DebugAssert(seq_cntr->Cursor_GetIdx(seq_cntr->context, &pos_cursor) ==
                      idx + cnt);
+
+    ZETA_Pause;
 }
 
 void SC_Erase(Zeta_SeqContainer* seq_cntr, size_t idx, size_t cnt) {
     Zeta_Cursor pos_cursor;
 
+    ZETA_Pause;
+
     seq_cntr->Access(seq_cntr->context, &pos_cursor, NULL, idx);
+
+    ZETA_Pause;
+
+    SC_Check(seq_cntr);
+
+    ZETA_Pause;
 
     ZETA_DebugAssert(seq_cntr->Cursor_GetIdx(seq_cntr->context, &pos_cursor) ==
                      idx);
 
+    ZETA_Pause;
+
     seq_cntr->Erase(seq_cntr->context, &pos_cursor, cnt);
 
-    SV_Check(seq_cntr);
+    ZETA_Pause;
+
+    SC_Check(seq_cntr);
+
+    ZETA_Pause;
 
     ZETA_DebugAssert(seq_cntr->Cursor_GetIdx(seq_cntr->context, &pos_cursor) ==
                      idx);
@@ -403,16 +479,6 @@ void SC_CheckIterator(Zeta_SeqContainer* seq_cntr, size_t idx_a, size_t idx_b) {
 void SV_Check(Zeta_SeqContainer* seq_cntr) {
     if (seq_cntr->GetSize != Zeta_SegVector_GetSize) { return; }
 
-    struct SegVectorPack {
-        StdAllocator node_allocator_;
-        Zeta_Allocator node_allocator;
-
-        StdAllocator seg_allocator_;
-        Zeta_Allocator seg_allocator;
-
-        Zeta_SegVector sv;
-    };
-
     SegVectorPack* pack{ ZETA_GetStructFromMember(SegVectorPack, sv,
                                                   seq_cntr->context) };
 
@@ -429,6 +495,39 @@ void SV_Check(Zeta_SeqContainer* seq_cntr) {
     CheckRecords(pack->node_allocator_.records, *(record_t*)node_hm.hash_map);
 
     CheckRecords(pack->seg_allocator_.records, *(record_t*)seg_hm.hash_map);
+}
+
+void StageVec_Check(Zeta_SeqContainer* seq_cntr) {
+    if (seq_cntr->GetSize != Zeta_StageVector_GetSize) { return; }
+
+    StageVectorPack* pack{ ZETA_GetStructFromMember(StageVectorPack, stage_vec,
+                                                    seq_cntr->context) };
+
+    Zeta_DebugHashMap node_hm;
+    Zeta_DebugHashMap seg_hm;
+
+    Zeta_DebugHashMap_Create(&node_hm);
+    Zeta_DebugHashMap_Create(&seg_hm);
+
+    Zeta_StageVector_Check(&pack->stage_vec, &node_hm, &seg_hm);
+
+    using record_t = std::unordered_map<unsigned long long, unsigned long long>;
+
+    CheckRecords(pack->node_allocator_.records, *(record_t*)node_hm.hash_map);
+
+    CheckRecords(pack->seg_allocator_.records, *(record_t*)seg_hm.hash_map);
+}
+
+void SC_Check(Zeta_SeqContainer* seq_cntr) {
+    if (seq_cntr->GetSize == Zeta_SegVector_GetSize) {
+        SV_Check(seq_cntr);
+        return;
+    }
+
+    if (seq_cntr->GetSize == Zeta_StageVector_GetSize) {
+        StageVec_Check(seq_cntr);
+        return;
+    }
 }
 
 // -----------------------------------------------------------------------------
@@ -461,10 +560,13 @@ std::pair<size_t, size_t> GetRandomInsertIdxCnt(size_t size_) {
     double avg{ cnt_avg_a * (size - size_b) / (size_a - size_b) +
                 cnt_avg_b * (size - size_a) / (size_b - size_a) };
 
-    long long lb{ std::max(min_cnt,
-                           static_cast<long long>(std::floor(avg - range))) };
-    long long rb{ std::min(max_cnt,
-                           static_cast<long long>(std::ceil(avg + range))) };
+    long long lb{ static_cast<long long>(std::floor(avg - range)) };
+    lb = std::max(min_cnt, lb);
+    lb = std::min(max_cnt, lb);
+
+    long long rb{ static_cast<long long>(std::ceil(avg + range)) };
+    rb = std::max(min_cnt, rb);
+    rb = std::min(max_cnt, rb);
 
     /*
     (cnt_avg_b - cnt_avg_a) / (size_b - size_a) * (size - size_a) + cnt_avg_a
@@ -609,6 +711,7 @@ void CheckCursor(Zeta_SeqContainer* seq_cntr) {
     for (size_t test_i{ 0 }; test_i < test_num; ++test_i) {
         size_t idx_a = GetRandomIdx(size);
         size_t idx_b = GetRandomIdx(size);
+
         CheckCursor(seq_cntr, idx_a, idx_b);
     }
 
@@ -630,14 +733,22 @@ void SyncInsert(Zeta_SeqContainer* seq_cntr_a, Zeta_SeqContainer* seq_cntr_b) {
 
     ZETA_DebugAssert(size_a == size_b);
 
+    ZETA_Pause;
+
     std::pair<size_t, size_t> idx_cnt{ GetRandomInsertIdxCnt(size_a) };
     size_t idx{ idx_cnt.first };
     size_t cnt{ idx_cnt.second };
 
+    ZETA_Pause;
+
     vals_a.resize(cnt);
     GetRandomVal(vals_a);
 
+    ZETA_Pause;
+
     SC_Insert(seq_cntr_a, idx, vals_a.size(), vals_a.data());
+
+    ZETA_Pause;
 
     SC_Insert(seq_cntr_b, idx, vals_a.size(), vals_a.data());
 }
@@ -652,9 +763,15 @@ void SyncErase(Zeta_SeqContainer* seq_cntr_a, Zeta_SeqContainer* seq_cntr_b) {
     size_t idx{ idx_cnt.first };
     size_t cnt{ idx_cnt.second };
 
+    ZETA_Pause;
+
     SC_Erase(seq_cntr_a, idx, cnt);
 
+    ZETA_Pause;
+
     SC_Erase(seq_cntr_b, idx, cnt);
+
+    ZETA_Pause;
 }
 
 void SyncCompare(Zeta_SeqContainer* seq_cntr_a, Zeta_SeqContainer* seq_cntr_b) {
@@ -718,37 +835,61 @@ void PrintSeqContainer(Zeta_SeqContainer* seq_cntr) {
 
 void main2() {
     unsigned int seed = time(NULL);
-    // unsigned int seed = 1717313193;
+    // unsigned int seed = 1718077943;
 
     ZETA_PrintVar(seed);
 
     en.seed(seed);
 
-    Zeta_SeqContainer seq_cntr_a;
-    InitDD(&seq_cntr_a);
+    Zeta_SeqContainer* seq_cntr_a{ CreateDD() };
+    Zeta_SeqContainer* seq_cntr_a_copy{ CreateDD() };
 
-    Zeta_SeqContainer seq_cntr_b;
-    InitSV(&seq_cntr_b);
+    vals_a.resize(4096);
+    GetRandomVal(vals_a);
+    SC_Insert(seq_cntr_a, 0, vals_a.size(), vals_a.data());
+
+    SC_Assign(seq_cntr_a, seq_cntr_a_copy);
+
+    Zeta_SeqContainer* seq_cntr_b{ CreateStageVec(seq_cntr_a_copy) };
 
     for (size_t test_i = 0; test_i < 10000; ++test_i) {
         ZETA_PrintVar(test_i);
 
-        SyncInsert(&seq_cntr_a, &seq_cntr_b);
+        ZETA_Pause;
 
-        Compare(&seq_cntr_a, &seq_cntr_b);
+        SyncInsert(seq_cntr_a, seq_cntr_b);
 
-        CheckCursor(&seq_cntr_a);
-        CheckCursor(&seq_cntr_b);
+        ZETA_Pause;
 
-        SyncErase(&seq_cntr_a, &seq_cntr_b);
+        Compare(seq_cntr_a, seq_cntr_b);
 
-        Compare(&seq_cntr_a, &seq_cntr_b);
-        CheckCursor(&seq_cntr_a);
-        CheckCursor(&seq_cntr_b);
+        ZETA_Pause;
 
-        for (size_t i{ 0 }; i < 5; ++i) {
-            SyncCompare(&seq_cntr_a, &seq_cntr_b);
-        }
+        CheckCursor(seq_cntr_a);
+
+        ZETA_Pause;
+
+        CheckCursor(seq_cntr_b);
+
+        ZETA_Pause;
+
+        SyncErase(seq_cntr_a, seq_cntr_b);
+
+        ZETA_Pause;
+
+        Compare(seq_cntr_a, seq_cntr_b);
+
+        ZETA_Pause;
+
+        CheckCursor(seq_cntr_a);
+
+        ZETA_Pause;
+
+        CheckCursor(seq_cntr_b);
+
+        ZETA_Pause;
+
+        for (size_t i{ 0 }; i < 5; ++i) { SyncCompare(seq_cntr_a, seq_cntr_b); }
     }
 }
 

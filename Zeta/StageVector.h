@@ -2,6 +2,7 @@
 
 #include "Allocator.h"
 #include "Cursor.h"
+#include "DebugHashMap.h"
 #include "OrdCnt3RBTreeNode.h"
 #include "SeqContainer.h"
 
@@ -107,7 +108,8 @@ void Zeta_StageVector_Erase(void* sv, void* pos_cursor, size_t cnt);
 void Zeta_StageVector_EraseAll(void* sv, void* context,
                                void (*Callback)(void* context, void* ele));
 
-void Zeta_StageVector_Check(void* sv);
+void Zeta_StageVector_Check(void* sv, Zeta_DebugHashMap* dst_node_hm,
+                            Zeta_DebugHashMap* dst_seg_hm);
 
 bool_t Zeta_StageVector_Cursor_IsEqual(void* sv, void const* cursor_a,
                                        void const* cursor_b);
