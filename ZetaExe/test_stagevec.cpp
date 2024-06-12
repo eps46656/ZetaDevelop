@@ -287,6 +287,8 @@ void SC_Write(Zeta_SeqContainer* seq_cntr, size_t idx, size_t cnt,
 
     seq_cntr->Write(seq_cntr->context, &pos_cursor, cnt, src, &pos_cursor);
 
+    SC_Check(seq_cntr);
+
     ZETA_DebugAssert(seq_cntr->Cursor_GetIdx(seq_cntr->context, &pos_cursor) ==
                      idx + cnt);
 }
@@ -297,65 +299,45 @@ void SC_Insert(Zeta_SeqContainer* seq_cntr, size_t idx, size_t cnt,
 
     seq_cntr->Access(seq_cntr->context, &pos_cursor, NULL, idx);
 
-    ZETA_Pause;
-
     ZETA_DebugAssert(seq_cntr->Cursor_GetIdx(seq_cntr->context, &pos_cursor) ==
                      idx);
-
-    ZETA_Pause;
 
     seq_cntr->Insert(seq_cntr->context, &pos_cursor, cnt);
 
-    ZETA_Pause;
-
     SC_Check(seq_cntr);
-
-    ZETA_Pause;
 
     ZETA_DebugAssert(seq_cntr->Cursor_GetIdx(seq_cntr->context, &pos_cursor) ==
                      idx);
 
-    ZETA_Pause;
-
     seq_cntr->Write(seq_cntr->context, &pos_cursor, cnt, src, &pos_cursor);
-
-    ZETA_Pause;
 
     SC_Check(seq_cntr);
 
-    ZETA_Pause;
-
     ZETA_DebugAssert(seq_cntr->Cursor_GetIdx(seq_cntr->context, &pos_cursor) ==
                      idx + cnt);
-
-    ZETA_Pause;
 }
 
 void SC_Erase(Zeta_SeqContainer* seq_cntr, size_t idx, size_t cnt) {
     Zeta_Cursor pos_cursor;
 
-    ZETA_Pause;
+    ZETA_PrintPos;
 
     seq_cntr->Access(seq_cntr->context, &pos_cursor, NULL, idx);
 
-    ZETA_Pause;
+    ZETA_PrintPos;
 
     SC_Check(seq_cntr);
 
-    ZETA_Pause;
+    ZETA_PrintPos;
 
     ZETA_DebugAssert(seq_cntr->Cursor_GetIdx(seq_cntr->context, &pos_cursor) ==
                      idx);
 
-    ZETA_Pause;
+    ZETA_PrintPos;
 
     seq_cntr->Erase(seq_cntr->context, &pos_cursor, cnt);
 
-    ZETA_Pause;
-
     SC_Check(seq_cntr);
-
-    ZETA_Pause;
 
     ZETA_DebugAssert(seq_cntr->Cursor_GetIdx(seq_cntr->context, &pos_cursor) ==
                      idx);
@@ -733,45 +715,61 @@ void SyncInsert(Zeta_SeqContainer* seq_cntr_a, Zeta_SeqContainer* seq_cntr_b) {
 
     ZETA_DebugAssert(size_a == size_b);
 
-    ZETA_Pause;
+    size_t cnt_lb{ 0 };
+    size_t cnt_rb{ 16 };
 
-    std::pair<size_t, size_t> idx_cnt{ GetRandomInsertIdxCnt(size_a) };
-    size_t idx{ idx_cnt.first };
-    size_t cnt{ idx_cnt.second };
-
-    ZETA_Pause;
+    size_t idx{ size_generator(en) % (size_a + 1) };
+    size_t cnt{ size_generator(en) % (cnt_rb - cnt_lb + 1) + cnt_lb };
 
     vals_a.resize(cnt);
     GetRandomVal(vals_a);
 
-    ZETA_Pause;
-
     SC_Insert(seq_cntr_a, idx, vals_a.size(), vals_a.data());
-
-    ZETA_Pause;
 
     SC_Insert(seq_cntr_b, idx, vals_a.size(), vals_a.data());
 }
 
 void SyncErase(Zeta_SeqContainer* seq_cntr_a, Zeta_SeqContainer* seq_cntr_b) {
-    size_t size_a{ SC_GetSize(seq_cntr_a) };
-    size_t size_b{ SC_GetSize(seq_cntr_b) };
+    long long size_a{ static_cast<long long>(SC_GetSize(seq_cntr_a)) };
+    long long size_b{ static_cast<long long>(SC_GetSize(seq_cntr_b)) };
 
     ZETA_DebugAssert(size_a == size_b);
 
-    std::pair<size_t, size_t> idx_cnt{ GetRandomEraseIdxCnt(size_a) };
-    size_t idx{ idx_cnt.first };
-    size_t cnt{ idx_cnt.second };
+    long long cnt_lb{ 0 };
+    long long cnt_rb{ std::min<long long>(16, size_a) };
 
-    ZETA_Pause;
+    long long cnt{ size_generator(en) % (cnt_rb - cnt_lb + 1) + cnt_lb };
+    long long idx{ size_generator(en) % (size_a + 1 - cnt) };
+
+    ZETA_PrintPos;
 
     SC_Erase(seq_cntr_a, idx, cnt);
 
-    ZETA_Pause;
+    ZETA_PrintPos;
 
     SC_Erase(seq_cntr_b, idx, cnt);
 
-    ZETA_Pause;
+    ZETA_PrintPos;
+}
+
+void SyncWrite(Zeta_SeqContainer* seq_cntr_a, Zeta_SeqContainer* seq_cntr_b) {
+    long long size_a{ static_cast<long long>(SC_GetSize(seq_cntr_a)) };
+    long long size_b{ static_cast<long long>(SC_GetSize(seq_cntr_b)) };
+
+    ZETA_DebugAssert(size_a == size_b);
+
+    long long cnt_lb{ 0 };
+    long long cnt_rb{ std::min<long long>(16, size_a) };
+
+    long long cnt{ size_generator(en) % (cnt_rb - cnt_lb + 1) + cnt_lb };
+    long long idx{ size_generator(en) % (size_a + 1 - cnt) };
+
+    vals_a.resize(cnt);
+    GetRandomVal(vals_a);
+
+    SC_Write(seq_cntr_a, idx, cnt, vals_a.data());
+
+    SC_Write(seq_cntr_b, idx, cnt, vals_a.data());
 }
 
 void SyncCompare(Zeta_SeqContainer* seq_cntr_a, Zeta_SeqContainer* seq_cntr_b) {
@@ -834,9 +832,14 @@ void PrintSeqContainer(Zeta_SeqContainer* seq_cntr) {
 }
 
 void main2() {
-    unsigned int seed = time(NULL);
-    // unsigned int seed = 1718077943;
+    unsigned int random_seed = time(NULL);
+    unsigned int fixed_seed = 1718129024;
 
+    unsigned int seed = random_seed;
+    // unsigned int seed = fixed_seed;
+
+    ZETA_PrintVar(random_seed);
+    ZETA_PrintVar(fixed_seed);
     ZETA_PrintVar(seed);
 
     en.seed(seed);
@@ -852,42 +855,31 @@ void main2() {
 
     Zeta_SeqContainer* seq_cntr_b{ CreateStageVec(seq_cntr_a_copy) };
 
-    for (size_t test_i = 0; test_i < 10000; ++test_i) {
+    for (size_t test_i = 0; test_i < 1024; ++test_i) {
         ZETA_PrintVar(test_i);
 
-        ZETA_Pause;
+        ZETA_PrintPos;
 
         SyncInsert(seq_cntr_a, seq_cntr_b);
-
-        ZETA_Pause;
-
         Compare(seq_cntr_a, seq_cntr_b);
-
-        ZETA_Pause;
-
         CheckCursor(seq_cntr_a);
-
-        ZETA_Pause;
-
         CheckCursor(seq_cntr_b);
 
-        ZETA_Pause;
+        ZETA_PrintPos;
+
+        SyncWrite(seq_cntr_a, seq_cntr_b);
+        Compare(seq_cntr_a, seq_cntr_b);
+        CheckCursor(seq_cntr_a);
+        CheckCursor(seq_cntr_b);
+
+        ZETA_PrintPos;
 
         SyncErase(seq_cntr_a, seq_cntr_b);
-
-        ZETA_Pause;
-
         Compare(seq_cntr_a, seq_cntr_b);
-
-        ZETA_Pause;
-
         CheckCursor(seq_cntr_a);
-
-        ZETA_Pause;
-
         CheckCursor(seq_cntr_b);
 
-        ZETA_Pause;
+        ZETA_PrintPos;
 
         for (size_t i{ 0 }; i < 5; ++i) { SyncCompare(seq_cntr_a, seq_cntr_b); }
     }

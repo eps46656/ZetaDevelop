@@ -137,6 +137,8 @@ def AddDeps(builder, ZetaBuildDir, ZetaExeBuildDir, verbose, mode):
             "--verbose" if verbose else "",
             "-m64",
             "-O3",
+            "-g",
+            "-Wl,/FIXED",
             *[ToPath(lib) for lib in runtime_libs],
             "-lstdc++",
             ToPath(opted_tmp_file),
