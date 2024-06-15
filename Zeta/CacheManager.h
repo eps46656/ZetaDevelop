@@ -13,7 +13,11 @@ struct Zeta_CacheManager {
 
     void (*Close)(void* context, void* sd);
 
-    void (*SetMaxCachesNum)(void* context, void* sd, size_t max_caches_num);
+    size_t (*GetBlockSize)(void* context);
+
+    size_t (*GetBlockCnt)(void* context);
+
+    void (*SetMaxCacheCnt)(void* context, void* sd, size_t max_cache_num);
 
     void const* (*ReadBlock)(void* context, void* sd, size_t blk_idx);
 

@@ -347,6 +347,36 @@ def AddDeps(builder, ZetaBuildDir, verbose, mode):
     )
 
     builder.Add(
+        f"{ZetaDir}/DateTime.h",
+        {
+            f"{File}",
+            f"{ZetaDir}/define.h",
+        },
+        None
+    )
+
+    builder.Add(
+        f"{ZetaDir}/DateTime.c",
+        {
+            f"{File}",
+            f"{ZetaDir}/DateTime.h",
+        },
+        None
+    )
+
+    builder.Add(
+        f"{ZetaBuildDir}/DateTime.ll",
+        {
+            f"{File}",
+            f"{ZetaDir}/DateTime.c",
+        },
+        lambda : c_to_ll_func(
+            f"{ZetaBuildDir}/DateTime.ll",
+            f"{ZetaDir}/DateTime.c",
+        )
+    )
+
+    builder.Add(
         f"{ZetaDir}/DebugDeque.h",
         {
             f"{File}",

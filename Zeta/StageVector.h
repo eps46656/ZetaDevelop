@@ -28,7 +28,7 @@ struct Zeta_StageVector {
     Zeta_OrdCnt3RBTreeNode* rb;
 
     Zeta_Allocator* node_allocator;
-    Zeta_Allocator* seg_allocator;
+    Zeta_Allocator* data_allocator;
 };
 
 struct Zeta_StageVector_Node {
@@ -40,7 +40,7 @@ struct Zeta_StageVector_Node {
         };
 
         struct {
-            void* seg;
+            void* data;
             unsigned short offset;
         };
     };
@@ -111,6 +111,8 @@ void Zeta_StageVector_EraseAll(void* sv, void* context,
 void Zeta_StageVector_Check(void* sv, Zeta_DebugHashMap* dst_node_hm,
                             Zeta_DebugHashMap* dst_seg_hm);
 
+void Zeta_StageVector_PrintState(void* sv);
+
 bool_t Zeta_StageVector_Cursor_IsEqual(void* sv, void const* cursor_a,
                                        void const* cursor_b);
 
@@ -131,8 +133,6 @@ void Zeta_StageVector_Cursor_AdvanceL(void* sv, void* cursor, size_t step);
 void Zeta_StageVector_Cursor_AdvanceR(void* sv, void* cursor, size_t step);
 
 void Zeta_StageVector_Cursor_Check(void* sv, void const* cursor);
-
-void Zeta_StageVector_DeploySeqContainer(void* sv, Zeta_SeqContainer* seq_cntr);
 
 void Zeta_StageVector_DeploySeqContainer(void* sv, Zeta_SeqContainer* seq_cntr);
 

@@ -63,6 +63,8 @@ typedef s32_t unichar_t;
     struct struct_name;                     \
     ZETA_StaticAssert(TRUE)
 
+#define ZETA_AutoVar(var, expression) typeof((expression)) var = (expression);
+
 #define ZETA_PrintPos_                                         \
     printf("%-24s:%-4d\t%-24s", __FILE__, __LINE__, __func__); \
     ZETA_StaticAssert(TRUE)
@@ -278,8 +280,8 @@ typedef s32_t unichar_t;
 
 #define ZETA_GetMaxOf_(x, y, x_tmp, y_tmp) \
     ({                                     \
-        typeof(x) x_tmp = (x);             \
-        typeof(x) y_tmp = (y);             \
+        ZETA_AutoVar(x_tmp, x);            \
+        ZETA_AutoVar(y_tmp, y);            \
         x_tmp < y_tmp ? y_tmp : x_tmp;     \
     })
 
@@ -288,7 +290,7 @@ typedef s32_t unichar_t;
 
 #define ZETA_Swap_(x, y, tmp) \
     {                         \
-        typeof(x) tmp = (x);  \
+        ZETA_AutoVar(tmp, x); \
         (x) = (y);            \
         (y) = tmp;            \
     }                         \

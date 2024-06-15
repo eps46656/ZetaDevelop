@@ -2,7 +2,7 @@
 
 #include "Allocator.h"
 #include "CircularVector.h"
-#include "MultiLevelVector.h"
+#include "MultiLevelTable.h"
 #include "SeqContainer.h"
 
 ZETA_ExternC_Beg;
@@ -24,6 +24,8 @@ struct Zeta_MultiLevelSegVector {
     /** The width(byte) of an element occupying. */
     size_t width;
 
+    size_t stride;
+
     /** The number of elements in a cluster. */
     size_t seg_capacity;
 
@@ -33,8 +35,8 @@ struct Zeta_MultiLevelSegVector {
     /** The number of elements in vector. */
     size_t size;
 
-    /** The multi level entry table to provide large entry space. */
-    Zeta_MultiLevelVector mlv;
+    /** The multi level table to provide large entry space. */
+    Zeta_MultiLevelTable mlt;
 
     /** The allocator to allocate node. */
     Zeta_Allocator* node_allocator;
@@ -44,8 +46,8 @@ struct Zeta_MultiLevelSegVector {
 };
 
 struct Zeta_MultiLevelSegVector_Node {
-    unsigned short offset;
     void* data;
+    unsigned short offset;
 };
 
 // -----------------------------------------------------------------------------
@@ -63,6 +65,11 @@ void Zeta_MultiLevelSegVector_Init(void* dv);
  * @brief Get the width(byte) of an element occupying.
  */
 size_t Zeta_MultiLevelSegVector_GetWidth(void* dv);
+
+/**
+ * @brief Get the width(byte) of an element occupying.
+ */
+size_t Zeta_MultiLevelSegVector_GetStride(void* dv);
 
 /**
  * @brief Get the number of elements.

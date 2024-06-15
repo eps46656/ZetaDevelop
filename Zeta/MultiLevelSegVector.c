@@ -2,6 +2,27 @@
 
 #include "utils.h"
 
+static void CheckMLSV_(void* mlsv_) {
+    Zeta_MultiLevelSegVector* mlsv = mlsv_;
+    ZETA_DebugAssert(mlsv != NULL);
+
+    size_t width = mlsv->width;
+    size_t stride = mlsv->stride;
+    size_t seg_capacity = mlsv->seg_capacity;
+
+    ZETA_DebugAssert(0 < width);
+    ZETA_DebugAssert(width <= stride);
+    ZETA_DebugAssert(seg_capacity <= Zeta_MultiLevelSegVector_max_seg_capacity);
+
+    ZETA_DebugAssert(mlsv->node_allocator != NULL);
+    ZETA_DebugAssert(mlsv->node_allocator->Allocate != NULL);
+    ZETA_DebugAssert(mlsv->node_allocator->Deallocate != NULL);
+
+    ZETA_DebugAssert(mlsv->data_allocator != NULL);
+    ZETA_DebugAssert(mlsv->data_allocator->Allocate != NULL);
+    ZETA_DebugAssert(mlsv->data_allocator->Deallocate != NULL);
+}
+
 void Zeta_MultiLevelSegVector_Init(void* mlsv_) {
     Zeta_MultiLevelSegVector* mlsv = mlsv_;
     ZETA_DebugAssert(mlsv != NULL);
@@ -15,18 +36,7 @@ void Zeta_MultiLevelSegVector_Init(void* mlsv_) {
     mlsv->offset = 0;
     mlsv->size = 0;
 
-    Zeta_MultiLevelVector_Init(&mlsv->mlv);
-
-    ZETA_DebugAssert(mlsv->node_allocator != NULL);
-    ZETA_DebugAssert(mlsv->node_allocator->GetAlign != NULL);
-
-    ZETA_DebugAssert(
-        mlsv->node_allocator->GetAlign(mlsv->node_allocator->context) %
-            alignof(Zeta_MultiLevelSegVector_Node) ==
-        0);
-
-    ZETA_DebugAssert(mlsv->node_allocator->Allocate != NULL);
-    ZETA_DebugAssert(mlsv->node_allocator->Deallocate != NULL);
+    Zeta_MultiLevelTable_Init(&mlsv->mlt);
 }
 
 size_t Zeta_MultiLevelSegVector_GetWidth(void* mlsv_) {
@@ -43,10 +53,10 @@ size_t Zeta_MultiLevelSegVector_GetSize(void* mlsv_) {
 
 static void GetIdxes_(Zeta_MultiLevelSegVector* mlsv, size_t* idxes,
                       size_t idx) {
-    int level = mlsv->mlv.level;
+    int level = mlsv->mlt.level;
 
     for (int level_i = level - 1; 0 <= level_i; --level_i) {
-        size_t branch_num = mlsv->mlv.branch_nums[level_i];
+        size_t branch_num = mlsv->mlt.branch_nums[level_i];
         idxes[level_i] = idx % branch_num;
         idx /= branch_num;
     }
@@ -61,7 +71,7 @@ void* Access_(Zeta_MultiLevelSegVector* mlsv_, size_t idx) {
 
     ZETA_DebugAssert(idx < mlsv->size);
 
-    size_t mlv_capacity = Zeta_MultiLevelVector_GetCapacity(&mlsv->mlv);
+    size_t mlv_capacity = Zeta_MultiLevelTable_GetCapacity(&mlsv->mlt);
     ZETA_DebugAssert(mlsv->seg_capacity <=
                      ZETA_GetRangeMax(size_t) / mlv_capacity);
 
@@ -72,10 +82,10 @@ void* Access_(Zeta_MultiLevelSegVector* mlsv_, size_t idx) {
     size_t seg_i = real_idx / mlsv->seg_capacity;
     size_t seg_j = real_idx % mlsv->seg_capacity;
 
-    size_t idxes[ZETA_MultiLevelVector_max_level];
+    size_t idxes[ZETA_MultiLevelTable_max_level];
     GetIdxes_(mlsv, idxes, seg_i);
 
-    void** seg = Zeta_MultiLevelVector_Access(&mlsv->mlv, idxes);
+    void** seg = Zeta_MultiLevelTable_Access(&mlsv->mlt, idxes);
 
     return ZETA_UINT_TO_Ptr(ZETA_GetAddrFromPtr(*seg) + mlsv->width * seg_j);
 }
@@ -99,7 +109,7 @@ void* Zeta_MultiLevelSegVector_Insert(void* mlsv_, size_t idx) {
     void* (*Allocate)(void* context, size_t size) = allocator->Allocate;
     ZETA_DebugAssert(Allocate != NULL);
 
-    size_t mlv_capacity = Zeta_MultiLevelVector_GetCapacity(&mlsv->mlv);
+    size_t mlv_capacity = Zeta_MultiLevelTable_GetCapacity(&mlsv->mlt);
     ZETA_DebugAssert(mlsv->seg_capacity <=
                      ZETA_GetRangeMax(size_t) / mlv_capacity);
 
@@ -125,10 +135,10 @@ void* Zeta_MultiLevelSegVector_Insert(void* mlsv_, size_t idx) {
     size_t real_idx = (mlsv->offset + hole_idx) % capacity;
     size_t seg_i = real_idx / mlsv->seg_capacity;
 
-    size_t idxes[ZETA_MultiLevelVector_max_level];
+    size_t idxes[ZETA_MultiLevelTable_max_level];
     GetIdxes_(mlsv, idxes, seg_i);
 
-    void** seg = Zeta_MultiLevelVector_Insert(&mlsv->mlv, idxes);
+    void** seg = Zeta_MultiLevelTable_Insert(&mlsv->mlt, idxes);
 
     if (*seg == NULL) {
         *seg = Allocate(allocator_context, mlsv->width * mlsv->seg_capacity);
@@ -162,7 +172,7 @@ void Zeta_MultiLevelSegVector_Erase(void* mlsv_, size_t idx) {
     void (*Deallocate)(void* context, void* ptr) = allocator->Deallocate;
     ZETA_DebugAssert(Deallocate != NULL);
 
-    size_t mlv_capacity = Zeta_MultiLevelVector_GetCapacity(&mlsv->mlv);
+    size_t mlv_capacity = Zeta_MultiLevelTable_GetCapacity(&mlsv->mlt);
     ZETA_DebugAssert(mlsv->seg_capacity <=
                      ZETA_GetRangeMax(size_t) / mlv_capacity);
 
@@ -185,13 +195,13 @@ void Zeta_MultiLevelSegVector_Erase(void* mlsv_, size_t idx) {
         size_t seg_j = real_idx % mlsv->seg_capacity;
 
         if (seg_j == mlsv->seg_capacity - 1 || mlsv->size == 1) {
-            size_t idxes[ZETA_MultiLevelVector_max_level];
+            size_t idxes[ZETA_MultiLevelTable_max_level];
             GetIdxes_(mlsv, idxes, seg_i);
 
             Deallocate(allocator_context,
-                       *Zeta_MultiLevelVector_Access(&mlsv->mlv, idxes));
+                       *Zeta_MultiLevelTable_Access(&mlsv->mlt, idxes));
 
-            Zeta_MultiLevelVector_Erase(&mlsv->mlv, idxes);
+            Zeta_MultiLevelTable_Erase(&mlsv->mlt, idxes);
         }
 
         mlsv->offset = (mlsv->offset + 1) % capacity;
@@ -207,13 +217,13 @@ void Zeta_MultiLevelSegVector_Erase(void* mlsv_, size_t idx) {
         size_t seg_j = real_idx % mlsv->seg_capacity;
 
         if (seg_j == 0 || mlsv->size == 1) {
-            size_t idxes[ZETA_MultiLevelVector_max_level];
+            size_t idxes[ZETA_MultiLevelTable_max_level];
             GetIdxes_(mlsv, idxes, seg_i);
 
             Deallocate(allocator_context,
-                       *Zeta_MultiLevelVector_Access(&mlsv->mlv, idxes));
+                       *Zeta_MultiLevelTable_Access(&mlsv->mlt, idxes));
 
-            Zeta_MultiLevelVector_Erase(&mlsv->mlv, idxes);
+            Zeta_MultiLevelTable_Erase(&mlsv->mlt, idxes);
         }
 
         --mlsv->size;
@@ -254,7 +264,7 @@ void Zeta_MultiLevelSegVector_EraseAll(void* mlsv_) {
     Zeta_MultiLevelSegVector* mlsv = mlsv_;
     ZETA_DebugAssert(mlsv != NULL);
 
-    size_t mlv_capacity = Zeta_MultiLevelVector_GetCapacity(&mlsv->mlv);
+    size_t mlv_capacity = Zeta_MultiLevelTable_GetCapacity(&mlsv->mlt);
     ZETA_DebugAssert(mlsv->seg_capacity <=
                      ZETA_GetRangeMax(size_t) / mlv_capacity);
 
@@ -280,7 +290,7 @@ void Zeta_MultiLevelSegVector_EraseAll(void* mlsv_) {
         return;
     }
 
-    size_t idxes[ZETA_MultiLevelVector_max_level];
+    size_t idxes[ZETA_MultiLevelTable_max_level];
 
     size_t seg_i_beg = mlsv->offset / mlsv->seg_capacity;
     size_t seg_i_end =
@@ -288,14 +298,15 @@ void Zeta_MultiLevelSegVector_EraseAll(void* mlsv_) {
 
     for (size_t i = seg_i_beg; i < seg_i_end; ++i) {
         GetIdxes_(mlsv, idxes, i);
-        Zeta_MultiLevelVector_Erase(&mlsv->mlv, idxes);
+        Zeta_MultiLevelTable_Erase(&mlsv->mlt, idxes);
     }
 
     mlsv->offset = 0;
     mlsv->size = 0;
 }
 
-void Zeta_MultiLevelSegVector_ToVector(void* mlsv_, Zeta_Vector* dst) {
+void Zeta_MultiLevelSegVector_DeplotSeqContainer(void* mlsv_,
+                                                 Zeta_SeqContainer* dst) {
     Zeta_MultiLevelSegVector* mlsv = mlsv_;
     ZETA_DebugAssert(mlsv != NULL);
 

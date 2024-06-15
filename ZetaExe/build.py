@@ -416,6 +416,46 @@ def AddDeps(builder, ZetaBuildDir, ZetaExeBuildDir, verbose, mode):
     )
 
     builder.Add(
+        f"{ZetaExeDir}/test_datetime.cpp",
+        {
+            f"{File}",
+            f"{ZetaDir}/DateTime.h",
+        },
+        None
+    )
+
+    builder.Add(
+        f"{ZetaExeBuildDir}/test_datetime.ll",
+        {
+            f"{File}",
+            f"{ZetaExeDir}/test_datetime.cpp",
+        },
+        lambda : cpp_to_ll_func(
+            f"{ZetaExeBuildDir}/test_datetime.ll",
+            f"{ZetaExeDir}/test_datetime.cpp",
+        )
+    )
+
+    builder.Add(
+        f"{ZetaExeBuildDir}/test_datetime.exe",
+        {
+            f"{File}",
+
+            f"{ZetaBuildDir}/DateTime.ll",
+
+            f"{ZetaExeBuildDir}/test_datetime.ll",
+        },
+        lambda : lls_to_exe_func(
+            f"{ZetaExeBuildDir}/test_datetime.exe",
+            [
+                f"{ZetaBuildDir}/DateTime.ll",
+
+                f"{ZetaExeBuildDir}/test_datetime.ll",
+            ]
+        )
+    )
+
+    builder.Add(
         f"{ZetaExeDir}/test_dv.cpp",
         {
             f"{File}",

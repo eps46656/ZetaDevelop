@@ -172,7 +172,7 @@ struct Zeta_FileSys_Manager {
      * @param dst The destination of node info.
      */
     void (*GetInfo)(void* context, void* sd, size_t li,
-                    Zeta_FilSys_NodeInfo* dst);
+                    Zeta_FileSys_NodeInfo* dst);
 
     /**
      * @brief Open the node, Node(sd, li).

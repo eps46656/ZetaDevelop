@@ -9,7 +9,7 @@ void Zeta_LRUCacheManager_Init(void* lrucm_) {
 
     ZETA_DebugAssert(lrucm->blk_vec != NULL);
     ZETA_DebugAssert(lrucm->blk_vec->GetBlockSize != NULL);
-    ZETA_DebugAssert(lrucm->blk_vec->GetBlockNum != NULL);
+    ZETA_DebugAssert(lrucm->blk_vec->GetBlockCnt != NULL);
     ZETA_DebugAssert(lrucm->blk_vec->ReadBlock != NULL);
     ZETA_DebugAssert(lrucm->blk_vec->WriteBlock != NULL);
 
@@ -154,7 +154,7 @@ static void Unref_(Zeta_LRUCacheManager* lrucm,
                    Zeta_LRUCacheManager_XNode* x_node) {
     Zeta_LRUCacheManager_SNode* s_node = x_node->s_node;
 
-    --s_node->al_num;
+    --s_node->al_cnt;
 
     Zeta_OrdLinkedListNode_Extract(&x_node->al_node);
 
@@ -175,7 +175,7 @@ static void Unref_(Zeta_LRUCacheManager* lrucm,
 
 void UnrefLast_(Zeta_LRUCacheManager* lrucm,
                 Zeta_LRUCacheManager_SNode* s_node) {
-    if (s_node->al_num <= s_node->max_al_num) { return; }
+    if (s_node->al_cnt <= s_node->max_al_cnt) { return; }
 
     Zeta_BinTreeNodeOperator rbtn_opr;
     Zeta_BinTree_InitOpr(&rbtn_opr);
@@ -204,7 +204,7 @@ bool_t UnrefOverRef_(Zeta_LRUCacheManager* lrucm) {
     Zeta_OrdLinkedListNode* nxt_over_sl_head =
         Zeta_OrdLinkedListNode_GetR(over_sl_head);
 
-    if (s_node->max_al_num < s_node->al_num) {
+    if (s_node->max_al_cnt < s_node->al_cnt) {
         lrucm->over_sl_head = nxt_over_sl_head;
         return TRUE;
     }
@@ -223,9 +223,9 @@ static Zeta_LRUCacheManager_XNode* F_(Zeta_LRUCacheManager* lrucm,
                                       Zeta_LRUCacheManager_SNode* s_node,
                                       size_t blk_idx, bool_t fetch) {
     ZETA_DebugAssert(lrucm->blk_vec != NULL);
-    ZETA_DebugAssert(lrucm->blk_vec->GetBlockNum != NULL);
+    ZETA_DebugAssert(lrucm->blk_vec->GetBlockCnt != NULL);
     ZETA_DebugAssert(blk_idx <
-                     lrucm->blk_vec->GetBlockNum(lrucm->blk_vec->context));
+                     lrucm->blk_vec->GetBlockCnt(lrucm->blk_vec->context));
 
     Zeta_OrdRBTreeNode* at_node = FindAT_(s_node->at_root, blk_idx);
 
@@ -262,7 +262,7 @@ static Zeta_LRUCacheManager_XNode* F_(Zeta_LRUCacheManager* lrucm,
             Zeta_OrdLinkedListNode_Init(&c_node->bl_head);
         }
     } else {
-        ++lrucm->c_nodes_num;
+        ++lrucm->c_node_cnt;
 
         c_node = AllocateCNode_(lrucm);
         Zeta_OrdRBTreeNode_Init(NULL, &c_node->ct_node);
@@ -293,7 +293,7 @@ static Zeta_LRUCacheManager_XNode* F_(Zeta_LRUCacheManager* lrucm,
     Zeta_OrdLinkedListNode_Init(&x_node->bl_node);
 
     // s_node links to x_node
-    ++s_node->al_num;
+    ++s_node->al_cnt;
     Zeta_OrdLinkedListNode_InsertR(&s_node->al_head, &x_node->al_node);
     s_node->at_root = Zeta_RBTree_GeneralInsertL(&rbtn_opr, s_node->at_root,
                                                  at_node, &x_node->at_node);
@@ -312,14 +312,14 @@ static Zeta_LRUCacheManager_XNode* F_(Zeta_LRUCacheManager* lrucm,
     return x_node;
 }
 
-static void SetMaxCachesNum_(Zeta_LRUCacheManager* lrucm,
-                             Zeta_LRUCacheManager_SNode* s_node,
-                             size_t max_caches_num) {
-    size_t old_max_caches_num = s_node->max_al_num;
-    s_node->max_al_num = max_caches_num;
+static void SetMaxCacheCnt_(Zeta_LRUCacheManager* lrucm,
+                            Zeta_LRUCacheManager_SNode* s_node,
+                            size_t max_cache_cnt) {
+    size_t old_max_cache_cnt = s_node->max_al_cnt;
+    s_node->max_al_cnt = max_cache_cnt;
 
-    bool_t old_is_over = old_max_caches_num < s_node->al_num;
-    bool_t new_is_over = max_caches_num < s_node->al_num;
+    bool_t old_is_over = old_max_cache_cnt < s_node->al_cnt;
+    bool_t new_is_over = max_cache_cnt < s_node->al_cnt;
 
     if (old_is_over == new_is_over) { return; }
 
@@ -346,27 +346,41 @@ static void SetMaxCachesNum_(Zeta_LRUCacheManager* lrucm,
         }
     }
 
-    lrucm->max_c_nodes_num += max_caches_num - old_max_caches_num;
+    lrucm->max_c_node_cnt += max_cache_cnt - old_max_cache_cnt;
 }
 
-void* Zeta_LRUCacheManager_Open(void* lrucm_, size_t max_caches_num) {
+void Zeta_LRUCacheManager_GetBlockSize(void* lrucm_) {
     Zeta_LRUCacheManager* lrucm = lrucm_;
     ZETA_DebugAssert(lrucm != NULL);
 
-    ZETA_DebugAssert(0 < max_caches_num);
+    return lrucm->blk_vec->GetBlockSize(lrucm->blk_vec->context);
+}
+
+void Zeta_LRUCacheManager_GetBlockCnt(void* lrucm_) {
+    Zeta_LRUCacheManager* lrucm = lrucm_;
+    ZETA_DebugAssert(lrucm != NULL);
+
+    return lrucm->blk_vec->GetBlockCnt(lrucm->blk_vec->context);
+}
+
+void* Zeta_LRUCacheManager_Open(void* lrucm_, size_t max_cache_cnt) {
+    Zeta_LRUCacheManager* lrucm = lrucm_;
+    ZETA_DebugAssert(lrucm != NULL);
+
+    ZETA_DebugAssert(0 < max_cache_cnt);
 
     Zeta_LRUCacheManager_SNode* s_node = AllocateUNode_(lrucm);
 
     Zeta_OrdLinkedListNode_Init(&s_node->sl_node);
 
-    s_node->max_al_num = max_caches_num;
-    s_node->al_num = 0;
+    s_node->max_al_cnt = max_cache_cnt;
+    s_node->al_cnt = 0;
 
     Zeta_OrdLinkedListNode_Init(&s_node->al_head);
 
     s_node->at_root = NULL;
 
-    lrucm->max_c_nodes_num += max_caches_num;
+    lrucm->max_c_node_cnt += max_cache_cnt;
 
     return s_node;
 }
@@ -378,20 +392,20 @@ void Zeta_LRUCacheManager_Close(void* lrucm_, void* sd) {
     Zeta_LRUCacheManager_SNode* s_node = sd;
     ZETA_DebugAssert(s_node != NULL);
 
-    SetMaxCachesNum_(lrucm, s_node, 0);
+    SetMaxCacheCnt_(lrucm, s_node, 0);
 }
 
-void Zeta_LRUCacheManager_SetMaxCachesNum(void* lrucm_, void* sd,
-                                          size_t max_caches_num) {
+void Zeta_LRUCacheManager_SetMaxCacheCnt(void* lrucm_, void* sd,
+                                         size_t max_cache_cnt) {
     Zeta_LRUCacheManager* lrucm = lrucm_;
     ZETA_DebugAssert(lrucm != NULL);
 
     Zeta_LRUCacheManager_SNode* s_node = sd;
     ZETA_DebugAssert(s_node != NULL);
 
-    ZETA_DebugAssert(0 < max_caches_num);
+    ZETA_DebugAssert(0 < max_cache_cnt);
 
-    SetMaxCachesNum_(lrucm, s_node, max_caches_num);
+    SetMaxCacheCnt_(lrucm, s_node, max_cache_cnt);
 }
 
 void const* Zeta_LRUCacheManager_ReadBlock(void* lrucm_, void* sd,
@@ -436,9 +450,9 @@ void Zeta_LRUCacheManager_FlushBlock(void* lrucm_, size_t blk_idx) {
     ZETA_DebugAssert(lrucm != NULL);
 
     ZETA_DebugAssert(lrucm->blk_vec != NULL);
-    ZETA_DebugAssert(lrucm->blk_vec->GetBlockNum != NULL);
+    ZETA_DebugAssert(lrucm->blk_vec->GetBlockCnt != NULL);
     ZETA_DebugAssert(blk_idx <
-                     lrucm->blk_vec->GetBlockNum(lrucm->blk_vec->context));
+                     lrucm->blk_vec->GetBlockCnt(lrucm->blk_vec->context));
 
     Zeta_OrdRBTreeNode* ct_node = FindCT_(lrucm->ct_root, blk_idx);
 
@@ -501,7 +515,7 @@ bool_t Zeta_LRUCacheManager_UnrefOverCache(void* lrucm_) {
     Zeta_LRUCacheManager* lrucm = lrucm_;
     ZETA_DebugAssert(lrucm != NULL);
 
-    if (lrucm->c_nodes_num <= lrucm->max_c_nodes_num) { return FALSE; }
+    if (lrucm->c_node_cnt <= lrucm->max_c_node_cnt) { return FALSE; }
 
     Zeta_OrdLinkedListNode* cl_node =
         Zeta_OrdLinkedListNode_GetL(&lrucm->cl_head);
@@ -512,7 +526,7 @@ bool_t Zeta_LRUCacheManager_UnrefOverCache(void* lrucm_) {
     Zeta_BinTree_InitOpr(&rbtn_opr);
     Zeta_OrdRBTreeNode_DeployBinTreeNodeOperator(NULL, &rbtn_opr);
 
-    --lrucm->c_nodes_num;
+    --lrucm->c_node_cnt;
 
     Zeta_OrdLinkedListNode_Extract(cl_node);
 
@@ -538,15 +552,23 @@ void Zeta_LRUCacheManager_DeployCacheManager(void* lrucm_,
 
     dst->context = lrucm;
 
+    dst->GetBlockSize = Zeta_LRUCacheManager_GetBlockSize;
+
+    dst->GetBlockCnt = Zeta_LRUCacheManager_GetBlockCnt;
+
     dst->Open = Zeta_LRUCacheManager_Open;
+
     dst->Close = Zeta_LRUCacheManager_Close;
 
-    dst->SetMaxCachesNum = Zeta_LRUCacheManager_SetMaxCachesNum;
+    dst->SetMaxCacheCnt = Zeta_LRUCacheManager_SetMaxCacheCnt;
 
     dst->ReadBlock = Zeta_LRUCacheManager_ReadBlock;
+
     dst->WriteBlock = Zeta_LRUCacheManager_WriteBlock;
 
     dst->FlushBlock = Zeta_LRUCacheManager_FlushBlock;
+
     dst->Flush = Zeta_LRUCacheManager_Flush;
+
     dst->FlushAll = Zeta_LRUCacheManager_FlushAll;
 }

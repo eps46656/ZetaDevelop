@@ -2,16 +2,17 @@
 
 #include "BlockVector.h"
 #include "CacheManager.h"
+#include "FileSys.h"
 #include "SegVector.h"
 
 ZETA_DeclareStruct(Zeta_FileSysFAT32_Header);
 ZETA_DeclareStruct(Zeta_FileSysFAT32_DirEntry);
 ZETA_DeclareStruct(Zeta_FileSysFAT32_Dir);
-ZETA_DeclareStruct(Zeta_FileSysFAT32_SNode);
 ZETA_DeclareStruct(Zeta_FileSysFAT32_Manager);
+ZETA_DeclareStruct(Zeta_FileSysFAT32_SNode);
 
 struct Zeta_FileSysFAT32_Header {
-    u64_t base_idx;
+    u64_t base_lba;
 
     byte_t jmp_boot[3];
 
@@ -21,21 +22,21 @@ struct Zeta_FileSysFAT32_Header {
 
     u32_t secs_per_clus;
 
-    u32_t num_of_reserved_secs;
+    u32_t reserved_sec_cnt;
 
-    u32_t num_of_fats;
+    u32_t fat_cnt;
 
-    u32_t num_of_secs;
+    u32_t sec_cnt;
 
     byte_t media;
 
-    u32_t size_of_fat;
+    u32_t fat_size;
 
-    u32_t secs_per_trk;
+    u32_t sec_per_trk;
 
-    u32_t num_of_heads;
+    u32_t head_cnt;
 
-    u32_t num_of_hidden_secs;
+    u32_t hidden_sec_cnt;
 
     u32_t ext_flags;
 
@@ -90,20 +91,29 @@ struct Zeta_FileSysFAT32_Dir {
 struct Zeta_FileSysFAT32_SNode {
     void* cm_sd;
 
-    //
+    void* buffer;
 };
 
 struct Zeta_FileSysFAT32_Manager {
-    //
+    Zeta_CacheManager* cm;
 };
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 
-void* Zeta_FileSysFAT32_Manager_Open(void* fs_fat32_manager);
+void* Zeta_FileSysFAT32_Manager_OpenSession(void* fs_fat32_manager);
 
-void Zeta_FileSysFAT32_Manager_Close(void* fs_fat32_manager, void* sd);
+void Zeta_FileSysFAT32_Manager_CloseSession(void* fs_fat32_manager,
+                                            void* snode);
+
+void Zeta_FileSysFAT32_Manager_GetInfo(void* fs_fat32_manager, void* snode,
+                                       size_t li, Zeta_FileSys_NodeInfo* dst);
+
+void Zeta_FileSysFAT32_Manager_Open(void* fs_fat32_manager, void* snode,
+                                    size_t li);
+
+void Zeta_FileSysFAT32_Manager_Close(void* fs_fat32_manager, void* snode);
 
 // --
 

@@ -15,7 +15,7 @@ unsigned _BitInt(64) Zeta_CRCHasher_GetResult(void* hasher_) {
     return hasher->reg;
 }
 
-byte_t ByteReverse_(byte_t x) {
+static byte_t ByteReverse_(byte_t x) {
     byte_t ret = 0;
     for (int i = 0; i < 8; ++i, x /= 2) { ret = ret * 2 + x % 2; }
     return ret;

@@ -173,8 +173,8 @@ struct StageVectorPack {
     StdAllocator node_allocator_;
     Zeta_Allocator node_allocator;
 
-    StdAllocator seg_allocator_;
-    Zeta_Allocator seg_allocator;
+    StdAllocator data_allocator_;
+    Zeta_Allocator data_allocator;
 
     Zeta_StageVector stage_vec;
 };
@@ -185,17 +185,17 @@ void InitStageVec(Zeta_SeqContainer* seq_cntr,
         std::malloc(sizeof(StageVectorPack))) };
 
     new (&stage_vec_pack->node_allocator_) StdAllocator{};
-    new (&stage_vec_pack->seg_allocator_) StdAllocator{};
+    new (&stage_vec_pack->data_allocator_) StdAllocator{};
 
     StdAllocator_DeployAllocator(&stage_vec_pack->node_allocator_,
                                  &stage_vec_pack->node_allocator);
-    StdAllocator_DeployAllocator(&stage_vec_pack->seg_allocator_,
-                                 &stage_vec_pack->seg_allocator);
+    StdAllocator_DeployAllocator(&stage_vec_pack->data_allocator_,
+                                 &stage_vec_pack->data_allocator);
 
     stage_vec_pack->stage_vec.origin = origin_seq_cntr;
     stage_vec_pack->stage_vec.seg_capacity = 6;
     stage_vec_pack->stage_vec.node_allocator = &stage_vec_pack->node_allocator;
-    stage_vec_pack->stage_vec.seg_allocator = &stage_vec_pack->seg_allocator;
+    stage_vec_pack->stage_vec.data_allocator = &stage_vec_pack->data_allocator;
 
     Zeta_StageVector_Init(&stage_vec_pack->stage_vec);
     Zeta_StageVector_DeploySeqContainer(&stage_vec_pack->stage_vec, seq_cntr);
@@ -497,7 +497,7 @@ void StageVec_Check(Zeta_SeqContainer* seq_cntr) {
 
     CheckRecords(pack->node_allocator_.records, *(record_t*)node_hm.hash_map);
 
-    CheckRecords(pack->seg_allocator_.records, *(record_t*)seg_hm.hash_map);
+    CheckRecords(pack->data_allocator_.records, *(record_t*)seg_hm.hash_map);
 }
 
 void SC_Check(Zeta_SeqContainer* seq_cntr) {
@@ -847,7 +847,7 @@ void main2() {
     Zeta_SeqContainer* seq_cntr_a{ CreateDD() };
     Zeta_SeqContainer* seq_cntr_a_copy{ CreateDD() };
 
-    vals_a.resize(4096);
+    vals_a.resize(16 * 1024 * 1024);
     GetRandomVal(vals_a);
     SC_Insert(seq_cntr_a, 0, vals_a.size(), vals_a.data());
 
@@ -882,6 +882,8 @@ void main2() {
         ZETA_PrintPos;
 
         for (size_t i{ 0 }; i < 5; ++i) { SyncCompare(seq_cntr_a, seq_cntr_b); }
+
+        Zeta_StageVector_PrintState(seq_cntr_b->context);
     }
 }
 

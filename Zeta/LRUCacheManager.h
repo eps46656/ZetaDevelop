@@ -15,11 +15,15 @@ ZETA_DeclareStruct(Zeta_LRUCacheManager_SNode);
 ZETA_DeclareStruct(Zeta_LRUCacheManager_CNode);
 ZETA_DeclareStruct(Zeta_LRUCacheManager_XNode);
 
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+
 struct Zeta_LRUCacheManager_SNode {
     Zeta_OrdLinkedListNode sl_node;
 
-    unsigned int max_al_num;
-    unsigned int al_num;
+    unsigned int max_al_cnt;
+    unsigned int al_cnt;
 
     Zeta_OrdLinkedListNode al_head;
 
@@ -64,8 +68,8 @@ struct Zeta_LRUCacheManager_XNode {
 };
 
 struct Zeta_LRUCacheManager {
-    size_t c_nodes_num;
-    size_t max_c_nodes_num;
+    size_t c_node_cnt;
+    size_t max_c_node_cnt;
 
     Zeta_BlockVector* blk_vec;
 
@@ -83,14 +87,22 @@ struct Zeta_LRUCacheManager {
     Zeta_OrdLinkedListNode cl_head;
 };
 
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+
 void Zeta_LRUCacheManager_Init(void* lrucm);
 
-void* Zeta_LRUCacheManager_Open(void* lrucm, size_t max_caches_num);
+void Zeta_LRUCacheManager_GetBlockSize(void* lrucm);
+
+void Zeta_LRUCacheManager_GetBlockCnt(void* lrucm);
+
+void* Zeta_LRUCacheManager_Open(void* lrucm, size_t max_cache_cnt);
 
 void Zeta_LRUCacheManager_Close(void* lrucm, void* sd);
 
-void Zeta_LRUCacheManager_SetMaxCachesNum(void* lrucm, void* sd,
-                                          size_t max_caches_num);
+void Zeta_LRUCacheManager_SetMaxCacheCnt(void* lrucm, void* sd,
+                                         size_t max_cache_cnt);
 
 void const* Zeta_LRUCacheManager_ReadBlock(void* lrucm, void* sd,
                                            size_t blk_idx);

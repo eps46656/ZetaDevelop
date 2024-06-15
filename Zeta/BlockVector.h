@@ -11,7 +11,7 @@ struct Zeta_BlockVector {
 
     size_t (*GetBlockSize)(void* context);
 
-    size_t (*GetBlockNum)(void* context);
+    size_t (*GetBlockCnt)(void* context);
 
     void (*ReadBlock)(void* context, size_t blk_idx, void* dst);
 
