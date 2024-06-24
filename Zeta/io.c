@@ -1,114 +1,134 @@
 #include "io.h"
 
-static void IntToStr_(Zeta_Stream* dst, u128_t x, unichar_t sign_char, int base,
-                      unichar_t const* chars, size_t width,
-                      unichar_t padding_char) {
-    int const TMP_SIZE = 128 + 32;
+#include "utils.h"
 
-    unichar_t tmp[TMP_SIZE];
-    unichar_t* tmp_p = tmp;
+static unichar_t lower_chars[] = { '0', '1', '2', '3', '4', '5', '6', '7',
+                                   '8', '9', 'a', 'b', 'c', 'd', 'e', 'f' };
 
-    for (; 0 < x; x /= base) {
-        int k = x % base;
-        ZETA_DebugAssert(tmp_p != tmp + TMP_SIZE);
-        *tmp_p = chars[k];
-        ++tmp_p;
-    }
+static unichar_t upper_chars[] = { '0', '1', '2', '3', '4', '5', '6', '7',
+                                   '8', '9', 'A', 'B', 'C', 'D', 'E', 'F' };
 
-    if (sign_char == '-' || sign_char == '+') {
-        ZETA_DebugAssert(tmp_p < tmp);
-        *tmp_p = sign_char;
-        ++tmp_p;
-    }
+static int EstDigitWidth_(unsigned long long val, unsigned int base) {
+    return val == 0 ? 1 : Zeta_GetFloorLog(val, base) + 1;
+}
 
+static void IntToStr_(Zeta_Stream* dst, unsigned long long val,
+                      unichar_t sign_char, unsigned int base,
+                      unichar_t const* chars, bool_t l_just, size_t just_width,
+                      unichar_t just_char) {
     ZETA_DebugAssert(dst != NULL);
 
     void* dst_context = dst->context;
 
-    void (*Write)(void* context, void const* data) = dst->Write;
-    ZETA_DebugAssert(Write != NULL);
+    void (*Write)(void* context, void const* dsta) = dst->Write;
 
-    for (size_t cur_width = tmp_p - tmp; cur_width < width; ++cur_width) {
-        Write(dst_context, &padding_char);
+    size_t cur_width = 0;
+
+    unichar_t c;
+
+    if (!l_just) {
+        int sign_width = (sign_char == '-' || sign_char == '+');
+        int digit_width = EstDigitWidth_(val, base);
+
+        for (size_t i = sign_width + digit_width; i < just_width; ++i) {
+            Write(dst_context, &just_char);
+        }
     }
 
-    while (tmp_p != tmp) {
-        --tmp_p;
-        Write(dst_context, tmp_p);
+    if (sign_char == '-' || sign_char == '+') {
+        Write(dst_context, &sign_char);
+        ++cur_width;
+    }
+
+    if (val == 0) {
+        Write(dst_context, chars);
+        ++cur_width;
+    } else {
+        for (; 0 < val; val /= base, ++cur_width) {
+            unsigned long long k = val % base;
+            Write(dst_context, chars + k);
+        }
+    }
+
+    for (; cur_width < just_width; ++cur_width) {
+        Write(dst_context, &just_char);
     }
 }
 
-void Zeta_SIntToBinStr(Zeta_Stream* dst, s128_t x, bool_t sign, size_t width,
-                       unichar_t padding_char) {
-    unichar_t chars[] = { '0', '1' };
+void Zeta_UIntToStr(Zeta_Stream* dst, unsigned long long val, bool_t sign,
+                    unsigned long long base, bool_t l_just, size_t just_width,
+                    unichar_t just_char) {
+    ZETA_DebugAssert(1 < base);
+    ZETA_DebugAssert(base <= 16);
 
-    IntToStr_(dst, x, x < 0 ? '-' : (sign ? '+' : '\0'), 16, chars, width,
-              padding_char);
+    IntToStr_(dst, val, sign ? '+' : '\0', base, lower_chars, l_just,
+              just_width, just_char);
 }
 
-void Zeta_UIntToBinStr(Zeta_Stream* dst, u128_t x, bool_t sign, size_t width,
-                       unichar_t padding_char) {
-    unichar_t chars[] = { '0', '1' };
+void Zeta_SIntToStr(Zeta_Stream* dst, long long val, bool_t sign,
+                    unsigned long long base, bool_t l_just, size_t just_width,
+                    unichar_t just_char) {
+    ZETA_DebugAssert(1 < base);
+    ZETA_DebugAssert(base <= 16);
 
-    IntToStr_(dst, x, sign ? '+' : '\0', 16, chars, width, padding_char);
+    IntToStr_(dst, val, val < 0 ? '-' : (sign ? '+' : '\0'), base, lower_chars,
+              l_just, just_width, just_char);
 }
 
-void Zeta_SIntToOctStr(Zeta_Stream* dst, s128_t x, bool_t sign, size_t width,
-                       unichar_t padding_char) {
-    unichar_t chars[] = { '0', '1', '2', '3', '4', '5', '6', '7' };
-
-    IntToStr_(dst, x, x < 0 ? '-' : (sign ? '+' : '\0'), 8, chars, width,
-              padding_char);
+void Zeta_SIntToBinStr(Zeta_Stream* dst, long long val, bool_t sign,
+                       bool_t l_just, size_t just_width, unichar_t just_char) {
+    IntToStr_(dst, val, val < 0 ? '-' : (sign ? '+' : '\0'), 16, lower_chars,
+              l_just, just_width, just_char);
 }
 
-void Zeta_UIntToOctStr(Zeta_Stream* dst, u128_t x, bool_t sign, size_t width,
-                       unichar_t padding_char) {
-    unichar_t chars[] = { '0', '1', '2', '3', '4', '5', '6', '7' };
-
-    IntToStr_(dst, x, sign ? '+' : '\0', 8, chars, width, padding_char);
+void Zeta_UIntToBinStr(Zeta_Stream* dst, unsigned long long val, bool_t sign,
+                       bool_t l_just, size_t just_width, unichar_t just_char) {
+    IntToStr_(dst, val, sign ? '+' : '\0', 16, lower_chars, l_just, just_width,
+              just_char);
 }
 
-void Zeta_SIntToDecStr(Zeta_Stream* dst, s128_t x, bool_t sign, size_t width,
-                       unichar_t padding_char) {
-    unichar_t chars[] = { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9' };
-
-    IntToStr_(dst, x, x < 0 ? '-' : (sign ? '+' : '\0'), 10, chars, width,
-              padding_char);
+void Zeta_SIntToOctStr(Zeta_Stream* dst, long long val, bool_t sign,
+                       bool_t l_just, size_t just_width, unichar_t just_char) {
+    IntToStr_(dst, val, val < 0 ? '-' : (sign ? '+' : '\0'), 8, lower_chars,
+              l_just, just_width, just_char);
 }
 
-void Zeta_UIntToDecStr(Zeta_Stream* dst, u128_t x, bool_t sign, size_t width,
-                       unichar_t padding_char) {
-    unichar_t chars[] = { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9' };
-
-    IntToStr_(dst, x, sign ? '+' : '\0', 10, chars, width, padding_char);
+void Zeta_UIntToOctStr(Zeta_Stream* dst, unsigned long long val, bool_t sign,
+                       bool_t l_just, size_t just_width, unichar_t just_char) {
+    IntToStr_(dst, val, sign ? '+' : '\0', 8, lower_chars, l_just, just_width,
+              just_char);
 }
 
-void Zeta_SIntToHexStr(Zeta_Stream* dst, s128_t x, bool_t sign,
-                       bool_t uppercase, size_t width, unichar_t padding_char) {
-    unichar_t u_chars[] = { '0', '1', '2', '3', '4', '5', '6', '7',
-                            '8', '9', 'A', 'B', 'C', 'D', 'E', 'F' };
-
-    unichar_t l_chars[] = { '0', '1', '2', '3', '4', '5', '6', '7',
-                            '8', '9', 'a', 'b', 'c', 'd', 'e', 'f' };
-
-    IntToStr_(dst, x, x < 0 ? '-' : (sign ? '+' : '\0'), 16,
-              uppercase ? u_chars : l_chars, width, padding_char);
+void Zeta_SIntToDecStr(Zeta_Stream* dst, long long val, bool_t sign,
+                       bool_t l_just, size_t just_width, unichar_t just_char) {
+    IntToStr_(dst, val, val < 0 ? '-' : (sign ? '+' : '\0'), 10, lower_chars,
+              l_just, just_width, just_char);
 }
 
-void Zeta_UIntToHexStr(Zeta_Stream* dst, u128_t x, bool_t sign,
-                       bool_t uppercase, size_t width, unichar_t padding_char) {
-    unichar_t u_chars[] = { '0', '1', '2', '3', '4', '5', '6', '7',
-                            '8', '9', 'A', 'B', 'C', 'D', 'E', 'F' };
-
-    unichar_t l_chars[] = { '0', '1', '2', '3', '4', '5', '6', '7',
-                            '8', '9', 'a', 'b', 'c', 'd', 'e', 'f' };
-
-    IntToStr_(dst, x, sign ? '+' : '\0', 16, uppercase ? u_chars : l_chars,
-              width, padding_char);
+void Zeta_UIntToDecStr(Zeta_Stream* dst, unsigned long long val, bool_t sign,
+                       bool_t l_just, size_t just_width, unichar_t just_char) {
+    IntToStr_(dst, val, sign ? '+' : '\0', 10, lower_chars, l_just, just_width,
+              just_char);
 }
 
-void Zeta_PtrToHexStr(Zeta_Stream* dst, void const* x, bool_t uppercase,
-                      size_t width, unichar_t padding_char) {
-    return Zeta_UIntToHexStr(dst, (uintptr_t)x, FALSE, uppercase, width,
-                             padding_char);
+void Zeta_SIntToHexStr(Zeta_Stream* dst, long long val, bool_t sign,
+                       bool_t uppercase, bool_t l_just, size_t just_width,
+                       unichar_t just_char) {
+    IntToStr_(dst, val, val < 0 ? '-' : (sign ? '+' : '\0'), 16,
+              uppercase ? upper_chars : lower_chars, l_just, just_width,
+              just_char);
+}
+
+void Zeta_UIntToHexStr(Zeta_Stream* dst, unsigned long long val, bool_t sign,
+                       bool_t uppercase, bool_t l_just, size_t just_width,
+                       unichar_t just_char) {
+    IntToStr_(dst, val, sign ? '+' : '\0', 16,
+              uppercase ? upper_chars : lower_chars, l_just, just_width,
+              just_char);
+}
+
+void Zeta_PtrToHexStr(Zeta_Stream* dst, void const* val, bool_t uppercase,
+                      bool_t l_just, size_t just_width, unichar_t just_char) {
+    return Zeta_UIntToHexStr(dst, ZETA_PtrToAddr(val), FALSE, uppercase, l_just,
+                             just_width, just_char);
 }

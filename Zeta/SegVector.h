@@ -99,8 +99,7 @@ void Zeta_SegVector_PopR(void* sv);
 
 void Zeta_SegVector_Erase(void* sv, void* pos_cursor, size_t cnt);
 
-void Zeta_SegVector_EraseAll(void* sv, void* context,
-                             void (*Callback)(void* context, void* ele));
+void Zeta_SegVector_EraseAll(void* sv);
 
 void Zeta_SegVector_Check(void* sv, Zeta_DebugHashMap* dst_node_hm,
                           Zeta_DebugHashMap* dst_seg_hm);

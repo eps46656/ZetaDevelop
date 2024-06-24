@@ -30,7 +30,7 @@ void BinHeap_Init() {
 
 int BinHeap_Top() {
     ZETA_DebugAssert(0 < bh.size);
-    Node* node{ ZETA_GetStructFromMember(Node, n, bh.root) };
+    Node* node{ ZETA_MemberToStruct(Node, n, bh.root) };
     return node->val;
 }
 
@@ -47,7 +47,7 @@ void BinHeap_Push(int val) {
 
         if (np == nullptr) { break; }
 
-        Node* node_p{ ZETA_GetStructFromMember(Node, n, np) };
+        Node* node_p{ ZETA_MemberToStruct(Node, n, np) };
 
         if (node_p->val <= val) { break; }
 
@@ -63,12 +63,12 @@ void BinHeap_Pop() {
     void* n{ Zeta_BinHeap_Access(&bh, 0) };
     void* m{ Zeta_BinHeap_Extract(&bh, n) };
 
-    Node* node{ ZETA_GetStructFromMember(Node, n, n) };
+    Node* node{ ZETA_MemberToStruct(Node, n, n) };
     delete node;
 
     if (m == NULL) { return; }
 
-    int m_val{ ZETA_GetStructFromMember(Node, n, m)->val };
+    int m_val{ ZETA_MemberToStruct(Node, n, m)->val };
 
     for (;;) {
         void* ml{ Zeta_OrdCntRBTreeNode_GetL(NULL, m) };
@@ -77,8 +77,8 @@ void BinHeap_Pop() {
         int ml_val;
         int mr_val;
 
-        if (ml != NULL) { ml_val = ZETA_GetStructFromMember(Node, n, ml)->val; }
-        if (mr != NULL) { mr_val = ZETA_GetStructFromMember(Node, n, mr)->val; }
+        if (ml != NULL) { ml_val = ZETA_MemberToStruct(Node, n, ml)->val; }
+        if (mr != NULL) { mr_val = ZETA_MemberToStruct(Node, n, mr)->val; }
 
         if (ml == NULL && mr == NULL) { break; }
 
@@ -156,8 +156,8 @@ void main2() {
     ZETA_PrintVar(seed);
 
     std::mt19937_64 en{ seed };
-    std::uniform_int_distribution<size_t> val_generator{ 0, ZETA_GetRangeMax(
-                                                                int) };
+    std::uniform_int_distribution<size_t> val_generator{ 0,
+                                                         ZETA_RangeMaxOf(int) };
 
     BinHeap_Init();
     Queue_Init();
@@ -175,7 +175,7 @@ void main2() {
 
     for (int i{ 0 }; i < K; ++i) {
         void* n{ Zeta_BinHeap_Access(&bh, i) };
-        Node* node{ ZETA_GetStructFromMember(Node, n, n) };
+        Node* node{ ZETA_MemberToStruct(Node, n, n) };
         ZETA_DebugAssert(i == node->val);
     }
 

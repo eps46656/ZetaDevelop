@@ -1,22 +1,23 @@
+#include "../Zeta/define.h"
 
+void main3() {
+    long long char_min = ZETA_RangeMinOf(char);
+    long long char_max = ZETA_RangeMaxOf(char);
+    ZETA_PrintVar(char_min);
+    ZETA_PrintVar(char_max);
 
-#include "../Zeta/utils.h"
+    // ZETA_PrintVar(ZETA_RangeMaxOf(unsigned char));
+    // ZETA_PrintVar(ZETA_RangeMaxOf(signed char));
+
+    unsigned int char_width = ZETA_WidthOf(unsigned char);
+    unsigned int short_width = ZETA_WidthOf(unsigned short);
+
+    ZETA_PrintVar(char_width);
+    ZETA_PrintVar(short_width);
+}
 
 int main() {
-    size_t a = 5;
-    size_t b = 3;
-    size_t c = 7;
-    size_t d = 2;
-
-    /*
-    size_t ans =
-        (size_t tmp1 = a + b, tmp2 = c + d, (tmp1 < tmp2 ? tmp1 : tmp2));
-    */
-
-    size_t ans =
-        (size_t tmp1 = a + b; size_t tmp1 = c + d; (tmp1 < tmp2 ? tmp1 : tmp2));
-
-    printf("%zu\n", ans);
-
+    main3();
+    printf("ok\n");
     return 0;
 }

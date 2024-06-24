@@ -153,6 +153,28 @@ Link(sd, li)
     The link, indicated by li, in the present working node of session
 descriptor, sd.
 
+
+(create a new link / update a current link) to
+(a new node / a existing node / a null node)
+
+Create
+create a new linking to a new node
+    // sd, info
+
+Update
+update a current with new info
+    // sd, li, info
+
+Link
+create a new linking to a existing node
+    // sd, src_sd, src_li, info
+    // link
+
+Unlink
+update a current linking a null node
+    // sd, li
+    // unlink
+
 */
 
 ZETA_DeclareStruct(Zeta_FileSys_Manager);
@@ -184,7 +206,17 @@ struct Zeta_FileSys_Manager {
     bool_t (*Open)(void* context, void* sd, size_t li);
 
     /**
-     * @brief Update the node info of target node.
+     * @brief Create a new link.
+     *
+     * @param context The context of this file sys manager.
+     * @param sd The session descriptor of present working session.
+     * @param info The source node info.
+     */
+    void (*Create)(void* context, void* sd, Zeta_FileSys_NodeInfo const* info);
+
+    /**
+     * @brief Update a link. If src_sd is provided, the target link will link to
+     * Node(src_sd, src_li), othwerwise no changing.
      *
      * @param context The context of this file sys manager.
      * @param sd The session descriptor of present working session.
@@ -194,20 +226,15 @@ struct Zeta_FileSys_Manager {
     void (*Update)(void* context, void* sd, size_t li,
                    Zeta_FileSys_NodeInfo const* info);
 
-    // Directory mode only
-    // Add a link points to the node of "the src_idx th link of src_sd's working
-    // node". If src_sd is NULL, than create a new directory/file
     /**
+     * @brief Create a new link.
+     *
      * @param context The context of this file sys manager.
      * @param sd The session descriptor of present working session.
-     * @param src_sd The source session descriptor
-     * @param src_li The source link indicator pointing to Node(src_sd, src_li).
-     * @param info The info for created link. Not all attributes will be adopted
-     * to new link which is based on actual type of file system and operation
-     * arguments.
+     * @param info The source node info.
      */
-    bool_t (*Link)(void* context, void* sd, size_t li, void* src_sd,
-                   size_t src_li, Zeta_FileSys_NodeInfo const* info);
+    void (*Link)(void* context, void* sd, void* src_sd, size_t src_li,
+                 Zeta_FileSys_NodeInfo const* info);
 
     // Directory mode only
     /**
@@ -222,7 +249,7 @@ struct Zeta_FileSys_Manager {
      * @param context The context of this file sys manager.
      * @param sd The session descriptor of present working session.
      */
-    void (*Read)(void* context, void* sd, size_t li, size_t size,
+    void (*Read)(void* context, void* sd, size_t li, size_t idx, size_t cnt,
                  byte_t* dst_data);
 
     // File mode only
@@ -230,7 +257,7 @@ struct Zeta_FileSys_Manager {
      * @param context The context of this file sys manager.
      * @param sd The session descriptor of present working session.
      */
-    void (*Write)(void* context, void* sd, size_t li, size_t size,
+    void (*Write)(void* context, void* sd, size_t li, size_t cnt,
                   byte_t const* src_data);
 
     // File mode only
@@ -238,18 +265,18 @@ struct Zeta_FileSys_Manager {
      * @param context The context of this file sys manager.
      * @param sd The session descriptor of present working session.
      * @param idx The begin index of insertion.
-     * @param size The size of insertion.
+     * @param cnt The count of insertion.
      */
-    void (*Insert)(void* context, void* sd, size_t idx, size_t size);
+    void (*Insert)(void* context, void* sd, size_t idx, size_t cnt);
 
     /**
      * FIle mode only
      * @param context The context of this file sys manager.
      * @param sd The session descriptor of present working session.
      * @param idx The begin index of erasion.
-     * @param size The size of erasion.
+     * @param cnt The count of erasion.
      */
-    void (*Erase)(void* context, void* sd, size_t idx, size_t size);
+    void (*Erase)(void* context, void* sd, size_t idx, size_t cnt);
 };
 
 /*

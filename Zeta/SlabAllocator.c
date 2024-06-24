@@ -70,7 +70,7 @@ static bool_t ReleaseLastSlab_(Zeta_SlabAllocator* sa) {
     size_t num = sa->num;
 
     Zeta_SlabAllocator_SlabHead* vacant_slab_head =
-        ZETA_GetStructFromMember(Zeta_SlabAllocator_SlabHead, n, vacant_slab_n);
+        ZETA_MemberToStruct(Zeta_SlabAllocator_SlabHead, n, vacant_slab_n);
     void* vacant_slab = GetSlabFromSlabHead_(vacant_slab_head);
 
     unsigned char* chunk = ZETA_GetFirstChunkFromSlab(vacant_slab);
@@ -197,7 +197,7 @@ void* Zeta_SlabAllocator_Allocate(void* sa_, size_t size) {
 
     void* slab = sa->allocator->Allocate(sa->allocator->context, ZETA_SlabSize);
     ZETA_DebugAssert(slab != NULL);
-    ZETA_DebugAssert(ZETA_GetAddrFromPtr(slab) % sa->align == 0);
+    ZETA_DebugAssert(ZETA_PtrToAddr(slab) % sa->align == 0);
 
     Zeta_SlabAllocator_SlabHead* slab_head =
         (void*)((unsigned char*)slab + stride * num);
@@ -300,8 +300,8 @@ void Zeta_SlabAllocator_Check(void* sa_, Zeta_DebugHashMap* dst_used_records,
         Zeta_OrdLinkedListNode* hot_unit = sa->hot_unit_head;
 
         for (;;) {
-            ZETA_DebugAssert(Zeta_DebugHashMap_Insert(
-                                 &vacant_unit_mt, ZETA_GetAddrFromPtr(hot_unit))
+            ZETA_DebugAssert(Zeta_DebugHashMap_Insert(&vacant_unit_mt,
+                                                      ZETA_PtrToAddr(hot_unit))
                                  .b);
 
             hot_unit = Zeta_OrdLinkedListNode_GetR(hot_unit);
@@ -317,8 +317,8 @@ void Zeta_SlabAllocator_Check(void* sa_, Zeta_DebugHashMap* dst_used_records,
 
         for (;;) {
             Zeta_SlabAllocator_SlabHead* occupied_slab_head =
-                ZETA_GetStructFromMember(Zeta_SlabAllocator_SlabHead, n,
-                                         occupied_slab_n);
+                ZETA_MemberToStruct(Zeta_SlabAllocator_SlabHead, n,
+                                    occupied_slab_n);
 
             void* occupied_slab = GetSlabFromSlabHead_(occupied_slab_head);
 
@@ -332,12 +332,12 @@ void Zeta_SlabAllocator_Check(void* sa_, Zeta_DebugHashMap* dst_used_records,
                 ZETA_DebugAssert(i == *(chunk + width));
 
                 if (Zeta_DebugHashMap_Find(&vacant_unit_mt,
-                                           ZETA_GetAddrFromPtr(chunk))
+                                           ZETA_PtrToAddr(chunk))
                         .b) {
                     ++check_slab_vacant_units_num;
                 } else {
                     Zeta_DebugHashMap_KeyValPair p = Zeta_DebugHashMap_Insert(
-                        &occupied_unit_mt, ZETA_GetAddrFromPtr(chunk));
+                        &occupied_unit_mt, ZETA_PtrToAddr(chunk));
 
                     ZETA_DebugAssert(p.b);
 
@@ -352,12 +352,12 @@ void Zeta_SlabAllocator_Check(void* sa_, Zeta_DebugHashMap* dst_used_records,
 
             check_vacant_units_num += check_slab_vacant_units_num;
 
-            size_t slab_size = ZETA_GetAddrFromPtr(chunk) +
+            size_t slab_size = ZETA_PtrToAddr(chunk) +
                                sizeof(Zeta_SlabAllocator_SlabHead) -
-                               ZETA_GetAddrFromPtr(occupied_slab);
+                               ZETA_PtrToAddr(occupied_slab);
 
             Zeta_DebugHashMap_KeyValPair p = Zeta_DebugHashMap_Insert(
-                dst_used_records, ZETA_GetAddrFromPtr(occupied_slab_head));
+                dst_used_records, ZETA_PtrToAddr(occupied_slab_head));
 
             ZETA_DebugAssert(p.b);
 
@@ -372,9 +372,8 @@ void Zeta_SlabAllocator_Check(void* sa_, Zeta_DebugHashMap* dst_used_records,
         void* vacant_slab_n = sa->vacant_slab_n_head;
 
         for (;;) {
-            Zeta_SlabAllocator_SlabHead* vacant_slab_head =
-                ZETA_GetStructFromMember(Zeta_SlabAllocator_SlabHead, n,
-                                         vacant_slab_n);
+            Zeta_SlabAllocator_SlabHead* vacant_slab_head = ZETA_MemberToStruct(
+                Zeta_SlabAllocator_SlabHead, n, vacant_slab_n);
 
             void* vacant_slab = GetSlabFromSlabHead_(vacant_slab_head);
 
@@ -384,20 +383,19 @@ void Zeta_SlabAllocator_Check(void* sa_, Zeta_DebugHashMap* dst_used_records,
 
             for (size_t i = 0; i < num; ++i, chunk += stride) {
                 ZETA_DebugAssert(i == *(chunk + width));
-                ZETA_DebugAssert(
-                    Zeta_DebugHashMap_Find(&vacant_unit_mt,
-                                           ZETA_GetAddrFromPtr(chunk))
-                        .b);
+                ZETA_DebugAssert(Zeta_DebugHashMap_Find(&vacant_unit_mt,
+                                                        ZETA_PtrToAddr(chunk))
+                                     .b);
             }
 
             check_vacant_units_num += num;
 
-            size_t slab_size = ZETA_GetAddrFromPtr(chunk) +
+            size_t slab_size = ZETA_PtrToAddr(chunk) +
                                sizeof(Zeta_SlabAllocator_SlabHead) -
-                               ZETA_GetAddrFromPtr(vacant_slab);
+                               ZETA_PtrToAddr(vacant_slab);
 
             Zeta_DebugHashMap_KeyValPair p = Zeta_DebugHashMap_Insert(
-                dst_used_records, ZETA_GetAddrFromPtr(vacant_slab_head));
+                dst_used_records, ZETA_PtrToAddr(vacant_slab_head));
 
             ZETA_DebugAssert(p.b);
 

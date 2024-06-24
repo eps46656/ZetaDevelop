@@ -17,7 +17,7 @@ Single SlabAllocator only provides single width of unit.
 ZETA_DeclareStruct(Zeta_SlabAllocator);
 ZETA_DeclareStruct(Zeta_SlabAllocator_SlabHead);
 
-#define ZETA_SlabAllocator_max_num ZETA_GetRangeMax(unsigned char)
+#define ZETA_SlabAllocator_max_num ZETA_RangeMaxOf(unsigned char)
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------

@@ -1,7 +1,9 @@
 #include "FileSysFAT32.h"
 
 #include "Disk.h"
+#include "DummyVector.h"
 #include "MultiLevelTable.h"
+#include "StageVector.h"
 #include "utils.h"
 
 ZETA_DeclareStruct(NodeVector);
@@ -16,11 +18,11 @@ ZETA_DeclareStruct(DirEntry);
     if (!(cond)) { goto ERR_RET; } \
     ZETA_StaticAssert(TRUE)
 
-#define READ(data, length)                                      \
-    ({                                                          \
-        ZETA_AutoVar(tmp, Zeta_ReadLittleEndian(data, length)); \
-        data += length;                                         \
-        tmp;                                                    \
+#define READ(data, length)                                         \
+    ({                                                             \
+        ZETA_AutoVar(tmp, Zeta_ReadLittleEndianStd(data, length)); \
+        data += length;                                            \
+        tmp;                                                       \
     })
 
 // -----------------------------------------------------------------------------
@@ -32,14 +34,9 @@ static void Read_(Zeta_FileSysFAT32_Manager* manager,
                   size_t cnt) {
     Zeta_CacheManager* cm = manager->cm;
 
-    size_t blk_size = cm->GetBlockSize(cm->context);
-    size_t blk_cnt = cm->GetBlockCnt(cm->context);
-    size_t size = blk_size * blk_cnt;
-
-    ZETA_DebugAssert(beg <= size);
-    ZETA_DebugAssert(beg + cnt <= size);
-
     if (cnt == 0) { return; }
+
+    size_t blk_size = cm->GetBlockSize(cm->context);
 
     unsigned char* dst = dst_;
     ZETA_DebugAssert(dst != NULL);
@@ -71,14 +68,9 @@ static void Write_(Zeta_FileSysFAT32_Manager* manager,
                    size_t cnt) {
     Zeta_CacheManager* cm = manager->cm;
 
-    size_t blk_size = cm->GetBlockSize(cm->context);
-    size_t blk_cnt = cm->GetBlockCnt(cm->context);
-    size_t size = blk_size * blk_cnt;
-
-    ZETA_DebugAssert(beg <= size);
-    ZETA_DebugAssert(beg + cnt <= size);
-
     if (cnt == 0) { return; }
+
+    size_t blk_size = cm->GetBlockSize(cm->context);
 
     unsigned char* src = src_;
     ZETA_DebugAssert(src != NULL);
@@ -122,6 +114,22 @@ static void Write_(Zeta_FileSysFAT32_Manager* manager,
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
+
+struct Node {
+    Zeta_FileSysFAT32_Manager* manager;
+    void* cache_manager_sd;
+
+    size_t origin_size;
+    // the original size of node
+
+    Zeta_SeqContainer clus_num_vec_dummy_vec_seq_cntr;
+    Zeta_StageVector clus_num_vec;
+    // contain clus numbers strding clus_num_stride
+
+    size_t clus_num_stride;
+
+    Zeta_StageVector stage_vec;
+};
 
 struct NodeVector {
     Zeta_FileSysFAT32_Manager* manager;
@@ -214,6 +222,12 @@ void* NodeVector_Access(void* nv_, void* dst_cursor_, void* dst_ele,
 
     if (dst_ele != NULL) {
         // TODO Read
+
+        size_t idxes[ZETA_MultiLevelTable_max_level];
+
+        // size_t byte_beg = *Zeta_MultiLevelTable_Access(&nv->mlt, )
+
+        // Read_(nv->manager, nv->snode, dst_ele, )
     }
 
     return NULL;
@@ -576,6 +590,8 @@ static u64_t GetFATEntryOffset_(Zeta_FileSysFAT32_Header* header,
     u64_t ret = header->bytes_per_sec *
                     (header->reserved_sec_cnt + header->fat_size * fat_idx) +
                 clus_num * 4;
+
+    return ret;
 }
 
 static size_t GetFATEntry_(Zeta_FileSysFAT32_Header* header, size_t fat_idx,
@@ -583,7 +599,7 @@ static size_t GetFATEntry_(Zeta_FileSysFAT32_Header* header, size_t fat_idx,
     ZETA_DebugAssert(header != NULL);
     ZETA_DebugAssert(disk != NULL);
 
-    u64_t idx = GetFATEntryIdx_(header, fat_idx, clus_num);
+    u64_t offset = GetFATEntryOffset_(header, fat_idx, clus_num);
 
     byte_t tmp[4];
     disk->Read(disk->context, idx, idx + 4, tmp);

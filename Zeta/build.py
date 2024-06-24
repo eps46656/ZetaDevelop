@@ -9,81 +9,27 @@ ZetaDevDir = os.path.abspath(f"{ZetaDir}/..").replace("\\", "/")
 import argparse
 
 sys.path.append(ZetaDevDir)
-from builder import *
+
+from Builder import *
+from Compiler import *
 
 DEBUG_MODE = 0
 RELEASE_MODE = 1
 
 def AddDeps(builder, ZetaBuildDir, verbose, mode):
-    c_include_dirs = []
-    cpp_include_dirs = []
+    compiler_config = EmptyClass
 
-    c_to_ll_args = [
-        "--verbose" if verbose else "",
-        "-std=c2x",
-        *[f"-I {ToPath(dir)}" for dir in c_include_dirs],
-        "-m64",
-        "-O3",
-    ]
+    compiler_config.verbose = verbose
+    compiler_config.mode = mode
+    compiler_config.build_dir = ZetaBuildDir
 
-    cpp_to_ll_args = [
-        "--verbose" if verbose else "",
-        "-std=c++17",
-        *[f"-I {ToPath(dir)}" for dir in cpp_include_dirs],
-        "-m64",
-        "-O3",
-    ]
+    compiler_config.target = EmptyClass
+    compiler_config.target.arch = target.arch
+    compiler_config.target.vendor = target.vendor
+    compiler_config.target.sys = target.sys
+    compiler_config.target.env = target.env
 
-    if mode == DEBUG_MODE:
-        c_to_ll_args += [
-            "-g",
-            "-D DEBUG",
-            "-Wall",
-            "-Wextra",
-            "-Werror",
-        ]
-
-        cpp_to_ll_args += [
-            "-g",
-            "-D DEBUG",
-            "-Wall",
-            "-Wextra",
-            "-Werror",
-        ]
-
-    def c_to_ll_func(dst, src):
-        os.makedirs(os.path.dirname(dst), exist_ok=True)
-
-        cmd = " ".join([
-            f"clang",
-            f"-o {ToPath(dst)}",
-            f"-emit-llvm -S",
-            *c_to_ll_args,
-            ToPath(src),
-        ])
-
-        HighLightPrint(f"cmd = {cmd}")
-
-        rc = os.system(cmd)
-
-        return rc
-
-    def cpp_to_ll_func(dst, src):
-        os.makedirs(os.path.dirname(dst), exist_ok=True)
-
-        cmd = " ".join([
-            f"clang++",
-            f"-o {ToPath(dst)}",
-            f"-emit-llvm -S",
-            *cpp_to_ll_args,
-            ToPath(src),
-        ])
-
-        HighLightPrint(f"cmd = {cmd}")
-
-        rc = os.system(cmd)
-
-        return rc
+    compiler = Compiler(compiler_config)
 
     # --------------------------------------------------------------------------
 
@@ -117,7 +63,7 @@ def AddDeps(builder, ZetaBuildDir, verbose, mode):
             f"{File}",
             f"{ZetaDir}/Algorithm.c",
         },
-        lambda : c_to_ll_func(
+        lambda : compiler.c_to_ll(
             f"{ZetaBuildDir}/Algorithm.ll",
             f"{ZetaDir}/Algorithm.c",
         )
@@ -147,7 +93,7 @@ def AddDeps(builder, ZetaBuildDir, verbose, mode):
             f"{File}",
             f"{ZetaDir}/Allocator.c",
         },
-        lambda : c_to_ll_func(
+        lambda : compiler.c_to_ll(
             f"{ZetaBuildDir}/Allocator.ll",
             f"{ZetaDir}/Allocator.c",
         )
@@ -178,7 +124,7 @@ def AddDeps(builder, ZetaBuildDir, verbose, mode):
             f"{File}",
             f"{ZetaDir}/BinHeap.c",
         },
-        lambda : c_to_ll_func(
+        lambda : compiler.c_to_ll(
             f"{ZetaBuildDir}/BinHeap.ll",
             f"{ZetaDir}/BinHeap.c",
         )
@@ -209,7 +155,7 @@ def AddDeps(builder, ZetaBuildDir, verbose, mode):
             f"{File}",
             f"{ZetaDir}/BinTree.c",
         },
-        lambda : c_to_ll_func(
+        lambda : compiler.c_to_ll(
             f"{ZetaBuildDir}/BinTree.ll",
             f"{ZetaDir}/BinTree.c",
         )
@@ -240,9 +186,41 @@ def AddDeps(builder, ZetaBuildDir, verbose, mode):
             f"{File}",
             f"{ZetaDir}/BlockVector.c",
         },
-        lambda : c_to_ll_func(
+        lambda : compiler.c_to_ll(
             f"{ZetaBuildDir}/BlockVector.ll",
             f"{ZetaDir}/BlockVector.c",
+        )
+    )
+
+    builder.Add(
+        f"{ZetaDir}/BTree.h",
+        {
+            f"{File}",
+            f"{ZetaDir}/define.h",
+        },
+        None
+    )
+
+    builder.Add(
+        f"{ZetaDir}/BTree.c",
+        {
+            f"{File}",
+            f"{ZetaDir}/BTree.h",
+            f"{ZetaDir}/CircularVector.h",
+            f"{ZetaDir}/utils.h",
+        },
+        None
+    )
+
+    builder.Add(
+        f"{ZetaBuildDir}/BTree.ll",
+        {
+            f"{File}",
+            f"{ZetaDir}/BTree.c",
+        },
+        lambda : compiler.c_to_ll(
+            f"{ZetaBuildDir}/BTree.ll",
+            f"{ZetaDir}/BTree.c",
         )
     )
 
@@ -270,7 +248,7 @@ def AddDeps(builder, ZetaBuildDir, verbose, mode):
             f"{File}",
             f"{ZetaDir}/CacheManager.c",
         },
-        lambda : c_to_ll_func(
+        lambda : compiler.c_to_ll(
             f"{ZetaBuildDir}/CacheManager.ll",
             f"{ZetaDir}/CacheManager.c",
         )
@@ -301,7 +279,7 @@ def AddDeps(builder, ZetaBuildDir, verbose, mode):
             f"{File}",
             f"{ZetaDir}/CircularVector.c",
         },
-        lambda : c_to_ll_func(
+        lambda : compiler.c_to_ll(
             f"{ZetaBuildDir}/CircularVector.ll",
             f"{ZetaDir}/CircularVector.c",
         )
@@ -331,7 +309,7 @@ def AddDeps(builder, ZetaBuildDir, verbose, mode):
             f"{File}",
             f"{ZetaDir}/CRC.c",
         },
-        lambda : c_to_ll_func(
+        lambda : compiler.c_to_ll(
             f"{ZetaBuildDir}/CRC.ll",
             f"{ZetaDir}/CRC.c",
         )
@@ -370,7 +348,7 @@ def AddDeps(builder, ZetaBuildDir, verbose, mode):
             f"{File}",
             f"{ZetaDir}/DateTime.c",
         },
-        lambda : c_to_ll_func(
+        lambda : compiler.c_to_ll(
             f"{ZetaBuildDir}/DateTime.ll",
             f"{ZetaDir}/DateTime.c",
         )
@@ -401,7 +379,7 @@ def AddDeps(builder, ZetaBuildDir, verbose, mode):
             f"{File}",
             f"{ZetaDir}/DebugDeque.cpp",
         },
-        lambda : cpp_to_ll_func(
+        lambda : compiler.cpp_to_ll(
             f"{ZetaBuildDir}/DebugDeque.ll",
             f"{ZetaDir}/DebugDeque.cpp",
         )
@@ -431,7 +409,7 @@ def AddDeps(builder, ZetaBuildDir, verbose, mode):
             f"{File}",
             f"{ZetaDir}/DebugHashMap.cpp",
         },
-        lambda : cpp_to_ll_func(
+        lambda : compiler.cpp_to_ll(
             f"{ZetaBuildDir}/DebugHashMap.ll",
             f"{ZetaDir}/DebugHashMap.cpp",
         )
@@ -461,7 +439,7 @@ def AddDeps(builder, ZetaBuildDir, verbose, mode):
             f"{File}",
             f"{ZetaDir}/DebugPipe.cpp",
         },
-        lambda : cpp_to_ll_func(
+        lambda : compiler.cpp_to_ll(
             f"{ZetaBuildDir}/DebugPipe.ll",
             f"{ZetaDir}/DebugPipe.cpp",
         )
@@ -510,7 +488,7 @@ def AddDeps(builder, ZetaBuildDir, verbose, mode):
             f"{File}",
             f"{ZetaDir}/DiskInfo.c",
         },
-        lambda : c_to_ll_func(
+        lambda : compiler.c_to_ll(
             f"{ZetaBuildDir}/DiskInfo.ll",
             f"{ZetaDir}/DiskInfo.c",
         )
@@ -541,7 +519,7 @@ def AddDeps(builder, ZetaBuildDir, verbose, mode):
             f"{File}",
             f"{ZetaDir}/DiskPartGPT.c",
         },
-        lambda : c_to_ll_func(
+        lambda : compiler.c_to_ll(
             f"{ZetaBuildDir}/DiskPartGPT.ll",
             f"{ZetaDir}/DiskPartGPT.c",
         )
@@ -572,7 +550,7 @@ def AddDeps(builder, ZetaBuildDir, verbose, mode):
             f"{File}",
             f"{ZetaDir}/DiskPartMBR.c",
         },
-        lambda : c_to_ll_func(
+        lambda : compiler.c_to_ll(
             f"{ZetaBuildDir}/DiskPartMBR.ll",
             f"{ZetaDir}/DiskPartMBR.c",
         )
@@ -603,7 +581,7 @@ def AddDeps(builder, ZetaBuildDir, verbose, mode):
             f"{File}",
             f"{ZetaDir}/DummyBlockVector.c",
         },
-        lambda : c_to_ll_func(
+        lambda : compiler.c_to_ll(
             f"{ZetaBuildDir}/DummyBlockVector.ll",
             f"{ZetaDir}/DummyBlockVector.c",
         )
@@ -633,9 +611,43 @@ def AddDeps(builder, ZetaBuildDir, verbose, mode):
             f"{File}",
             f"{ZetaDir}/DummyCacheManager.c",
         },
-        lambda : c_to_ll_func(
+        lambda : compiler.c_to_ll(
             f"{ZetaBuildDir}/DummyCacheManager.ll",
             f"{ZetaDir}/DummyCacheManager.c",
+        )
+    )
+
+    builder.Add(
+        f"{ZetaDir}/DummyVector.h",
+        {
+            f"{File}",
+            f"{ZetaDir}/SeqContainer.h",
+        },
+        None
+    )
+
+    builder.Add(
+        f"{ZetaDir}/DummyVector.c",
+        {
+            f"{File}",
+            f"{ZetaDir}/DummyVector.h",
+
+            f"{ZetaDir}/CircularVector.h",
+            f"{ZetaDir}/RBTree.h",
+            f"{ZetaDir}/utils.h",
+        },
+        None
+    )
+
+    builder.Add(
+        f"{ZetaBuildDir}/DummyVector.ll",
+        {
+            f"{File}",
+            f"{ZetaDir}/DummyVector.c",
+        },
+        lambda : compiler.c_to_ll(
+            f"{ZetaBuildDir}/DummyVector.ll",
+            f"{ZetaDir}/DummyVector.c",
         )
     )
 
@@ -671,7 +683,7 @@ def AddDeps(builder, ZetaBuildDir, verbose, mode):
             f"{File}",
             f"{ZetaDir}/DiffLinkedListNode.c",
         },
-        lambda : c_to_ll_func(
+        lambda : compiler.c_to_ll(
             f"{ZetaBuildDir}/DiffLinkedListNode.ll",
             f"{ZetaDir}/DiffLinkedListNode.c",
         )
@@ -702,7 +714,7 @@ def AddDeps(builder, ZetaBuildDir, verbose, mode):
             f"{File}",
             f"{ZetaDir}/ELF.c",
         },
-        lambda : c_to_ll_func(
+        lambda : compiler.c_to_ll(
             f"{ZetaBuildDir}/ELF.ll",
             f"{ZetaDir}/ELF.c",
         )
@@ -734,7 +746,7 @@ def AddDeps(builder, ZetaBuildDir, verbose, mode):
             f"{File}",
             f"{ZetaDir}/OrdBinTreeNode.c",
         },
-        lambda : c_to_ll_func(
+        lambda : compiler.c_to_ll(
             f"{ZetaBuildDir}/OrdBinTreeNode.ll",
             f"{ZetaDir}/OrdBinTreeNode.c",
         )
@@ -764,7 +776,7 @@ def AddDeps(builder, ZetaBuildDir, verbose, mode):
             f"{File}",
             f"{ZetaDir}/OrdLinkedListNode.c",
         },
-        lambda : c_to_ll_func(
+        lambda : compiler.c_to_ll(
             f"{ZetaBuildDir}/OrdLinkedListNode.ll",
             f"{ZetaDir}/OrdLinkedListNode.c",
         )
@@ -794,7 +806,7 @@ def AddDeps(builder, ZetaBuildDir, verbose, mode):
             f"{File}",
             f"{ZetaDir}/OrdRBLinkedListNode.c",
         },
-        lambda : c_to_ll_func(
+        lambda : compiler.c_to_ll(
             f"{ZetaBuildDir}/OrdRBLinkedListNode.ll",
             f"{ZetaDir}/OrdRBLinkedListNode.c",
         )
@@ -826,7 +838,7 @@ def AddDeps(builder, ZetaBuildDir, verbose, mode):
             f"{File}",
             f"{ZetaDir}/DynamicVector.c",
         },
-        lambda : c_to_ll_func(
+        lambda : compiler.c_to_ll(
             f"{ZetaBuildDir}/DynamicVector.ll",
             f"{ZetaDir}/DynamicVector.c",
         )
@@ -856,7 +868,7 @@ def AddDeps(builder, ZetaBuildDir, verbose, mode):
             f"{File}",
             f"{ZetaDir}/FileSysFAT32.c",
         },
-        lambda : c_to_ll_func(
+        lambda : compiler.c_to_ll(
             f"{ZetaBuildDir}/FileSysFAT32.ll",
             f"{ZetaDir}/FileSysFAT32.c",
         )
@@ -886,7 +898,7 @@ def AddDeps(builder, ZetaBuildDir, verbose, mode):
             f"{File}",
             f"{ZetaDir}/MultiLevelTable.c",
         },
-        lambda : c_to_ll_func(
+        lambda : compiler.c_to_ll(
             f"{ZetaBuildDir}/MultiLevelTable.ll",
             f"{ZetaDir}/MultiLevelTable.c",
         )
@@ -916,7 +928,7 @@ def AddDeps(builder, ZetaBuildDir, verbose, mode):
             f"{File}",
             f"{ZetaDir}/io.c",
         },
-        lambda : c_to_ll_func(
+        lambda : compiler.c_to_ll(
             f"{ZetaBuildDir}/io.ll",
             f"{ZetaDir}/io.c",
         )
@@ -956,7 +968,7 @@ def AddDeps(builder, ZetaBuildDir, verbose, mode):
             f"{File}",
             f"{ZetaDir}/LRUCacheManager.c",
         },
-        lambda : c_to_ll_func(
+        lambda : compiler.c_to_ll(
             f"{ZetaBuildDir}/LRUCacheManager.ll",
             f"{ZetaDir}/LRUCacheManager.c",
         )
@@ -986,7 +998,7 @@ def AddDeps(builder, ZetaBuildDir, verbose, mode):
             f"{File}",
             f"{ZetaDir}/MultiLevelHashTable.c",
         },
-        lambda : c_to_ll_func(
+        lambda : compiler.c_to_ll(
             f"{ZetaBuildDir}/MultiLevelHashTable.ll",
             f"{ZetaDir}/MultiLevelHashTable.c",
         )
@@ -1016,7 +1028,7 @@ def AddDeps(builder, ZetaBuildDir, verbose, mode):
             f"{File}",
             f"{ZetaDir}/NearCntRBTreeNode.c",
         },
-        lambda : c_to_ll_func(
+        lambda : compiler.c_to_ll(
             f"{ZetaBuildDir}/NearCntRBTreeNode.ll",
             f"{ZetaDir}/NearCntRBTreeNode.c",
         )
@@ -1046,7 +1058,7 @@ def AddDeps(builder, ZetaBuildDir, verbose, mode):
             f"{File}",
             f"{ZetaDir}/NearRBTreeNode.c",
         },
-        lambda : c_to_ll_func(
+        lambda : compiler.c_to_ll(
             f"{ZetaBuildDir}/NearRBTreeNode.ll",
             f"{ZetaDir}/NearRBTreeNode.c",
         )
@@ -1085,7 +1097,7 @@ def AddDeps(builder, ZetaBuildDir, verbose, mode):
             f"{File}",
             f"{ZetaDir}/OrdRBTreeNode.c",
         },
-        lambda : c_to_ll_func(
+        lambda : compiler.c_to_ll(
             f"{ZetaBuildDir}/OrdRBTreeNode.ll",
             f"{ZetaDir}/OrdRBTreeNode.c",
         )
@@ -1115,7 +1127,7 @@ def AddDeps(builder, ZetaBuildDir, verbose, mode):
             f"{File}",
             f"{ZetaDir}/OrdCnt3RBTreeNode.c",
         },
-        lambda : c_to_ll_func(
+        lambda : compiler.c_to_ll(
             f"{ZetaBuildDir}/OrdCnt3RBTreeNode.ll",
             f"{ZetaDir}/OrdCnt3RBTreeNode.c",
         )
@@ -1145,7 +1157,7 @@ def AddDeps(builder, ZetaBuildDir, verbose, mode):
             f"{File}",
             f"{ZetaDir}/OrdCntRBTreeNode.c",
         },
-        lambda : c_to_ll_func(
+        lambda : compiler.c_to_ll(
             f"{ZetaBuildDir}/OrdCntRBTreeNode.ll",
             f"{ZetaDir}/OrdCntRBTreeNode.c",
         )
@@ -1175,9 +1187,42 @@ def AddDeps(builder, ZetaBuildDir, verbose, mode):
             f"{File}",
             f"{ZetaDir}/PoolAllocator.c",
         },
-        lambda : c_to_ll_func(
+        lambda : compiler.c_to_ll(
             f"{ZetaBuildDir}/PoolAllocator.ll",
             f"{ZetaDir}/PoolAllocator.c",
+        )
+    )
+
+    builder.Add(
+        f"{ZetaDir}/QTree.h",
+        {
+            f"{File}",
+            f"{ZetaDir}/define.h",
+        },
+        None
+    )
+
+    builder.Add(
+        f"{ZetaDir}/QTree.c",
+        {
+            f"{File}",
+            f"{ZetaDir}/QTree.h",
+            f"{ZetaDir}/CircularVector.h",
+            f"{ZetaDir}/SegUtils.h",
+            f"{ZetaDir}/utils.h",
+        },
+        None
+    )
+
+    builder.Add(
+        f"{ZetaBuildDir}/QTree.ll",
+        {
+            f"{File}",
+            f"{ZetaDir}/QTree.c",
+        },
+        lambda : compiler.c_to_ll(
+            f"{ZetaBuildDir}/QTree.ll",
+            f"{ZetaDir}/QTree.c",
         )
     )
 
@@ -1205,7 +1250,7 @@ def AddDeps(builder, ZetaBuildDir, verbose, mode):
             f"{File}",
             f"{ZetaDir}/random.c",
         },
-        lambda : c_to_ll_func(
+        lambda : compiler.c_to_ll(
             f"{ZetaBuildDir}/random.ll",
             f"{ZetaDir}/random.c",
         )
@@ -1236,7 +1281,7 @@ def AddDeps(builder, ZetaBuildDir, verbose, mode):
             f"{File}",
             f"{ZetaDir}/RBTree.c",
         },
-        lambda : c_to_ll_func(
+        lambda : compiler.c_to_ll(
             f"{ZetaBuildDir}/RBTree.ll",
             f"{ZetaDir}/RBTree.c",
         )
@@ -1268,7 +1313,7 @@ def AddDeps(builder, ZetaBuildDir, verbose, mode):
             f"{File}",
             f"{ZetaDir}/SegList.c",
         },
-        lambda : c_to_ll_func(
+        lambda : compiler.c_to_ll(
             f"{ZetaBuildDir}/SegList.ll",
             f"{ZetaDir}/SegList.c",
         )
@@ -1307,9 +1352,40 @@ def AddDeps(builder, ZetaBuildDir, verbose, mode):
             f"{File}",
             f"{ZetaDir}/SegVector.c",
         },
-        lambda : c_to_ll_func(
+        lambda : compiler.c_to_ll(
             f"{ZetaBuildDir}/SegVector.ll",
             f"{ZetaDir}/SegVector.c",
+        )
+    )
+
+    builder.Add(
+        f"{ZetaDir}/SegUtils.h",
+        {
+            f"{File}",
+            f"{ZetaDir}/CircularVector.h",
+        },
+        None
+    )
+
+    builder.Add(
+        f"{ZetaDir}/SegUtils.c",
+        {
+            f"{File}",
+            f"{ZetaDir}/SegUtils.h",
+            f"{ZetaDir}/utils.h",
+        },
+        None
+    )
+
+    builder.Add(
+        f"{ZetaBuildDir}/SegUtils.ll",
+        {
+            f"{File}",
+            f"{ZetaDir}/SegUtils.c",
+        },
+        lambda : compiler.c_to_ll(
+            f"{ZetaBuildDir}/SegUtils.ll",
+            f"{ZetaDir}/SegUtils.c",
         )
     )
 
@@ -1334,6 +1410,7 @@ def AddDeps(builder, ZetaBuildDir, verbose, mode):
 
             f"{ZetaDir}/CircularVector.h",
             f"{ZetaDir}/RBTree.h",
+            f"{ZetaDir}/SegUtils.h",
             f"{ZetaDir}/utils.h",
         },
         None
@@ -1345,7 +1422,7 @@ def AddDeps(builder, ZetaBuildDir, verbose, mode):
             f"{File}",
             f"{ZetaDir}/StageVector.c",
         },
-        lambda : c_to_ll_func(
+        lambda : compiler.c_to_ll(
             f"{ZetaBuildDir}/StageVector.ll",
             f"{ZetaDir}/StageVector.c",
         )
@@ -1375,7 +1452,7 @@ def AddDeps(builder, ZetaBuildDir, verbose, mode):
             f"{File}",
             f"{ZetaDir}/SeqContainer.c",
         },
-        lambda : c_to_ll_func(
+        lambda : compiler.c_to_ll(
             f"{ZetaBuildDir}/SeqContainer.ll",
             f"{ZetaDir}/SeqContainer.c",
         )
@@ -1406,7 +1483,7 @@ def AddDeps(builder, ZetaBuildDir, verbose, mode):
             f"{File}",
             f"{ZetaDir}/SHA256.c",
         },
-        lambda : c_to_ll_func(
+        lambda : compiler.c_to_ll(
             f"{ZetaBuildDir}/SHA256.ll",
             f"{ZetaDir}/SHA256.c",
         )
@@ -1437,7 +1514,7 @@ def AddDeps(builder, ZetaBuildDir, verbose, mode):
             f"{File}",
             f"{ZetaDir}/SlabAllocator.c",
         },
-        lambda : c_to_ll_func(
+        lambda : compiler.c_to_ll(
             f"{ZetaBuildDir}/SlabAllocator.ll",
             f"{ZetaDir}/SlabAllocator.c",
         )
@@ -1467,7 +1544,7 @@ def AddDeps(builder, ZetaBuildDir, verbose, mode):
             f"{File}",
             f"{ZetaDir}/Stream.c",
         },
-        lambda : c_to_ll_func(
+        lambda : compiler.c_to_ll(
             f"{ZetaBuildDir}/Stream.ll",
             f"{ZetaDir}/Stream.c",
         )
@@ -1504,7 +1581,7 @@ def AddDeps(builder, ZetaBuildDir, verbose, mode):
             f"{File}",
             f"{ZetaDir}/TreeAllocator.c",
         },
-        lambda : c_to_ll_func(
+        lambda : compiler.c_to_ll(
             f"{ZetaBuildDir}/TreeAllocator.ll",
             f"{ZetaDir}/TreeAllocator.c",
         )
@@ -1535,7 +1612,7 @@ def AddDeps(builder, ZetaBuildDir, verbose, mode):
             f"{File}",
             f"{ZetaDir}/UTF8.c",
         },
-        lambda : c_to_ll_func(
+        lambda : compiler.c_to_ll(
             f"{ZetaBuildDir}/UTF8.ll",
             f"{ZetaDir}/UTF8.c",
         )
@@ -1565,7 +1642,7 @@ def AddDeps(builder, ZetaBuildDir, verbose, mode):
             f"{File}",
             f"{ZetaDir}/UTF16.c",
         },
-        lambda : c_to_ll_func(
+        lambda : compiler.c_to_ll(
             f"{ZetaBuildDir}/UTF16.ll",
             f"{ZetaDir}/UTF16.c",
         )
@@ -1595,7 +1672,7 @@ def AddDeps(builder, ZetaBuildDir, verbose, mode):
             f"{File}",
             f"{ZetaDir}/utils.c",
         },
-        lambda : c_to_ll_func(
+        lambda : compiler.c_to_ll(
             f"{ZetaBuildDir}/utils.ll",
             f"{ZetaDir}/utils.c",
         )

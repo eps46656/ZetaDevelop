@@ -31,7 +31,7 @@ void* StdAllocator_Allocate(void* sa_, size_t size) {
     void* ptr = malloc(size);
 
 #if ZETA_IsDebug
-    bool b{ sa->records.insert({ ZETA_GetAddrFromPtr(ptr), size }).second };
+    bool b{ sa->records.insert({ ZETA_PtrToAddr(ptr), size }).second };
     ZETA_DebugAssert(b);
     sa->usage += size;
 #endif
@@ -46,7 +46,7 @@ void StdAllocator_Deallocate(void* sa_, void* ptr) {
     if (ptr == NULL) { return; }
 
 #if ZETA_IsDebug
-    auto iter{ sa->records.find(ZETA_GetAddrFromPtr(ptr)) };
+    auto iter{ sa->records.find(ZETA_PtrToAddr(ptr)) };
     ZETA_DebugAssert(iter != sa->records.end());
     sa->usage -= iter->second;
     sa->records.erase(iter);

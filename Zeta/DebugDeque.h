@@ -53,8 +53,7 @@ void Zeta_DebugDeque_PopR(void* dd);
 
 void Zeta_DebugDeque_Erase(void* dd, void* pos_cursor, size_t cnt);
 
-void Zeta_DebugDeque_EraseAll(void* dd, void* callback_context,
-                              void (*Callback)(void* context, void* ele));
+void Zeta_DebugDeque_EraseAll(void* dd);
 
 void Zeta_DebugDeque_Check(void* dd);
 

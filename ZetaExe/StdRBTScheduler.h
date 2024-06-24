@@ -70,7 +70,7 @@ std::pair<size_t, size_t> StdRBTScheduler::PopTask() {
     }
 
     void* ele = this->cur_iter_->second;
-    TaskNode* task_node{ ZETA_GetStructFromMember(TaskNode, n, ele) };
+    TaskNode* task_node{ ZETA_MemberToStruct(TaskNode, n, ele) };
 
     std::pair<size_t, size_t> ret{ this->cur_iter_->first, task_node->id };
 

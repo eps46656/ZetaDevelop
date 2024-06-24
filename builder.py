@@ -1,8 +1,8 @@
+from config import *
+from utils import *
+
 import os
 import time
-
-class EmptyClass:
-    pass
 
 def GetMTime(path):
     try:
@@ -15,13 +15,6 @@ def SetMTime(path, mtime):
         os.utime(path, (os.path.getmtime(path), mtime))
     except:
         pass
-
-def ToPath(path):
-    path = path.strip("\'\"")
-    return f"\"{path}\""
-
-def HighLightPrint(x):
-    print(f"\033[93m{x}\033[0m")
 
 def CheckAdjList(adj_list):
     # adj_list = {

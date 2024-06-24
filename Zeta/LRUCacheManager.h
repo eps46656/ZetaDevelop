@@ -31,7 +31,7 @@ struct Zeta_LRUCacheManager_SNode {
 };
 
 struct Zeta_LRUCacheManager_CNode {
-    size_t blk_idx;
+    size_t blk_num;
     void* frame;
 
     bool_t refered;
@@ -55,7 +55,7 @@ struct Zeta_LRUCacheManager_CNode {
 
 struct Zeta_LRUCacheManager_XNode {
     Zeta_OrdRBTreeNode at_node;
-    // in blk_idx order
+    // in blk_num order
 
     Zeta_OrdLinkedListNode al_node;
     // in lru order
@@ -93,9 +93,7 @@ struct Zeta_LRUCacheManager {
 
 void Zeta_LRUCacheManager_Init(void* lrucm);
 
-void Zeta_LRUCacheManager_GetBlockSize(void* lrucm);
-
-void Zeta_LRUCacheManager_GetBlockCnt(void* lrucm);
+size_t Zeta_LRUCacheManager_GetBlockSize(void* lrucm);
 
 void* Zeta_LRUCacheManager_Open(void* lrucm, size_t max_cache_cnt);
 
@@ -105,12 +103,12 @@ void Zeta_LRUCacheManager_SetMaxCacheCnt(void* lrucm, void* sd,
                                          size_t max_cache_cnt);
 
 void const* Zeta_LRUCacheManager_ReadBlock(void* lrucm, void* sd,
-                                           size_t blk_idx);
+                                           size_t blk_num);
 
-void Zeta_LRUCacheManager_WriteBlock(void* lrucm, void* sd, size_t blk_idx,
+void Zeta_LRUCacheManager_WriteBlock(void* lrucm, void* sd, size_t blk_num,
                                      void const* data);
 
-void Zeta_LRUCacheManager_FlushBlock(void* lrucm, size_t blk_idx);
+void Zeta_LRUCacheManager_FlushBlock(void* lrucm, size_t blk_num);
 
 void Zeta_LRUCacheManager_Flush(void* lrucm, void* sd);
 

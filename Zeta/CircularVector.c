@@ -308,7 +308,7 @@ void* Zeta_CircularVector_Insert(void* cv_, void* pos_cursor_, size_t cnt) {
     size_t r_size = size - idx;
 
     size_t rand_seed =
-        ZETA_GetAddrFromPtr(data) + ZETA_GetAddrFromPtr(pos_cursor) + idx + cnt;
+        ZETA_PtrToAddr(data) + ZETA_PtrToAddr(pos_cursor) + idx + cnt;
 
     if ((l_size < r_size) ||
         (l_size == r_size && Zeta_SimpleRandomRotate(&rand_seed) % 2 == 0)) {
@@ -384,7 +384,7 @@ void Zeta_CircularVector_Erase(void* cv_, void* pos_cursor_, size_t cnt) {
     size_t r_size = size - idx - cnt;
 
     size_t rand_seed =
-        ZETA_GetAddrFromPtr(data) + ZETA_GetAddrFromPtr(pos_cursor) + idx + cnt;
+        ZETA_PtrToAddr(data) + ZETA_PtrToAddr(pos_cursor) + idx + cnt;
 
     if ((l_size < r_size) ||
         (l_size == r_size && Zeta_SimpleRandomRotate(&rand_seed) % 2 == 0)) {
@@ -411,23 +411,9 @@ void Zeta_CircularVector_Erase(void* cv_, void* pos_cursor_, size_t cnt) {
     }
 }
 
-void Zeta_CircularVector_EraseAll(void* cv_, void* callback_context,
-                                  void (*Callback)(void* context, void* ele)) {
+void Zeta_CircularVector_EraseAll(void* cv_) {
     Zeta_CircularVector* cv = cv_;
     Zeta_CircularVector_Check(cv);
-
-    if (Callback != NULL) {
-        void* data = cv->data;
-        size_t stride = cv->stride;
-        size_t offset = cv->offset;
-        size_t size = cv->size;
-        size_t capacity = cv->capacity;
-
-        for (size_t i = 0; i < size; ++i) {
-            Callback(callback_context,
-                     Refer_(data, stride, offset, i, capacity));
-        }
-    }
 
     cv->offset = 0;
     cv->size = 0;

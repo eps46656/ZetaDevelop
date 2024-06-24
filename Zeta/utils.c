@@ -62,15 +62,40 @@ void* Zeta_MemRotate(void* beg_, void* mid_, void* end_) {
     return ret;
 }
 
+unsigned long long Zeta_ReadLittleEndianStd(byte_t const* data,
+                                            unsigned int length) {
+    ZETA_DebugAssert(data != NULL);
+    ZETA_DebugAssert(8 * length <= ZETA_WidthOf(u128_t));
+
+    unsigned long long ret = 0;
+
+    for (unsigned int i = length; 0 < i--;) { ret = ret * 256 + data[i]; }
+
+    return ret;
+}
+
 u128_t Zeta_ReadLittleEndian(byte_t const* data, unsigned int length) {
     ZETA_DebugAssert(data != NULL);
-    ZETA_DebugAssert(length <= sizeof(u128_t));
+    ZETA_DebugAssert(8 * length <= ZETA_WidthOf(u128_t));
 
     u128_t ret = 0;
 
     for (unsigned int i = length; 0 < i--;) { ret = ret * 256 + data[i]; }
 
     return ret;
+}
+
+unsigned long long Zeta_WriteLittleEndianStd(byte_t* dst,
+                                             unsigned long long val,
+                                             unsigned int length) {
+    ZETA_DebugAssert(dst != NULL);
+
+    for (unsigned int i = 0; i < length; ++i) {
+        dst[i] = val % 256;
+        val /= 256;
+    }
+
+    return val;
 }
 
 u128_t Zeta_WriteLittleEndian(byte_t* dst, u128_t val, unsigned int length) {
@@ -84,15 +109,39 @@ u128_t Zeta_WriteLittleEndian(byte_t* dst, u128_t val, unsigned int length) {
     return val;
 }
 
+unsigned long long Zeta_ReadBigEndianStd(byte_t const* data,
+                                         unsigned int length) {
+    ZETA_DebugAssert(data != NULL);
+    ZETA_DebugAssert(8 * length <= ZETA_WidthOf(unsigned long long));
+
+    unsigned long long ret = 0;
+
+    for (unsigned int i = 0; i < length; ++i) { ret = ret * 256 + data[i]; }
+
+    return ret;
+}
+
 u128_t Zeta_ReadBigEndian(byte_t const* data, unsigned int length) {
     ZETA_DebugAssert(data != NULL);
-    ZETA_DebugAssert(length <= sizeof(u128_t));
+    ZETA_DebugAssert(8 * length <= ZETA_WidthOf(u128_t));
 
     u128_t ret = 0;
 
     for (unsigned int i = 0; i < length; ++i) { ret = ret * 256 + data[i]; }
 
     return ret;
+}
+
+unsigned long long Zeta_WriteBigEndianStd(byte_t* dst, unsigned long long val,
+                                          unsigned int length) {
+    ZETA_DebugAssert(dst != NULL);
+
+    for (unsigned int i = length; 0 < i--;) {
+        dst[i] = val % 256;
+        val /= 256;
+    }
+
+    return val;
 }
 
 u128_t Zeta_WriteBigEndian(byte_t* dst, u128_t val, unsigned int length) {
@@ -106,30 +155,30 @@ u128_t Zeta_WriteBigEndian(byte_t* dst, u128_t val, unsigned int length) {
     return val;
 }
 
-size_t Zeta_SimpleRandom(size_t x) {
-    size_t mask = 0xFFFF;  // 2^16 - 1
-    size_t a = 25214903917;
-    size_t c = 11;
+unsigned long long Zeta_SimpleRandom(unsigned long long x) {
+    unsigned long long mask = 0xFFFF;  // 2^16 - 1
+    unsigned long long a = 25214903917;
+    unsigned long long c = 11;
 
     return ((x * a + c) >> 16) & mask;
 }
 
-size_t Zeta_SimpleRandomRotate(size_t* x) {
-    size_t m = 0x80000000;
-    size_t a = 0x41C64E6D;
-    size_t c = 3039;
+unsigned long long Zeta_SimpleRandomRotate(unsigned long long* x) {
+    unsigned long long m = 0x80000000;
+    unsigned long long a = 0x41C64E6D;
+    unsigned long long c = 3039;
 
     return (*x = (*x * a + c) % m) / 0x10000;
 }
 
-size_t Zeta_SimpleHash(size_t x) {
-    x = (x ^ (x >> 30)) * (size_t)0xbf58476d1ce4e5b9;
-    x = (x ^ (x >> 27)) * (size_t)0x94d049bb133111eb;
+unsigned long long Zeta_SimpleHash(unsigned long long x) {
+    x = (x ^ (x >> 30)) * (unsigned long long)0xbf58476d1ce4e5b9;
+    x = (x ^ (x >> 27)) * (unsigned long long)0x94d049bb133111eb;
     x = x ^ (x >> 31);
     return x;
 }
 
-size_t Zeta_GetGCD(size_t x, size_t y) {
+unsigned long long Zeta_GetGCD(unsigned long long x, unsigned long long y) {
     if (x == 0 && y == 0) { return 1; }
 
     for (;;) {
@@ -140,10 +189,13 @@ size_t Zeta_GetGCD(size_t x, size_t y) {
     }
 }
 
-size_t Zeta_GetLCM(size_t x, size_t y) { return x / Zeta_GetGCD(x, y) * y; }
+unsigned long long Zeta_GetLCM(unsigned long long x, unsigned long long y) {
+    return x / Zeta_GetGCD(x, y) * y;
+}
 
-size_t Zeta_GetPower(size_t base, size_t exp) {
-    size_t ret = 1;
+unsigned long long Zeta_GetPower(unsigned long long base,
+                                 unsigned long long exp) {
+    unsigned long long ret = 1;
 
     for (; 0 < exp; exp /= 2) {
         if (exp % 2 == 1) { ret *= base; }
@@ -153,18 +205,21 @@ size_t Zeta_GetPower(size_t base, size_t exp) {
     return ret;
 }
 
-size_t Zeta_GetMulMod(size_t x, size_t y, size_t mod) {
+unsigned long long Zeta_GetMulMod(unsigned long long x, unsigned long long y,
+                                  unsigned long long mod) {
     ZETA_DebugAssert(0 < mod);
-    ZETA_DebugAssert(mod <= ZETA_GetMaxMod(size_t));
+    ZETA_DebugAssert(mod <= ZETA_GetMaxMod(unsigned long long));
 
     x %= mod;
     y %= mod;
 
-    if (x == 0 || y <= ZETA_GetRangeMax(size_t) / x) { return (x * y) % mod; }
+    if (x == 0 || y <= ZETA_RangeMaxOf(unsigned long long) / x) {
+        return (x * y) % mod;
+    }
 
     if (x < y) { ZETA_Swap(x, y); }
 
-    size_t ret = 0;
+    unsigned long long ret = 0;
 
     for (; 0 < y; y /= 2) {
         if (y % 2 == 1) { ret = (ret + x) % mod; }
@@ -174,15 +229,17 @@ size_t Zeta_GetMulMod(size_t x, size_t y, size_t mod) {
     return ret;
 }
 
-size_t Zeta_GetPowerMod(size_t base, size_t exp, size_t mod) {
+unsigned long long Zeta_GetPowerMod(unsigned long long base,
+                                    unsigned long long exp,
+                                    unsigned long long mod) {
     ZETA_DebugAssert(0 < mod);
-    ZETA_DebugAssert(mod <= ZETA_GetMaxMod(size_t));
+    ZETA_DebugAssert(mod <= ZETA_GetMaxMod(unsigned long long));
 
     base %= mod;
 
     if (base == 0) { return 0; }
 
-    size_t ret = 1;
+    unsigned long long ret = 1;
 
     for (; 0 < exp; exp /= 2) {
         if (exp % 2 == 1) { ret = Zeta_GetMulMod(ret, base, mod); }
@@ -192,84 +249,72 @@ size_t Zeta_GetPowerMod(size_t base, size_t exp, size_t mod) {
     return ret;
 }
 
-int Zeta_GetLogFloor(size_t val, size_t base) {
+unsigned int Zeta_GetFloorLog(unsigned long long val, unsigned long long base) {
     ZETA_DebugAssert(0 < val);
     ZETA_DebugAssert(1 < base);
 
-    int ret = 0;
+    unsigned int ret = 0;
 
-    for (; base <= val; val /= base) { ++ret; }
+    if (ZETA_WidthOf(unsigned long long) / base < base) { goto L1; }
+
+    unsigned long long base_2 = base * base;
+    if (ZETA_WidthOf(unsigned long long) / base_2 < base_2) { goto L2; }
+
+    unsigned long long base_4 = base_2 * base_2;
+
+    for (; base_4 <= val; val /= base_4) { ret += 4; }
+
+L2:;
+    for (; base_2 <= val; val /= base_2) { ret += 2; }
+
+L1:;
+    for (; base <= val; val /= base) { ret += 1; }
 
     return ret;
 }
 
-int Zeta_GetLogCeil(size_t val, size_t base) {
+unsigned int Zeta_GetCeilLog(unsigned long long val, unsigned long long base) {
     ZETA_DebugAssert(0 < val);
     ZETA_DebugAssert(1 < base);
 
-    int ret = 0;
+    unsigned int ret = 0;
 
-    for (; 1 < val; val /= base) { ++ret; }
+    if (ZETA_WidthOf(unsigned long long) / base < base) { goto L1; }
+
+    unsigned long long base_2 = base * base;
+    if (ZETA_WidthOf(unsigned long long) / base_2 < base_2) { goto L2; }
+
+    unsigned long long base_4 = base_2 * base_2;
+
+    for (; base_4 <= val; val /= base_4) { ret += 4; }
+
+L2:;
+    for (; base_2 <= val; val /= base_2) { ret += 2; }
+
+L1:;
+    for (; base <= val; val /= base) { ret += 1; }
+
+    return ret + (1 < val);
+}
+
+unsigned long long Zeta_GetFloorSqrt(unsigned long long val) {
+    if (val <= 1) { return val; }
+
+    unsigned long long ret = val / 2;
+
+    for (;;) {
+        unsigned long long nxt = (val / ret + ret - 1) / 2 + 1;
+        if (nxt < ret) { continue; }
+    }
 
     return ret;
 }
 
-size_t Zeta_FindNextConMod(size_t beg, size_t target, size_t mod) {
+unsigned long long Zeta_FindNextConMod(unsigned long long beg,
+                                       unsigned long long target,
+                                       unsigned long long mod) {
     ZETA_DebugAssert(0 < mod);
     return beg + (target + mod - beg % mod) % mod;
-}
-
-int Zeta_GetLSB(size_t x) {
-    if (x == 0) { return -1; }
-
-    const int table[] = { 0, 0, 1, 0, 2, 0, 1, 0, 3, 0, 1, 0, 2, 0, 1, 0 };
-
-    int ret = 0;
-
-    size_t tmp;
-
-    for (; (tmp = x % 65536) == 0; x /= 65536) { ret += 16; }
-
-    if ((tmp = x % 256) == 0) {
-        ret += 8;
-        x /= 256;
-    } else {
-        x = tmp;
-    }
-
-    if ((tmp = x % 16) == 0) {
-        ret += 4;
-        x /= 16;
-    } else {
-        x = tmp;
-    }
-
-    return ret + table[x % 16];
-}
-
-int Zeta_GetMSB(size_t x) {
-    if (x == 0) { return -1; }
-
-    const int table[] = { 0, 0, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 3, 3 };
-
-    int ret = 0;
-
-    if (65536 <= x) {
-        ret += 16;
-        x /= 65536;
-    }
-
-    if (256 <= x) {
-        ret += 8;
-        x /= 256;
-    }
-
-    if (16 <= x) {
-        ret += 4;
-        x /= 16;
-    }
-
-    return ret + table[x];
 }
 
 void* Zeta_GetMostLink(void* context, void* (*GetLink)(void* context, void* n),

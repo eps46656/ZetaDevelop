@@ -5,7 +5,7 @@
 
 ZETA_ExternC_Beg;
 
-#define ZETA_CircularVector_max_capacity (ZETA_GetRangeMax(size_t) / 2 + 1)
+#define ZETA_CircularVector_max_capacity (ZETA_RangeMaxOf(size_t) / 2 + 1)
 
 ZETA_DeclareStruct(Zeta_CircularVector);
 ZETA_DeclareStruct(Zeta_CircularVector_Cursor);
@@ -68,8 +68,7 @@ void Zeta_CircularVector_PopR(void* cv);
 
 void Zeta_CircularVector_Erase(void* cv, void* pos_cursor, size_t cnt);
 
-void Zeta_CircularVector_EraseAll(void* cv, void* callback_context,
-                                  void (*Callback)(void* context, void* ele));
+void Zeta_CircularVector_EraseAll(void* cv);
 
 void Zeta_CircularVector_Check(void* cv);
 

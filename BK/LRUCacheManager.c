@@ -95,7 +95,7 @@ void* Zeta_LRUCacheManager_Pop(void* lrucm_) {
     if (&lrucm->n_list_head == target_n) { return NULL; }
 
     Zeta_LRUCacheManager_Node* target_node =
-        ZETA_GetStructFromMember(Zeta_LRUCacheManager_Node, n, target_n);
+        ZETA_MemberToStruct(Zeta_LRUCacheManager_Node, n, target_n);
 
     Zeta_OrdLinkedListNode_Extract(target_n);
 
@@ -124,7 +124,7 @@ void Zeta_LRUCacheManager_PrintState(void* lrucm_) {
         if (n == &lrucm->n_list_head) { continue; }
 
         Zeta_LRUCacheManager_Node* node =
-            ZETA_GetStructFromMember(Zeta_LRUCacheManager_Node, n, n);
+            ZETA_MemberToStruct(Zeta_LRUCacheManager_Node, n, n);
 
         printf("(%llu, %p), ", node->key, node->frame);
     }

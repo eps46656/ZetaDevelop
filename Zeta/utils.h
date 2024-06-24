@@ -45,7 +45,31 @@ void* Zeta_MemRotate(void* beg, void* mid, void* end);
  *
  * @return The read integer
  */
+unsigned long long Zeta_ReadLittleEndianStd(byte_t const* data,
+                                            unsigned int length);
+
+/**
+ * @brief Read little endian stored length bytes occupying integer from data.
+ *
+ * @param data The byte array stores integer.
+ * @param length The number of bytes the integer occupied.
+ *
+ * @return The read integer
+ */
 u128_t Zeta_ReadLittleEndian(byte_t const* data, unsigned int length);
+
+/**
+ * @brief Write an integer to data in little endian occupying length bytes.
+ *
+ * @param dst The destination byte array.
+ * @param length The number of bytes the integer occupied.
+ * @param val The target integer.
+ *
+ * @return The remaining value after
+ */
+unsigned long long Zeta_WriteLittleEndianStd(byte_t* dst,
+                                             unsigned long long val,
+                                             unsigned int length);
 
 /**
  * @brief Write an integer to data in little endian occupying length bytes.
@@ -66,7 +90,28 @@ u128_t Zeta_WriteLittleEndian(byte_t* dst, u128_t val, unsigned int length);
  *
  * @return The read integer
  */
+unsigned long long Zeta_ReadBigEndianStd(byte_t const* data,
+                                         unsigned int length);
+
+/**
+ * @brief Read big endian stored length bytes occupying integer from data.
+ *
+ * @param data The byte array stores integer.
+ * @param length The number of bytes the integer occupied.
+ *
+ * @return The read integer
+ */
 u128_t Zeta_ReadBigEndian(byte_t const* data, unsigned int length);
+
+/**
+ * @brief Write an integer to data in big endian occupying length bytes.
+ *
+ * @param dst The destination byte array.
+ * @param length The number of bytes the integer occupied.
+ * @param val The target integer.
+ */
+unsigned long long Zeta_WriteBigEndianStd(byte_t* dst, unsigned long long val,
+                                          unsigned int length);
 
 /**
  * @brief Write an integer to data in big endian occupying length bytes.
@@ -77,15 +122,15 @@ u128_t Zeta_ReadBigEndian(byte_t const* data, unsigned int length);
  */
 u128_t Zeta_WriteBigEndian(byte_t* dst, u128_t val, unsigned int length);
 
-size_t Zeta_SimpleRandom(size_t x);
+unsigned long long Zeta_SimpleRandom(unsigned long long x);
 
-size_t Zeta_SimpleRandomRotate(size_t* x);
+unsigned long long Zeta_SimpleRandomRotate(unsigned long long* x);
 
-size_t Zeta_SimpleHash(size_t x);
+unsigned long long Zeta_SimpleHash(unsigned long long x);
 
-size_t Zeta_GetGCD(size_t x, size_t y);
+unsigned long long Zeta_GetGCD(unsigned long long x, unsigned long long y);
 
-size_t Zeta_GetLCM(size_t x, size_t y);
+unsigned long long Zeta_GetLCM(unsigned long long x, unsigned long long y);
 
 /**
  * @brief Calculate base^exp.
@@ -95,7 +140,8 @@ size_t Zeta_GetLCM(size_t x, size_t y);
  *
  * @return base^exp.
  */
-size_t Zeta_GetPower(size_t base, size_t exp);
+unsigned long long Zeta_GetPower(unsigned long long base,
+                                 unsigned long long exp);
 
 /**
  * @brief Calculate base^exp % mod.
@@ -106,17 +152,19 @@ size_t Zeta_GetPower(size_t base, size_t exp);
  *
  * @return base^exp % mod.
  */
-size_t Zeta_GetPowerMod(size_t base, size_t exp, size_t mod);
+unsigned long long Zeta_GetPowerMod(unsigned long long base,
+                                    unsigned long long exp,
+                                    unsigned long long mod);
 
-int Zeta_GetLogFloor(size_t val, size_t base);
+unsigned int Zeta_GetFloorLog(unsigned long long val, unsigned long long base);
 
-int Zeta_GetLogCeil(size_t val, size_t base);
+unsigned int Zeta_GetCeilLog(unsigned long long val, unsigned long long base);
 
-size_t Zeta_FindNextConMod(size_t beg, size_t target, size_t mod);
+unsigned long long Zeta_GetSqrt(unsigned long long val);
 
-int Zeta_GetLSB(size_t x);
-
-int Zeta_GetMSB(size_t x);
+unsigned long long Zeta_FindNextConMod(unsigned long long beg,
+                                       unsigned long long target,
+                                       unsigned long long mod);
 
 void* Zeta_GetMostLink(void* context, void* (*GetLink)(void* context, void* n),
                        void* n);

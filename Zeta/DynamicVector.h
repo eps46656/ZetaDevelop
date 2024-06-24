@@ -120,8 +120,7 @@ void Zeta_DynamicVector_PopL(void* dv);
 void Zeta_DynamicVector_PopR(void* dv);
 
 /**
- * @brief Erase all existed entries. Call Callback for each entry  before
- * erased. If Callback is NULL, it will be ignored and not called.
+ * @brief Erase all existed entries.
  *
  * @param dv The target dv.
  */

@@ -286,7 +286,6 @@ void SC_EraseAll(Zeta_SeqContainer* seq_cntr) {
     }
 
     seq_cntr->EraseAll(seq_cntr->context, NULL, EraseAll_);
-
 }*/
 
 void SC_CheckIterator(Zeta_SeqContainer* seq_cntr, size_t idx_a, size_t idx_b) {
@@ -354,7 +353,7 @@ void SV_Check(Zeta_SeqContainer* seq_cntr) {
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 
-std::uniform_int_distribution<long long> size_generator{ 0, ZETA_GetRangeMax(
+std::uniform_int_distribution<long long> size_generator{ 0, ZETA_RangeMaxOf(
                                                                 long long) };
 
 size_t GetRandomIdx(size_t size) { return size_generator(en) % (size + 2) - 1; }

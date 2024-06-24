@@ -9,8 +9,6 @@ void Zeta_CacheManager_Init(Zeta_CacheManager* cm) {
 
     cm->GetBlockSize = NULL;
 
-    cm->GetBlockCnt = NULL;
-
     cm->SetMaxCacheCnt = NULL;
 
     cm->ReadBlock = NULL;

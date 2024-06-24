@@ -27,8 +27,8 @@ void Check() {
     Zeta_SlabAllocator_Check(&allocator_, &used_records, &released_records);
 
     for (auto iter{ ptrs.begin() }, end{ ptrs.end() }; iter != end; ++iter) {
-        bool_t b = Zeta_DebugHashMap_Erase(&released_records,
-                                           ZETA_GetAddrFromPtr(*iter));
+        bool_t b =
+            Zeta_DebugHashMap_Erase(&released_records, ZETA_PtrToAddr(*iter));
 
         ZETA_DebugAssert(b);
     }
@@ -45,7 +45,7 @@ void main1() {
     ZETA_PrintVar(seed);
 
     std::mt19937_64 en{ seed };
-    std::uniform_int_distribution<size_t> idx_generator{ 0, ZETA_GetRangeMax(
+    std::uniform_int_distribution<size_t> idx_generator{ 0, ZETA_RangeMaxOf(
                                                                 size_t) };
 
     StdAllocator_DeployAllocator(&std_allocator_, &std_allocator);

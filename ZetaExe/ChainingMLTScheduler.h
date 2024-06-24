@@ -125,8 +125,7 @@ std::pair<size_t, size_t> ChainingMLTScheduler::PopTask() {
 
     ZETA_DebugAssert(*this->cur_ele_ != NULL);
 
-    TaskNode* task_node{ ZETA_GetStructFromMember(TaskNode, n,
-                                                  *this->cur_ele_) };
+    TaskNode* task_node{ ZETA_MemberToStruct(TaskNode, n, *this->cur_ele_) };
 
     void* nxt_ele{ Zeta_OrdLinkedListNode_GetR(*this->cur_ele_) };
 

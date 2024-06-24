@@ -75,8 +75,8 @@ std::mt19937_64 rand_en;
 std::uniform_int_distribution<int> val_generator{ -64 * 1024 * 1024,
                                                   64 * 1024 * 1024 };
 
-std::uniform_int_distribution<size_t> size_generator{ 0, ZETA_GetRangeMax(
-                                                             size_t) };
+std::uniform_int_distribution<size_t> size_generator{ 0,
+                                                      ZETA_RangeMaxOf(size_t) };
 
 StdAllocator mlv_allocator;
 

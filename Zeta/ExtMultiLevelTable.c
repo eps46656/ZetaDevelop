@@ -2,8 +2,7 @@
 
 typedef u64_t uN_t;
 
-ZETA_StaticAssert(ZETA_ExtMultiLevelTable_max_branch_num <=
-                  ZETA_GetWidth(uN_t));
+ZETA_StaticAssert(ZETA_ExtMultiLevelTable_max_branch_num <= ZETA_WidthOf(uN_t));
 
 ZETA_StaticAssert(alignof(unsigned long long) % alignof(void*) == 0);
 
@@ -28,9 +27,9 @@ static void CheckIdxes_(void* mlt_, size_t const* idxes) {
     }
 }
 
-#define TestHot_(hot, idx)                                   \
-    (((uN_t)(hot[idx / ZETA_GetWidth(unsigned long long)]) & \
-      ((uN_t)1 << (idx % ZETA_GetWidth(unsigned long long)))) != 0)
+#define TestHot_(hot, idx)                                  \
+    (((uN_t)(hot[idx / ZETA_WidthOf(unsigned long long)]) & \
+      ((uN_t)1 << (idx % ZETA_WidthOf(unsigned long long)))) != 0)
 
 static int FindPrev_(unsigned long long hot, size_t branch_num, size_t idx) {
     if (idx == (size_t)(-1)) { return -1; }
@@ -40,7 +39,7 @@ static int FindPrev_(unsigned long long hot, size_t branch_num, size_t idx) {
         if (hot == 0) { return -1; }
     }
 
-    return ZETA_GetWidth(unsigned long long) - 1 - __builtin_clzll(hot);
+    return ZETA_WidthOf(unsigned long long) - 1 - __builtin_clzll(hot);
 }
 
 static int FindNext_(unsigned long long hot, size_t branch_num, size_t idx) {
@@ -56,15 +55,15 @@ static int FindNext_(unsigned long long hot, size_t branch_num, size_t idx) {
 
 static size_t GetNodeSize_(size_t branch_num) {
     return sizeof(unsigned long long) *
-               ((branch_num + ZETA_GetWidth(unsigned long long) - 1) /
-                ZETA_GetWidth(unsigned long long)) +
+               ((branch_num + ZETA_WidthOf(unsigned long long) - 1) /
+                ZETA_WidthOf(unsigned long long)) +
            sizeof(void*) * branch_num;
 }
 
 static void** GetPtrs_(void* node, size_t branch_num) {
     return (void**)((unsigned long long*)node +
-                    (branch_num + ZETA_GetWidth(unsigned long long) - 1) /
-                        ZETA_GetWidth(unsigned long long));
+                    (branch_num + ZETA_WidthOf(unsigned long long) - 1) /
+                        ZETA_WidthOf(unsigned long long));
 }
 
 void Zeta_ExtMultiLevelTable_Init(void* mlt_) {
@@ -118,7 +117,7 @@ size_t Zeta_ExtMultiLevelTable_GetCapacity(void* mlt_) {
     for (int level_i = 0; level_i < level; ++level_i) {
         size_t branch_num = mlt->branch_nums[level_i];
 
-        ZETA_DebugAssert(ret <= ZETA_GetRangeMax(size_t) / branch_num);
+        ZETA_DebugAssert(ret <= ZETA_RangeMaxOf(size_t) / branch_num);
 
         ret *= branch_num;
     }
@@ -332,9 +331,8 @@ static Zeta_ExtMultiLevelTable_Node* AllocateNode_(
                      offsetof(Zeta_ExtMultiLevelTable_Node, ptrs[branch_num]));
 
     ZETA_DebugAssert(node_ != NULL);
-    ZETA_DebugAssert(ZETA_GetAddrFromPtr(node_) %
-                         alignof(Zeta_ExtMultiLevelTable_Node) ==
-                     0);
+    ZETA_DebugAssert(
+        ZETA_PtrToAddr(node_) % alignof(Zeta_ExtMultiLevelTable_Node) == 0);
 
     Zeta_ExtMultiLevelTable_Node* node = node_;
     node->hot = 0;
@@ -491,7 +489,7 @@ static size_t Check_(Zeta_DebugHashMap* dst_node, int level,
 
     size_t branch_num = branch_nums[0];
 
-    *Zeta_DebugHashMap_Insert(dst_node, ZETA_GetAddrFromPtr(node)).val =
+    *Zeta_DebugHashMap_Insert(dst_node, ZETA_PtrToAddr(node)).val =
         offsetof(Zeta_ExtMultiLevelTable_Node, ptrs[branch_num]);
 
     if (level == 1) {

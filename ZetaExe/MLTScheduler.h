@@ -134,8 +134,7 @@ std::pair<size_t, size_t> MLTScheduler::PopTask() {
             &this->mlt, this->cur_priority_idxes, TRUE);
     }
 
-    TaskNode* task_node{ ZETA_GetStructFromMember(TaskNode, n,
-                                                  *this->cur_ele) };
+    TaskNode* task_node{ ZETA_MemberToStruct(TaskNode, n, *this->cur_ele) };
 
     void* nxt_ele{ Zeta_OrdLinkedListNode_GetR(*this->cur_ele) };
 

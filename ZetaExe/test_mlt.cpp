@@ -157,8 +157,8 @@ std::pair<size_t, size_t> MLTScheduler::PopTask() {
             &this->mlt, this->cur_time_idxes, TRUE);
     }
 
-    MLTTaskNode* task_node{ ZETA_GetStructFromMember(MLTTaskNode, n,
-                                                     *this->cur_ele) };
+    MLTTaskNode* task_node{ ZETA_MemberToStruct(MLTTaskNode, n,
+                                                *this->cur_ele) };
 
     void* nxt_ele{ Zeta_OrdLinkedListNode_GetR(*this->cur_ele) };
 
@@ -242,7 +242,7 @@ std::pair<size_t, size_t> RBTScheduler::PopTask() {
     }
 
     void* ele = this->cur_iter->second;
-    MLTTaskNode* task_node{ ZETA_GetStructFromMember(MLTTaskNode, n, ele) };
+    MLTTaskNode* task_node{ ZETA_MemberToStruct(MLTTaskNode, n, ele) };
 
     std::pair<size_t, size_t> ret{ this->cur_iter->first, task_node->id };
 

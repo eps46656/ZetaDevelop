@@ -256,7 +256,7 @@ void* Zeta_RBTree_Extract(Zeta_BinTreeNodeOperator const* btn_opr, void* pos) {
     void* nr = GetR(context, n);
 
     if (nl != NULL && nr != NULL) {
-        size_t rand_seed = ZETA_GetAddrFromPtr(nl) + ZETA_GetAddrFromPtr(nr);
+        size_t rand_seed = ZETA_PtrToAddr(nl) + ZETA_PtrToAddr(nr);
 
         void* m = Zeta_SimpleRandomRotate(&rand_seed) % 2 == 0
                       ? Zeta_GetMostLink(context, GetL, nr)
@@ -313,7 +313,7 @@ static size_t Check_(Zeta_BinTreeNodeOperator const* btn_opr,
 
     size_t lbh = Check_(btn_opr, dst_ns, nl);
 
-    if (dst_ns != NULL) { Zeta_DebugPipe_Push(dst_ns, ZETA_GetAddrFromPtr(n)); }
+    if (dst_ns != NULL) { Zeta_DebugPipe_Push(dst_ns, ZETA_PtrToAddr(n)); }
 
     size_t rbh = Check_(btn_opr, dst_ns, nr);
 

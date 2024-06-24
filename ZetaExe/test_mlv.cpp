@@ -19,8 +19,8 @@ std::map<size_t, void*> vet;
 
 std::mt19937_64 rand_en;
 
-std::uniform_int_distribution<size_t> size_generator{ 0, ZETA_GetRangeMax(
-                                                             size_t) };
+std::uniform_int_distribution<size_t> size_generator{ 0,
+                                                      ZETA_RangeMaxOf(size_t) };
 
 std::uniform_int_distribution<size_t> val_generator{ 1, 64 * 1024 * 1024 };
 
@@ -86,13 +86,13 @@ void MLV_Erase(size_t idx) {
 
 size_t FindPrevCri(size_t idx, bool_t included) {
     if (!included) {
-        if (idx == 0) { return ZETA_GetRangeMax(size_t); }
+        if (idx == 0) { return ZETA_RangeMaxOf(size_t); }
         --idx;
     }
 
     auto iter{ vet.upper_bound(idx) };
 
-    return iter == vet.begin() ? ZETA_GetRangeMax(size_t)
+    return iter == vet.begin() ? ZETA_RangeMaxOf(size_t)
                                : std::prev(iter)->first;
 }
 
@@ -100,13 +100,13 @@ size_t FindNextCri(size_t idx, bool_t included) {
     size_t capacity = Zeta_MultiLevelTable_GetCapacity(&mlv);
 
     if (!included) {
-        if (idx == capacity - 1) { return ZETA_GetRangeMax(size_t); }
+        if (idx == capacity - 1) { return ZETA_RangeMaxOf(size_t); }
         ++idx;
     }
 
     auto iter{ vet.lower_bound(idx) };
 
-    return iter == vet.end() ? ZETA_GetRangeMax(size_t) : iter->first;
+    return iter == vet.end() ? ZETA_RangeMaxOf(size_t) : iter->first;
 }
 
 size_t MLVFindPrev(size_t idx, bool_t included) {
@@ -115,7 +115,7 @@ size_t MLVFindPrev(size_t idx, bool_t included) {
 
     void** p = Zeta_MultiLevelTable_FindPrev(&mlv, idxes, included);
 
-    if (p == NULL) { return ZETA_GetRangeMax(size_t); }
+    if (p == NULL) { return ZETA_RangeMaxOf(size_t); }
 
     ZETA_DebugAssert(p == Zeta_MultiLevelTable_Access(&mlv, idxes));
 
@@ -128,7 +128,7 @@ size_t MLVFindNext(size_t idx, bool_t included) {
 
     void** p = Zeta_MultiLevelTable_FindNext(&mlv, idxes, included);
 
-    if (p == NULL) { return ZETA_GetRangeMax(size_t); }
+    if (p == NULL) { return ZETA_RangeMaxOf(size_t); }
 
     ZETA_DebugAssert(p == Zeta_MultiLevelTable_Access(&mlv, idxes));
 

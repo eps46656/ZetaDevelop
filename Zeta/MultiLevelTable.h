@@ -13,7 +13,7 @@ ZETA_DeclareStruct(Zeta_MultiLevelTable_Node);
  */
 #define ZETA_MultiLevelTable_max_level 12
 
-#define ZETA_MultiLevelTable_max_branch_num ZETA_GetWidth(unsigned long long)
+#define ZETA_MultiLevelTable_max_branch_num ZETA_WidthOf(unsigned short)
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
@@ -21,7 +21,7 @@ ZETA_DeclareStruct(Zeta_MultiLevelTable_Node);
 
 struct Zeta_MultiLevelTable {
     int level;
-    size_t branch_nums[ZETA_MultiLevelTable_max_level];
+    unsigned short branch_nums[ZETA_MultiLevelTable_max_level];
 
     size_t size;
 
@@ -33,6 +33,10 @@ struct Zeta_MultiLevelTable {
 struct Zeta_MultiLevelTable_Node {
     unsigned long long hot;
     void* ptrs[];
+};
+
+struct Zeta_MultiLevelTable_Cursor {
+    unsigned short idxes[ZETA_MultiLevelTable_max_level];
 };
 
 // -----------------------------------------------------------------------------

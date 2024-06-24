@@ -4,30 +4,28 @@ static void* GetL_(void* n_) {
     Zeta_OrdRBLinkedListNode* n = n_;
     ZETA_DebugAssert(n != NULL);
 
-    return ZETA_GetPtrFromAddr(ZETA_GetAddrFromPtr(n->l) / 2 * 2);
+    return ZETA_AddrToPtr(ZETA_PtrToAddr(n->l) / 2 * 2);
 }
 
 static void* GetR_(void* n_) {
     Zeta_OrdRBLinkedListNode* n = n_;
     ZETA_DebugAssert(n != NULL);
 
-    return ZETA_GetPtrFromAddr(ZETA_GetAddrFromPtr(n->r) / 2 * 2);
+    return ZETA_AddrToPtr(ZETA_PtrToAddr(n->r) / 2 * 2);
 }
 
 static void SetL_(void* n_, void* l) {
     Zeta_OrdRBLinkedListNode* n = n_;
     ZETA_DebugAssert(n != NULL);
 
-    n->l = ZETA_GetPtrFromAddr(ZETA_GetAddrFromPtr(l) +
-                               ZETA_GetAddrFromPtr(n->l) % 2);
+    n->l = ZETA_AddrToPtr(ZETA_PtrToAddr(l) + ZETA_PtrToAddr(n->l) % 2);
 }
 
 static void SetR_(void* n_, void* r) {
     Zeta_OrdRBLinkedListNode* n = n_;
     ZETA_DebugAssert(n != NULL);
 
-    n->r = ZETA_GetPtrFromAddr(ZETA_GetAddrFromPtr(r) +
-                               ZETA_GetAddrFromPtr(n->r) % 2);
+    n->r = ZETA_AddrToPtr(ZETA_PtrToAddr(r) + ZETA_PtrToAddr(n->r) % 2);
 }
 
 void Zeta_OrdRBLinkedListNode_Init(void* n_) {
@@ -46,8 +44,8 @@ int Zeta_OrdRBLinkedListNode_GetColor(void* n_) {
     Zeta_OrdRBLinkedListNode* n = n_;
     ZETA_DebugAssert(n != NULL);
 
-    int lc = ZETA_GetAddrFromPtr(n->l) % 2;
-    int rc = ZETA_GetAddrFromPtr(n->r) % 2;
+    int lc = ZETA_PtrToAddr(n->l) % 2;
+    int rc = ZETA_PtrToAddr(n->r) % 2;
 
     return rc * 2 + lc;
 }
@@ -62,11 +60,9 @@ void Zeta_OrdRBLinkedListNode_SetColor(void* n_, int color) {
     int lc = color % 2;
     int rc = color / 2;
 
-    n->l =
-        ZETA_GetPtrFromAddr(ZETA_GetAddrFromPtr(n->l) / 2 * 2 + (uintptr_t)lc);
+    n->l = ZETA_AddrToPtr(ZETA_PtrToAddr(n->l) / 2 * 2 + (uintptr_t)lc);
 
-    n->r =
-        ZETA_GetPtrFromAddr(ZETA_GetAddrFromPtr(n->r) / 2 * 2 + (uintptr_t)rc);
+    n->r = ZETA_AddrToPtr(ZETA_PtrToAddr(n->r) / 2 * 2 + (uintptr_t)rc);
 }
 
 size_t Zeta_OrdRBLinkedListNode_Count(void* n, void* m) {

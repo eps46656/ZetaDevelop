@@ -15,7 +15,7 @@
 std::mt19937_64 en;
 std::uniform_int_distribution<size_t> size_generator{ 16, 2 * 1024 };
 std::uniform_int_distribution<size_t> idx_generator{ 0,
-                                                     ZETA_GetRangeMax(size_t) };
+                                                     ZETA_RangeMaxOf(size_t) };
 
 Zeta_DummyBlockVector dummy_blk_vec_a;
 Zeta_DummyBlockVector dummy_blk_vec_b;
@@ -184,7 +184,7 @@ void LRUCM_Check() {
             al_node = Zeta_OrdLinkedListNode_GetR(al_node);
             if (&s_node->al_head == al_node) { break; }
 
-            Zeta_LRUCacheManager_XNode* x_node = ZETA_GetStructFromMember(
+            Zeta_LRUCacheManager_XNode* x_node = ZETA_MemberToStruct(
                 Zeta_LRUCacheManager_XNode, al_node, al_node);
 
             ZETA_DebugAssert(x_node->c_node->refered);
@@ -225,10 +225,9 @@ void LRUCM_Check() {
 
         while (0 < Zeta_DebugPipe_GetSize(&ns)) {
             Zeta_OrdRBTreeNode* ct_node =
-                (Zeta_OrdRBTreeNode*)ZETA_GetPtrFromAddr(
-                    Zeta_DebugPipe_Pop(&ns));
+                (Zeta_OrdRBTreeNode*)ZETA_AddrToPtr(Zeta_DebugPipe_Pop(&ns));
 
-            Zeta_LRUCacheManager_CNode* c_node = ZETA_GetStructFromMember(
+            Zeta_LRUCacheManager_CNode* c_node = ZETA_MemberToStruct(
                 Zeta_LRUCacheManager_CNode, ct_node, ct_node);
 
             ZETA_DebugAssert(c_nodes.insert(c_node).second);
@@ -250,7 +249,7 @@ void LRUCM_Check() {
                 bl_node = Zeta_OrdLinkedListNode_GetR(bl_node);
                 if (&c_node->bl_head == bl_node) { break; }
 
-                Zeta_LRUCacheManager_XNode* x_node = ZETA_GetStructFromMember(
+                Zeta_LRUCacheManager_XNode* x_node = ZETA_MemberToStruct(
                     Zeta_LRUCacheManager_XNode, bl_node, bl_node);
 
                 ZETA_DebugAssert(x_node->c_node == c_node);
@@ -311,8 +310,8 @@ void LRUCM_Check() {
         cl_node = Zeta_OrdLinkedListNode_GetR(cl_node);
         if (&lrucm.cl_head == cl_node) { break; }
 
-        Zeta_LRUCacheManager_CNode* c_node = ZETA_GetStructFromMember(
-            Zeta_LRUCacheManager_CNode, cl_node, cl_node);
+        Zeta_LRUCacheManager_CNode* c_node =
+            ZETA_MemberToStruct(Zeta_LRUCacheManager_CNode, cl_node, cl_node);
 
         ZETA_DebugAssert(!c_node->refered);
         ZETA_DebugAssert(0 < unrefered_c_nodes.count(c_node));
@@ -336,10 +335,9 @@ void LRUCM_Check() {
 
         while (0 < Zeta_DebugPipe_GetSize(&ns)) {
             Zeta_OrdRBTreeNode* at_node =
-                (Zeta_OrdRBTreeNode*)ZETA_GetPtrFromAddr(
-                    Zeta_DebugPipe_Pop(&ns));
+                (Zeta_OrdRBTreeNode*)ZETA_AddrToPtr(Zeta_DebugPipe_Pop(&ns));
 
-            Zeta_LRUCacheManager_XNode* x_node = ZETA_GetStructFromMember(
+            Zeta_LRUCacheManager_XNode* x_node = ZETA_MemberToStruct(
                 Zeta_LRUCacheManager_XNode, at_node, at_node);
 
             ZETA_DebugAssert(cur_x_nodes.insert(x_node).second);

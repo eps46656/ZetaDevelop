@@ -283,24 +283,15 @@ void Zeta_DebugDeque_Erase(void* dd_, void* pos_cursor_, size_t cnt) {
     deque->erase(deque->begin() + beg, deque->begin() + end);
 }
 
-void Zeta_DebugDeque_EraseAll(void* dd_, void* callback_context,
-                              void (*Callback)(void* context, void* ele)) {
+void Zeta_DebugDeque_EraseAll(void* dd_) {
     Zeta_DebugDeque* dd = (Zeta_DebugDeque*)dd_;
     Zeta_DebugDeque_Check(dd);
 
     std::deque<void*>* deque = (std::deque<void*>*)dd->deque;
 
-    if (Callback == NULL) {
-        for (auto iter{ deque->begin() }, end{ deque->end() }; iter != end;
-             ++iter) {
-            delete[] (unsigned char*)(*iter);
-        }
-    } else {
-        for (auto iter{ deque->begin() }, end{ deque->end() }; iter != end;
-             ++iter) {
-            Callback(callback_context, *iter);
-            delete[] (unsigned char*)(*iter);
-        }
+    for (auto iter{ deque->begin() }, end{ deque->end() }; iter != end;
+         ++iter) {
+        delete[] (unsigned char*)(*iter);
     }
 
     deque->clear();

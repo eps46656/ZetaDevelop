@@ -2,6 +2,7 @@
 
 #include "BlockVector.h"
 #include "CacheManager.h"
+#include "DateTime.h"
 #include "FileSys.h"
 #include "SegVector.h"
 
@@ -64,24 +65,9 @@ struct Zeta_FileSysFAT32_DirEntry {
 
     u64_t first_clus_num;
 
-    s32_t crt_year;
-    u8_t crt_month;
-    u8_t crt_day;
-    u8_t crt_hour;
-    u8_t crt_min;
-    u8_t crt_sec;
-    u16_t crt_msec;
-
-    s32_t acc_year;
-    u8_t acc_month;
-    u8_t acc_day;
-
-    s32_t wrt_year;
-    u8_t wrt_month;
-    u8_t wrt_day;
-    u8_t wrt_hour;
-    u8_t wrt_min;
-    u8_t wrt_sec;
+    Zeta_DateTime crt_datetime;
+    Zeta_DateTime acc_datetime;
+    Zeta_DateTime wrt_datetime;
 };
 
 struct Zeta_FileSysFAT32_Dir {

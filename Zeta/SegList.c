@@ -42,7 +42,7 @@ void* Zeta_SegList_PeekL(void* sl_) {
     size_t size = Zeta_SegList_GetSize(sl);
     ZETA_DebugAssert(0 < size);
 
-    Zeta_SegList_Node* node = ZETA_GetStructFromMember(
+    Zeta_SegList_Node* node = ZETA_MemberToStruct(
         Zeta_SegList_Node, n, Zeta_OrdLinkedListNode_GetR(&sl->head));
 
     return (unsigned char*)(node->seg) + sl->width * sl->offset;
@@ -55,7 +55,7 @@ void* Zeta_SegList_PeekR(void* sl_) {
     size_t size = Zeta_SegList_GetSize(sl);
     ZETA_DebugAssert(0 < size);
 
-    Zeta_SegList_Node* node = ZETA_GetStructFromMember(
+    Zeta_SegList_Node* node = ZETA_MemberToStruct(
         Zeta_SegList_Node, n, Zeta_OrdLinkedListNode_GetL(&sl->head));
 
     size_t i = (sl->offset + sl->size - 1) % sl->seg_capacity;
@@ -123,8 +123,8 @@ void* Zeta_SegList_PushL(void* sl_) {
         Zeta_OrdLinkedListNode_InsertR(&sl->head, &node->n);
         sl->offset = sl->seg_capacity - 1;
     } else {
-        node = ZETA_GetStructFromMember(Zeta_SegList_Node, n,
-                                        Zeta_OrdLinkedListNode_GetR(&sl->head));
+        node = ZETA_MemberToStruct(Zeta_SegList_Node, n,
+                                   Zeta_OrdLinkedListNode_GetR(&sl->head));
         --sl->offset;
     }
 
@@ -145,8 +145,8 @@ void* Zeta_SegList_PushR(void* sl_) {
         node = AllocateNode_(sl);
         Zeta_OrdLinkedListNode_InsertL(&sl->head, &node->n);
     } else {
-        node = ZETA_GetStructFromMember(Zeta_SegList_Node, n,
-                                        Zeta_OrdLinkedListNode_GetL(&sl->head));
+        node = ZETA_MemberToStruct(Zeta_SegList_Node, n,
+                                   Zeta_OrdLinkedListNode_GetL(&sl->head));
     }
 
     ++sl->size;
@@ -166,7 +166,7 @@ void Zeta_SegList_PopL(void* sl_) {
         return;
     }
 
-    Zeta_SegList_Node* node = ZETA_GetStructFromMember(
+    Zeta_SegList_Node* node = ZETA_MemberToStruct(
         Zeta_SegList_Node, n, Zeta_OrdLinkedListNode_GetR(&sl->head));
 
     Zeta_OrdLinkedListNode_Extract(&node->n);
@@ -190,7 +190,7 @@ void Zeta_SegList_PopR(void* sl_) {
         return;
     }
 
-    Zeta_SegList_Node* node = ZETA_GetStructFromMember(
+    Zeta_SegList_Node* node = ZETA_MemberToStruct(
         Zeta_SegList_Node, n, Zeta_OrdLinkedListNode_GetL(&sl->head));
 
     Zeta_OrdLinkedListNode_Extract(&node->n);
@@ -215,12 +215,11 @@ void Zeta_SegList_Check(void* sl_, Zeta_DebugHashMap* dst_node_records,
         n = Zeta_OrdLinkedListNode_GetR(n);
         if (n == &sl->head) { break; }
 
-        Zeta_SegList_Node* node =
-            ZETA_GetStructFromMember(Zeta_SegList_Node, n, n);
+        Zeta_SegList_Node* node = ZETA_MemberToStruct(Zeta_SegList_Node, n, n);
 
         {
             Zeta_DebugHashMap_KeyValPair kvp = Zeta_DebugHashMap_Insert(
-                dst_node_records, ZETA_GetAddrFromPtr(node));
+                dst_node_records, ZETA_PtrToAddr(node));
 
             ZETA_DebugAssert(kvp.b);
 
@@ -229,7 +228,7 @@ void Zeta_SegList_Check(void* sl_, Zeta_DebugHashMap* dst_node_records,
 
         {
             Zeta_DebugHashMap_KeyValPair kvp = Zeta_DebugHashMap_Insert(
-                dst_seg_records, ZETA_GetAddrFromPtr(node->seg));
+                dst_seg_records, ZETA_PtrToAddr(node->seg));
 
             ZETA_DebugAssert(kvp.b);
 

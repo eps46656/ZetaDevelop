@@ -79,7 +79,7 @@ void* Access_(Zeta_DynamicVector* dv_, size_t idx) {
 
     size_t mlv_capacity = Zeta_MultiLevelVector_GetCapacity(&dv->mlv);
     ZETA_DebugAssert(dv->cluster_capacity <=
-                     ZETA_GetRangeMax(size_t) / mlv_capacity);
+                     ZETA_RangeMaxOf(size_t) / mlv_capacity);
 
     size_t capacity = dv->cluster_capacity * mlv_capacity;
     ZETA_DebugAssert(capacity <= ZETA_GetMaxMod(size_t));
@@ -93,8 +93,7 @@ void* Access_(Zeta_DynamicVector* dv_, size_t idx) {
 
     void** cluster = Zeta_MultiLevelVector_Access(&dv->mlv, idxes);
 
-    return ZETA_UINT_TO_Ptr(ZETA_GetAddrFromPtr(*cluster) +
-                            dv->width * cluster_j);
+    return ZETA_UINT_TO_Ptr(ZETA_PtrToAddr(*cluster) + dv->width * cluster_j);
 }
 
 void* Zeta_DynamicVector_Access(void* dv, size_t idx) {
@@ -118,7 +117,7 @@ void* Zeta_DynamicVector_Insert(void* dv_, size_t idx) {
 
     size_t mlv_capacity = Zeta_MultiLevelVector_GetCapacity(&dv->mlv);
     ZETA_DebugAssert(dv->cluster_capacity <=
-                     ZETA_GetRangeMax(size_t) / mlv_capacity);
+                     ZETA_RangeMaxOf(size_t) / mlv_capacity);
 
     size_t capacity = dv->cluster_capacity * mlv_capacity;
     ZETA_DebugAssert(capacity <= ZETA_GetMaxMod(size_t));
@@ -182,7 +181,7 @@ void Zeta_DynamicVector_Erase(void* dv_, size_t idx) {
 
     size_t mlv_capacity = Zeta_MultiLevelVector_GetCapacity(&dv->mlv);
     ZETA_DebugAssert(dv->cluster_capacity <=
-                     ZETA_GetRangeMax(size_t) / mlv_capacity);
+                     ZETA_RangeMaxOf(size_t) / mlv_capacity);
 
     size_t capacity = dv->cluster_capacity * mlv_capacity;
     ZETA_DebugAssert(capacity <= ZETA_GetMaxMod(size_t));
@@ -272,7 +271,7 @@ void Zeta_DynamicVector_EraseAll(void* dv_) {
 
     size_t mlv_capacity = Zeta_MultiLevelVector_GetCapacity(&dv->mlv);
     ZETA_DebugAssert(dv->cluster_capacity <=
-                     ZETA_GetRangeMax(size_t) / mlv_capacity);
+                     ZETA_RangeMaxOf(size_t) / mlv_capacity);
 
     size_t capacity = dv->cluster_capacity * mlv_capacity;
     ZETA_DebugAssert(capacity <= ZETA_GetMaxMod(size_t));

@@ -12,15 +12,18 @@ ZETA_DeclareStruct(Zeta_StageVector);
 ZETA_DeclareStruct(Zeta_StageVector_Node);
 ZETA_DeclareStruct(Zeta_StageVector_Cursor);
 
+#define ZETA_StageVector_ref_color (0)
+#define ZETA_StageVector_dat_color (1)
+
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 
 struct Zeta_StageVector {
-    Zeta_SeqContainer* origin;
-
     /** The maximum number of elements in a Stagement. */
     size_t seg_capacity;
+
+    Zeta_SeqContainer* origin;
 
     Zeta_OrdCnt3RBTreeNode* root;
 
@@ -37,15 +40,15 @@ struct Zeta_StageVector_Node {
     union {
         struct {
             size_t beg;
-        };
+            size_t size;
+        } ref;
 
         struct {
             void* data;
             unsigned short offset;
-        };
+            unsigned short size;
+        } dat;
     };
-
-    size_t size;
 };
 
 struct Zeta_StageVector_Cursor {
@@ -105,8 +108,7 @@ void Zeta_StageVector_PopR(void* sv);
 
 void Zeta_StageVector_Erase(void* sv, void* pos_cursor, size_t cnt);
 
-void Zeta_StageVector_EraseAll(void* sv, void* context,
-                               void (*Callback)(void* context, void* ele));
+void Zeta_StageVector_EraseAll(void* sv);
 
 void Zeta_StageVector_Check(void* sv, Zeta_DebugHashMap* dst_node_hm,
                             Zeta_DebugHashMap* dst_seg_hm);

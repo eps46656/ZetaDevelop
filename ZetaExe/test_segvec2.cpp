@@ -163,7 +163,7 @@ void main1() {
     ZETA_PrintVar(seed);
 
     std::mt19937_64 en{ seed };
-    std::uniform_int_distribution<size_t> size_generator{ 0, ZETA_GetRangeMax(
+    std::uniform_int_distribution<size_t> size_generator{ 0, ZETA_RangeMaxOf(
                                                                  size_t) };
     std::uniform_int_distribution<size_t> val_generator{ 0, 16 };
 

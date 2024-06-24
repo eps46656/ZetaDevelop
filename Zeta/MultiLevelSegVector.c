@@ -73,7 +73,7 @@ void* Access_(Zeta_MultiLevelSegVector* mlsv_, size_t idx) {
 
     size_t mlv_capacity = Zeta_MultiLevelTable_GetCapacity(&mlsv->mlt);
     ZETA_DebugAssert(mlsv->seg_capacity <=
-                     ZETA_GetRangeMax(size_t) / mlv_capacity);
+                     ZETA_RangeMaxOf(size_t) / mlv_capacity);
 
     size_t capacity = mlsv->seg_capacity * mlv_capacity;
     ZETA_DebugAssert(capacity <= ZETA_GetMaxMod(size_t));
@@ -87,7 +87,7 @@ void* Access_(Zeta_MultiLevelSegVector* mlsv_, size_t idx) {
 
     void** seg = Zeta_MultiLevelTable_Access(&mlsv->mlt, idxes);
 
-    return ZETA_UINT_TO_Ptr(ZETA_GetAddrFromPtr(*seg) + mlsv->width * seg_j);
+    return ZETA_UINT_TO_Ptr(ZETA_PtrToAddr(*seg) + mlsv->width * seg_j);
 }
 
 void* Zeta_MultiLevelSegVector_Access(void* mlsv, size_t idx) {
@@ -111,7 +111,7 @@ void* Zeta_MultiLevelSegVector_Insert(void* mlsv_, size_t idx) {
 
     size_t mlv_capacity = Zeta_MultiLevelTable_GetCapacity(&mlsv->mlt);
     ZETA_DebugAssert(mlsv->seg_capacity <=
-                     ZETA_GetRangeMax(size_t) / mlv_capacity);
+                     ZETA_RangeMaxOf(size_t) / mlv_capacity);
 
     size_t capacity = mlsv->seg_capacity * mlv_capacity;
     ZETA_DebugAssert(capacity <= ZETA_GetMaxMod(size_t));
@@ -174,7 +174,7 @@ void Zeta_MultiLevelSegVector_Erase(void* mlsv_, size_t idx) {
 
     size_t mlv_capacity = Zeta_MultiLevelTable_GetCapacity(&mlsv->mlt);
     ZETA_DebugAssert(mlsv->seg_capacity <=
-                     ZETA_GetRangeMax(size_t) / mlv_capacity);
+                     ZETA_RangeMaxOf(size_t) / mlv_capacity);
 
     size_t capacity = mlsv->seg_capacity * mlv_capacity;
     ZETA_DebugAssert(capacity <= ZETA_GetMaxMod(size_t));
@@ -266,7 +266,7 @@ void Zeta_MultiLevelSegVector_EraseAll(void* mlsv_) {
 
     size_t mlv_capacity = Zeta_MultiLevelTable_GetCapacity(&mlsv->mlt);
     ZETA_DebugAssert(mlsv->seg_capacity <=
-                     ZETA_GetRangeMax(size_t) / mlv_capacity);
+                     ZETA_RangeMaxOf(size_t) / mlv_capacity);
 
     size_t capacity = mlsv->seg_capacity * mlv_capacity;
     ZETA_DebugAssert(capacity <= ZETA_GetMaxMod(size_t));

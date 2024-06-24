@@ -17,7 +17,7 @@ std::map<size_t, size_t> req_ptr_size_hm;
 std::mt19937_64 en;
 std::uniform_int_distribution<size_t> size_generator{ 16, 2 * 1024 };
 std::uniform_int_distribution<size_t> idx_generator{ 0,
-                                                     ZETA_GetRangeMax(size_t) };
+                                                     ZETA_RangeMaxOf(size_t) };
 
 void CheckNoCross(std::unordered_map<size_t, size_t> const& m) {
     if (m.empty()) { return; }
@@ -51,13 +51,13 @@ void* MyAlloc(size_t size) {
 
     ZETA_DebugAssert(ptr != NULL);
 
-    size_t m_beg = ZETA_GetAddrFromPtr(ptr);
+    size_t m_beg = ZETA_PtrToAddr(ptr);
     size_t m_end = m_beg + size;
 
     ZETA_DebugAssert(m_beg % allocator.align == 0);
 
-    ZETA_DebugAssert(ZETA_GetAddrFromPtr(allocator.data_beg) <= m_beg);
-    ZETA_DebugAssert(m_end <= ZETA_GetAddrFromPtr(allocator.data_end));
+    ZETA_DebugAssert(ZETA_PtrToAddr(allocator.data_beg) <= m_beg);
+    ZETA_DebugAssert(m_end <= ZETA_PtrToAddr(allocator.data_end));
 
     auto iter = req_ptr_size_hm.insert({ m_beg, size }).first;
 
@@ -81,7 +81,7 @@ void* MyAlloc(size_t size) {
 
 void MyFree(void* ptr) {
     Zeta_TreeAllocator_Deallocate(&allocator, ptr);
-    size_t b = req_ptr_size_hm.erase(ZETA_GetAddrFromPtr(ptr));
+    size_t b = req_ptr_size_hm.erase(ZETA_PtrToAddr(ptr));
     ZETA_DebugAssert(b);
 }
 

@@ -320,20 +320,12 @@ void SC_Insert(Zeta_SeqContainer* seq_cntr, size_t idx, size_t cnt,
 void SC_Erase(Zeta_SeqContainer* seq_cntr, size_t idx, size_t cnt) {
     Zeta_Cursor pos_cursor;
 
-    ZETA_PrintPos;
-
     seq_cntr->Access(seq_cntr->context, &pos_cursor, NULL, idx);
-
-    ZETA_PrintPos;
 
     SC_Check(seq_cntr);
 
-    ZETA_PrintPos;
-
     ZETA_DebugAssert(seq_cntr->Cursor_GetIdx(seq_cntr->context, &pos_cursor) ==
                      idx);
-
-    ZETA_PrintPos;
 
     seq_cntr->Erase(seq_cntr->context, &pos_cursor, cnt);
 
@@ -374,7 +366,7 @@ void SC_Assign(Zeta_SeqContainer const* src, Zeta_SeqContainer* dst) {
 
     src->PeekL(src->context, &src_cursor, NULL);
 
-    dst->EraseAll(dst->context, NULL, NULL);
+    dst->EraseAll(dst->context);
     dst->GetRBCursor(dst->context, &dst_cursor);
     dst->Insert(dst->context, &dst_cursor, size);
 
@@ -412,7 +404,6 @@ void SC_EraseAll(Zeta_SeqContainer* seq_cntr) {
     }
 
     seq_cntr->EraseAll(seq_cntr->context, NULL, EraseAll_);
-
 }*/
 
 void SC_CheckIterator(Zeta_SeqContainer* seq_cntr, size_t idx_a, size_t idx_b) {
@@ -461,8 +452,8 @@ void SC_CheckIterator(Zeta_SeqContainer* seq_cntr, size_t idx_a, size_t idx_b) {
 void SV_Check(Zeta_SeqContainer* seq_cntr) {
     if (seq_cntr->GetSize != Zeta_SegVector_GetSize) { return; }
 
-    SegVectorPack* pack{ ZETA_GetStructFromMember(SegVectorPack, sv,
-                                                  seq_cntr->context) };
+    SegVectorPack* pack{ ZETA_MemberToStruct(SegVectorPack, sv,
+                                             seq_cntr->context) };
 
     Zeta_DebugHashMap node_hm;
     Zeta_DebugHashMap seg_hm;
@@ -482,8 +473,8 @@ void SV_Check(Zeta_SeqContainer* seq_cntr) {
 void StageVec_Check(Zeta_SeqContainer* seq_cntr) {
     if (seq_cntr->GetSize != Zeta_StageVector_GetSize) { return; }
 
-    StageVectorPack* pack{ ZETA_GetStructFromMember(StageVectorPack, stage_vec,
-                                                    seq_cntr->context) };
+    StageVectorPack* pack{ ZETA_MemberToStruct(StageVectorPack, stage_vec,
+                                               seq_cntr->context) };
 
     Zeta_DebugHashMap node_hm;
     Zeta_DebugHashMap seg_hm;
@@ -516,7 +507,7 @@ void SC_Check(Zeta_SeqContainer* seq_cntr) {
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 
-std::uniform_int_distribution<long long> size_generator{ 0, ZETA_GetRangeMax(
+std::uniform_int_distribution<long long> size_generator{ 0, ZETA_RangeMaxOf(
                                                                 long long) };
 
 size_t GetRandomIdx(size_t size) { return size_generator(en) % (size + 2) - 1; }
@@ -716,7 +707,7 @@ void SyncInsert(Zeta_SeqContainer* seq_cntr_a, Zeta_SeqContainer* seq_cntr_b) {
     ZETA_DebugAssert(size_a == size_b);
 
     size_t cnt_lb{ 0 };
-    size_t cnt_rb{ 16 };
+    size_t cnt_rb{ 32 };
 
     size_t idx{ size_generator(en) % (size_a + 1) };
     size_t cnt{ size_generator(en) % (cnt_rb - cnt_lb + 1) + cnt_lb };
@@ -736,20 +727,14 @@ void SyncErase(Zeta_SeqContainer* seq_cntr_a, Zeta_SeqContainer* seq_cntr_b) {
     ZETA_DebugAssert(size_a == size_b);
 
     long long cnt_lb{ 0 };
-    long long cnt_rb{ std::min<long long>(16, size_a) };
+    long long cnt_rb{ std::min<long long>(32, size_a) };
 
     long long cnt{ size_generator(en) % (cnt_rb - cnt_lb + 1) + cnt_lb };
     long long idx{ size_generator(en) % (size_a + 1 - cnt) };
 
-    ZETA_PrintPos;
-
     SC_Erase(seq_cntr_a, idx, cnt);
 
-    ZETA_PrintPos;
-
     SC_Erase(seq_cntr_b, idx, cnt);
-
-    ZETA_PrintPos;
 }
 
 void SyncWrite(Zeta_SeqContainer* seq_cntr_a, Zeta_SeqContainer* seq_cntr_b) {
@@ -759,7 +744,7 @@ void SyncWrite(Zeta_SeqContainer* seq_cntr_a, Zeta_SeqContainer* seq_cntr_b) {
     ZETA_DebugAssert(size_a == size_b);
 
     long long cnt_lb{ 0 };
-    long long cnt_rb{ std::min<long long>(16, size_a) };
+    long long cnt_rb{ std::min<long long>(32, size_a) };
 
     long long cnt{ size_generator(en) % (cnt_rb - cnt_lb + 1) + cnt_lb };
     long long idx{ size_generator(en) % (size_a + 1 - cnt) };
@@ -847,7 +832,7 @@ void main2() {
     Zeta_SeqContainer* seq_cntr_a{ CreateDD() };
     Zeta_SeqContainer* seq_cntr_a_copy{ CreateDD() };
 
-    vals_a.resize(16 * 1024 * 1024);
+    vals_a.resize(256 * 1024);
     GetRandomVal(vals_a);
     SC_Insert(seq_cntr_a, 0, vals_a.size(), vals_a.data());
 
@@ -867,7 +852,12 @@ void main2() {
 
         ZETA_PrintPos;
 
+        ZETA_PrintPos;
+
         SyncWrite(seq_cntr_a, seq_cntr_b);
+
+        ZETA_PrintPos;
+
         Compare(seq_cntr_a, seq_cntr_b);
         CheckCursor(seq_cntr_a);
         CheckCursor(seq_cntr_b);
@@ -883,7 +873,7 @@ void main2() {
 
         for (size_t i{ 0 }; i < 5; ++i) { SyncCompare(seq_cntr_a, seq_cntr_b); }
 
-        Zeta_StageVector_PrintState(seq_cntr_b->context);
+        // Zeta_StageVector_PrintState(seq_cntr_b->context);
     }
 }
 

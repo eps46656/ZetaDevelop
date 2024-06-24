@@ -44,7 +44,7 @@ void* ZetaPoolAllocator_Allocate(void* pa_, size_t size) {
     }
 
 #if ZETA_IsDebug
-    bool b{ pa->records.insert({ ZETA_GetAddrFromPtr(ptr), pa->size }).second };
+    bool b{ pa->records.insert({ ZETA_PtrToAddr(ptr), pa->size }).second };
     ZETA_DebugAssert(b);
     pa->usage += pa->size;
 #endif
@@ -59,7 +59,7 @@ void ZetaPoolAllocator_Deallocate(void* pa_, void* ptr) {
     if (ptr == NULL) { return; }
 
 #if ZETA_IsDebug
-    auto iter{ pa->records.find(ZETA_GetAddrFromPtr(ptr)) };
+    auto iter{ pa->records.find(ZETA_PtrToAddr(ptr)) };
     ZETA_DebugAssert(iter != pa->records.end());
     pa->usage -= iter->second;
     pa->records.erase(iter);

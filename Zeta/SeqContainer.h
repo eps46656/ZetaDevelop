@@ -2,6 +2,8 @@
 
 #include "define.h"
 
+ZETA_ExternC_Beg;
+
 ZETA_DeclareStruct(Zeta_SeqContainer);
 
 // -----------------------------------------------------------------------------
@@ -49,8 +51,7 @@ struct Zeta_SeqContainer {
 
     void (*Erase)(void* context, void* pos_cursor, size_t cnt);
 
-    void (*EraseAll)(void* context, void* callback_context,
-                     void (*Callback)(void* context, void* ele));
+    void (*EraseAll)(void* context);
 
     bool_t (*Cursor_IsEqual)(void* context, void const* cursor_a,
                              void const* cursor_b);
@@ -77,3 +78,5 @@ struct Zeta_SeqContainer {
 // -----------------------------------------------------------------------------
 
 void Zeta_SeqContainer_Init(Zeta_SeqContainer* seq_cntr);
+
+ZETA_ExternC_End;

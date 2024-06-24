@@ -47,7 +47,7 @@ void CompareLR() {
 
         ZETA_DebugAssert(n != NULL);
 
-        Node* node = ZETA_GetStructFromMember(Node, n, n);
+        Node* node = ZETA_MemberToStruct(Node, n, n);
 
         ZETA_DebugAssert(iter->linked_node == node);
         ZETA_DebugAssert(iter->size == Zeta_BinTree_GetSize(&btn_opr, n));
@@ -70,7 +70,7 @@ void CompareRL() {
 
         ZETA_DebugAssert(n != NULL);
 
-        Node* node = ZETA_GetStructFromMember(Node, n, n);
+        Node* node = ZETA_MemberToStruct(Node, n, n);
 
         ZETA_DebugAssert(iter->linked_node == node);
         ZETA_DebugAssert(iter->size == Zeta_BinTree_GetSize(&btn_opr, n));
@@ -165,7 +165,7 @@ void main1() {
     ZETA_PrintVar(seed);
 
     std::mt19937_64 en{ seed };
-    std::uniform_int_distribution<size_t> idx_generator{ 0, ZETA_GetRangeMax(
+    std::uniform_int_distribution<size_t> idx_generator{ 0, ZETA_RangeMaxOf(
                                                                 size_t) };
     std::uniform_int_distribution<size_t> size_generator{ 0, 16 };
 

@@ -11,7 +11,7 @@ ZETA_DeclareStruct(Zeta_MultiLevelSegVector);
 ZETA_DeclareStruct(Zeta_MultiLevelSegVector_Node);
 
 #define Zeta_MultiLevelSegVector_max_seg_capacity \
-    ZETA_GetRangeMax(unsigned short)
+    ZETA_RangeMaxOf(unsigned short)
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
@@ -144,8 +144,7 @@ void Zeta_MultiLevelSegVector_PopL(void* dv);
 void Zeta_MultiLevelSegVector_PopR(void* dv);
 
 /**
- * @brief Erase all existed entries. Call Callback for each entry  before
- * erased. If Callback is NULL, it will be ignored and not called.
+ * @brief Erase all existed entries.
  *
  * @param dv The target dv.
  */
