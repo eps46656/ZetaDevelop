@@ -255,6 +255,37 @@ def AddDeps(builder, ZetaBuildDir, verbose, mode):
     )
 
     builder.Add(
+        f"{ZetaDir}/CheckPointRecorder.h",
+        {
+            f"{File}",
+            f"{ZetaDir}/Debugger.h",
+        },
+        None
+    )
+
+    builder.Add(
+        f"{ZetaDir}/CheckPointRecorder.cpp",
+        {
+            f"{File}",
+            f"{ZetaDir}/CheckPointRecorder.h",
+            f"{ZetaDir}/utils.h",
+        },
+        None
+    )
+
+    builder.Add(
+        f"{ZetaBuildDir}/CheckPointRecorder.ll",
+        {
+            f"{File}",
+            f"{ZetaDir}/CheckPointRecorder.cpp",
+        },
+        lambda : compiler.cpp_to_ll(
+            f"{ZetaBuildDir}/CheckPointRecorder.ll",
+            f"{ZetaDir}/CheckPointRecorder.cpp",
+        )
+    )
+
+    builder.Add(
         f"{ZetaDir}/CircularVector.h",
         {
             f"{File}",
@@ -382,6 +413,36 @@ def AddDeps(builder, ZetaBuildDir, verbose, mode):
         lambda : compiler.cpp_to_ll(
             f"{ZetaBuildDir}/DebugDeque.ll",
             f"{ZetaDir}/DebugDeque.cpp",
+        )
+    )
+
+    builder.Add(
+        f"{ZetaDir}/Debugger.h",
+        {
+            f"{File}",
+            f"{ZetaDir}/define.h",
+        },
+        None
+    )
+
+    builder.Add(
+        f"{ZetaDir}/Debugger.c",
+        {
+            f"{File}",
+            f"{ZetaDir}/Debugger.h",
+        },
+        None
+    )
+
+    builder.Add(
+        f"{ZetaBuildDir}/Debugger.ll",
+        {
+            f"{File}",
+            f"{ZetaDir}/Debugger.c",
+        },
+        lambda : compiler.c_to_ll(
+            f"{ZetaBuildDir}/Debugger.ll",
+            f"{ZetaDir}/Debugger.c",
         )
     )
 

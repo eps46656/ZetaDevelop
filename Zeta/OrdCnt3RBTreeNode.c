@@ -1,5 +1,7 @@
 #include "OrdCnt3RBTreeNode.h"
 
+#include "Debugger.h"
+
 void Zeta_OrdCnt3RBTreeNode_Init(void* context, void* n_) {
     ZETA_Unused(context);
 

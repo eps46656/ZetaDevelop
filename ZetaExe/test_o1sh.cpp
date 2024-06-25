@@ -264,7 +264,7 @@ void F() {
 
     preemption_cnt = 0;
 
-    bool success = true;
+    bool_t success = TRUE;
 
     abs_cur_time.clear();
 
@@ -273,7 +273,7 @@ void F() {
 
     for (int task_i = 1; task_i < tasks_num; ++task_i) {
         if (tasks[task_i].period < tasks[task_i].exe_time) {
-            success = false;
+            success = FALSE;
             goto SCHEDULE_END;
         }
     }
@@ -319,8 +319,8 @@ void F() {
             }
         }
 
-        bool is_end = (origin_join_mlv_size == (size_t)tasks_num - 1) &&
-                      (Zeta_MultiLevelVector_GetSize(&join_mlv) == 0);
+        bool_t is_end = (origin_join_mlv_size == (size_t)tasks_num - 1) &&
+                        (Zeta_MultiLevelVector_GetSize(&join_mlv) == 0);
 
         TaskInfo* nxt_task = ReadyMLV_Pop();
 
@@ -338,8 +338,8 @@ void F() {
             if (cur_task_state == TASK_STATE_PAUSE) { ++preemption_cnt; }
 
             if (display) {
-                bool a = cur_task != &tasks[0];
-                bool b = !is_end && nxt_task != &tasks[0];
+                bool_t a = cur_task != &tasks[0];
+                bool_t b = !is_end && nxt_task != &tasks[0];
 
                 if (a || b) { PrintAbsCurTime(ss); }
 
@@ -364,7 +364,7 @@ void F() {
 
         if (nxt_task != &tasks[0] &&
             TIME_LT(nxt_task->join_time, finish_time)) {
-            success = false;
+            success = FALSE;
             break;
         }
 
@@ -427,7 +427,7 @@ SCHEDULE_END:;
 
 int main() {
     std::cin.tie(nullptr);
-    std::ios_base::sync_with_stdio(false);
+    std::ios_base::sync_with_stdio(FALSE);
 
     Allocator_Init();
 

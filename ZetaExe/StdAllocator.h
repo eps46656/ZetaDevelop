@@ -31,7 +31,7 @@ void* StdAllocator_Allocate(void* sa_, size_t size) {
     void* ptr = malloc(size);
 
 #if ZETA_IsDebug
-    bool b{ sa->records.insert({ ZETA_PtrToAddr(ptr), size }).second };
+    bool_t b{ sa->records.insert({ ZETA_PtrToAddr(ptr), size }).second };
     ZETA_DebugAssert(b);
     sa->usage += size;
 #endif

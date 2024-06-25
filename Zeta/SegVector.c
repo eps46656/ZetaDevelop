@@ -2,6 +2,7 @@
 
 #include "BinTree.h"
 #include "CircularVector.h"
+#include "Debugger.h"
 #include "RBTree.h"
 #include "utils.h"
 

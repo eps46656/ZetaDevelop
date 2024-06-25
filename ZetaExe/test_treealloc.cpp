@@ -112,7 +112,7 @@ void main1() {
 
     Zeta_TreeAllocator_Init(&allocator);
 
-    CheckAllocator(true);
+    CheckAllocator(TRUE);
 
     std::vector<void*> ptrs;
 
@@ -123,7 +123,7 @@ void main1() {
 
         ptrs.push_back(MyAlloc(size));
 
-        CheckAllocator(false);
+        CheckAllocator(FALSE);
     }
 
     for (int _ = 0; _ < 100; ++_) {
@@ -134,7 +134,7 @@ void main1() {
 
             ptrs.push_back(MyAlloc(size));
 
-            CheckAllocator(false);
+            CheckAllocator(FALSE);
         }
 
         ZETA_PrintPos;
@@ -147,7 +147,7 @@ void main1() {
             ptrs[idx] = ptrs.back();
             ptrs.pop_back();
 
-            CheckAllocator(false);
+            CheckAllocator(FALSE);
         }
 
         ZETA_PrintPos;

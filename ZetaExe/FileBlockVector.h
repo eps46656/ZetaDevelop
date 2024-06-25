@@ -13,7 +13,7 @@ struct FileBlockVector {
         if (this->fs.is_open()) { this->fs.close(); }
     }
 
-    bool IsOpen() const { return this->fs.is_open(); }
+    bool_t IsOpen() const { return this->fs.is_open(); }
 
     void Open(const std::string& filename, size_t blk_size) {
         this->fs.open(filename, std::fstream::in | std::fstream::out |

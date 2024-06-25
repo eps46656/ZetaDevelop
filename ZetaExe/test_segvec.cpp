@@ -19,7 +19,7 @@ void PrintVal(void* x) {
     printf("%x\n", xi);
 }
 
-bool CmpVal(void* x_, void* y_) {
+bool_t CmpVal(void* x_, void* y_) {
     char* x = (char*)x_;
     char* y = (char*)y_;
 

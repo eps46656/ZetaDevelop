@@ -2,6 +2,8 @@
 
 #include <deque>
 
+#include "Debugger.h"
+
 void Zeta_DebugPipe_Create(void* dd_) {
     Zeta_DebugPipe* dd{ (Zeta_DebugPipe*)dd_ };
     ZETA_DebugAssert(dd != NULL);

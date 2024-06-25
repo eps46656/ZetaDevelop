@@ -2,6 +2,7 @@
 
 #include <deque>
 
+#include "Debugger.h"
 #include "utils.h"
 
 void Zeta_DebugDeque_Init(void* dd_) {

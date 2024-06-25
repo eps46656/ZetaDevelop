@@ -13,7 +13,7 @@ ZETA_DeclareStruct(Zeta_FileSysFAT32_Manager);
 ZETA_DeclareStruct(Zeta_FileSysFAT32_SNode);
 
 struct Zeta_FileSysFAT32_Header {
-    u64_t base_lba;
+    u64_t base_blk_num;
 
     byte_t jmp_boot[3];
 
@@ -81,6 +81,8 @@ struct Zeta_FileSysFAT32_SNode {
 };
 
 struct Zeta_FileSysFAT32_Manager {
+    Zeta_FileSysFAT32_Header header;
+
     Zeta_CacheManager* cm;
 };
 

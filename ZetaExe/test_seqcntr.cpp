@@ -29,12 +29,12 @@ struct Val {
     unsigned char data[width];
 };
 
-bool operator==(const Val& val_a, const Val& val_b) {
+bool_t operator==(const Val& val_a, const Val& val_b) {
     for (size_t i{ 0 }; i < Val::width; ++i) {
-        if (val_a.data[i] != val_b.data[i]) { return false; }
+        if (val_a.data[i] != val_b.data[i]) { return FALSE; }
     }
 
-    return true;
+    return TRUE;
 }
 
 std::ostream& operator<<(std::ostream& os, const Val& val) {
@@ -118,10 +118,10 @@ Zeta_Allocator seg_allocator;
 
 Zeta_SegVector sv;
 
-bool sv_inited{ false };
+bool_t sv_inited{ FALSE };
 
 void InitSV(Zeta_SeqContainer* seq_cntr) {
-    sv_inited = true;
+    sv_inited = TRUE;
 
     StdAllocator_DeployAllocator(&node_allocator_, &node_allocator);
     StdAllocator_DeployAllocator(&seg_allocator_, &seg_allocator);

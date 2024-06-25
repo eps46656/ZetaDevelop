@@ -61,8 +61,8 @@ Zeta_DebugTreeMap_KeyValPair Zeta_DebugTreeMap_Find(void* tm_,
     auto iter{ tree_map->find(key) };
 
     return iter == tree_map->end()
-               ? Zeta_DebugTreeMap_KeyValPair{ false, NULL, NULL }
-               : Zeta_DebugTreeMap_KeyValPair{ true, &iter->first,
+               ? Zeta_DebugTreeMap_KeyValPair{ FALSE, NULL, NULL }
+               : Zeta_DebugTreeMap_KeyValPair{ TRUE, &iter->first,
                                                &iter->second };
 }
 

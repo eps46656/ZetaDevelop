@@ -47,12 +47,12 @@ std::unordered_set<void*> recorded_s_nodes;
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 
-bool IsEqual(byte_t const* data_a, byte_t const* data_b, size_t size) {
+bool_t IsEqual(byte_t const* data_a, byte_t const* data_b, size_t size) {
     for (size_t i = 0; i < size; ++i) {
-        if (data_a[i] != data_b[i]) { return false; }
+        if (data_a[i] != data_b[i]) { return FALSE; }
     }
 
-    return true;
+    return TRUE;
 }
 
 void ZeroFill(byte_t* data, size_t size) {

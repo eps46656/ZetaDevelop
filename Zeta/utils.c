@@ -1,5 +1,7 @@
 #include "utils.h"
 
+#include "Debugger.h"
+
 void Zeta_MemCopy(void* dst_, void const* src_, size_t size) {
     unsigned char* dst = dst_;
     unsigned char const* src = src_;
@@ -300,14 +302,34 @@ L1:;
 unsigned long long Zeta_GetFloorSqrt(unsigned long long val) {
     if (val <= 1) { return val; }
 
-    unsigned long long ret = val / 2;
+    unsigned long long x = 1;
 
-    for (;;) {
-        unsigned long long nxt = (val / ret + ret - 1) / 2 + 1;
-        if (nxt < ret) { continue; }
+    {
+        unsigned long long a = val;
+
+        for (; 256 <= a; a /= 256) { x *= 16; }
+
+        if (16 <= a) {
+            a /= 16;
+            x *= 4;
+        }
+
+        if (1 < a) {
+            a /= 4;
+            x *= 2;
+        }
+
+        if (1 < a) { x *= 2; }
     }
 
-    return ret;
+    unsigned long long y = (val / x + x) / 2;
+
+    while (y < x) {
+        x = y;
+        y = (val / x + x) / 2;
+    }
+
+    return x;
 }
 
 unsigned long long Zeta_FindNextConMod(unsigned long long beg,

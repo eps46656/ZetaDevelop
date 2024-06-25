@@ -2,78 +2,78 @@
 
 #include "utils.h"
 
-#define READ(dst, length)                      \
-    dst = Zeta_ReadLittleEndian(data, length); \
-    data += length;                            \
-    ZETA_StaticAssert(TRUE)
+#define READ(src, length)                               \
+    ({                                                  \
+        src += length;                                  \
+        Zeta_ReadLittleEndianStd(src - length, length); \
+    })
 
-#define WRITE(val, length)                    \
+#define WRITE(dst, val, length)               \
     Zeta_WriteLittleEndian(dst, val, length); \
     dst += length;                            \
     ZETA_StaticAssert(TRUE)
 
 static byte_t const* ReadPartInfo_(Zeta_DiskPartMBR_PartEntry* dst,
-                                   byte_t const* data) {
-    READ(dst->state, 1);
+                                   byte_t const* src) {
+    dst->state = READ(src, 1);
 
     // ignore chs
-    data += 3;
+    src += 3;
 
-    READ(dst->type, 1);
+    dst->type = READ(src, 1);
 
     // ignore chs
-    data += 3;
+    src += 3;
 
-    READ(dst->beg, 4);
+    dst->beg = READ(src, 4);
 
-    size_t num_of_secs;
-    READ(num_of_secs, 4);
+    size_t num_of_secs = READ(src, 4);
 
     dst->end = dst->beg + num_of_secs;
 
-    return data;
+    return src;
 }
 
 static byte_t* WritePartInfo_(byte_t* dst,
                               Zeta_DiskPartMBR_PartEntry const* part_entry) {
-    WRITE(part_entry->state, 1);
+    WRITE(dst, part_entry->state, 1);
 
-    WRITE(0xFFFFFE, 3);
+    WRITE(dst, 0xFFFFFE, 3);
 
-    WRITE(part_entry->type, 1);
+    WRITE(dst, part_entry->type, 1);
 
-    WRITE(0xFFFFFE, 3);
+    WRITE(dst, 0xFFFFFE, 3);
 
-    WRITE(part_entry->beg, 4);
+    WRITE(dst, part_entry->beg, 4);
 
-    WRITE(part_entry->end - part_entry->beg, 4);
+    WRITE(dst, part_entry->end - part_entry->beg, 4);
 
     return dst;
 }
 
 byte_t const* Zeta_DiskPartMBR_ReadMBR(Zeta_DiskPartMBR_MBR* dst,
                                        Zeta_DiskInfo const* disk_info,
-                                       byte_t const* data,
-                                       byte_t const* data_end) {
+                                       byte_t const* src,
+                                       byte_t const* src_end) {
     ZETA_DebugAssert(dst != NULL);
     ZETA_DebugAssert(disk_info != NULL);
-    ZETA_DebugAssert(data != NULL);
-    ZETA_DebugAssert(data_end != NULL);
-    ZETA_DebugAssert(data <= data_end);
-    ZETA_DebugAssert(512 <= data_end - data);
+    ZETA_DebugAssert(src != NULL);
+    ZETA_DebugAssert(src_end != NULL);
+    ZETA_DebugAssert(src <= src_end);
+    ZETA_DebugAssert(512 <= src_end - src);
 
-    for (int i = 0; i < ZETA_DiskPartMBR_size_of_bootstrap; ++i, ++data) {
-        dst->bootstrap[i] = data[0];
+    for (int i = 0; i < ZETA_DiskPartMBR_size_of_bootstrap; ++i, ++src) {
+        dst->bootstrap[i] = src[0];
     }
 
     for (int i = 0; i < 4; ++i) {
-        data = ReadPartInfo_(dst->part_entries + i, data);
+        src = ReadPartInfo_(dst->part_entries + i, src);
     }
 
-    if (data[0] != 0x55 || data[1] != 0xAA) { return NULL; }
+    if (src[0] != 0x55 || src[1] != 0xAA) { return NULL; }
 
-    data += 2;
-    return data;
+    src += 2;
+    return src;
 }
 
 byte_t* Zeta_DiskPartMBR_WriteMBR(byte_t* dst, byte_t* dst_end,
@@ -94,7 +94,7 @@ byte_t* Zeta_DiskPartMBR_WriteMBR(byte_t* dst, byte_t* dst_end,
         dst = WritePartInfo_(dst, mbr->part_entries + i);
     }
 
-    WRITE(0xAA55, 2);
+    WRITE(dst, 0xAA55, 2);
 
     return dst;
 }

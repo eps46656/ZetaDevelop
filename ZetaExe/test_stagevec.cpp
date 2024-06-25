@@ -3,8 +3,10 @@
 #include <random>
 #include <set>
 
+#include "../Zeta/CheckPointRecorder.h"
 #include "../Zeta/CircularVector.h"
 #include "../Zeta/DebugDeque.h"
+#include "../Zeta/Debugger.h"
 #include "../Zeta/SegVector.h"
 #include "../Zeta/StageVector.h"
 #include "MemAllocatorCheck.h"
@@ -30,12 +32,12 @@ struct Val {
     unsigned char data[width];
 };
 
-bool operator==(const Val& val_a, const Val& val_b) {
+bool_t operator==(const Val& val_a, const Val& val_b) {
     for (size_t i{ 0 }; i < Val::width; ++i) {
-        if (val_a.data[i] != val_b.data[i]) { return false; }
+        if (val_a.data[i] != val_b.data[i]) { return FALSE; }
     }
 
-    return true;
+    return TRUE;
 }
 
 std::ostream& operator<<(std::ostream& os, const Val& val) {
@@ -297,42 +299,72 @@ void SC_Insert(Zeta_SeqContainer* seq_cntr, size_t idx, size_t cnt,
                Val const* src) {
     Zeta_Cursor pos_cursor;
 
+    ZETA_RecordStdCheckPoint;
+
     seq_cntr->Access(seq_cntr->context, &pos_cursor, NULL, idx);
+
+    ZETA_RecordStdCheckPoint;
 
     ZETA_DebugAssert(seq_cntr->Cursor_GetIdx(seq_cntr->context, &pos_cursor) ==
                      idx);
+
+    ZETA_RecordStdCheckPoint;
 
     seq_cntr->Insert(seq_cntr->context, &pos_cursor, cnt);
 
+    ZETA_RecordStdCheckPoint;
+
     SC_Check(seq_cntr);
 
     ZETA_DebugAssert(seq_cntr->Cursor_GetIdx(seq_cntr->context, &pos_cursor) ==
                      idx);
 
+    ZETA_RecordStdCheckPoint;
+
     seq_cntr->Write(seq_cntr->context, &pos_cursor, cnt, src, &pos_cursor);
+
+    ZETA_RecordStdCheckPoint;
 
     SC_Check(seq_cntr);
 
+    ZETA_RecordStdCheckPoint;
+
     ZETA_DebugAssert(seq_cntr->Cursor_GetIdx(seq_cntr->context, &pos_cursor) ==
                      idx + cnt);
+
+    ZETA_RecordStdCheckPoint;
 }
 
 void SC_Erase(Zeta_SeqContainer* seq_cntr, size_t idx, size_t cnt) {
     Zeta_Cursor pos_cursor;
 
+    ZETA_RecordStdCheckPoint;
+
     seq_cntr->Access(seq_cntr->context, &pos_cursor, NULL, idx);
+
+    ZETA_RecordStdCheckPoint;
 
     SC_Check(seq_cntr);
 
+    ZETA_RecordStdCheckPoint;
+
     ZETA_DebugAssert(seq_cntr->Cursor_GetIdx(seq_cntr->context, &pos_cursor) ==
                      idx);
+
+    ZETA_RecordStdCheckPoint;
 
     seq_cntr->Erase(seq_cntr->context, &pos_cursor, cnt);
 
+    ZETA_RecordStdCheckPoint;
+
     SC_Check(seq_cntr);
+
+    ZETA_RecordStdCheckPoint;
 
     ZETA_DebugAssert(seq_cntr->Cursor_GetIdx(seq_cntr->context, &pos_cursor) ==
                      idx);
+
+    ZETA_RecordStdCheckPoint;
 }
 
 void SC_Print(Zeta_SeqContainer* seq_cntr) {
@@ -715,9 +747,15 @@ void SyncInsert(Zeta_SeqContainer* seq_cntr_a, Zeta_SeqContainer* seq_cntr_b) {
     vals_a.resize(cnt);
     GetRandomVal(vals_a);
 
+    ZETA_RecordStdCheckPoint;
+
     SC_Insert(seq_cntr_a, idx, vals_a.size(), vals_a.data());
 
+    ZETA_RecordStdCheckPoint;
+
     SC_Insert(seq_cntr_b, idx, vals_a.size(), vals_a.data());
+
+    ZETA_RecordStdCheckPoint;
 }
 
 void SyncErase(Zeta_SeqContainer* seq_cntr_a, Zeta_SeqContainer* seq_cntr_b) {
@@ -732,9 +770,15 @@ void SyncErase(Zeta_SeqContainer* seq_cntr_a, Zeta_SeqContainer* seq_cntr_b) {
     long long cnt{ size_generator(en) % (cnt_rb - cnt_lb + 1) + cnt_lb };
     long long idx{ size_generator(en) % (size_a + 1 - cnt) };
 
+    ZETA_RecordStdCheckPoint;
+
     SC_Erase(seq_cntr_a, idx, cnt);
 
+    ZETA_RecordStdCheckPoint;
+
     SC_Erase(seq_cntr_b, idx, cnt);
+
+    ZETA_RecordStdCheckPoint;
 }
 
 void SyncWrite(Zeta_SeqContainer* seq_cntr_a, Zeta_SeqContainer* seq_cntr_b) {
@@ -850,17 +894,18 @@ void main2() {
         CheckCursor(seq_cntr_a);
         CheckCursor(seq_cntr_b);
 
+        ZETA_PrintVar(SC_GetSize(seq_cntr_a));
+
         ZETA_PrintPos;
 
         ZETA_PrintPos;
 
         SyncWrite(seq_cntr_a, seq_cntr_b);
-
-        ZETA_PrintPos;
-
         Compare(seq_cntr_a, seq_cntr_b);
         CheckCursor(seq_cntr_a);
         CheckCursor(seq_cntr_b);
+
+        ZETA_PrintVar(SC_GetSize(seq_cntr_a));
 
         ZETA_PrintPos;
 
@@ -868,6 +913,8 @@ void main2() {
         Compare(seq_cntr_a, seq_cntr_b);
         CheckCursor(seq_cntr_a);
         CheckCursor(seq_cntr_b);
+
+        ZETA_PrintVar(SC_GetSize(seq_cntr_a));
 
         ZETA_PrintPos;
 
@@ -878,29 +925,16 @@ void main2() {
 }
 
 void main3() {
-    Zeta_SeqContainer* dd{ CreateSV() };
-    Zeta_SeqContainer* dd2{ CreateSV() };
+    ZETA_RecordStdCheckPoint;
 
-    Val tmp;
+    int a = 3;
 
-    GetRandomVal(&tmp);
-    SC_Insert(dd, 0, 1, &tmp);
+    ZETA_PrintVar(a);
+    ZETA_PrintVar(a + 5);
 
-    GetRandomVal(&tmp);
-    SC_Insert(dd, 0, 1, &tmp);
+    ZETA_RecordStdCheckPoint;
 
-    GetRandomVal(&tmp);
-    SC_Insert(dd, 0, 1, &tmp);
-
-    GetRandomVal(&tmp);
-    SC_Insert(dd, 0, 1, &tmp);
-
-    SC_Print(dd);
-
-    SC_Assign(dd, dd2);
-
-    SC_Print(dd);
-    SC_Print(dd2);
+    ZETA_DebugAssert(FALSE);
 }
 
 int main() {

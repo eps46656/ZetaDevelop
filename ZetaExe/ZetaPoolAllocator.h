@@ -44,7 +44,7 @@ void* ZetaPoolAllocator_Allocate(void* pa_, size_t size) {
     }
 
 #if ZETA_IsDebug
-    bool b{ pa->records.insert({ ZETA_PtrToAddr(ptr), pa->size }).second };
+    bool_t b{ pa->records.insert({ ZETA_PtrToAddr(ptr), pa->size }).second };
     ZETA_DebugAssert(b);
     pa->usage += pa->size;
 #endif

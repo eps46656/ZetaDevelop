@@ -1,16 +1,8 @@
 #pragma once
 
 #include <stdalign.h>
-#include <stdbool.h>
 #include <stddef.h>
-#include <stdint.h>
-#include <stdio.h>
 #include <stdlib.h>
-
-#if defined(__cplusplus)
-#include <iomanip>
-#include <iostream>
-#endif
 
 #define TRUE (0 == 0)
 #define FALSE (0 != 0)
@@ -219,9 +211,13 @@ typedef unsigned int unichar_t;
                  ZETA_RangeMaxOf(unsigned long long)),                       \
                                                                              \
         u8_t: (8),                                                           \
+                                                                             \
         u16_t: (16),                                                         \
+                                                                             \
         u32_t: (32),                                                         \
+                                                                             \
         u64_t: (64),                                                         \
+                                                                             \
         u128_t: (128))
 
 #define ZETA_PtrToAddr(x) ((uintptr_t)(void*)(x))
@@ -233,8 +229,8 @@ typedef unsigned int unichar_t;
 
 #define ZETA_GetMinOf_(x, y, x_tmp, y_tmp) \
     ({                                     \
-        typeof(x) x_tmp = (x);             \
-        typeof(x) y_tmp = (y);             \
+        ZETA_AutoVar(x_tmp, x);            \
+        ZETA_AutoVar(y_tmp, y);            \
         x_tmp < y_tmp ? x_tmp : y_tmp;     \
     })
 
@@ -265,103 +261,3 @@ typedef unsigned int unichar_t;
 
 ZETA_StaticAssert(ZETA_RangeMinOf(byte_t) <= 0);
 ZETA_StaticAssert(255 <= ZETA_RangeMaxOf(byte_t));
-
-#define ZETA_PrintPos_                                        \
-    printf("%48s:%-4d\t%-24s", __FILE__, __LINE__, __func__); \
-    ZETA_StaticAssert(TRUE)
-
-#define ZETA_PrintPos \
-    ZETA_PrintPos_;   \
-    printf("\n");     \
-    fflush(stdout);   \
-    ZETA_StaticAssert(TRUE)
-
-#if defined(__cplusplus)
-
-#define ZETA_PrintVar(var)                                                  \
-    ZETA_PrintPos_;                                                         \
-                                                                            \
-    std::cout << '\t' << std::setw(24) << ZETA_ToStr(var) << " = " << (var) \
-              << '\n';
-
-#else
-
-#define ZETA_PrintVar(var)                \
-    ZETA_PrintPos_;                       \
-                                          \
-    printf("\t%24s = ", ZETA_ToStr(var)); \
-                                          \
-    printf(_Generic((var),                \
-           char: "%c\n",                  \
-           unsigned char: "%X\n",         \
-           signed char: "%c\n",           \
-                                          \
-           short: "%i\n",                 \
-           unsigned short: "%u\n",        \
-                                          \
-           int: "%i\n",                   \
-           unsigned: "%u\n",              \
-                                          \
-           long: "%li\n",                 \
-           unsigned long: "%llu\n",       \
-                                          \
-           long long: "%lli\n",           \
-           unsigned long long: "%llu\n",  \
-                                          \
-           float: "%g\n",                 \
-                                          \
-           double: "%g\n",                \
-           long double: "%g\n",           \
-                                          \
-           void*: "%p\n",                 \
-           const void*: "%p\n",           \
-                                          \
-           char*: "%s\n",                 \
-           const char*: "%s\n"),          \
-           (var));                        \
-                                          \
-    fflush(stdout);                       \
-    ZETA_StaticAssert(TRUE)
-
-#endif
-
-#define ZETA_Pause               \
-    {                            \
-        ZETA_PrintPos_;          \
-                                 \
-        printf("\tpause...");    \
-                                 \
-        if (FALSE) {             \
-            fflush(stdout);      \
-            char tmp;            \
-            scanf_s("%c", &tmp); \
-        } else {                 \
-            printf("\n");        \
-            fflush(stdout);      \
-        }                        \
-    }                            \
-    ZETA_StaticAssert(TRUE)
-
-#define ZETA_Unused(x)          \
-    if (FALSE) { ((void)(x)); } \
-    ZETA_StaticAssert(TRUE)
-
-#define ZETA_Assert(cond)                           \
-    if (cond) {                                     \
-    } else {                                        \
-        ZETA_PrintPos_;                             \
-                                                    \
-        printf("\tassert\t%s\n", ZETA_ToStr(cond)); \
-                                                    \
-        fflush(stdout);                             \
-        exit(0);                                    \
-    }                                               \
-    ZETA_StaticAssert(TRUE)
-
-#if ZETA_IsDebug
-#define ZETA_DebugAssert(cond) ZETA_Assert(cond)
-#else
-#define ZETA_DebugAssert(cond)
-#endif
-
-#define ZETA_CheckAssert(cond) ZETA_DebugAssert(cond)

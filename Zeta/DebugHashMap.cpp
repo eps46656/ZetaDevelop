@@ -3,6 +3,8 @@
 #include <iostream>
 #include <unordered_map>
 
+#include "Debugger.h"
+
 typedef std::unordered_map<unsigned long long, unsigned long long> hash_map_t;
 
 void Zeta_DebugHashMap_Create(void* hm_) {
@@ -61,8 +63,8 @@ Zeta_DebugHashMap_KeyValPair Zeta_DebugHashMap_Find(void* hm_,
     auto iter{ hash_map->find(key) };
 
     return iter == hash_map->end()
-               ? Zeta_DebugHashMap_KeyValPair{ false, NULL, NULL }
-               : Zeta_DebugHashMap_KeyValPair{ true, &iter->first,
+               ? Zeta_DebugHashMap_KeyValPair{ FALSE, NULL, NULL }
+               : Zeta_DebugHashMap_KeyValPair{ TRUE, &iter->first,
                                                &iter->second };
 }
 

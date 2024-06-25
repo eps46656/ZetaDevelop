@@ -110,7 +110,7 @@ class Compiler:
 
         if self.mode == mode_enum.debug:
             self.c_to_ll_args += [
-                "-g",
+                "-O3",
                 "-D DEBUG",
                 "-Wall",
                 "-Wextra",
@@ -118,7 +118,7 @@ class Compiler:
             ]
 
             self.cpp_to_ll_args += [
-                "-g",
+                "-O3",
                 "-D DEBUG",
                 "-Wall",
                 "-Wextra",

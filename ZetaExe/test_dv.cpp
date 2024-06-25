@@ -12,7 +12,7 @@ struct Data {
     int y;
 };
 
-bool operator==(Data const& a, Data const& b) {
+bool_t operator==(Data const& a, Data const& b) {
     return a.x == b.x && a.y == b.y;
 }
 

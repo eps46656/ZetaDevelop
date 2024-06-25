@@ -1,5 +1,6 @@
 #include "BinTree.h"
 
+#include "Debugger.h"
 #include "utils.h"
 
 void Zeta_BinTree_InitOpr(Zeta_BinTreeNodeOperator* btn_opr) {

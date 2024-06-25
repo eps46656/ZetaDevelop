@@ -29,6 +29,23 @@ ZETA_DeclareStruct(DirEntry);
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 
+#define IsBadCluster_(x) ((x) == UNUSED_CLUSTER)
+
+#define IsBadCluster_(x) ((x) == BAD_CLUSTER)
+
+#define IsEOFCluster_(x)                       \
+    ({                                         \
+        ZETA_AutoVar(tmp, x);                  \
+        0x0FFFFFF8 <= tmp&& tmp <= 0x0FFFFFFF; \
+    })
+
+static size_t GetClusOffset_(Zeta_FileSysFAT32_Header* header,
+                             size_t clus_num) {
+    ZETA_DebugAssert(header != NULL);
+
+    //
+}
+
 static void Read_(Zeta_FileSysFAT32_Manager* manager,
                   Zeta_FileSysFAT32_SNode* snode, void* dst_, size_t beg,
                   size_t cnt) {
@@ -38,27 +55,26 @@ static void Read_(Zeta_FileSysFAT32_Manager* manager,
 
     size_t blk_size = cm->GetBlockSize(cm->context);
 
-    unsigned char* dst = dst_;
+    byte_t* dst = dst_;
     ZETA_DebugAssert(dst != NULL);
 
-    size_t blk_idx = beg / blk_size;
+    size_t blk_num = manager->header.base_blk_num + beg / blk_size;
     size_t ele_idx = beg % blk_size;
 
     while (0 < cnt) {
         size_t cur_cnt = ZETA_GetMinOf(cnt, blk_size - ele_idx);
 
-        unsigned char const* src =
-            cm->ReadBlock(cm->context, snode->cm_sd, blk_idx);
+        byte_t const* src = cm->ReadBlock(cm->context, snode->cm_sd, blk_num);
 
-        Zeta_MemCopy(dst, src, cur_cnt);
+        Zeta_MemCopy(dst, src + ele_idx, cur_cnt);
 
         ele_idx += cur_cnt;
         cnt -= cur_cnt;
         dst += cur_cnt;
 
         if (ele_idx == blk_size) {
-            ++blk_idx;
-            ele_idx;
+            ++blk_num;
+            ele_idx = 0;
         }
     }
 }
@@ -72,20 +88,20 @@ static void Write_(Zeta_FileSysFAT32_Manager* manager,
 
     size_t blk_size = cm->GetBlockSize(cm->context);
 
-    unsigned char* src = src_;
+    byte_t* src = src_;
     ZETA_DebugAssert(src != NULL);
 
-    size_t blk_idx = beg / blk_size;
+    size_t blk_num = manager->header.base_blk_num + beg / blk_size;
     size_t ele_idx = beg % blk_size;
 
     while (0 < cnt) {
         size_t cur_cnt = ZETA_GetMinOf(cnt, blk_size - ele_idx);
 
         if (ele_idx == 0 && cur_cnt == blk_size) {
-            cm->WriteBlock(cm->context, snode->cm_sd, blk_idx, src);
+            cm->WriteBlock(cm->context, snode->cm_sd, blk_num, src);
         } else {
-            unsigned char const* data =
-                cm->ReadBlock(cm->context, snode->cm_sd, blk_idx);
+            byte_t const* data =
+                cm->ReadBlock(cm->context, snode->cm_sd, blk_num);
 
             size_t cur_beg = ele_idx;
             size_t cur_end = cur_beg + cur_cnt;
@@ -97,7 +113,7 @@ static void Write_(Zeta_FileSysFAT32_Manager* manager,
             Zeta_MemCopy(snode->buffer + cur_end, data + cur_end,
                          blk_size - cur_end);
 
-            cm->WriteBlock(cm->context, snode->cm_sd, blk_idx, snode->buffer);
+            cm->WriteBlock(cm->context, snode->cm_sd, blk_num, snode->buffer);
         }
 
         ele_idx += cur_cnt;
@@ -105,8 +121,8 @@ static void Write_(Zeta_FileSysFAT32_Manager* manager,
         src += cur_cnt;
 
         if (ele_idx == blk_size) {
-            ++blk_idx;
-            ele_idx;
+            ++blk_num;
+            ele_idx = 0;
         }
     }
 }
@@ -114,6 +130,22 @@ static void Write_(Zeta_FileSysFAT32_Manager* manager,
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
+
+static size_t GetSecOffsetOfDataRegion_(Zeta_FileSysFAT32_Header* header) {
+    return header->reserved_sec_cnt + header->fat_size * header->fat_cnt;
+}
+
+#define SecOffsetOfDataRegion_(header_)                                \
+    ({                                                                 \
+        Zeta_FileSysFAT32_Header* header = (header_);                  \
+        header->reserved_sec_cnt + header->fat_size * header->fat_cnt; \
+    })
+
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+
+ZETA_DeclareStruct(Node);
 
 struct Node {
     Zeta_FileSysFAT32_Manager* manager;
@@ -139,6 +171,62 @@ struct NodeVector {
 
     Zeta_MultiLevelTable mlt;
 };
+
+static size_t Node_OriginVec_GetWidth(void* node_) {
+    Node* node = node_;
+    ZETA_DebugAssert(node != NULL);
+    return 1;
+}
+
+static size_t Node_OriginVec_GetStride(void* node_) {
+    Node* node = node_;
+    ZETA_DebugAssert(node != NULL);
+    return 1;
+}
+
+static size_t Node_OriginVec_GetSize(void* node_) {
+    Node* node = node_;
+    ZETA_DebugAssert(node != NULL);
+
+    return node->origin_size;
+}
+
+static void* Node_OriginVec_Access(void* node_, void* dst_cursor, void* dst_ele,
+                                   size_t idx) {
+    Node* node = node_;
+    ZETA_DebugAssert(node != NULL);
+
+    ZETA_DebugAssert(idx + 1 < node->origin_size + 2);
+
+    if (dst_cursor != NULL) { *(size_t*)dst_cursor = idx; }
+
+    if (dst_ele != NULL) {
+        Zeta_FileSysFAT32_Header* header = &node->manager->header;
+
+        size_t clus_size = header->bytes_per_sec * header->secs_per_clus;
+
+        size_t clus_idx = idx / clus_size;
+        size_t clus_offset = idx % clus_size;
+
+        size_t clus_num = *(size_t*)Zeta_StageVector_Access(
+            &node->clus_num_vec, NULL, NULL, clus_idx);
+
+        size_t beg =
+            header->bytes_per_sec * (SecOffsetOfDataRegion_(header) +
+                                     header->secs_per_clus * (clus_num - 2)) +
+            clus_offset;
+
+        Read_(node->manager, node->cache_manager_sd, dst_ele, beg, 1);
+    }
+
+    return NULL;
+}
+
+static void* Node_OriginVec_Read(void* node_, void* pos_cursor_, size_t cnt,
+                                 void* dst, void* dst_cursor_) {
+    Node* node = node_;
+    ZETA_DebugAssert(node != NULL);
+}
 
 static void NodeVector_Check_(void* nv_) {
     NodeVector* nv = nv_;
@@ -566,16 +654,6 @@ bool_t ReadHeader_(Zeta_FileSysFAT32_Header* dst, byte_t const* data) {
 ERR_RET:
     return NULL;
 }
-
-#define IsBadCluster_(x) ((x) == UNUSED_CLUSTER)
-
-#define IsBadCluster_(x) ((x) == BAD_CLUSTER)
-
-#define IsEOFCluster_(x)                       \
-    ({                                         \
-        ZETA_AutoVar(tmp, x);                  \
-        0x0FFFFFF8 <= tmp&& tmp <= 0x0FFFFFFF; \
-    })
 
 static u64_t GetFATEntryOffset_(Zeta_FileSysFAT32_Header* header,
                                 size_t fat_idx, u32_t clus_num) {

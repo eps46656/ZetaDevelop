@@ -1,5 +1,6 @@
 #include "CircularVector.h"
 
+#include "Debugger.h"
 #include "utils.h"
 
 #define Refer_(data, stride, offset, idx, capacity) \

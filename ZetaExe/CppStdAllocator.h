@@ -34,12 +34,12 @@ private:
 };
 
 template <typename T>
-constexpr bool operator==(const CppStdAllocator<T>& a,
-                          const CppStdAllocator<T>& b);
+constexpr bool_t operator==(const CppStdAllocator<T>& a,
+                            const CppStdAllocator<T>& b);
 
 template <typename T>
-constexpr bool operator!=(const CppStdAllocator<T>& a,
-                          const CppStdAllocator<T>& b);
+constexpr bool_t operator!=(const CppStdAllocator<T>& a,
+                            const CppStdAllocator<T>& b);
 
 // ---------------------------------------------------------------------------------------
 // ---------------------------------------------------------------------------------------
@@ -84,7 +84,7 @@ T* CppStdAllocator<T>::allocate(size_t size) {
     if (size != 48) { ZETA_PrintVar(size); }
 
 #if ZETA_IsDebug
-    bool b{ this->records_.insert({ ptr, size }).second };
+    bool_t b{ this->records_.insert({ ptr, size }).second };
     ZETA_DebugAssert(b);
 
     *this->usage_ += size;
@@ -118,13 +118,13 @@ void CppStdAllocator<T>::deallocate(T* ptr, size_t size) {
 }
 
 template <typename T>
-constexpr bool operator==(const CppStdAllocator<T>& a,
-                          const CppStdAllocator<T>& b) {
+constexpr bool_t operator==(const CppStdAllocator<T>& a,
+                            const CppStdAllocator<T>& b) {
     return &a == &b;
 }
 
 template <typename T>
-constexpr bool operator!=(const CppStdAllocator<T>& a,
-                          const CppStdAllocator<T>& b) {
+constexpr bool_t operator!=(const CppStdAllocator<T>& a,
+                            const CppStdAllocator<T>& b) {
     return &a != &b;
 }

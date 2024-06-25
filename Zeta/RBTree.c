@@ -1,5 +1,6 @@
 #include "RBTree.h"
 
+#include "Debugger.h"
 #include "utils.h"
 
 #define Black (0)
