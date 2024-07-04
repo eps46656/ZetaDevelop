@@ -4,6 +4,8 @@
 
 ZETA_ExternC_Beg;
 
+typedef unsigned _BitInt(32) Zeta_SHA256Hasher_word_t;
+
 ZETA_DeclareStruct(Zeta_SHA256Hasher);
 
 /**
@@ -13,7 +15,7 @@ struct Zeta_SHA256Hasher {
     /**
      * The intermediate state of sha256.
      */
-    unsigned _BitInt(32) hs[8];
+    Zeta_SHA256Hasher_word_t hs[8];
 
     /**
      * The size(byte) of last chunk.

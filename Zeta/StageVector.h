@@ -139,3 +139,19 @@ void Zeta_StageVector_Cursor_Check(void* sv, void const* cursor);
 void Zeta_StageVector_DeploySeqContainer(void* sv, Zeta_SeqContainer* seq_cntr);
 
 ZETA_ExternC_End;
+
+/*
+
+i = 0 ~ N-1
+
+x[-1] = seg_capacity
+x[i] = [1, seg_capacity-1]
+x[N] = seg_capacity
+
+for i in [0, N-1]
+    seg_capacity < x[i-1] + x[i] or
+    seg_capacity < x[i] + x[i+1]
+
+minimize sum(x[i] for i in [0, N-1]) / seg_capacity * N
+
+*/

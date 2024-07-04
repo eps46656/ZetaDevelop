@@ -834,7 +834,7 @@ def AddDeps(builder, ZetaBuildDir, ZetaExeBuildDir, verbose, mode):
             f"{File}",
 
             f"{ZetaBuildDir}/BinTree.ll",
-            f"{ZetaBuildDir}/CheckPointRecorder.ll",
+            f"{ZetaBuildDir}/CheckPointMeter.ll",
             f"{ZetaBuildDir}/CircularVector.ll",
             f"{ZetaBuildDir}/DebugDeque.ll",
             f"{ZetaBuildDir}/DebugHashMap.ll",
@@ -854,7 +854,7 @@ def AddDeps(builder, ZetaBuildDir, ZetaExeBuildDir, verbose, mode):
             f"{ZetaExeBuildDir}/test_stagevec.exe",
             [
                 f"{ZetaBuildDir}/BinTree.ll",
-                f"{ZetaBuildDir}/CheckPointRecorder.ll",
+                f"{ZetaBuildDir}/CheckPointMeter.ll",
                 f"{ZetaBuildDir}/CircularVector.ll",
                 f"{ZetaBuildDir}/DebugDeque.ll",
                 f"{ZetaBuildDir}/DebugHashMap.ll",

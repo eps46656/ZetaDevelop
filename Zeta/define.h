@@ -54,7 +54,9 @@ typedef unsigned int unichar_t;
     struct struct_name;                     \
     ZETA_StaticAssert(TRUE)
 
-#define ZETA_AutoVar(var, expression) typeof((expression)) var = (expression);
+#define ZETA_AutoVar(var, expression)        \
+    typeof((expression)) var = (expression); \
+    ZETA_StaticAssert(TRUE)
 
 #if defined(__cplusplus)
 #define ZETA_ExternC_Beg \
@@ -261,3 +263,25 @@ typedef unsigned int unichar_t;
 
 ZETA_StaticAssert(ZETA_RangeMinOf(byte_t) <= 0);
 ZETA_StaticAssert(255 <= ZETA_RangeMaxOf(byte_t));
+
+#define ZETA_CeilIntDiv_(x_tmp, y_tmp, x, y) \
+    ({                                       \
+        ZETA_AutoVar(x_tmp, x);              \
+        ZETA_AutoVar(y_tmp, y);              \
+        (x_tmp + y_tmp - 1) / y_tmp;         \
+    })
+
+#define ZETA_CeilIntDiv(x, y)                                                \
+    ZETA_CeilIntDiv_(ZETA_UniqueName(ZETA_tmp_), ZETA_UniqueName(ZETA_tmp_), \
+                     x, y)
+
+#define ZETA_RoundIntDiv_(x_tmp, y_tmp, x, y) \
+    ({                                        \
+        ZETA_AutoVar(x_tmp, x);               \
+        ZETA_AutoVar(y_tmp, y);               \
+        (x_tmp + y_tmp / 2) / y_tmp;          \
+    })
+
+#define ZETA_RoundIntDiv(x, y)                                                \
+    ZETA_RoundIntDiv_(ZETA_UniqueName(ZETA_tmp_), ZETA_UniqueName(ZETA_tmp_), \
+                      x, y)

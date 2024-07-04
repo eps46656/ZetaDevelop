@@ -54,7 +54,7 @@ void SegShoveR(Zeta_CircularVector* l_cv, Zeta_CircularVector* r_cv,
     ZETA_DebugAssert(l_cv != NULL);
     ZETA_DebugAssert(r_cv != NULL);
 
-    ZETA_DebugAssert(r_cv->size + shove_cnt <= l_cv->capacity);
+    ZETA_DebugAssert(r_cv->size + shove_cnt <= r_cv->capacity);
     ZETA_DebugAssert(shove_cnt <= l_cv->size + ins_cnt);
 
     size_t width = l_cv->width;

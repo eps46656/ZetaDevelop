@@ -15,7 +15,7 @@ extern void* zeta_debugger_assert_callback_context;
 
 extern int (*zeta_debugger_assert_callback)(void* context);
 
-#define ZETA_ImmFlush (FALSE)
+#define ZETA_ImmFlush (TRUE)
 
 #define ZETA_PrintPosFormat(filename, line, func)                             \
     printf("%48s:%-4llu\t%-24s", filename, (unsigned long long)(line), func); \

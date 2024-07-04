@@ -3,7 +3,7 @@
 #include <random>
 #include <set>
 
-#include "../Zeta/CheckPointRecorder.h"
+#include "../Zeta/CheckPointMeter.h"
 #include "../Zeta/CircularVector.h"
 #include "../Zeta/DebugDeque.h"
 #include "../Zeta/Debugger.h"
@@ -310,7 +310,7 @@ void SC_Insert(Zeta_SeqContainer* seq_cntr, size_t idx, size_t cnt,
 
     ZETA_RecordStdCheckPoint;
 
-    seq_cntr->Insert(seq_cntr->context, &pos_cursor, cnt);
+    void* ele = seq_cntr->Insert(seq_cntr->context, &pos_cursor, cnt);
 
     ZETA_RecordStdCheckPoint;
 
@@ -318,6 +318,7 @@ void SC_Insert(Zeta_SeqContainer* seq_cntr, size_t idx, size_t cnt,
 
     ZETA_DebugAssert(seq_cntr->Cursor_GetIdx(seq_cntr->context, &pos_cursor) ==
                      idx);
+    ZETA_DebugAssert(seq_cntr->Refer(seq_cntr->context, &pos_cursor) == ele);
 
     ZETA_RecordStdCheckPoint;
 
@@ -729,6 +730,8 @@ void CheckCursor(Zeta_SeqContainer* seq_cntr) {
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 
+#define MAX_OP_SIZE (128)
+
 std::vector<Val> vals_a;
 std::vector<Val> vals_b;
 
@@ -739,7 +742,7 @@ void SyncInsert(Zeta_SeqContainer* seq_cntr_a, Zeta_SeqContainer* seq_cntr_b) {
     ZETA_DebugAssert(size_a == size_b);
 
     size_t cnt_lb{ 0 };
-    size_t cnt_rb{ 32 };
+    size_t cnt_rb{ MAX_OP_SIZE };
 
     size_t idx{ size_generator(en) % (size_a + 1) };
     size_t cnt{ size_generator(en) % (cnt_rb - cnt_lb + 1) + cnt_lb };
@@ -765,7 +768,7 @@ void SyncErase(Zeta_SeqContainer* seq_cntr_a, Zeta_SeqContainer* seq_cntr_b) {
     ZETA_DebugAssert(size_a == size_b);
 
     long long cnt_lb{ 0 };
-    long long cnt_rb{ std::min<long long>(32, size_a) };
+    long long cnt_rb{ std::min<long long>(MAX_OP_SIZE, size_a) };
 
     long long cnt{ size_generator(en) % (cnt_rb - cnt_lb + 1) + cnt_lb };
     long long idx{ size_generator(en) % (size_a + 1 - cnt) };
@@ -788,7 +791,7 @@ void SyncWrite(Zeta_SeqContainer* seq_cntr_a, Zeta_SeqContainer* seq_cntr_b) {
     ZETA_DebugAssert(size_a == size_b);
 
     long long cnt_lb{ 0 };
-    long long cnt_rb{ std::min<long long>(32, size_a) };
+    long long cnt_rb{ std::min<long long>(MAX_OP_SIZE, size_a) };
 
     long long cnt{ size_generator(en) % (cnt_rb - cnt_lb + 1) + cnt_lb };
     long long idx{ size_generator(en) % (size_a + 1 - cnt) };
@@ -876,7 +879,7 @@ void main2() {
     Zeta_SeqContainer* seq_cntr_a{ CreateDD() };
     Zeta_SeqContainer* seq_cntr_a_copy{ CreateDD() };
 
-    vals_a.resize(256 * 1024);
+    vals_a.resize(1024);
     GetRandomVal(vals_a);
     SC_Insert(seq_cntr_a, 0, vals_a.size(), vals_a.data());
 
@@ -894,6 +897,8 @@ void main2() {
         CheckCursor(seq_cntr_a);
         CheckCursor(seq_cntr_b);
 
+        Zeta_CheckPointMeter_Clear(std_check_point_recorder);
+
         ZETA_PrintVar(SC_GetSize(seq_cntr_a));
 
         ZETA_PrintPos;
@@ -905,6 +910,8 @@ void main2() {
         CheckCursor(seq_cntr_a);
         CheckCursor(seq_cntr_b);
 
+        Zeta_CheckPointMeter_Clear(std_check_point_recorder);
+
         ZETA_PrintVar(SC_GetSize(seq_cntr_a));
 
         ZETA_PrintPos;
@@ -913,6 +920,8 @@ void main2() {
         Compare(seq_cntr_a, seq_cntr_b);
         CheckCursor(seq_cntr_a);
         CheckCursor(seq_cntr_b);
+
+        Zeta_CheckPointMeter_Clear(std_check_point_recorder);
 
         ZETA_PrintVar(SC_GetSize(seq_cntr_a));
 
@@ -939,9 +948,8 @@ void main3() {
 
 int main() {
     main2();
-    std::cout << "ok\n";
-
-    printf(__func__);
+    printf("ok\a\n");
+    return 0;
 }
 
 /*
@@ -952,7 +960,7 @@ If m_node can contain more cnt elements:
     Directly insert cnt elements into m_node.
     return
 
-Choose the more vacant side of m_node, k_node
+Choose the more vacant side of m_node as k_node
 
 If m_node and k_node can contain more cnt elements:
     Directly insert cnt elements into m_node and k_node (Shove Operation).

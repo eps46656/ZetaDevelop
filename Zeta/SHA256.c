@@ -2,7 +2,7 @@
 
 #include "utils.h"
 
-typedef unsigned _BitInt(32) word_t;
+typedef Zeta_SHA256Hasher_word_t word_t;
 
 void Zeta_SHA256_Hash(byte_t* dst, byte_t const* data, byte_t const* data_end) {
     Zeta_SHA256Hasher hasher;
