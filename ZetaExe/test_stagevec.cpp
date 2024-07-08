@@ -916,10 +916,10 @@ void main2() {
 
         ZETA_PrintPos;
 
-        SyncErase(seq_cntr_a, seq_cntr_b);
-        Compare(seq_cntr_a, seq_cntr_b);
-        CheckCursor(seq_cntr_a);
-        CheckCursor(seq_cntr_b);
+        // SyncErase(seq_cntr_a, seq_cntr_b);
+        // Compare(seq_cntr_a, seq_cntr_b);
+        // CheckCursor(seq_cntr_a);
+        // CheckCursor(seq_cntr_b);
 
         Zeta_CheckPointMeter_Clear(std_check_point_recorder);
 

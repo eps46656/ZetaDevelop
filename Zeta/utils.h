@@ -169,4 +169,9 @@ unsigned long long Zeta_FindNextConMod(unsigned long long beg,
 void* Zeta_GetMostLink(void* context, void* (*GetLink)(void* context, void* n),
                        void* n);
 
+int Zeta_Choose2(bool_t a_cond, bool_t b_cond, size_t* rand_seed);
+
+int Zeta_Choose3(bool_t a_cond, bool_t b_cond, bool_t c_cond,
+                 size_t* rand_seed);
+
 ZETA_ExternC_End;

@@ -352,3 +352,34 @@ void* Zeta_GetMostLink(void* context, void* (*GetLink)(void* context, void* n),
 
     return n;
 }
+
+int Zeta_Choose2(bool_t a_cond, bool_t b_cond, size_t* rand_seed) {
+    return a_cond == b_cond ? Zeta_SimpleRandomRotate(rand_seed) % 2 : a_cond;
+}
+
+int Zeta_Choose3(bool_t a_cond, bool_t b_cond, bool_t c_cond,
+                 size_t* rand_seed) {
+    int A = 0;
+    int B = 1;
+    int C = 2;
+
+    switch (Zeta_SimpleRandomRotate(rand_seed) % 6) {
+        case 0:  // abc
+            if (a_cond) { return A; }
+        case 1:  // bca
+            if (b_cond) { return B; }
+        case 2:  // cab
+            if (c_cond) { return C; }
+            if (a_cond) { return C; }
+        case 3:  // bac
+            if (b_cond) { return C; }
+        case 4:  // acb
+            if (a_cond) { return A; }
+        case 5:  // cba
+            if (c_cond) { return C; }
+            if (b_cond) { return B; }
+            if (a_cond) { return A; }
+    }
+
+    return Zeta_SimpleRandomRotate(rand_seed) % 3;
+}

@@ -128,7 +128,11 @@ class Builder:
     def Add(self, unit, deps, callback=None):
         assert unit not in self.deps, f"duplicated unit: {unit}"
 
-        self.deps[unit] = set(deps)
+        unit = str(unit)
+
+        self.deps[unit] = {str(dep) for dep in filter(
+                           lambda dep: dep is not None, deps)}
+
         self.callbacks[unit] = callback
 
     def units(self):

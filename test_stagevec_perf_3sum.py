@@ -169,8 +169,9 @@ def main1():
     print(min_size_eval.GetValue(N) / (C * N))
 
 def main2():
-    capacity = 35
+    capacity = 32
     split_n = 4
+    ratio = 2
 
     prob = pulp.LpProblem(name="insertion", sense=pulp.const.LpMinimize)
 
@@ -192,23 +193,65 @@ def main2():
     cnt = pulp.LpVariable(name="cnt",
                           lowBound=1, upBound=None, cat="Integer")
 
-    prob.addConstraint(capacity * 2 + 1 <= ll + l + m)
-    prob.addConstraint(capacity * 2 + 1 <= l + m + r)
-    prob.addConstraint(capacity * 2 + 1 <= m + r + rr)
+    new_l = pulp.LpVariable(name="new_l",
+                            lowBound=1, upBound=capacity, cat="Integer")
 
-    prob.addConstraint(capacity * 3 + 1 <= l + m + r + cnt)
+    new_ml = pulp.LpVariable(name="new_ml",
+                             lowBound=1, upBound=capacity, cat="Integer")
+
+    obj = pulp.LpVariable(name="obj", cat="Integer")
+
+    # init 3sum conditions
+    prob.addConstraint(capacity * ratio + 1 <= ll + l + m)
+    prob.addConstraint(capacity * ratio + 1 <= l + m + r)
+    prob.addConstraint(capacity * ratio + 1 <= m + r + rr)
+
+    # self ins failed condition
+    prob.addConstraint(capacity + 1 <= m + cnt)
+
+    # l shove failed condition
+    prob.addConstraint(capacity * ratio + 1 <= l + m + cnt)
+
+    # r shove failed condition
+    prob.addConstraint(capacity * ratio + 1 <= m + r + cnt)
+
+    prob.addConstraint(capacity * (split_n - 1) + 1 <= l + m + r + cnt)
     prob.addConstraint(l + m + r + cnt <= capacity * split_n)
 
-    new_l = math.floor((capacity * (split_n - 1) + 1) / split_n)
-    new_m = math.floor((capacity * (split_n - 1) + 1) / split_n)
+    # new_l = math.floor((capacity * (split_n - 1) + 1) / split_n)
+    # new_m = math.floor((capacity * (split_n - 1) + 1) / split_n)
 
-    prob.addConstraint(capacity * 2 + 1 <= ll + new_l + new_m)
+    # new_l <= (l + m + r + cnt) / 4
 
-    # prob.setObjective(ll + new_l + new_m - capacity * 2)
+    prob.addConstraint(new_l * split_n <= l + m + r + cnt)
+    prob.addConstraint(l + m + r + cnt <= (new_l + 1) * split_n)
 
-    prob += 0
+    prob.addConstraint(new_ml * split_n <= l + m + r + cnt)
+    prob.addConstraint(l + m + r + cnt <= (new_ml + 1) * split_n)
+
+    # prob.addConstraint(new_ml - new_l <= 1)
+    # prob.addConstraint(new_mr - new_ml <= 1)
+    # prob.addConstraint(new_r - new_mr <= 1)
+    # prob.addConstraint(new_r - new_l <= 1)
+
+    # 24(new_l) 24(new_m)
+
+    prob.addConstraint(obj == ll + new_l + new_ml - capacity * ratio - 1)
+
+    prob.setObjective(obj)
+    # capacity * 2 + 1 <= ll + new_l + new_m
 
     prob.solve()
+
+    print(f" ll.value() = {ll.value()}")
+    print(f"  l.value() = {l.value()}")
+    print(f"  m.value() = {m.value()}")
+    print(f"  r.value() = {r.value()}")
+    print(f" rr.value() = {rr.value()}")
+    print(f"cnt.value() = {cnt.value()}")
+
+    print(f"new_l.value() = {new_l.value()}")
+    print(f"new_ml.value() = {new_ml.value()}")
 
 def main3():
     for capacity in range(32, 32+4 + 1):
@@ -333,8 +376,308 @@ def main6():
 
     prob.solve()
 
+def main7():
+    capacity = 32
+    split_n = 2
+    ratio = 2
+
+    prob = pulp.LpProblem(name="insertion", sense=pulp.const.LpMinimize)
+
+    ll = pulp.LpVariable(name="ll",
+                         lowBound=1, upBound=capacity, cat="Integer")
+
+    l = pulp.LpVariable(name="l",
+                        lowBound=1, upBound=capacity, cat="Integer")
+
+    m = pulp.LpVariable(name="m",
+                        lowBound=1, upBound=capacity, cat="Integer")
+
+    r = pulp.LpVariable(name="r",
+                        lowBound=1, upBound=capacity, cat="Integer")
+
+    rr = pulp.LpVariable(name="rr",
+                         lowBound=1, upBound=capacity, cat="Integer")
+
+    cnt = pulp.LpVariable(name="cnt",
+                          lowBound=1, upBound=None, cat="Integer")
+
+    new_m_lb = pulp.LpVariable(name="new_m_lb",
+                               lowBound=1, upBound=capacity, cat="Integer")
+
+    center_size = m - (capacity - l) - (capacity - r) + cnt
+
+    obj = pulp.LpVariable(name="obj", cat="Integer")
+
+    new_l = capacity
+
+    # init 3sum conditions
+    prob.addConstraint(capacity * ratio + 1 <= ll + l + m)
+    prob.addConstraint(capacity * ratio + 1 <= l + m + r)
+    prob.addConstraint(capacity * ratio + 1 <= m + r + rr)
+
+    # self ins failed condition
+    prob.addConstraint(capacity + 1 <= m + cnt)
+
+    # l shove failed condition
+    prob.addConstraint(capacity * ratio + 1 <= l + m + cnt)
+
+    # r shove failed condition
+    prob.addConstraint(capacity * ratio + 1 <= m + r + cnt)
+
+    prob.addConstraint(0 <= center_size)
+    prob.addConstraint(capacity * (split_n - 1) + 1 <= center_size)
+    prob.addConstraint(center_size <= capacity * split_n)
+
+    # new_l <= (l + m + r + cnt) / 4
+
+    prob.addConstraint(new_m_lb * split_n <= center_size)
+    prob.addConstraint(center_size <= (new_m_lb + 1) * split_n - 1)
+
+    # prob.addConstraint(new_ml - new_l <= 1)
+    # prob.addConstraint(new_mr - new_ml <= 1)
+    # prob.addConstraint(new_r - new_mr <= 1)
+    # prob.addConstraint(new_r - new_l <= 1)
+
+    # 24(new_l) 24(new_m)
+
+    # prob.addConstraint(obj == ll + new_l + new_m_lb - capacity * ratio - 1)
+    # capacity * ratio + 1 <= ll + new_l + new_m_lb
+
+    prob.addConstraint(obj == new_l + new_m_lb + new_m_lb - capacity * ratio - 1)
+    # capacity * ratio + 1 <= new_l + new_m_lb + new_m_lb
+
+    prob.setObjective(obj)
+
+
+    prob.solve()
+
+    print(f" ll.value() = {ll.value()}")
+    print(f"  l.value() = {l.value()}")
+    print(f"  m.value() = {m.value()}")
+    print(f"  r.value() = {r.value()}")
+    print(f" rr.value() = {rr.value()}")
+    print(f"cnt.value() = {cnt.value()}")
+
+    print(f"new_m_lb.value() = {new_m_lb.value()}")
+
+    '''
+
+    strategy:
+        try self insertion
+        try l/r shove
+        fill l and r to capacity, equally split center.
+    '''
+
+def main8():
+    capacity = 32
+    split_n = 2
+    ratio = 2
+
+    prob = pulp.LpProblem(name="insertion", sense=pulp.const.LpMinimize)
+
+    ll = pulp.LpVariable(name="ll",
+                         lowBound=1, upBound=capacity, cat="Integer")
+
+    l = pulp.LpVariable(name="l",
+                        lowBound=1, upBound=capacity, cat="Integer")
+
+    m = pulp.LpVariable(name="m",
+                        lowBound=1, upBound=capacity, cat="Integer")
+
+    r = pulp.LpVariable(name="r",
+                        lowBound=1, upBound=capacity, cat="Integer")
+
+    rr = pulp.LpVariable(name="rr",
+                         lowBound=1, upBound=capacity, cat="Integer")
+
+    cnt = pulp.LpVariable(name="cnt",
+                          lowBound=1, upBound=None, cat="Integer")
+
+    new_ml = pulp.LpVariable(name="new_ml",
+                             lowBound=1, upBound=capacity, cat="Integer")
+
+    new_mr = pulp.LpVariable(name="new_mr",
+                             lowBound=1, upBound=capacity, cat="Integer")
+
+    center_size = m - (capacity - l) - (capacity - r) + cnt
+
+    obj = pulp.LpVariable(name="obj", cat="Integer")
+
+    new_l = capacity
+    new_r = capacity
+
+    # init 3sum conditions
+    prob.addConstraint(capacity * ratio + 1 <= ll + l + m)
+    prob.addConstraint(capacity * ratio + 1 <= l + m + r)
+    prob.addConstraint(capacity * ratio + 1 <= m + r + rr)
+
+    # self ins failed condition
+    prob.addConstraint(capacity + 1 <= m + cnt)
+
+    # l shove failed condition
+    prob.addConstraint(capacity * ratio + 1 <= l + m + cnt)
+
+    # r shove failed condition
+    prob.addConstraint(capacity * ratio + 1 <= m + r + cnt)
+
+    prob.addConstraint(0 <= center_size)
+    prob.addConstraint(capacity * (split_n - 1) + 1 <= center_size)
+    prob.addConstraint(center_size <= capacity * split_n)
+
+    prob.addConstraint(center_size == new_ml + new_mr)
+
+    prob.addConstraint(new_ml - new_mr <= 1)
+    prob.addConstraint(new_mr - new_ml <= 1)
+
+    prob.addConstraint(obj == ll + new_l + new_ml - capacity * ratio - 1)
+    # capacity * ratio + 1 <= ll + new_l + new_ml
+
+    # prob.addConstraint(obj == new_l + new_ml + new_mr - capacity * ratio - 1)
+    # capacity * ratio + 1 <= new_l + new_ml + new_mr
+
+    # prob.addConstraint(obj == new_ml + new_mr + new_r - capacity * ratio - 1)
+    # capacity * ratio + 1 <= new_ml + new_mr + new_r
+
+    prob.setObjective(obj)
+
+
+    prob.solve()
+
+    print(f" ll.value() = {ll.value()}")
+    print(f"  l.value() = {l.value()}")
+    print(f"  m.value() = {m.value()}")
+    print(f"  r.value() = {r.value()}")
+    print(f" rr.value() = {rr.value()}")
+    print(f"cnt.value() = {cnt.value()}")
+
+    print(f"new_ml.value() = {new_ml.value()}")
+    print(f"new_mr.value() = {new_mr.value()}")
+
+    '''
+
+    strategy:
+        try self insertion
+        try l/r shove
+        fill l and r to capacity, equally split center.
+    '''
+
+def main9():
+    capacity = 32
+    split_n = 2
+    ratio = 2
+
+    prob = pulp.LpProblem(name="insertion", sense=pulp.const.LpMinimize)
+
+    ll = pulp.LpVariable(name="ll",
+                         lowBound=1, upBound=capacity, cat="Integer")
+
+    l = pulp.LpVariable(name="l",
+                        lowBound=1, upBound=capacity, cat="Integer")
+
+    m = pulp.LpVariable(name="m",
+                        lowBound=1, upBound=capacity, cat="Integer")
+
+    r = pulp.LpVariable(name="r",
+                        lowBound=1, upBound=capacity, cat="Integer")
+
+    rr = pulp.LpVariable(name="rr",
+                         lowBound=1, upBound=capacity, cat="Integer")
+
+    cnt = pulp.LpVariable(name="cnt",
+                          lowBound=1, upBound=None, cat="Integer")
+
+    new_l = pulp.LpVariable(name="new_l",
+                            lowBound=1, upBound=capacity, cat="Integer")
+
+    new_ml = pulp.LpVariable(name="new_ml",
+                             lowBound=1, upBound=capacity, cat="Integer")
+
+    new_mr = pulp.LpVariable(name="new_mr",
+                             lowBound=1, upBound=capacity, cat="Integer")
+
+    new_r = pulp.LpVariable(name="new_r",
+                            lowBound=1, upBound=capacity, cat="Integer")
+
+    obj = pulp.LpVariable(name="obj", cat="Integer")
+
+    # init 3sum conditions
+    prob.addConstraint(capacity * ratio + 1 <= ll + l + m)
+    prob.addConstraint(capacity * ratio + 1 <= l + m + r)
+    prob.addConstraint(capacity * ratio + 1 <= m + r + rr)
+
+    # self ins failed condition
+    prob.addConstraint(capacity + 1 <= m + cnt)
+
+    # l shove failed condition
+    prob.addConstraint(capacity * ratio + 1 <= l + m + cnt)
+
+    # r shove failed condition
+    prob.addConstraint(capacity * ratio + 1 <= m + r + cnt)
+
+    prob.addConstraint(l + m + cnt + r ==
+                       new_l + new_ml + new_mr + new_r)
+
+    prob.addConstraint(l + m + cnt + r ==
+                       new_l + new_ml + new_mr + new_r)
+
+    # prob.addConstraint(obj == ll + new_l + new_ml - capacity * ratio - 1)
+    # capacity * ratio + 1 <= ll + new_l + new_ml
+
+    # prob.addConstraint(obj == new_l + new_ml + new_mr - capacity * ratio - 1)
+    # capacity * ratio + 1 <= new_l + new_ml + new_mr
+
+    # prob.addConstraint(obj == new_ml + new_mr + new_r - capacity * ratio - 1)
+    # capacity * ratio + 1 <= new_ml + new_mr + new_r
+
+    prob.setObjective(obj)
+
+
+    prob.solve()
+
+    print(f" ll.value() = {ll.value()}")
+    print(f"  l.value() = {l.value()}")
+    print(f"  m.value() = {m.value()}")
+    print(f"  r.value() = {r.value()}")
+    print(f" rr.value() = {rr.value()}")
+    print(f"cnt.value() = {cnt.value()}")
+
+    print(f"new_ml.value() = {new_ml.value()}")
+    print(f"new_mr.value() = {new_mr.value()}")
+
+    '''
+
+    strategy:
+        try self insertion
+        try l/r shove
+        fill l and r to capacity, equally split center.
+
+
+    ll l m r rr
+    ll new_l new_ml new_mr new_r rr
+
+    capacity + 1 <= m + cnt
+    capacity * 2 + 1 <= l + m + cnt
+    capacity * 2 + 1 <= m + r + cnt
+
+    capacity * 3 + 1 <= l + m + r + cnt
+    l + m + r + cnt <= capacity * 4
+
+    l + m + r + cnt == new_l + new_ml + new_mr + new_r
+
+    balance condition:
+        l + m <= new_l + new_ml
+        m + r <= new_mr + r
+
+
+        l + m + m + r <= new_l + new_ml + new_mr + r = l + m + r + cnt
+
+
+        m <= cnt
+
+    '''
+
 if __name__ == "__main__":
-    main5()
+    main8()
 
 
 '''

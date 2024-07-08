@@ -1,6 +1,7 @@
 #include <random>
 #include <vector>
 
+#include "../Zeta/Debugger.h"
 #include "../Zeta/OrdCnt3RBTreeNode.h"
 #include "../Zeta/OrdCntRBTreeNode.h"
 #include "../Zeta/RBTree.h"
@@ -198,13 +199,12 @@ void main1() {
             Access(idx);
         }
     }
-
-    printf("ok\n");
 }
 
 // -----------------------------------------------------------------------------
 
 int main() {
     main1();
+    printf("ok\n");
     return 0;
 }
