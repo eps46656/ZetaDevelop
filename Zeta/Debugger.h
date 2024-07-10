@@ -93,10 +93,6 @@ extern int (*zeta_debugger_assert_callback)(void* context);
     }                                                      \
     ZETA_StaticAssert(TRUE)
 
-#define ZETA_Unused(x)          \
-    if (FALSE) { ((void)(x)); } \
-    ZETA_StaticAssert(TRUE)
-
 #define ZETA_Assert(cond)                                   \
     if (cond) {                                             \
     } else {                                                \

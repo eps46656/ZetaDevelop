@@ -2,7 +2,7 @@
 
 #include <unistd.h>
 
-#include ZetaDir "/Stream.h"
+#include ZetaDir "/Pipe.h"
 
 #define ZETA_StdOutStream_buffer_size 128
 

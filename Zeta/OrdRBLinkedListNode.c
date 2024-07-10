@@ -1,5 +1,7 @@
 #include "OrdRBLinkedListNode.h"
 
+#include "Debugger.h"
+
 static void* GetL_(void* n_) {
     Zeta_OrdRBLinkedListNode* n = n_;
     ZETA_DebugAssert(n != NULL);

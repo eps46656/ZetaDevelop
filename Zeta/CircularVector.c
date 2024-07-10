@@ -176,7 +176,7 @@ void Zeta_CircularVector_Read(void* cv_, void* pos_cursor_, size_t cnt,
     if (cnt == 0) { return; }
 
     unsigned char* dst = dst_;
-    ZETA_DebugAssert(dst_ != NULL);
+    ZETA_DebugAssert(dst != NULL);
 
     void* data = cv->data;
     size_t width = cv->width;
@@ -188,7 +188,7 @@ void Zeta_CircularVector_Read(void* cv_, void* pos_cursor_, size_t cnt,
     size_t idx = pos_cursor->idx;
 
     ZETA_DebugAssert(idx <= size);
-    ZETA_DebugAssert(idx + cnt <= size);
+    ZETA_DebugAssert(cnt <= size - idx);
 
     for (size_t end = idx + cnt; idx < end; ++idx, dst += stride) {
         Zeta_MemCopy(dst, Refer_(data, stride, offset, idx, capacity), width);
@@ -220,7 +220,7 @@ void Zeta_CircularVector_Write(void* cv_, void* pos_cursor_, size_t cnt,
     }
 
     unsigned char const* src = src_;
-    ZETA_DebugAssert(src_ != NULL);
+    ZETA_DebugAssert(src != NULL);
 
     void* data = cv->data;
     size_t width = cv->width;
@@ -232,7 +232,7 @@ void Zeta_CircularVector_Write(void* cv_, void* pos_cursor_, size_t cnt,
     size_t idx = pos_cursor->idx;
 
     ZETA_DebugAssert(idx <= size);
-    ZETA_DebugAssert(idx + cnt <= size);
+    ZETA_DebugAssert(cnt <= size - idx);
 
     for (size_t end = idx + cnt; idx < end; ++idx, src += stride) {
         Zeta_MemCopy(Refer_(data, stride, offset, idx, capacity), src, width);
@@ -301,9 +301,9 @@ void* Zeta_CircularVector_Insert(void* cv_, void* pos_cursor_, size_t cnt) {
     size_t capacity = cv->capacity;
 
     size_t idx = pos_cursor->idx;
-    ZETA_DebugAssert(idx <= size);
 
-    ZETA_DebugAssert(size + cnt <= capacity);
+    ZETA_DebugAssert(idx <= size);
+    ZETA_DebugAssert(cnt <= capacity - size);
 
     size_t l_size = idx;
     size_t r_size = size - idx;
@@ -376,8 +376,9 @@ void Zeta_CircularVector_Erase(void* cv_, void* pos_cursor_, size_t cnt) {
     size_t capacity = cv->capacity;
 
     size_t idx = pos_cursor->idx;
+
     ZETA_DebugAssert(idx <= size);
-    ZETA_DebugAssert(idx + cnt <= size);
+    ZETA_DebugAssert(cnt <= size - idx);
 
     if (cnt == 0) { return; }
 

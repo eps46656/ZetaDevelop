@@ -370,9 +370,9 @@ int Zeta_Choose3(bool_t a_cond, bool_t b_cond, bool_t c_cond,
             if (b_cond) { return B; }
         case 2:  // cab
             if (c_cond) { return C; }
-            if (a_cond) { return C; }
+            if (a_cond) { return A; }
         case 3:  // bac
-            if (b_cond) { return C; }
+            if (b_cond) { return B; }
         case 4:  // acb
             if (a_cond) { return A; }
         case 5:  // cba

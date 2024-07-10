@@ -11,6 +11,7 @@ ZETA_ExternC_Beg;
 ZETA_DeclareStruct(Zeta_StageVector);
 ZETA_DeclareStruct(Zeta_StageVector_Node);
 ZETA_DeclareStruct(Zeta_StageVector_Cursor);
+ZETA_DeclareStruct(Zeta_StageVector_Stats);
 
 #define ZETA_StageVector_ref_color (0)
 #define ZETA_StageVector_dat_color (1)
@@ -57,6 +58,13 @@ struct Zeta_StageVector_Cursor {
     void* n;
     size_t seg_idx;
     void* ele;
+};
+
+struct Zeta_StageVector_Stats {
+    size_t ref_seg_cnt;
+    size_t dat_seg_cnt;
+    size_t ref_size;
+    size_t dat_size;
 };
 
 // -----------------------------------------------------------------------------
@@ -114,6 +122,8 @@ void Zeta_StageVector_Check(void* sv, Zeta_DebugHashMap* dst_node_hm,
                             Zeta_DebugHashMap* dst_seg_hm);
 
 void Zeta_StageVector_PrintState(void* sv);
+
+Zeta_StageVector_Stats Zeta_StageVector_GetStats(void* sv);
 
 bool_t Zeta_StageVector_Cursor_IsEqual(void* sv, void const* cursor_a,
                                        void const* cursor_b);

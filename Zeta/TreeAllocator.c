@@ -1,6 +1,7 @@
 #include "TreeAllocator.h"
 
 #include "DebugHashMap.h"
+#include "Debugger.h"
 #include "RBTree.h"
 #include "utils.h"
 
@@ -16,7 +17,7 @@ struct Zeta_TreeAllocator_Head {
 #define occupied_head_size \
     (offsetof(Zeta_TreeAllocator_Head, hn) + sizeof(Zeta_OrdRBLinkedListNode))
 
-#define GetNxtAlign_(base, align) ((base + align - 1) / align * align)
+#define GetNxtAlign_(base, align) (ZETA_CeilIntDiv(base, align) * align)
 
 #define vacant_color 0
 #define occupied_color 1
@@ -34,18 +35,23 @@ void Zeta_TreeAllocator_Init(void* ta_) {
 
     ZETA_DebugAssert(ta->mem != NULL);
 
-    uintptr_t mem_beg = ZETA_PtrToAddr(ta->mem);
-    uintptr_t mem_end = mem_beg + ta->size;
+    unsigned char* mem_beg = ta->mem;
+    unsigned char* mem_end = mem_beg + ta->size;
 
-    uintptr_t data_beg =
-        GetNxtAlign_(mem_beg + occupied_head_size, align) - occupied_head_size;
-    uintptr_t data_end = mem_end / head_align * head_align;
+    // uintptr_t mem_beg = ZETA_PtrToAddr(ta->mem);
+    // uintptr_t mem_end = mem_beg + ta->size;
+
+    unsigned char* data_beg = (unsigned char*)__builtin_align_up(
+                                  mem_beg + occupied_head_size, align) -
+                              occupied_head_size;
+
+    unsigned char* data_end = __builtin_align_down(mem_end, head_align);
 
     ZETA_DebugAssert(data_beg <= data_end);
     ZETA_DebugAssert(512 <= data_end - data_beg);
 
-    ta->data_beg = ZETA_AddrToPtr(data_beg);
-    ta->data_end = ZETA_AddrToPtr(data_end);
+    ta->data_beg = data_beg;
+    ta->data_end = data_end;
 
     {
         size_t least_stride = occupied_head_size + ta->least_size;
@@ -60,9 +66,8 @@ void Zeta_TreeAllocator_Init(void* ta_) {
         ta->least_size = least_stride - occupied_head_size;
     }
 
-    Zeta_TreeAllocator_Head* beg_head = ZETA_AddrToPtr(data_beg);
-    Zeta_TreeAllocator_Head* end_head =
-        ZETA_AddrToPtr(data_end - occupied_head_size);
+    Zeta_TreeAllocator_Head* beg_head = data_beg;
+    Zeta_TreeAllocator_Head* end_head = data_end - occupied_head_size;
 
     Zeta_OrdRBLinkedListNode_Init(&beg_head->hn);
     Zeta_OrdRBLinkedListNode_SetColor(&beg_head->hn, vacant_color);
@@ -139,9 +144,9 @@ static Zeta_OrdRBTreeNode* FindBlock_(Zeta_OrdRBTreeNode* sn_root,
     return ret;
 }
 
-#define CHOOSE_RET_FAILED 0
-#define CHOOSE_RET_FIT 1
-#define CHOOSE_RET_CUT 2
+#define choose_ret_failed 0
+#define choose_ret_fit 1
+#define choose_ret_cut 2
 
 static int ChooseNiceBlock_(Zeta_TreeAllocator* ta, size_t size,
                             Zeta_TreeAllocator_Head** dst) {
@@ -150,7 +155,7 @@ static int ChooseNiceBlock_(Zeta_TreeAllocator* ta, size_t size,
     Zeta_OrdRBTreeNode* best_fit_sn =
         FindBlock_(ta->sn_root, occupied_head_size + size);
 
-    if (best_fit_sn == NULL) { return CHOOSE_RET_FAILED; }
+    if (best_fit_sn == NULL) { return choose_ret_failed; }
 
     size_t least_stride = occupied_head_size + ta->least_size;
 
@@ -160,7 +165,7 @@ static int ChooseNiceBlock_(Zeta_TreeAllocator* ta, size_t size,
 
     if (GetStride_(best_fit_head) <= cut_stride + least_stride) {
         *dst = best_fit_head;
-        return CHOOSE_RET_FIT;
+        return choose_ret_fit;
     }
 
     Zeta_OrdRBTreeNode* twice_fit_sn =
@@ -171,7 +176,7 @@ static int ChooseNiceBlock_(Zeta_TreeAllocator* ta, size_t size,
             ? twice_fit_sn
             : Zeta_GetMostLink(NULL, Zeta_OrdRBTreeNode_GetR, ta->sn_root));
 
-    return CHOOSE_RET_CUT;
+    return choose_ret_cut;
 }
 
 size_t Zeta_TreeAllocator_Query(void* ta_, size_t size) {
@@ -198,7 +203,7 @@ void* Zeta_TreeAllocator_Allocate(void* ta_, size_t size) {
     Zeta_TreeAllocator_Head* l_head;
     int choose_ret = ChooseNiceBlock_(ta, size, &l_head);
 
-    if (choose_ret == CHOOSE_RET_FAILED) { return NULL; }
+    if (choose_ret == choose_ret_failed) { return NULL; }
 
     Zeta_BinTreeNodeOperator btn_opr;
     Zeta_BinTree_InitOpr(&btn_opr);
@@ -208,7 +213,7 @@ void* Zeta_TreeAllocator_Allocate(void* ta_, size_t size) {
 
     ta->sn_root = Zeta_RBTree_Extract(&btn_opr, &l_head->sn);
 
-    if (choose_ret == CHOOSE_RET_FIT) {
+    if (choose_ret == choose_ret_fit) {
         return (unsigned char*)(l_head) + occupied_head_size;
     }
 

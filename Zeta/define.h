@@ -41,6 +41,10 @@ typedef unsigned _BitInt(128) u128_t;
 
 typedef unsigned int unichar_t;
 
+#define ZETA_Unused(x)          \
+    if (FALSE) { ((void)(x)); } \
+    ZETA_StaticAssert(TRUE)
+
 #define ZETA_ToStr_(x) #x
 #define ZETA_ToStr(x) ZETA_ToStr_(x)
 

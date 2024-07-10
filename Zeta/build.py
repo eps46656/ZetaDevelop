@@ -144,6 +144,7 @@ def AddDeps(builder, ZetaBuildDir, verbose, mode):
         {
             f"{File}",
             f"{ZetaDir}/BinTree.h",
+            f"{ZetaDir}/Debugger.h",
             f"{ZetaDir}/utils.h",
         },
         None
@@ -255,7 +256,7 @@ def AddDeps(builder, ZetaBuildDir, verbose, mode):
     )
 
     builder.Add(
-        f"{ZetaDir}/CheckPointMeter.h",
+        f"{ZetaDir}/Logger.h",
         {
             f"{File}",
             f"{ZetaDir}/Debugger.h",
@@ -264,24 +265,24 @@ def AddDeps(builder, ZetaBuildDir, verbose, mode):
     )
 
     builder.Add(
-        f"{ZetaDir}/CheckPointMeter.cpp",
+        f"{ZetaDir}/Logger.cpp",
         {
             f"{File}",
-            f"{ZetaDir}/CheckPointMeter.h",
+            f"{ZetaDir}/Logger.h",
             f"{ZetaDir}/utils.h",
         },
         None
     )
 
     builder.Add(
-        f"{ZetaBuildDir}/CheckPointMeter.ll",
+        f"{ZetaBuildDir}/Logger.ll",
         {
             f"{File}",
-            f"{ZetaDir}/CheckPointMeter.cpp",
+            f"{ZetaDir}/Logger.cpp",
         },
         lambda : compiler.cpp_to_ll(
-            f"{ZetaBuildDir}/CheckPointMeter.ll",
-            f"{ZetaDir}/CheckPointMeter.cpp",
+            f"{ZetaBuildDir}/Logger.ll",
+            f"{ZetaDir}/Logger.cpp",
         )
     )
 
@@ -300,6 +301,8 @@ def AddDeps(builder, ZetaBuildDir, verbose, mode):
         {
             f"{File}",
             f"{ZetaDir}/CircularVector.h",
+            f"{ZetaDir}/Debugger.h",
+            f"{ZetaDir}/utils.h",
         },
         None
     )
@@ -399,6 +402,7 @@ def AddDeps(builder, ZetaBuildDir, verbose, mode):
         {
             f"{File}",
             f"{ZetaDir}/DebugDeque.h",
+            f"{ZetaDir}/Debugger.h",
             f"{ZetaDir}/utils.h",
         },
         None
@@ -460,6 +464,7 @@ def AddDeps(builder, ZetaBuildDir, verbose, mode):
         {
             f"{File}",
             f"{ZetaDir}/DebugHashMap.h",
+            f"{ZetaDir}/Debugger.h",
         },
         None
     )
@@ -999,7 +1004,7 @@ def AddDeps(builder, ZetaBuildDir, verbose, mode):
         f"{ZetaDir}/io.h",
         {
             f"{File}",
-            f"{ZetaDir}/Stream.h",
+            f"{ZetaDir}/Pipe.h",
         },
         None
     )
@@ -1178,6 +1183,7 @@ def AddDeps(builder, ZetaBuildDir, verbose, mode):
         {
             f"{File}",
             f"{ZetaDir}/OrdRBTreeNode.h",
+            f"{ZetaDir}/Debugger.h",
         },
         None
     )
@@ -1208,6 +1214,7 @@ def AddDeps(builder, ZetaBuildDir, verbose, mode):
         {
             f"{File}",
             f"{ZetaDir}/OrdCntRBTreeNode.h",
+            f"{ZetaDir}/Debugger.h",
         },
         None
     )
@@ -1361,6 +1368,7 @@ def AddDeps(builder, ZetaBuildDir, verbose, mode):
         {
             f"{File}",
             f"{ZetaDir}/RBTree.h",
+            f"{ZetaDir}/Debugger.h",
             f"{ZetaDir}/utils.h",
         },
         None
@@ -1463,6 +1471,7 @@ def AddDeps(builder, ZetaBuildDir, verbose, mode):
         {
             f"{File}",
             f"{ZetaDir}/SegUtils.h",
+            f"{ZetaDir}/Debugger.h",
             f"{ZetaDir}/utils.h",
         },
         None
@@ -1612,7 +1621,7 @@ def AddDeps(builder, ZetaBuildDir, verbose, mode):
     )
 
     builder.Add(
-        f"{ZetaDir}/Stream.h",
+        f"{ZetaDir}/Pipe.h",
         {
             f"{File}",
             f"{ZetaDir}/define.h",
@@ -1624,7 +1633,7 @@ def AddDeps(builder, ZetaBuildDir, verbose, mode):
         f"{ZetaDir}/Stream.c",
         {
             f"{File}",
-            f"{ZetaDir}/Stream.h",
+            f"{ZetaDir}/Pipe.h",
         },
         None
     )
@@ -1659,6 +1668,7 @@ def AddDeps(builder, ZetaBuildDir, verbose, mode):
             f"{File}",
             f"{ZetaDir}/TreeAllocator.h",
             f"{ZetaDir}/DebugHashMap.h",
+            f"{ZetaDir}/Debugger.h",
             f"{ZetaDir}/RBTree.h",
             f"{ZetaDir}/OrdLinkedListNode.h",
             f"{ZetaDir}/utils.h",
@@ -1753,6 +1763,7 @@ def AddDeps(builder, ZetaBuildDir, verbose, mode):
         {
             f"{File}",
             f"{ZetaDir}/utils.h",
+            f"{ZetaDir}/Debugger.h",
         },
         None
     )

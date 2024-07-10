@@ -1,6 +1,6 @@
 #include "SegUtils.h"
 
-#include "Debugger.h"
+#include "Logger.h"
 #include "utils.h"
 
 void SegShoveL(Zeta_CircularVector* l_cv, Zeta_CircularVector* r_cv,
@@ -8,8 +8,9 @@ void SegShoveL(Zeta_CircularVector* l_cv, Zeta_CircularVector* r_cv,
     ZETA_DebugAssert(l_cv != NULL);
     ZETA_DebugAssert(r_cv != NULL);
 
-    ZETA_DebugAssert(l_cv->size + shove_cnt <= l_cv->capacity);
+    ZETA_DebugAssert(shove_cnt <= l_cv->capacity - l_cv->size);
     ZETA_DebugAssert(shove_cnt <= r_cv->size + ins_cnt);
+    ZETA_DebugAssert(r_cv->size + ins_cnt - shove_cnt <= r_cv->capacity);
 
     size_t width = l_cv->width;
     ZETA_DebugAssert(width == r_cv->width);
@@ -28,6 +29,8 @@ void SegShoveL(Zeta_CircularVector* l_cv, Zeta_CircularVector* r_cv,
 
     Zeta_CircularVector_Insert(l_cv, &l_cv_cursor, shove_cnt);
 
+    ZETA_DebugLogPos;
+
     for (size_t i = cnt_a; 0 < i--; ++l_i, ++r_i) {
         Zeta_MemCopy(Zeta_CircularVector_Access(l_cv, NULL, NULL, l_i),
                      Zeta_CircularVector_Access(r_cv, NULL, NULL, r_i), width);
@@ -45,6 +48,8 @@ void SegShoveL(Zeta_CircularVector* l_cv, Zeta_CircularVector* r_cv,
     Zeta_CircularVector_Erase(r_cv, &r_cv_cursor, cnt_a + cnt_c);
 
     Zeta_CircularVector_Cursor_AdvanceR(r_cv, &r_cv_cursor, rl_cnt - cnt_a);
+
+    ZETA_DebugLogPos;
 
     Zeta_CircularVector_Insert(r_cv, &r_cv_cursor, ins_cnt - cnt_b);
 }
