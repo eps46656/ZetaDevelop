@@ -110,16 +110,30 @@ class Compiler:
 
         if self.mode == mode_enum.debug:
             self.c_to_ll_args += [
-                "-O3",
+                "-g",
+
                 "-D DEBUG",
+
                 "-Wall",
                 "-Wextra",
                 "-Werror",
+
+
             ]
 
+            '''
+            "-fno-omit-frame-pointer",
+            "-fsanitize=address",
+            # "-fsanitize=memory",
+            # "-fsanitize-memory-track-origins",
+            "-fsanitize=undefined",
+            '''
+
             self.cpp_to_ll_args += [
-                "-O3",
+                "-g",
+
                 "-D DEBUG",
+
                 "-Wall",
                 "-Wextra",
                 "-Werror",
@@ -224,7 +238,7 @@ class Compiler:
             f"-o {ToPath(linked_tmp_file)}",
             f"-v" if self.verbose else "",
             f"-S",
-            *[ToPath(src) for src in srcs],
+            *[ToPath(src) for src in FilterNotNone(srcs)],
         ])
 
         HighLightPrint(f"cmd = {cmd}")
@@ -238,7 +252,6 @@ class Compiler:
             self.opt_ll_command,
             f"-o {ToPath(opted_tmp_file)}",
             f"-S",
-            f"--O3",
             ToPath(linked_tmp_file),
         ])
 
@@ -254,9 +267,10 @@ class Compiler:
             f"-o {ToPath(dst)}",
             "--verbose" if self.verbose else "",
             "-m64",
-            "-O3",
+            "-O1",
             "-g",
             # *[ToPath(lib) for lib in self.runtime_libs],
+
             "-lstdc++",
             ToPath(opted_tmp_file),
         ])

@@ -2,7 +2,7 @@
 
 //
 
-extern void __stdcall syscall__write_(unsigned int fd, char const* data,
+extern void __stdcall syscall__write_(unsigned fd, char const* data,
                                       size_t data_len);
 
 int main() {

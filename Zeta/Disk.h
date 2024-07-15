@@ -10,7 +10,7 @@ ZETA_DeclareStruct(Zeta_Disk_Sec);
 #define ZETA_Disk_Sec_Flag_dirty ((u32_t)0b100)
 
 struct Zeta_Disk_Sec {
-    unsigned int flag;
+    unsigned flag;
     byte_t* data;
 };
 

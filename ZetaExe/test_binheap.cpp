@@ -151,7 +151,7 @@ void main1() {
 }
 
 void main2() {
-    unsigned int seed = time(NULL);
+    unsigned seed = time(NULL);
 
     ZETA_PrintVar(seed);
 

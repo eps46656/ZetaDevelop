@@ -155,10 +155,11 @@ void Zeta_DebugDeque_Read(void* dd_, void* pos_cursor_, size_t cnt, void* dst_,
     unsigned char* dst = (unsigned char*)dst_;
 
     size_t beg = *pos_cursor;
-    size_t end = beg + cnt;
-
     ZETA_DebugAssert(beg <= deque->size());
-    ZETA_DebugAssert(end <= deque->size());
+
+    ZETA_DebugAssert(cnt <= deque->size() - beg);
+
+    size_t end = beg + cnt;
 
     if (dst_cursor != NULL) { *dst_cursor = end; }
 
@@ -180,10 +181,11 @@ void Zeta_DebugDeque_Write(void* dd_, void* pos_cursor_, size_t cnt,
     unsigned char const* src = (unsigned char const*)src_;
 
     size_t beg = *pos_cursor;
-    size_t end = beg + cnt;
-
     ZETA_DebugAssert(beg <= deque->size());
-    ZETA_DebugAssert(end <= deque->size());
+
+    ZETA_DebugAssert(cnt <= deque->size() - beg);
+
+    size_t end = beg + cnt;
 
     if (dst_cursor != NULL) { *dst_cursor = end; }
 
@@ -237,7 +239,7 @@ void* Zeta_DebugDeque_Insert(void* dd_, void* pos_cursor_, size_t cnt) {
 
     for (; idx < end; ++idx) { (*deque)[idx] = new unsigned char[dd->width]; }
 
-    return (*deque)[beg];
+    return beg < deque->size() ? (*deque)[beg] : NULL;
 }
 
 void Zeta_DebugDeque_PopL(void* dd_) {
@@ -272,10 +274,11 @@ void Zeta_DebugDeque_Erase(void* dd_, void* pos_cursor_, size_t cnt) {
     std::deque<void*>* deque = (std::deque<void*>*)dd->deque;
 
     size_t beg = *pos_cursor;
-    size_t end = beg + cnt;
-
     ZETA_DebugAssert(beg <= deque->size());
-    ZETA_DebugAssert(end <= deque->size());
+
+    ZETA_DebugAssert(cnt <= deque->size() - beg);
+
+    size_t end = beg + cnt;
 
     for (size_t idx = beg; idx < end; ++idx) {
         delete[] (unsigned char*)((*deque)[idx]);
@@ -418,7 +421,7 @@ void Zeta_DebugDeque_DeploySeqContainer(void* dd_,
 
     seq_cntr->context = dd;
 
-    seq_cntr->cursor_width = sizeof(size_t*);
+    seq_cntr->cursor_width = sizeof(size_t);
 
     seq_cntr->GetWidth = Zeta_DebugDeque_GetWidth;
 

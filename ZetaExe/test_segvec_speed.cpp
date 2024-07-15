@@ -10,7 +10,7 @@
 #include "MemAllocatorCheck.h"
 #include "StdAllocator.h"
 
-typedef unsigned int val_t;
+typedef unsigned val_t;
 
 #define CURSOR_WIDTH ((size_t)(sizeof(void*) * 8))
 
@@ -81,7 +81,7 @@ void DD_Erase(size_t idx) { dd.erase(dd.begin() + idx); }
 // ---------------------------------------------------------------------------------------
 
 void main1() {
-    unsigned int seed = time(NULL);
+    unsigned seed = time(NULL);
 
     ZETA_PrintVar(seed);
 

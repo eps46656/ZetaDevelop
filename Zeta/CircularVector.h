@@ -72,6 +72,8 @@ void Zeta_CircularVector_EraseAll(void* cv);
 
 void Zeta_CircularVector_Check(void* cv);
 
+size_t Zeta_CircularVector_GetLongestContSucr(void* cv, size_t idx);
+
 bool_t Zeta_CircularVector_Cursor_IsEqual(void* cv, void const* cursor_a,
                                           void const* cursor_b);
 

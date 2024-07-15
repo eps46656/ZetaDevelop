@@ -308,7 +308,7 @@ void* Zeta_CircularVector_Insert(void* cv_, void* pos_cursor_, size_t cnt) {
     size_t l_size = idx;
     size_t r_size = size - idx;
 
-    size_t rand_seed =
+    unsigned long long rand_seed =
         ZETA_PtrToAddr(data) + ZETA_PtrToAddr(pos_cursor) + idx + cnt;
 
     if ((l_size < r_size) ||
@@ -385,7 +385,7 @@ void Zeta_CircularVector_Erase(void* cv_, void* pos_cursor_, size_t cnt) {
     size_t l_size = idx;
     size_t r_size = size - idx - cnt;
 
-    size_t rand_seed =
+    unsigned long long rand_seed =
         ZETA_PtrToAddr(data) + ZETA_PtrToAddr(pos_cursor) + idx + cnt;
 
     if ((l_size < r_size) ||
@@ -439,6 +439,21 @@ void Zeta_CircularVector_Check(void* cv_) {
     ZETA_DebugAssert(capacity <= ZETA_GetMaxMod(size_t));
 
     if (data == NULL) { ZETA_DebugAssert(capacity == 0); }
+}
+
+size_t Zeta_CircularVector_GetLongestContSucr(void* cv_, size_t idx) {
+    Zeta_CircularVector* cv = cv_;
+    ZETA_DebugAssert(cv != NULL);
+
+    size_t offset = cv->offset;
+    size_t size = cv->size;
+    size_t capacity = cv->capacity;
+
+    ZETA_DebugAssert(idx <= size);
+
+    size_t pivot = capacity - offset;
+
+    return size <= pivot || pivot <= idx ? size - idx : pivot - idx;
 }
 
 bool_t Zeta_CircularVector_Cursor_IsEqual(void* cv_, void const* cursor_a_,

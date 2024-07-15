@@ -1,3 +1,4 @@
+#include <csignal>
 #include <deque>
 #include <iostream>
 #include <random>
@@ -21,6 +22,16 @@
 // -----------------------------------------------------------------------------
 
 std::mt19937_64 en;
+
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+
+void SignalHandler(int sig) {
+    std::cout << "sig: " << sig << "\n";
+
+    Zeta_Debugger_FlushPipe();
+}
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
@@ -172,8 +183,8 @@ void SV_Check(Zeta_SeqContainer* seq_cntr);
 // -----------------------------------------------------------------------------
 
 struct StageVectorPack {
-    StdAllocator node_allocator_;
-    Zeta_Allocator node_allocator;
+    StdAllocator seg_allocator_;
+    Zeta_Allocator seg_allocator;
 
     StdAllocator data_allocator_;
     Zeta_Allocator data_allocator;
@@ -186,17 +197,17 @@ void InitStageVec(Zeta_SeqContainer* seq_cntr,
     StageVectorPack* stage_vec_pack{ static_cast<StageVectorPack*>(
         std::malloc(sizeof(StageVectorPack))) };
 
-    new (&stage_vec_pack->node_allocator_) StdAllocator{};
+    new (&stage_vec_pack->seg_allocator_) StdAllocator{};
     new (&stage_vec_pack->data_allocator_) StdAllocator{};
 
-    StdAllocator_DeployAllocator(&stage_vec_pack->node_allocator_,
-                                 &stage_vec_pack->node_allocator);
+    StdAllocator_DeployAllocator(&stage_vec_pack->seg_allocator_,
+                                 &stage_vec_pack->seg_allocator);
     StdAllocator_DeployAllocator(&stage_vec_pack->data_allocator_,
                                  &stage_vec_pack->data_allocator);
 
     stage_vec_pack->stage_vec.origin = origin_seq_cntr;
     stage_vec_pack->stage_vec.seg_capacity = 6;
-    stage_vec_pack->stage_vec.node_allocator = &stage_vec_pack->node_allocator;
+    stage_vec_pack->stage_vec.seg_allocator = &stage_vec_pack->seg_allocator;
     stage_vec_pack->stage_vec.data_allocator = &stage_vec_pack->data_allocator;
 
     Zeta_StageVector_Init(&stage_vec_pack->stage_vec);
@@ -299,20 +310,20 @@ void SC_Insert(Zeta_SeqContainer* seq_cntr, size_t idx, size_t cnt,
                Val const* src) {
     Zeta_Cursor pos_cursor;
 
-    ZETA_DebugLogPos;
+    ZETA_DebugLogCurPos;
 
     seq_cntr->Access(seq_cntr->context, &pos_cursor, NULL, idx);
 
-    ZETA_DebugLogPos;
+    ZETA_DebugLogCurPos;
 
     ZETA_DebugAssert(seq_cntr->Cursor_GetIdx(seq_cntr->context, &pos_cursor) ==
                      idx);
 
-    ZETA_DebugLogPos;
+    ZETA_DebugLogCurPos;
 
     void* ele = seq_cntr->Insert(seq_cntr->context, &pos_cursor, cnt);
 
-    ZETA_DebugLogPos;
+    ZETA_DebugLogCurPos;
 
     SC_Check(seq_cntr);
 
@@ -320,52 +331,52 @@ void SC_Insert(Zeta_SeqContainer* seq_cntr, size_t idx, size_t cnt,
                      idx);
     ZETA_DebugAssert(seq_cntr->Refer(seq_cntr->context, &pos_cursor) == ele);
 
-    ZETA_DebugLogPos;
+    ZETA_DebugLogCurPos;
 
     seq_cntr->Write(seq_cntr->context, &pos_cursor, cnt, src, &pos_cursor);
 
-    ZETA_DebugLogPos;
+    ZETA_DebugLogCurPos;
 
     SC_Check(seq_cntr);
 
-    ZETA_DebugLogPos;
+    ZETA_DebugLogCurPos;
 
     ZETA_DebugAssert(seq_cntr->Cursor_GetIdx(seq_cntr->context, &pos_cursor) ==
                      idx + cnt);
 
-    ZETA_DebugLogPos;
+    ZETA_DebugLogCurPos;
 }
 
 void SC_Erase(Zeta_SeqContainer* seq_cntr, size_t idx, size_t cnt) {
     Zeta_Cursor pos_cursor;
 
-    ZETA_DebugLogPos;
+    ZETA_DebugLogCurPos;
 
     seq_cntr->Access(seq_cntr->context, &pos_cursor, NULL, idx);
 
-    ZETA_DebugLogPos;
+    ZETA_DebugLogCurPos;
 
     SC_Check(seq_cntr);
 
-    ZETA_DebugLogPos;
+    ZETA_DebugLogCurPos;
 
     ZETA_DebugAssert(seq_cntr->Cursor_GetIdx(seq_cntr->context, &pos_cursor) ==
                      idx);
 
-    ZETA_DebugLogPos;
+    ZETA_DebugLogCurPos;
 
     seq_cntr->Erase(seq_cntr->context, &pos_cursor, cnt);
 
-    ZETA_DebugLogPos;
+    ZETA_DebugLogCurPos;
 
     SC_Check(seq_cntr);
 
-    ZETA_DebugLogPos;
+    ZETA_DebugLogCurPos;
 
     ZETA_DebugAssert(seq_cntr->Cursor_GetIdx(seq_cntr->context, &pos_cursor) ==
                      idx);
 
-    ZETA_DebugLogPos;
+    ZETA_DebugLogCurPos;
 }
 
 void SC_Print(Zeta_SeqContainer* seq_cntr) {
@@ -519,18 +530,20 @@ void StageVec_Check(Zeta_SeqContainer* seq_cntr) {
 
     using record_t = std::unordered_map<unsigned long long, unsigned long long>;
 
-    CheckRecords(pack->node_allocator_.records, *(record_t*)node_hm.hash_map);
+    CheckRecords(pack->seg_allocator_.records, *(record_t*)node_hm.hash_map);
 
     CheckRecords(pack->data_allocator_.records, *(record_t*)seg_hm.hash_map);
 }
 
 void SC_Check(Zeta_SeqContainer* seq_cntr) {
     if (seq_cntr->GetSize == Zeta_SegVector_GetSize) {
+        ZETA_DebugLogCurPos;
         SV_Check(seq_cntr);
         return;
     }
 
     if (seq_cntr->GetSize == Zeta_StageVector_GetSize) {
+        ZETA_DebugLogCurPos;
         StageVec_Check(seq_cntr);
         return;
     }
@@ -730,7 +743,7 @@ void CheckCursor(Zeta_SeqContainer* seq_cntr) {
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 
-#define MAX_OP_SIZE (128)
+#define MAX_OP_SIZE (12)
 
 std::vector<Val> vals_a;
 std::vector<Val> vals_b;
@@ -750,15 +763,15 @@ void SyncInsert(Zeta_SeqContainer* seq_cntr_a, Zeta_SeqContainer* seq_cntr_b) {
     vals_a.resize(cnt);
     GetRandomVal(vals_a);
 
-    ZETA_DebugLogPos;
+    ZETA_DebugLogCurPos;
 
     SC_Insert(seq_cntr_a, idx, vals_a.size(), vals_a.data());
 
-    ZETA_DebugLogPos;
+    ZETA_DebugLogCurPos;
 
     SC_Insert(seq_cntr_b, idx, vals_a.size(), vals_a.data());
 
-    ZETA_DebugLogPos;
+    ZETA_DebugLogCurPos;
 }
 
 void SyncErase(Zeta_SeqContainer* seq_cntr_a, Zeta_SeqContainer* seq_cntr_b) {
@@ -773,15 +786,15 @@ void SyncErase(Zeta_SeqContainer* seq_cntr_a, Zeta_SeqContainer* seq_cntr_b) {
     long long cnt{ size_generator(en) % (cnt_rb - cnt_lb + 1) + cnt_lb };
     long long idx{ size_generator(en) % (size_a + 1 - cnt) };
 
-    ZETA_DebugLogPos;
+    ZETA_DebugLogCurPos;
 
     SC_Erase(seq_cntr_a, idx, cnt);
 
-    ZETA_DebugLogPos;
+    ZETA_DebugLogCurPos;
 
     SC_Erase(seq_cntr_b, idx, cnt);
 
-    ZETA_DebugLogPos;
+    ZETA_DebugLogCurPos;
 }
 
 void SyncWrite(Zeta_SeqContainer* seq_cntr_a, Zeta_SeqContainer* seq_cntr_b) {
@@ -864,11 +877,13 @@ void PrintSeqContainer(Zeta_SeqContainer* seq_cntr) {
 }
 
 void main2() {
-    unsigned int random_seed = time(NULL);
-    unsigned int fixed_seed = 1718129024;
+    unsigned random_seed = time(NULL);
+    unsigned fixed_seed = 1721022724;
 
-    unsigned int seed = random_seed;
-    // unsigned int seed = fixed_seed;
+    unsigned seed = random_seed;
+    // unsigned seed = fixed_seed;
+
+    ZETA_PrintCurPos;
 
     ZETA_PrintVar(random_seed);
     ZETA_PrintVar(fixed_seed);
@@ -876,87 +891,112 @@ void main2() {
 
     en.seed(seed);
 
+    Zeta_SeqContainer* seq_cntr_a_origin{ CreateDD() };
+
     Zeta_SeqContainer* seq_cntr_a{ CreateDD() };
-    Zeta_SeqContainer* seq_cntr_a_copy{ CreateDD() };
 
     vals_a.resize(1024);
     GetRandomVal(vals_a);
-    SC_Insert(seq_cntr_a, 0, vals_a.size(), vals_a.data());
 
-    SC_Assign(seq_cntr_a, seq_cntr_a_copy);
+    SC_Insert(seq_cntr_a_origin, 0, vals_a.size(), vals_a.data());
 
-    Zeta_SeqContainer* seq_cntr_b{ CreateStageVec(seq_cntr_a_copy) };
+    Zeta_SeqContainer* seq_cntr_b{ CreateStageVec(seq_cntr_a_origin) };
 
-    for (size_t test_i = 0; test_i < 1024; ++test_i) {
-        ZETA_PrintVar(test_i);
+    for (size_t _ = 0; _ < 64; ++_) {
+        ZETA_PrintCurPos;
 
-        ZETA_PrintPos;
+        SC_Assign(seq_cntr_a_origin, seq_cntr_a);
 
-        SyncInsert(seq_cntr_a, seq_cntr_b);
-        Compare(seq_cntr_a, seq_cntr_b);
-        CheckCursor(seq_cntr_a);
-        CheckCursor(seq_cntr_b);
+        ZETA_PrintCurPos;
 
-        Zeta_Logger_Clear(debug_logger);
+        Zeta_StageVector_Reset(seq_cntr_b->context);
 
-        ZETA_PrintVar(SC_GetSize(seq_cntr_a));
+        ZETA_PrintCurPos;
 
-        ZETA_PrintPos;
+        for (size_t test_i = 0; test_i < 256; ++test_i) {
+            ZETA_PrintVar(test_i);
 
-        ZETA_PrintPos;
+            ZETA_PrintCurPos;
 
-        SyncWrite(seq_cntr_a, seq_cntr_b);
-        Compare(seq_cntr_a, seq_cntr_b);
-        CheckCursor(seq_cntr_a);
-        CheckCursor(seq_cntr_b);
+            SyncInsert(seq_cntr_a, seq_cntr_b);
+            Compare(seq_cntr_a, seq_cntr_b);
+            CheckCursor(seq_cntr_a);
+            CheckCursor(seq_cntr_b);
 
-        Zeta_Logger_Clear(debug_logger);
+            Zeta_Debugger_ClearPipe();
 
-        ZETA_PrintVar(SC_GetSize(seq_cntr_a));
+            ZETA_PrintVar(SC_GetSize(seq_cntr_a));
 
-        ZETA_PrintPos;
+            ZETA_PrintCurPos;
 
-        SyncErase(seq_cntr_a, seq_cntr_b);
-        Compare(seq_cntr_a, seq_cntr_b);
-        CheckCursor(seq_cntr_a);
-        CheckCursor(seq_cntr_b);
+            ZETA_PrintCurPos;
 
-        Zeta_Logger_Clear(debug_logger);
+            SyncWrite(seq_cntr_a, seq_cntr_b);
+            Compare(seq_cntr_a, seq_cntr_b);
+            CheckCursor(seq_cntr_a);
+            CheckCursor(seq_cntr_b);
 
-        ZETA_PrintVar(SC_GetSize(seq_cntr_a));
+            Zeta_Debugger_ClearPipe();
 
-        ZETA_PrintPos;
+            ZETA_PrintVar(SC_GetSize(seq_cntr_a));
 
-        for (size_t i{ 0 }; i < 5; ++i) { SyncCompare(seq_cntr_a, seq_cntr_b); }
+            ZETA_PrintCurPos;
 
-        if (seq_cntr_b->GetSize == Zeta_StageVector_GetSize) {
-            Zeta_StageVector_Stats stats =
-                Zeta_StageVector_GetStats(seq_cntr_b->context);
+            SyncErase(seq_cntr_a, seq_cntr_b);
+            Compare(seq_cntr_a, seq_cntr_b);
+            CheckCursor(seq_cntr_a);
+            CheckCursor(seq_cntr_b);
 
-            ZETA_PrintVar(stats.ref_seg_cnt);
-            ZETA_PrintVar(stats.dat_seg_cnt);
-            ZETA_PrintVar(stats.ref_size);
-            ZETA_PrintVar(stats.dat_size);
+            Zeta_Debugger_ClearPipe();
+
+            ZETA_PrintVar(SC_GetSize(seq_cntr_a));
+
+            ZETA_PrintCurPos;
+
+            for (size_t i{ 0 }; i < 5; ++i) {
+                SyncCompare(seq_cntr_a, seq_cntr_b);
+            }
+
+            if (seq_cntr_b->GetSize == Zeta_StageVector_GetSize) {
+                Zeta_StageVector_Stats stats =
+                    Zeta_StageVector_GetStats(seq_cntr_b->context);
+
+                ZETA_PrintVar(stats.ref_seg_cnt);
+                ZETA_PrintVar(stats.dat_seg_cnt);
+                ZETA_PrintVar(stats.ref_size);
+                ZETA_PrintVar(stats.dat_size);
+            }
+
+            // Zeta_StageVector_PrintState(seq_cntr_b->context);
         }
-
-        // Zeta_StageVector_PrintState(seq_cntr_b->context);
     }
 }
 
 void main3() {
-    ZETA_DebugLogPos;
+    ZETA_DebugLogCurPos;
 
     int a = 3;
 
     ZETA_PrintVar(a);
     ZETA_PrintVar(a + 5);
 
-    ZETA_DebugLogPos;
+    ZETA_DebugLogCurPos;
 
     ZETA_DebugAssert(FALSE);
 }
 
 int main() {
+    // signal(SIGINT, SignalHandler);
+    // signal(SIGILL, SignalHandler);
+    // signal(SIGFPE, SignalHandler);
+    // signal(SIGSEGV, SignalHandler);
+    // signal(SIGTERM, SignalHandler);
+    // signal(SIGBREAK, SignalHandler);
+    // signal(SIGABRT, SignalHandler);
+    // signal(SIGABRT_COMPAT, SignalHandler);
+
+    ZETA_PrintCurPos;
+
     main2();
     printf("ok\a\n");
     return 0;

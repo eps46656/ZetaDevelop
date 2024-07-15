@@ -324,7 +324,7 @@ void* Zeta_RBTree_Extract(Zeta_BinTreeNodeOperator const* btn_opr, void* pos) {
     void* nr = GetR(context, n);
 
     if (nl != NULL && nr != NULL) {
-        size_t rand_seed = ZETA_PtrToAddr(nl) + ZETA_PtrToAddr(nr);
+        unsigned long long rand_seed = ZETA_PtrToAddr(nl) + ZETA_PtrToAddr(nr);
 
         void* m = Zeta_SimpleRandomRotate(&rand_seed) % 2 == 0
                       ? Zeta_GetMostLink(context, GetL, nr)
@@ -376,8 +376,8 @@ static size_t Check_(Zeta_BinTreeNodeOperator const* btn_opr,
     void* nl = btn_opr->GetL(context, n);
     void* nr = btn_opr->GetR(context, n);
 
-    if (nl != NULL) { ZETA_Assert(btn_opr->GetP(context, nl) == n); }
-    if (nr != NULL) { ZETA_Assert(btn_opr->GetP(context, nr) == n); }
+    if (nl != NULL) { ZETA_CheckAssert(btn_opr->GetP(context, nl) == n); }
+    if (nr != NULL) { ZETA_CheckAssert(btn_opr->GetP(context, nr) == n); }
 
     size_t lbh = Check_(btn_opr, dst_ns, nl);
 
@@ -385,7 +385,7 @@ static size_t Check_(Zeta_BinTreeNodeOperator const* btn_opr,
 
     size_t rbh = Check_(btn_opr, dst_ns, nr);
 
-    ZETA_Assert(lbh == rbh);
+    ZETA_CheckAssert(lbh == rbh);
 
     int nc = btn_opr->GetColor(context, n);
 
@@ -393,8 +393,8 @@ static size_t Check_(Zeta_BinTreeNodeOperator const* btn_opr,
 
     if (nc == Black) { return lbh + 1; }
 
-    ZETA_Assert(btn_opr->GetColor(context, nl) == Black);
-    ZETA_Assert(btn_opr->GetColor(context, nr) == Black);
+    ZETA_CheckAssert(btn_opr->GetColor(context, nl) == Black);
+    ZETA_CheckAssert(btn_opr->GetColor(context, nr) == Black);
 
     return lbh;
 }

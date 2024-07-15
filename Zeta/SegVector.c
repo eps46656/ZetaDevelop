@@ -880,7 +880,8 @@ void* Zeta_SegVector_Insert(void* sv_, void* pos_cursor_, size_t cnt) {
     size_t m_l_move_cnt = seg_idx;
     size_t m_r_move_cnt = m_cv.size - seg_idx;
 
-    size_t rand = Zeta_SimpleHash(m_l_move_cnt + m_r_move_cnt) % 2;
+    unsigned long long rand_seed =
+        Zeta_SimpleHash(m_l_move_cnt + m_r_move_cnt) % 2;
 
     if (r_vacant < l_vacant) { goto TRY_L_SHOVE; }
     if (l_vacant < r_vacant) { goto TRY_R_SHOVE; }
@@ -888,7 +889,7 @@ void* Zeta_SegVector_Insert(void* sv_, void* pos_cursor_, size_t cnt) {
     if (m_l_move_cnt < m_r_move_cnt) { goto TRY_L_SHOVE; }
     if (m_r_move_cnt < m_l_move_cnt) { goto TRY_R_SHOVE; }
 
-    if (Zeta_SimpleRandomRotate(&rand) % 2 == 0) {
+    if (Zeta_SimpleRandomRotate(&rand_seed) % 2 == 0) {
         goto TRY_L_SHOVE;
     } else {
         goto TRY_R_SHOVE;
@@ -997,9 +998,9 @@ TRY_SPLIT:;
     Zeta_SegVector_Node* ml_node;
     Zeta_SegVector_Node* mr_node;
 
-    bool_t l_split =
-        m_l_move_cnt < m_r_move_cnt ||
-        ((m_l_move_cnt == m_r_move_cnt) && Zeta_SimpleRandomRotate(&rand) == 1);
+    bool_t l_split = m_l_move_cnt < m_r_move_cnt ||
+                     ((m_l_move_cnt == m_r_move_cnt) &&
+                      Zeta_SimpleRandomRotate(&rand_seed) == 1);
 
     if (m_cv.size == 0) { l_split = TRUE; }
 
@@ -1335,11 +1336,12 @@ void Zeta_SegVector_Erase(void* sv_, void* pos_cursor_, size_t cnt) {
     size_t a_vacant;
     size_t b_vacant;
 
-    size_t rand =
+    unsigned long long rand_seed =
         ZETA_PtrToAddr(l_n) + ZETA_PtrToAddr(m_n) + ZETA_PtrToAddr(r_n);
 
     if (lm_vacant < mr_vacant ||
-        (lm_vacant == mr_vacant && Zeta_SimpleRandomRotate(&rand) % 2 == 0)) {
+        (lm_vacant == mr_vacant &&
+         Zeta_SimpleRandomRotate(&rand_seed) % 2 == 0)) {
         a_n = m_n;
         a_cv = &m_cv;
         a_vacant = m_vacant;
@@ -1382,8 +1384,8 @@ void Zeta_SegVector_Erase(void* sv_, void* pos_cursor_, size_t cnt) {
 
     if (a_vacant < b_vacant ||
         (a_vacant == b_vacant &&
-         Zeta_SimpleRandomRotate(&rand) % 2 == 0)) {  // b to a
-        if (a_n == m_n) {                             // r(b) to m(a)
+         Zeta_SimpleRandomRotate(&rand_seed) % 2 == 0)) {  // b to a
+        if (a_n == m_n) {                                  // r(b) to m(a)
             ret_n = m_n;
             ret_seg_idx = seg_idx;
         } else if (seg_idx < m_cv.size) {  // m(b) to l(a)

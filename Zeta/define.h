@@ -2,10 +2,11 @@
 
 #include <stdalign.h>
 #include <stddef.h>
+#include <stdint.h>
 #include <stdlib.h>
 
-#define TRUE (0 == 0)
-#define FALSE (0 != 0)
+#define TRUE ((bool_t)(0 == 0))
+#define FALSE ((bool_t)(0 != 0))
 
 #if defined(__cplusplus)
 #define bool_t bool
@@ -17,9 +18,9 @@
 
 #if !defined(ZETA_IsDebug)
 #if defined(DEBUG)
-#define ZETA_IsDebug TRUE
+#define ZETA_IsDebug 1
 #else
-#define ZETA_IsDebug FALSE
+#define ZETA_IsDebug 0
 #endif
 #endif
 
@@ -39,7 +40,7 @@ typedef unsigned _BitInt(32) u32_t;
 typedef unsigned _BitInt(64) u64_t;
 typedef unsigned _BitInt(128) u128_t;
 
-typedef unsigned int unichar_t;
+typedef unsigned unichar_t;
 
 #define ZETA_Unused(x)          \
     if (FALSE) { ((void)(x)); } \
@@ -47,6 +48,14 @@ typedef unsigned int unichar_t;
 
 #define ZETA_ToStr_(x) #x
 #define ZETA_ToStr(x) ZETA_ToStr_(x)
+
+#define ZETA_ToUCharStr_(str_tmp, str)       \
+    ({                                       \
+        unsigned char const str_tmp[] = str; \
+        str_tmp;                             \
+    })
+
+#define ZETA_ToUCharStr(str) ZETA_ToUCharStr_(ZETA_UniqueName(ZETA_tmp), str)
 
 #define ZETA_Concat_(x, y) x##y
 #define ZETA_Concat(x, y) ZETA_Concat_(x, y)
@@ -80,7 +89,7 @@ typedef unsigned int unichar_t;
                                    \
         unsigned char: FALSE,      \
         unsigned short: FALSE,     \
-        unsigned int: FALSE,       \
+        unsigned: FALSE,           \
         unsigned long: FALSE,      \
         unsigned long long: FALSE, \
         u8_t: FALSE,               \
@@ -117,7 +126,7 @@ typedef unsigned int unichar_t;
                                                                           \
         unsigned short: ZETA_UIntRangeMin_(unsigned short, signed short), \
                                                                           \
-        unsigned int: ZETA_UIntRangeMin_(unsigned int, signed int),       \
+        unsigned: ZETA_UIntRangeMin_(unsigned, signed int),               \
                                                                           \
         unsigned long: ZETA_UIntRangeMin_(unsigned long, signed long),    \
                                                                           \
@@ -138,7 +147,7 @@ typedef unsigned int unichar_t;
                                                                           \
         signed short: ZETA_SIntRangeMin_(unsigned short, signed short),   \
                                                                           \
-        signed int: ZETA_SIntRangeMin_(unsigned int, signed int),         \
+        signed int: ZETA_SIntRangeMin_(unsigned, signed int),             \
                                                                           \
         signed long: ZETA_SIntRangeMin_(unsigned long, signed long),      \
                                                                           \
@@ -165,7 +174,7 @@ typedef unsigned int unichar_t;
                                                                           \
         unsigned short: ZETA_UIntRangeMax_(unsigned short, signed short), \
                                                                           \
-        unsigned int: ZETA_UIntRangeMax_(unsigned int, signed int),       \
+        unsigned: ZETA_UIntRangeMax_(unsigned, signed int),               \
                                                                           \
         unsigned long: ZETA_UIntRangeMax_(unsigned long, signed long),    \
                                                                           \
@@ -186,7 +195,7 @@ typedef unsigned int unichar_t;
                                                                           \
         signed short: ZETA_SIntRangeMax_(unsigned short, signed short),   \
                                                                           \
-        signed int: ZETA_SIntRangeMax_(unsigned int, signed int),         \
+        signed int: ZETA_SIntRangeMax_(unsigned, signed int),             \
                                                                           \
         signed long: ZETA_SIntRangeMax_(unsigned long, signed long),      \
                                                                           \
@@ -209,7 +218,7 @@ typedef unsigned int unichar_t;
                                                                              \
         unsigned short: __builtin_popcount(ZETA_RangeMaxOf(unsigned short)), \
                                                                              \
-        unsigned int: __builtin_popcount(ZETA_RangeMaxOf(unsigned int)),     \
+        unsigned: __builtin_popcount(ZETA_RangeMaxOf(unsigned)),             \
                                                                              \
         unsigned long: __builtin_popcountl(ZETA_RangeMaxOf(unsigned long)),  \
                                                                              \
@@ -289,3 +298,56 @@ ZETA_StaticAssert(255 <= ZETA_RangeMaxOf(byte_t));
 #define ZETA_RoundIntDiv(x, y)                                                \
     ZETA_RoundIntDiv_(ZETA_UniqueName(ZETA_tmp_), ZETA_UniqueName(ZETA_tmp_), \
                       x, y)
+
+#define ZETA_ImmPrint (TRUE)
+
+#define ZETA_PrintPos(filename, line, func)                                   \
+    printf("%48s:%-4llu\t%-24s", filename, (unsigned long long)(line), func); \
+    ZETA_StaticAssert(TRUE)
+
+#define ZETA_PrintCurPos                         \
+    ZETA_PrintPos(__FILE__, __LINE__, __func__); \
+    printf("\n");                                \
+    if (ZETA_ImmPrint) { fflush(stdout); }       \
+    ZETA_StaticAssert(TRUE)
+
+#define ZETA_PrintVar(var)                           \
+    {                                                \
+        ZETA_PrintPos(__FILE__, __LINE__, __func__); \
+                                                     \
+        printf("\t%24s = ", ZETA_ToStr(var));        \
+                                                     \
+        printf(_Generic((var),                       \
+               bool_t: "%c\n",                       \
+                                                     \
+               char: "%c\n",                         \
+               unsigned char: "%X\n",                \
+               signed char: "%c\n",                  \
+                                                     \
+               short: "%i\n",                        \
+               unsigned short: "%u\n",               \
+                                                     \
+               int: "%i\n",                          \
+               unsigned: "%u\n",                     \
+                                                     \
+               long: "%li\n",                        \
+               unsigned long: "%llu\n",              \
+                                                     \
+               long long: "%lli\n",                  \
+               unsigned long long: "%llu\n",         \
+                                                     \
+               float: "%g\n",                        \
+                                                     \
+               double: "%g\n",                       \
+               long double: "%g\n",                  \
+                                                     \
+               void*: "%p\n",                        \
+               const void*: "%p\n",                  \
+                                                     \
+               char*: "%s\n",                        \
+               const char*: "%s\n"),                 \
+               (var));                               \
+                                                     \
+        if (ZETA_ImmPrint) { fflush(stdout); }       \
+    }                                                \
+    ZETA_StaticAssert(TRUE)

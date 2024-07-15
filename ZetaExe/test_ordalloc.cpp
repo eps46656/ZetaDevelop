@@ -108,7 +108,7 @@ void CheckAllocator(bool_t print_state) {
 }
 
 void main1() {
-    unsigned int seed = time(NULL);
+    unsigned seed = time(NULL);
 
     ZETA_PrintVar(seed);
 

@@ -11,7 +11,7 @@
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 
-typedef unsigned int val_t;
+typedef unsigned val_t;
 
 #define CURSOR_WIDTH ((size_t)(sizeof(void*) * 8))
 
@@ -158,7 +158,7 @@ void Check() {
 }
 
 void main1() {
-    unsigned int seed = time(NULL);
+    unsigned seed = time(NULL);
 
     ZETA_PrintVar(seed);
 

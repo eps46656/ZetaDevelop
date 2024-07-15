@@ -11,7 +11,7 @@
 #include "MemAllocatorCheck.h"
 #include "StdAllocator.h"
 
-typedef unsigned int val_t;
+typedef unsigned val_t;
 
 #define CURSOR_WIDTH ((size_t)(sizeof(void*) * 8))
 
@@ -96,8 +96,8 @@ void MS_Erase(val_t val) {
 }
 
 void main1() {
-    unsigned int seed = time(NULL);
-    // unsigned int seed = 1714030320;
+    unsigned seed = time(NULL);
+    // unsigned seed = 1714030320;
 
     ZETA_PrintVar(seed);
 

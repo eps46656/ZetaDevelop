@@ -46,7 +46,7 @@ void* Zeta_MemRotate(void* beg, void* mid, void* end);
  * @return The read integer
  */
 unsigned long long Zeta_ReadLittleEndianStd(byte_t const* data,
-                                            unsigned int length);
+                                            unsigned length);
 
 /**
  * @brief Read little endian stored length bytes occupying integer from data.
@@ -56,7 +56,7 @@ unsigned long long Zeta_ReadLittleEndianStd(byte_t const* data,
  *
  * @return The read integer
  */
-u128_t Zeta_ReadLittleEndian(byte_t const* data, unsigned int length);
+u128_t Zeta_ReadLittleEndian(byte_t const* data, unsigned length);
 
 /**
  * @brief Write an integer to data in little endian occupying length bytes.
@@ -69,7 +69,7 @@ u128_t Zeta_ReadLittleEndian(byte_t const* data, unsigned int length);
  */
 unsigned long long Zeta_WriteLittleEndianStd(byte_t* dst,
                                              unsigned long long val,
-                                             unsigned int length);
+                                             unsigned length);
 
 /**
  * @brief Write an integer to data in little endian occupying length bytes.
@@ -80,7 +80,7 @@ unsigned long long Zeta_WriteLittleEndianStd(byte_t* dst,
  *
  * @return The remaining value after
  */
-u128_t Zeta_WriteLittleEndian(byte_t* dst, u128_t val, unsigned int length);
+u128_t Zeta_WriteLittleEndian(byte_t* dst, u128_t val, unsigned length);
 
 /**
  * @brief Read big endian stored length bytes occupying integer from data.
@@ -91,7 +91,7 @@ u128_t Zeta_WriteLittleEndian(byte_t* dst, u128_t val, unsigned int length);
  * @return The read integer
  */
 unsigned long long Zeta_ReadBigEndianStd(byte_t const* data,
-                                         unsigned int length);
+                                         unsigned length);
 
 /**
  * @brief Read big endian stored length bytes occupying integer from data.
@@ -101,7 +101,7 @@ unsigned long long Zeta_ReadBigEndianStd(byte_t const* data,
  *
  * @return The read integer
  */
-u128_t Zeta_ReadBigEndian(byte_t const* data, unsigned int length);
+u128_t Zeta_ReadBigEndian(byte_t const* data, unsigned length);
 
 /**
  * @brief Write an integer to data in big endian occupying length bytes.
@@ -111,7 +111,7 @@ u128_t Zeta_ReadBigEndian(byte_t const* data, unsigned int length);
  * @param val The target integer.
  */
 unsigned long long Zeta_WriteBigEndianStd(byte_t* dst, unsigned long long val,
-                                          unsigned int length);
+                                          unsigned length);
 
 /**
  * @brief Write an integer to data in big endian occupying length bytes.
@@ -120,7 +120,7 @@ unsigned long long Zeta_WriteBigEndianStd(byte_t* dst, unsigned long long val,
  * @param length The number of bytes the integer occupied.
  * @param val The target integer.
  */
-u128_t Zeta_WriteBigEndian(byte_t* dst, u128_t val, unsigned int length);
+u128_t Zeta_WriteBigEndian(byte_t* dst, u128_t val, unsigned length);
 
 unsigned long long Zeta_SimpleRandom(unsigned long long x);
 
@@ -156,9 +156,9 @@ unsigned long long Zeta_GetPowerMod(unsigned long long base,
                                     unsigned long long exp,
                                     unsigned long long mod);
 
-unsigned int Zeta_GetFloorLog(unsigned long long val, unsigned long long base);
+unsigned Zeta_GetFloorLog(unsigned long long val, unsigned long long base);
 
-unsigned int Zeta_GetCeilLog(unsigned long long val, unsigned long long base);
+unsigned Zeta_GetCeilLog(unsigned long long val, unsigned long long base);
 
 unsigned long long Zeta_GetSqrt(unsigned long long val);
 
@@ -169,9 +169,9 @@ unsigned long long Zeta_FindNextConMod(unsigned long long beg,
 void* Zeta_GetMostLink(void* context, void* (*GetLink)(void* context, void* n),
                        void* n);
 
-int Zeta_Choose2(bool_t a_cond, bool_t b_cond, size_t* rand_seed);
+int Zeta_Choose2(bool_t a_cond, bool_t b_cond, unsigned long long* rand_seed);
 
 int Zeta_Choose3(bool_t a_cond, bool_t b_cond, bool_t c_cond,
-                 size_t* rand_seed);
+                 unsigned long long* rand_seed);
 
 ZETA_ExternC_End;

@@ -25,7 +25,7 @@ byte_t const* Zeta_ELF_ReadHeader(Zeta_ELF_Header* dst, byte_t const* data,
     size_t data_size = data_end - data;
     ZETA_DebugAssert(52 <= data_size);
 
-    u128_t (*ReadFunc)(byte_t const* data, unsigned int length) =
+    u128_t (*ReadFunc)(byte_t const* data, unsigned length) =
         Zeta_ReadLittleEndian;
 
     ASSERT_RET(data[0] == 0x7F && data[1] == 'E' && data[2] == 'L' &&
@@ -35,7 +35,7 @@ byte_t const* Zeta_ELF_ReadHeader(Zeta_ELF_Header* dst, byte_t const* data,
 
     READ(dst->ei_class, 1);
 
-    unsigned int length;
+    unsigned length;
 
     switch (dst->ei_class) {
         case 1: length = 4; break;
@@ -90,10 +90,10 @@ byte_t* Zeta_ELF_WriteHeader(byte_t* dst, byte_t* dst_end,
     ZETA_DebugAssert(dst <= dst_end);
     ZETA_DebugAssert(header != NULL);
 
-    u128_t (*WriteFunc)(byte_t* dst, u128_t val, unsigned int length) =
+    u128_t (*WriteFunc)(byte_t* dst, u128_t val, unsigned length) =
         Zeta_WriteLittleEndian;
 
-    unsigned int length;
+    unsigned length;
 
     switch (header->ei_class) {
         case 1:
@@ -159,10 +159,10 @@ void Zeta_ELF_ReadProgramHeader(Zeta_ELF_ProgramHeader* dst,
                                 byte_t const* data_end) {
     ZETA_DebugAssert(data <= data_end);
 
-    u128_t (*ReadFunc)(byte_t const* data, unsigned int length) =
+    u128_t (*ReadFunc)(byte_t const* data, unsigned length) =
         header->ei_data == 1 ? Zeta_ReadLittleEndian : Zeta_ReadBigEndian;
 
-    unsigned int length;
+    unsigned length;
 
     switch (header->ei_class) {
         case 1:
@@ -203,10 +203,10 @@ void Zeta_ELF_ReadSectionHeader(Zeta_ELF_SectionHeader* dst,
     ZETA_DebugAssert(data_end != NULL);
     ZETA_DebugAssert(data <= data_end);
 
-    u128_t (*ReadFunc)(byte_t const* data, unsigned int length) =
+    u128_t (*ReadFunc)(byte_t const* data, unsigned length) =
         header->ei_data == 1 ? Zeta_ReadLittleEndian : Zeta_ReadBigEndian;
 
-    unsigned int length;
+    unsigned length;
 
     switch (header->ei_class) {
         case 1:

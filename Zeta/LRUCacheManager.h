@@ -22,8 +22,8 @@ ZETA_DeclareStruct(Zeta_LRUCacheManager_XNode);
 struct Zeta_LRUCacheManager_SNode {
     Zeta_OrdLinkedListNode sl_node;
 
-    unsigned int max_al_cnt;
-    unsigned int al_cnt;
+    unsigned max_al_cnt;
+    unsigned al_cnt;
 
     Zeta_OrdLinkedListNode al_head;
 

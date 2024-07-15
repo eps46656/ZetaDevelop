@@ -7,14 +7,14 @@
 #include "MemAllocatorCheck.h"
 #include "StdAllocator.h"
 
-typedef unsigned int val_t;
+typedef unsigned val_t;
 
 #define CURSOR_WIDTH ((size_t)(sizeof(void*) * 8))
 
 void SetVal(void* dst, val_t x) { Zeta_MemCopy(dst, &x, sizeof(val_t)); }
 
 void PrintVal(void* x) {
-    unsigned int xi;
+    unsigned xi;
     Zeta_MemCopy(&xi, x, sizeof(val_t));
     printf("%x\n", xi);
 }
@@ -107,7 +107,7 @@ void Check() {
 }
 
 void main1() {
-    unsigned int seed = time(NULL);
+    unsigned seed = time(NULL);
 
     ZETA_PrintVar(seed);
 

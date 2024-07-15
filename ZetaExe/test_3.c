@@ -1,19 +1,17 @@
+#include <stdio.h>
+
 #include "../Zeta/define.h"
 
 void main3() {
-    long long char_min = ZETA_RangeMinOf(char);
-    long long char_max = ZETA_RangeMaxOf(char);
-    ZETA_PrintVar(char_min);
-    ZETA_PrintVar(char_max);
+    unsigned char const* str = ZETA_ToUCharStr(":");
 
-    // ZETA_PrintVar(ZETA_RangeMaxOf(unsigned char));
-    // ZETA_PrintVar(ZETA_RangeMaxOf(signed char));
+    printf("%d\n", str[0]);
+    printf("%d\n", str[1]);
+    printf("%d\n", str[2]);
+    printf("%d\n", str[3]);
+    printf("%d\n", str[4]);
 
-    unsigned int char_width = ZETA_WidthOf(unsigned char);
-    unsigned int short_width = ZETA_WidthOf(unsigned short);
-
-    ZETA_PrintVar(char_width);
-    ZETA_PrintVar(short_width);
+    // printf("%llu\n", strlen(str));
 }
 
 int main() {

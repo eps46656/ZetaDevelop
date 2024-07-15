@@ -635,8 +635,8 @@ void PrintSeqContainer(Zeta_SeqContainer* seq_cntr) {
 }
 
 void main2() {
-    unsigned int seed = time(NULL);
-    // unsigned int seed = 1717313193;
+    unsigned seed = time(NULL);
+    // unsigned seed = 1717313193;
 
     ZETA_PrintVar(seed);
 

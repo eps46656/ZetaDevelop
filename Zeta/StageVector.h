@@ -9,7 +9,7 @@
 ZETA_ExternC_Beg;
 
 ZETA_DeclareStruct(Zeta_StageVector);
-ZETA_DeclareStruct(Zeta_StageVector_Node);
+ZETA_DeclareStruct(Zeta_StageVector_Seg);
 ZETA_DeclareStruct(Zeta_StageVector_Cursor);
 ZETA_DeclareStruct(Zeta_StageVector_Stats);
 
@@ -31,11 +31,11 @@ struct Zeta_StageVector {
     Zeta_OrdCnt3RBTreeNode* lb;
     Zeta_OrdCnt3RBTreeNode* rb;
 
-    Zeta_Allocator* node_allocator;
+    Zeta_Allocator* seg_allocator;
     Zeta_Allocator* data_allocator;
 };
 
-struct Zeta_StageVector_Node {
+struct Zeta_StageVector_Seg {
     Zeta_OrdCnt3RBTreeNode n;
 
     union {
@@ -117,6 +117,8 @@ void Zeta_StageVector_PopR(void* sv);
 void Zeta_StageVector_Erase(void* sv, void* pos_cursor, size_t cnt);
 
 void Zeta_StageVector_EraseAll(void* sv);
+
+void Zeta_StageVector_Reset(void* sv);
 
 void Zeta_StageVector_Check(void* sv, Zeta_DebugHashMap* dst_node_hm,
                             Zeta_DebugHashMap* dst_seg_hm);

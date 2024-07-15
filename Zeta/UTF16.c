@@ -4,7 +4,7 @@
 
 static byte_t* EncodeChar_(byte_t* dst, unichar_t data_,
                            u128_t (*Write)(byte_t* dst, u128_t val,
-                                           unsigned int length)) {
+                                           unsigned length)) {
     if (data_ < 0) { return NULL; }
 
     u32_t data = data_;
@@ -33,7 +33,7 @@ size_t Zeta_UTF16_GetEncodeSize(unichar_t const* data,
 
     byte_t tmp[8];
 
-    u128_t (*Write)(byte_t* dst, u128_t val, unsigned int length) =
+    u128_t (*Write)(byte_t* dst, u128_t val, unsigned length) =
         little_endian ? Zeta_WriteLittleEndian : Zeta_WriteBigEndian;
 
     for (; data < data_end; ++data) {
@@ -59,7 +59,7 @@ UTF16_EncodeRet Zeta_UTF16_Encode(byte_t* dst, byte_t* dst_end,
 
     byte_t tmp[8];
 
-    u128_t (*Write)(byte_t* dst, u128_t val, unsigned int length) =
+    u128_t (*Write)(byte_t* dst, u128_t val, unsigned length) =
         little_endian ? Zeta_WriteLittleEndian : Zeta_WriteBigEndian;
 
     for (; data < data_end; ++data) {
@@ -95,7 +95,7 @@ UTF16_EncodeRet Zeta_UTF16_Encode(byte_t* dst, byte_t* dst_end,
 static byte_t const* DecodeChar_(unichar_t* dst, byte_t const* data,
                                  byte_t const* data_end,
                                  u128_t (*Read)(byte_t const* data,
-                                                unsigned int length)) {
+                                                unsigned length)) {
     if (data_end - data < 2) { return data; }
 
     u32_t x = Read(data, 2);
@@ -127,7 +127,7 @@ size_t Zeta_UTF16_GetDecodeSize(byte_t const* data, byte_t const* data_end,
 
     unichar_t dst;
 
-    u128_t (*Read)(byte_t const* data, unsigned int length) =
+    u128_t (*Read)(byte_t const* data, unsigned length) =
         little_endian ? Zeta_ReadLittleEndian : Zeta_ReadBigEndian;
 
     while (data < data_end) {
@@ -151,7 +151,7 @@ UTF16_DecodeRet Zeta_UTF16_Decode(unichar_t* dst, unichar_t* dst_end,
     ZETA_DebugAssert(data_end != NULL);
     ZETA_DebugAssert(data <= data_end);
 
-    u128_t (*Read)(byte_t const* data, unsigned int length) =
+    u128_t (*Read)(byte_t const* data, unsigned length) =
         little_endian ? Zeta_ReadLittleEndian : Zeta_ReadBigEndian;
 
     while (dst < dst_end && data < data_end) {

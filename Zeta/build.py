@@ -2,6 +2,8 @@ import os
 import sys
 
 File = os.path.abspath(__file__).replace("\\", "/")
+Dir = os.path.abspath(os.path.dirname(__file__)).replace("\\", "/")
+
 ZetaDir = os.path.dirname(File).replace("\\", "/")
 
 ZetaDevDir = os.path.abspath(f"{ZetaDir}/..").replace("\\", "/")
@@ -33,9 +35,19 @@ def AddDeps(builder, ZetaBuildDir, verbose, mode):
 
     # --------------------------------------------------------------------------
 
+    '''
+    builder.Add(
+        f"{ZetaDevDir}/Compiler.py",
+        set(),
+        None
+    )
+    '''
+
     builder.Add(
         f"{File}",
-        set(),
+        {
+            f"{ZetaDevDir}/Compiler.py",
+        },
         None
     )
 
@@ -259,17 +271,17 @@ def AddDeps(builder, ZetaBuildDir, verbose, mode):
         f"{ZetaDir}/Logger.h",
         {
             f"{File}",
-            f"{ZetaDir}/Debugger.h",
+            f"{ZetaDir}/io.h",
         },
         None
     )
 
     builder.Add(
-        f"{ZetaDir}/Logger.cpp",
+        f"{ZetaDir}/Logger.c",
         {
             f"{File}",
             f"{ZetaDir}/Logger.h",
-            f"{ZetaDir}/utils.h",
+            f"{ZetaDir}/Pipe.h",
         },
         None
     )
@@ -278,11 +290,11 @@ def AddDeps(builder, ZetaBuildDir, verbose, mode):
         f"{ZetaBuildDir}/Logger.ll",
         {
             f"{File}",
-            f"{ZetaDir}/Logger.cpp",
+            f"{ZetaDir}/Logger.c",
         },
-        lambda : compiler.cpp_to_ll(
+        lambda : compiler.c_to_ll(
             f"{ZetaBuildDir}/Logger.ll",
-            f"{ZetaDir}/Logger.cpp",
+            f"{ZetaDir}/Logger.c",
         )
     )
 
@@ -424,7 +436,7 @@ def AddDeps(builder, ZetaBuildDir, verbose, mode):
         f"{ZetaDir}/Debugger.h",
         {
             f"{File}",
-            f"{ZetaDir}/define.h",
+            f"{ZetaDir}/Logger.h",
         },
         None
     )
@@ -434,6 +446,8 @@ def AddDeps(builder, ZetaBuildDir, verbose, mode):
         {
             f"{File}",
             f"{ZetaDir}/Debugger.h",
+            f"{ZetaDir}/DebugStrPipe.h",
+            f"{ZetaDir}/Pipe.h",
         },
         None
     )
@@ -512,7 +526,7 @@ def AddDeps(builder, ZetaBuildDir, verbose, mode):
     )
 
     builder.Add(
-        f"{ZetaDir}/DebugStream.h",
+        f"{ZetaDir}/DebugStrPipe.h",
         {
             f"{File}",
             f"{ZetaDir}/define.h",
@@ -521,23 +535,23 @@ def AddDeps(builder, ZetaBuildDir, verbose, mode):
     )
 
     builder.Add(
-        f"{ZetaDir}/DebugStream.cpp",
+        f"{ZetaDir}/DebugStrPipe.cpp",
         {
             f"{File}",
-            f"{ZetaDir}/DebugStream.h",
+            f"{ZetaDir}/DebugStrPipe.h",
         },
         None
     )
 
     builder.Add(
-        f"{ZetaBuildDir}/DebugStream.ll",
+        f"{ZetaBuildDir}/DebugStrPipe.ll",
         {
             f"{File}",
-            f"{ZetaDir}/DebugStream.cpp",
+            f"{ZetaDir}/DebugStrPipe.cpp",
         },
         lambda : compiler.cpp_to_ll(
-            f"{ZetaBuildDir}/DebugStream.ll",
-            f"{ZetaDir}/DebugStream.cpp",
+            f"{ZetaBuildDir}/DebugStrPipe.ll",
+            f"{ZetaDir}/DebugStrPipe.cpp",
         )
     )
 
@@ -1509,6 +1523,7 @@ def AddDeps(builder, ZetaBuildDir, verbose, mode):
             f"{ZetaDir}/StageVector.h",
 
             f"{ZetaDir}/CircularVector.h",
+            f"{ZetaDir}/Debugger.h",
             f"{ZetaDir}/RBTree.h",
             f"{ZetaDir}/SegUtils.h",
             f"{ZetaDir}/utils.h",
@@ -1830,7 +1845,7 @@ def main():
 
     target = f"{ZetaBuildDir}/{args.target}"
 
-    non_built, built = builder.build(target, args.rebuild)
+    non_built, built = builder.Build(target, args.rebuild)
 
     ybeg = "\033[93m"
     yend = "\033[0m"

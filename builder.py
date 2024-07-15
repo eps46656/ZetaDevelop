@@ -126,25 +126,28 @@ class Builder:
         #   }
 
     def Add(self, unit, deps, callback=None):
-        assert unit not in self.deps, f"duplicated unit: {unit}"
-
         unit = str(unit)
 
-        self.deps[unit] = {str(dep) for dep in filter(
-                           lambda dep: dep is not None, deps)}
+        assert unit not in self.deps, f"duplicated unit: {unit}"
+
+        self.deps[unit] = {str(dep) for dep in FilterNotNone(deps)}
 
         self.callbacks[unit] = callback
 
-    def units(self):
+    def GetUnits(self):
         return list(self.deps.keys())
 
-    def GetDepUnits(self, target):
-        assert target in self.deps, f"unknown unit {target}"
+    def GetDepUnits(self, target_unit):
+        target_unit = str(target_unit)
 
-        return list(reversed(TPSort(self.deps, [target])))
+        assert target_unit in self.deps, f"unknown unit {target_unit}"
 
-    def build(self, target, rebuild):
-        dep_units = self.GetDepUnits(target)
+        return list(reversed(TPSort(self.deps, [target_unit])))
+
+    def Build(self, target_unit, rebuild):
+        target_unit = str(target_unit)
+
+        dep_units = self.GetDepUnits(target_unit)
 
         mtimes = { unit: GetMTime(unit) for unit in dep_units }
 
