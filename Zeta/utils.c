@@ -11,11 +11,21 @@ void Zeta_MemCopy(void* dst_, void const* src_, size_t size) {
     ZETA_DebugAssert(dst != NULL);
     ZETA_DebugAssert(src != NULL);
 
-    if (src < dst && dst < src + size) {
-        for (size_t i = size; 0 < i--;) { dst[i] = src[i]; }
-    } else {
-        for (size_t i = 0; i < size; ++i) { dst[i] = src[i]; }
-    }
+    ZETA_DebugAssert(!ZETA_AreOverlapped(dst, size, src, size));
+
+    __builtin_memcpy(dst, src, size);
+}
+
+void Zeta_MemMove(void* dst_, void const* src_, size_t size) {
+    unsigned char* dst = dst_;
+    unsigned char const* src = src_;
+
+    if (dst == src) { return; }
+
+    ZETA_DebugAssert(dst != NULL);
+    ZETA_DebugAssert(src != NULL);
+
+    __builtin_memmove(dst, src, size);
 }
 
 void Zeta_MemSwap(void* x_, void* y_, size_t size) {

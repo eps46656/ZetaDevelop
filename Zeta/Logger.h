@@ -35,10 +35,10 @@ ZETA_ExternC_Beg;
     }                                                                          \
     ZETA_StaticAssert(TRUE)
 
-#define ZETA_LogPos(pipe, filename, line_num, funcname, new_line)              \
-    ZETA_LogPos_(ZETA_UniqueName(ZETA_tmp), ZETA_UniqueName(ZETA_tmp),         \
-                 ZETA_UniqueName(ZETA_tmp), ZETA_UniqueName(ZETA_tmp), (pipe), \
-                 (filename), (line_num), (funcname), (new_line))
+#define ZETA_LogPos(pipe, filename, line_num, funcname, new_line)        \
+    ZETA_LogPos_(ZETA_UniqueName(ZETA_tmp_), ZETA_UniqueName(ZETA_tmp_), \
+                 ZETA_UniqueName(ZETA_tmp_), ZETA_UniqueName(ZETA_tmp_), \
+                 (pipe), (filename), (line_num), (funcname), (new_line))
 
 #define ZETA_LogCurPos(pipe) \
     ZETA_LogPos((pipe), __FILE__, __LINE__, __func__, TRUE)
@@ -84,9 +84,9 @@ ZETA_ExternC_Beg;
     }                                                                          \
     ZETA_StaticAssert(TRUE)
 
-#define ZETA_LogVar(pipe, var)                                         \
-    ZETA_LogVar_(ZETA_UniqueName(ZETA_tmp), ZETA_UniqueName(ZETA_tmp), \
-                 ZETA_UniqueName(ZETA_tmp), pipe, var)
+#define ZETA_LogVar(pipe, var)                                           \
+    ZETA_LogVar_(ZETA_UniqueName(ZETA_tmp_), ZETA_UniqueName(ZETA_tmp_), \
+                 ZETA_UniqueName(ZETA_tmp_), pipe, var)
 
 void Zeta_Logger_LogBool_(Zeta_Pipe* pipe, void* ptr);
 

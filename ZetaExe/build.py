@@ -45,11 +45,12 @@ def AddDeps(builder, ZetaBuildDir, ZetaExeBuildDir, verbose, mode):
 
     Zeta.build.AddDeps(builder, ZetaBuildDir, verbose, mode)
 
+    '''
     builder.Add(
         f"{ZetaDevDir}/Compiler.py",
         set(),
         None
-    )
+    )'''
 
     builder.Add(
         f"{File}",
@@ -1527,7 +1528,9 @@ def AddDeps(builder, ZetaBuildDir, ZetaExeBuildDir, verbose, mode):
             f"{ZetaBuildDir}/BinTree.ll",
             f"{ZetaBuildDir}/Logger.ll",
             f"{ZetaBuildDir}/Debugger.ll",
+            f"{ZetaBuildDir}/DebugStrPipe.ll",
             f"{ZetaBuildDir}/DebugPipe.ll",
+            f"{ZetaBuildDir}/io.ll",
             f"{ZetaBuildDir}/RBTree.ll",
             f"{ZetaBuildDir}/OrdCntRBTreeNode.ll",
             f"{ZetaBuildDir}/OrdCnt3RBTreeNode.ll",
@@ -1540,9 +1543,11 @@ def AddDeps(builder, ZetaBuildDir, ZetaExeBuildDir, verbose, mode):
 
             [
                 f"{ZetaBuildDir}/BinTree.ll",
-                f"{ZetaBuildDir}/Logger.ll",
                 f"{ZetaBuildDir}/Debugger.ll",
+                f"{ZetaBuildDir}/DebugStrPipe.ll",
                 f"{ZetaBuildDir}/DebugPipe.ll",
+                f"{ZetaBuildDir}/io.ll",
+                f"{ZetaBuildDir}/Logger.ll",
                 f"{ZetaBuildDir}/RBTree.ll",
                 f"{ZetaBuildDir}/OrdCntRBTreeNode.ll",
                 f"{ZetaBuildDir}/OrdCnt3RBTreeNode.ll",

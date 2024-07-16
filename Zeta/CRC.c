@@ -15,12 +15,6 @@ unsigned _BitInt(64) Zeta_CRCHasher_GetResult(void* hasher_) {
     return hasher->reg;
 }
 
-static byte_t ByteReverse_(byte_t x) {
-    byte_t ret = 0;
-    for (int i = 0; i < 8; ++i, x /= 2) { ret = ret * 2 + x % 2; }
-    return ret;
-}
-
 void Zeta_CRCHasher_Rotate(void* hasher_, byte_t const* data,
                            byte_t const* data_end, int reverse) {
     Zeta_CRCHasher* hasher = hasher_;
@@ -39,7 +33,7 @@ void Zeta_CRCHasher_Rotate(void* hasher_, byte_t const* data,
         ZETA_DebugAssert(x <= 255);
 
         if (reverse) {
-            reg ^= ByteReverse_(x);
+            reg ^= __builtin_bitreverse8(x);
         } else {
             reg ^= x;
         }

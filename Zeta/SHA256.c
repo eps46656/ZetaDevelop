@@ -41,8 +41,6 @@ size_t Zeta_SHA256Hasher_GetResultSize(void* hasher_) {
     return 32;
 }
 
-static word_t RRotate_(word_t x, int k) { return (x >> k) | (x << (32 - k)); }
-
 static void HashChunk_(word_t* hs, byte_t const* data) {
     word_t const k[] = {
         0x428A2F98, 0x71374491, 0xB5C0FBCF, 0xE9B5DBA5, 0x3956C25B, 0x59F111F1,
@@ -63,10 +61,10 @@ static void HashChunk_(word_t* hs, byte_t const* data) {
     for (int i = 0; i < 16; ++i) { w[i] = Zeta_ReadBigEndian(data + 4 * i, 4); }
 
     for (int i = 16; i < 64; ++i) {
-        word_t s0 =
-            RRotate_(w[i - 15], 7) ^ RRotate_(w[i - 15], 18) ^ (w[i - 15] >> 3);
-        word_t s1 =
-            RRotate_(w[i - 2], 17) ^ RRotate_(w[i - 2], 19) ^ (w[i - 2] >> 10);
+        word_t s0 = __builtin_rotateright32(w[i - 15], 7) ^
+                    __builtin_rotateright32(w[i - 15], 18) ^ (w[i - 15] >> 3);
+        word_t s1 = __builtin_rotateright32(w[i - 2], 17) ^
+                    __builtin_rotateright32(w[i - 2], 19) ^ (w[i - 2] >> 10);
         w[i] = w[i - 16] + s0 + w[i - 7] + s1;
     }
 
@@ -80,8 +78,12 @@ static void HashChunk_(word_t* hs, byte_t const* data) {
     word_t h = hs[7];
 
     for (int i = 0; i < 64; ++i) {
-        word_t s0 = RRotate_(a, 2) ^ RRotate_(a, 13) ^ RRotate_(a, 22);
-        word_t s1 = RRotate_(e, 6) ^ RRotate_(e, 11) ^ RRotate_(e, 25);
+        word_t s0 = __builtin_rotateright32(a, 2) ^
+                    __builtin_rotateright32(a, 13) ^
+                    __builtin_rotateright32(a, 22);
+        word_t s1 = __builtin_rotateright32(e, 6) ^
+                    __builtin_rotateright32(e, 11) ^
+                    __builtin_rotateright32(e, 25);
 
         word_t maj = (a & b) ^ (a & c) ^ (b & c);
         word_t ch = (e & f) ^ (~e & g);

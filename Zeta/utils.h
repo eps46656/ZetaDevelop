@@ -14,6 +14,15 @@ ZETA_ExternC_Beg;
 void Zeta_MemCopy(void* dst, void const* src, size_t size);
 
 /**
+ * @brief Copy byte array from dst to src
+ *
+ * @param dst The pointer points to destination byte array.
+ * @param src The pointer points to source byte array.
+ * @param size The number of bytes the byte arrays pointed by dst and src.
+ */
+void Zeta_MemMove(void* dst, void const* src, size_t size);
+
+/**
  * @brief Swap byte array between dst and src
  *
  * @param dst The pointer points to destination byte array.
@@ -90,8 +99,7 @@ u128_t Zeta_WriteLittleEndian(byte_t* dst, u128_t val, unsigned length);
  *
  * @return The read integer
  */
-unsigned long long Zeta_ReadBigEndianStd(byte_t const* data,
-                                         unsigned length);
+unsigned long long Zeta_ReadBigEndianStd(byte_t const* data, unsigned length);
 
 /**
  * @brief Read big endian stored length bytes occupying integer from data.

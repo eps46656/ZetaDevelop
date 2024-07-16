@@ -120,8 +120,8 @@ void Zeta_StageVector_EraseAll(void* sv);
 
 void Zeta_StageVector_Reset(void* sv);
 
-void Zeta_StageVector_Check(void* sv, Zeta_DebugHashMap* dst_node_hm,
-                            Zeta_DebugHashMap* dst_seg_hm);
+void Zeta_StageVector_Check(void* sv, Zeta_DebugHashMap* dst_seg_hm,
+                            Zeta_DebugHashMap* dst_data_hm);
 
 void Zeta_StageVector_PrintState(void* sv);
 

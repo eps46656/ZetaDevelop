@@ -35,13 +35,11 @@ def AddDeps(builder, ZetaBuildDir, verbose, mode):
 
     # --------------------------------------------------------------------------
 
-    '''
     builder.Add(
         f"{ZetaDevDir}/Compiler.py",
         set(),
         None
     )
-    '''
 
     builder.Add(
         f"{File}",
@@ -1841,7 +1839,7 @@ def main():
     builder = Builder()
 
     AddDeps(builder, ZetaBuildDir, args.verbose, mode)
-    builder.Add("all", builder.units(), None)
+    builder.Add("all", builder.GetUnits(), None)
 
     target = f"{ZetaBuildDir}/{args.target}"
 

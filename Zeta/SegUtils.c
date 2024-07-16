@@ -31,8 +31,8 @@ void SegShoveL(Zeta_CircularVector* l_cv, Zeta_CircularVector* r_cv,
     size_t cnt_b = ZETA_GetMinOf(ins_cnt, shove_cnt - cnt_a);
     size_t cnt_c = shove_cnt - cnt_a - cnt_b;
 
-    size_t l_i = l_cv->size;
-    size_t r_i = 0;
+    size_t l_beg = l_cv->size;
+    size_t r_beg = 0;
 
     Zeta_CircularVector_Cursor l_cv_cursor;
     Zeta_CircularVector_Cursor r_cv_cursor;
@@ -43,17 +43,24 @@ void SegShoveL(Zeta_CircularVector* l_cv, Zeta_CircularVector* r_cv,
 
     ZETA_DebugLogCurPos;
 
+    /*
     for (size_t i = cnt_a; 0 < i--; ++l_i, ++r_i) {
         Zeta_MemCopy(Zeta_CircularVector_Access(l_cv, NULL, NULL, l_i),
                      Zeta_CircularVector_Access(r_cv, NULL, NULL, r_i), width);
     }
+    */
 
-    l_i += cnt_b;
+    Zeta_CircularVector_Assign(l_cv, r_cv, l_beg, r_beg, cnt_a);
 
+    /*
     for (size_t i = cnt_c; 0 < i--; ++l_i, ++r_i) {
         Zeta_MemCopy(Zeta_CircularVector_Access(l_cv, NULL, NULL, l_i),
                      Zeta_CircularVector_Access(r_cv, NULL, NULL, r_i), width);
     }
+    */
+
+    Zeta_CircularVector_Assign(l_cv, r_cv, l_beg + cnt_a + cnt_b, r_beg + cnt_a,
+                               cnt_c);
 
     Zeta_CircularVector_PeekL(r_cv, &r_cv_cursor, NULL);
 
@@ -93,8 +100,8 @@ void SegShoveR(Zeta_CircularVector* l_cv, Zeta_CircularVector* r_cv,
     size_t cnt_b = ZETA_GetMinOf(ins_cnt, shove_cnt - cnt_a);
     size_t cnt_c = shove_cnt - cnt_a - cnt_b;
 
-    size_t l_i = l_cv->size - 1;
-    size_t r_i = shove_cnt - 1;
+    size_t l_beg = l_cv->size - cnt_c - cnt_a;
+    size_t r_beg = 0;
 
     Zeta_CircularVector_Cursor l_cv_cursor;
     Zeta_CircularVector_Cursor r_cv_cursor;
@@ -103,6 +110,12 @@ void SegShoveR(Zeta_CircularVector* l_cv, Zeta_CircularVector* r_cv,
 
     Zeta_CircularVector_Insert(r_cv, &r_cv_cursor, shove_cnt);
 
+    Zeta_CircularVector_Assign(r_cv, l_cv, r_beg, l_beg, cnt_c);
+
+    Zeta_CircularVector_Assign(r_cv, l_cv, r_beg + cnt_c + cnt_b, l_beg + cnt_c,
+                               cnt_a);
+
+    /*
     for (size_t i = cnt_a; 0 < i--; --l_i, --r_i) {
         Zeta_MemCopy(Zeta_CircularVector_Access(r_cv, NULL, NULL, r_i),
                      Zeta_CircularVector_Access(l_cv, NULL, NULL, l_i), width);
@@ -114,6 +127,7 @@ void SegShoveR(Zeta_CircularVector* l_cv, Zeta_CircularVector* r_cv,
         Zeta_MemCopy(Zeta_CircularVector_Access(r_cv, NULL, NULL, r_i),
                      Zeta_CircularVector_Access(l_cv, NULL, NULL, l_i), width);
     }
+    */
 
     Zeta_CircularVector_Access(l_cv, &l_cv_cursor, NULL,
                                l_cv->size - cnt_a - cnt_c);

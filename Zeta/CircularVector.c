@@ -7,6 +7,8 @@
     ((void*)((unsigned char*)(data) +               \
              (stride) * (((offset) + (idx)) % (capacity))))
 
+#define vec_mem_copy_th (sizeof(void*) * 4 + 1)
+
 void Zeta_CircularVector_Init(void* cv_) {
     Zeta_CircularVector* cv = cv_;
     ZETA_DebugAssert(cv != NULL);
@@ -190,8 +192,23 @@ void Zeta_CircularVector_Read(void* cv_, void* pos_cursor_, size_t cnt,
     ZETA_DebugAssert(idx <= size);
     ZETA_DebugAssert(cnt <= size - idx);
 
-    for (size_t end = idx + cnt; idx < end; ++idx, dst += stride) {
-        Zeta_MemCopy(dst, Refer_(data, stride, offset, idx, capacity), width);
+    if (stride - width < vec_mem_copy_th) {
+        while (0 < cnt) {
+            size_t cur_cnt = ZETA_GetMinOf(
+                cnt, Zeta_CircularVector_GetLongestContSucr(cv, idx));
+            cnt -= cur_cnt;
+
+            Zeta_MemCopy(dst, Refer_(data, stride, offset, idx, capacity),
+                         stride * cur_cnt);
+
+            dst += stride * cur_cnt;
+            idx += cur_cnt;
+        }
+    } else {
+        for (size_t end = idx + cnt; idx < end; ++idx, dst += stride) {
+            Zeta_MemCopy(dst, Refer_(data, stride, offset, idx, capacity),
+                         width);
+        }
     }
 
     if (dst_cursor != NULL) {
@@ -234,8 +251,23 @@ void Zeta_CircularVector_Write(void* cv_, void* pos_cursor_, size_t cnt,
     ZETA_DebugAssert(idx <= size);
     ZETA_DebugAssert(cnt <= size - idx);
 
-    for (size_t end = idx + cnt; idx < end; ++idx, src += stride) {
-        Zeta_MemCopy(Refer_(data, stride, offset, idx, capacity), src, width);
+    if (stride - width < vec_mem_copy_th) {
+        while (0 < cnt) {
+            size_t cur_cnt = ZETA_GetMinOf(
+                cnt, Zeta_CircularVector_GetLongestContSucr(cv, idx));
+            cnt -= cur_cnt;
+
+            Zeta_MemCopy(Refer_(data, stride, offset, idx, capacity), src,
+                         stride * cur_cnt);
+
+            idx += cur_cnt;
+            src += stride * cur_cnt;
+        }
+    } else {
+        for (size_t end = idx + cnt; idx < end; ++idx, src += stride) {
+            Zeta_MemCopy(Refer_(data, stride, offset, idx, capacity), src,
+                         width);
+        }
     }
 
     if (dst_cursor != NULL) {
@@ -294,7 +326,6 @@ void* Zeta_CircularVector_Insert(void* cv_, void* pos_cursor_, size_t cnt) {
     Zeta_CircularVector_Cursor_Check(cv, pos_cursor);
 
     void* data = cv->data;
-    size_t width = cv->width;
     size_t stride = cv->stride;
     size_t offset = cv->offset;
     size_t size = cv->size;
@@ -308,26 +339,16 @@ void* Zeta_CircularVector_Insert(void* cv_, void* pos_cursor_, size_t cnt) {
     size_t l_size = idx;
     size_t r_size = size - idx;
 
+    cv->size = size += cnt;
+
     unsigned long long rand_seed =
         ZETA_PtrToAddr(data) + ZETA_PtrToAddr(pos_cursor) + idx + cnt;
 
-    if ((l_size < r_size) ||
-        (l_size == r_size && Zeta_SimpleRandomRotate(&rand_seed) % 2 == 0)) {
+    if (Zeta_Choose2(l_size <= r_size, r_size <= l_size, &rand_seed) == 0) {
         cv->offset = offset = (offset + capacity - cnt) % capacity;
-        cv->size = size += cnt;
-
-        for (size_t i = 0; i < l_size; ++i) {
-            Zeta_MemCopy(Refer_(data, stride, offset, i, capacity),
-                         Refer_(data, stride, offset, i + cnt, capacity),
-                         width);
-        }
+        Zeta_CircularVector_Assign(cv, cv, 0, cnt, l_size);
     } else {
-        cv->size = size + cnt;
-
-        for (size_t i = size; idx < i--;) {
-            Zeta_MemCopy(Refer_(data, stride, offset, i + cnt, capacity),
-                         Refer_(data, stride, offset, i, capacity), width);
-        }
+        Zeta_CircularVector_Assign(cv, cv, l_size + cnt, l_size, r_size);
     }
 
     pos_cursor->ele = Refer_(data, stride, offset, idx, capacity);
@@ -369,7 +390,6 @@ void Zeta_CircularVector_Erase(void* cv_, void* pos_cursor_, size_t cnt) {
     Zeta_CircularVector_Cursor_Check(cv, pos_cursor);
 
     void* data = cv->data;
-    size_t width = cv->width;
     size_t stride = cv->stride;
     size_t offset = cv->offset;
     size_t size = cv->size;
@@ -388,20 +408,11 @@ void Zeta_CircularVector_Erase(void* cv_, void* pos_cursor_, size_t cnt) {
     unsigned long long rand_seed =
         ZETA_PtrToAddr(data) + ZETA_PtrToAddr(pos_cursor) + idx + cnt;
 
-    if ((l_size < r_size) ||
-        (l_size == r_size && Zeta_SimpleRandomRotate(&rand_seed) % 2 == 0)) {
-        for (size_t i = idx; 0 < i--;) {
-            Zeta_MemCopy(Refer_(data, stride, offset, i + cnt, capacity),
-                         Refer_(data, stride, offset, i, capacity), width);
-        }
-
+    if (Zeta_Choose2(l_size <= r_size, r_size <= l_size, &rand_seed)) {
+        Zeta_CircularVector_Assign(cv, cv, cnt, 0, l_size);
         cv->offset = offset = (offset + cnt) % capacity;
     } else {
-        for (size_t i = idx, i_end = idx + r_size; i < i_end; ++i) {
-            Zeta_MemCopy(Refer_(data, stride, offset, i, capacity),
-                         Refer_(data, stride, offset, i + cnt, capacity),
-                         width);
-        }
+        Zeta_CircularVector_Assign(cv, cv, l_size, l_size + cnt, r_size);
     }
 
     cv->size = (size -= cnt);
@@ -419,6 +430,164 @@ void Zeta_CircularVector_EraseAll(void* cv_) {
 
     cv->offset = 0;
     cv->size = 0;
+}
+
+void Zeta_CircularVector_Assign(void* dst_cv_, void* src_cv_, size_t dst_beg,
+                                size_t src_beg, size_t cnt) {
+    Zeta_CircularVector* dst_cv = dst_cv_;
+    Zeta_CircularVector* src_cv = src_cv_;
+
+    Zeta_CircularVector_Check(dst_cv);
+    Zeta_CircularVector_Check(src_cv);
+
+    void* dst_data = dst_cv->data;
+    size_t dst_width = dst_cv->width;
+    size_t dst_stride = dst_cv->stride;
+    size_t dst_offset = dst_cv->offset;
+    size_t dst_size = dst_cv->size;
+    size_t dst_capacity = dst_cv->capacity;
+
+    void* src_data = src_cv->data;
+    size_t src_width = src_cv->width;
+    size_t src_stride = src_cv->stride;
+    size_t src_offset = src_cv->offset;
+    size_t src_size = src_cv->size;
+    size_t src_capacity = src_cv->capacity;
+
+    ZETA_DebugAssert(dst_beg <= dst_size);
+    ZETA_DebugAssert(src_beg <= src_size);
+
+    if (cnt == 0) { return; }
+
+    ZETA_DebugAssert(cnt <= dst_size - dst_beg);
+    ZETA_DebugAssert(cnt <= src_size - src_beg);
+
+    size_t width = ZETA_GetMinOf(dst_width, src_width);
+
+    if (dst_stride != src_stride) { goto ELE_FW_COPY; }
+
+    if (dst_stride - width < vec_mem_copy_th) {
+        if (dst_cv != src_cv) {
+            ZETA_DebugAssert(!ZETA_AreOverlapped(dst_data, dst_capacity,
+                                                 src_data, src_capacity));
+
+            goto ELE_FW_COPY;
+        }
+
+        if (dst_beg == src_beg) { return; }
+
+        if (dst_beg < src_beg) {
+            goto ELE_FW_COPY;
+        } else {
+            goto ELE_BW_COPY;
+        }
+    } else {
+        if (dst_cv != src_cv) {
+            ZETA_DebugAssert(!ZETA_AreOverlapped(dst_data, dst_capacity,
+                                                 src_data, src_capacity));
+
+            goto VEC_MOVE;
+        }
+
+        if (dst_beg == src_beg) { return; }
+
+        if (dst_beg < src_beg) {
+            goto VEC_FW_COPY;
+        } else {
+            goto VEC_BW_COPY;
+        }
+    }
+
+ELE_FW_COPY: {
+    while (0 < cnt) {
+        --cnt;
+
+        Zeta_MemCopy(
+            Refer_(dst_data, dst_stride, dst_offset, dst_beg, dst_capacity),
+            Refer_(src_data, src_stride, src_offset, src_beg, src_capacity),
+            dst_stride);
+
+        ++dst_beg;
+        ++src_beg;
+    }
+
+    return;
+}
+
+ELE_BW_COPY: {
+    for (size_t dst_end = dst_beg + cnt, src_end = src_beg + cnt; 0 < cnt;) {
+        --cnt;
+        --dst_end;
+        --src_end;
+
+        Zeta_MemCopy(
+            Refer_(dst_data, dst_stride, dst_offset, dst_end, dst_capacity),
+            Refer_(src_data, src_stride, src_offset, src_end, src_capacity),
+            width);
+    }
+
+    return;
+}
+
+VEC_MOVE: {
+    while (0 < cnt) {
+        size_t cur_cnt = ZETA_GetMinOf(
+            cnt, ZETA_GetMinOf(
+                     Zeta_CircularVector_GetLongestContSucr(dst_cv, dst_beg),
+                     Zeta_CircularVector_GetLongestContSucr(src_cv, src_beg)));
+        cnt -= cur_cnt;
+
+        Zeta_MemMove(
+            Refer_(dst_data, dst_stride, dst_offset, dst_beg, dst_capacity),
+            Refer_(src_data, src_stride, src_offset, src_beg, src_capacity),
+            dst_stride * cur_cnt);
+
+        dst_beg += cur_cnt;
+        src_beg += cur_cnt;
+    }
+
+    return;
+}
+
+VEC_FW_COPY: {
+    while (0 < cnt) {
+        size_t cur_cnt = ZETA_GetMinOf(
+            cnt, ZETA_GetMinOf(
+                     Zeta_CircularVector_GetLongestContSucr(dst_cv, dst_beg),
+                     Zeta_CircularVector_GetLongestContSucr(src_cv, src_beg)));
+        cnt -= cur_cnt;
+
+        Zeta_MemCopy(
+            Refer_(dst_data, dst_stride, dst_offset, dst_beg, dst_capacity),
+            Refer_(src_data, src_stride, src_offset, src_beg, src_capacity),
+            dst_stride * cur_cnt);
+
+        dst_beg += cur_cnt;
+        src_beg += cur_cnt;
+    }
+
+    return;
+}
+
+VEC_BW_COPY: {
+    for (size_t dst_end = dst_beg + cnt, src_end = src_beg + cnt; 0 < cnt;) {
+        size_t cur_cnt = ZETA_GetMinOf(
+            cnt, ZETA_GetMinOf(
+                     Zeta_CircularVector_GetLongestContPred(dst_cv, dst_end),
+                     Zeta_CircularVector_GetLongestContPred(src_cv, src_end)));
+        cnt -= cur_cnt;
+
+        dst_end -= cur_cnt;
+        src_end -= cur_cnt;
+
+        Zeta_MemCopy(
+            Refer_(dst_data, dst_stride, dst_offset, dst_end, dst_capacity),
+            Refer_(src_data, src_stride, src_offset, src_end, src_capacity),
+            dst_stride * cur_cnt);
+    }
+
+    return;
+}
 }
 
 void Zeta_CircularVector_Check(void* cv_) {
@@ -441,6 +610,21 @@ void Zeta_CircularVector_Check(void* cv_) {
     if (data == NULL) { ZETA_DebugAssert(capacity == 0); }
 }
 
+size_t Zeta_CircularVector_GetLongestContPred(void* cv_, size_t idx) {
+    Zeta_CircularVector* cv = cv_;
+    ZETA_DebugAssert(cv != NULL);
+
+    size_t offset = cv->offset;
+    size_t size = cv->size;
+    size_t capacity = cv->capacity;
+
+    ZETA_DebugAssert(idx <= size);
+
+    size_t k = capacity - offset;
+
+    return idx <= k ? idx : idx - k;
+}
+
 size_t Zeta_CircularVector_GetLongestContSucr(void* cv_, size_t idx) {
     Zeta_CircularVector* cv = cv_;
     ZETA_DebugAssert(cv != NULL);
@@ -451,9 +635,9 @@ size_t Zeta_CircularVector_GetLongestContSucr(void* cv_, size_t idx) {
 
     ZETA_DebugAssert(idx <= size);
 
-    size_t pivot = capacity - offset;
+    size_t k = capacity - offset;
 
-    return size <= pivot || pivot <= idx ? size - idx : pivot - idx;
+    return (size <= k || k <= idx) ? size - idx : k - idx;
 }
 
 bool_t Zeta_CircularVector_Cursor_IsEqual(void* cv_, void const* cursor_a_,

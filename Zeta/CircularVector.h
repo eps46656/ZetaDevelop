@@ -70,9 +70,14 @@ void Zeta_CircularVector_Erase(void* cv, void* pos_cursor, size_t cnt);
 
 void Zeta_CircularVector_EraseAll(void* cv);
 
-void Zeta_CircularVector_Check(void* cv);
+size_t Zeta_CircularVector_GetLongestContPred(void* cv, size_t idx);
 
 size_t Zeta_CircularVector_GetLongestContSucr(void* cv, size_t idx);
+
+void Zeta_CircularVector_Assign(void* dst_cv, void* src_cv, size_t dst_beg,
+                                size_t src_beg, size_t cnt);
+
+void Zeta_CircularVector_Check(void* cv);
 
 bool_t Zeta_CircularVector_Cursor_IsEqual(void* cv, void const* cursor_a,
                                           void const* cursor_b);
