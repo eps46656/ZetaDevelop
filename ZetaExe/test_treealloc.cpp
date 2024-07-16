@@ -3,6 +3,7 @@
 #include <random>
 
 #include "../Zeta/DebugHashMap.h"
+#include "../Zeta/Debugger.h"
 #include "../Zeta/TreeAllocator.h"
 #include "MemAllocatorCheck.h"
 
@@ -116,20 +117,32 @@ void main1() {
 
     std::vector<void*> ptrs;
 
-    ZETA_PrintPos;
+    ZETA_PrintCurPos;
 
     for (int test_i = 0; test_i < 2000; ++test_i) {
+        Zeta_Debugger_ClearPipe();
+
+        ZETA_PrintCurPos;
+
         size_t size = size_generator(en);
 
+        ZETA_PrintCurPos;
+
         ptrs.push_back(MyAlloc(size));
+
+        ZETA_PrintCurPos;
 
         CheckAllocator(FALSE);
     }
 
     for (int _ = 0; _ < 100; ++_) {
-        ZETA_PrintPos;
+        ZETA_PrintCurPos;
 
         for (int test_i = 0; test_i < 1000; ++test_i) {
+            Zeta_Debugger_ClearPipe();
+
+            ZETA_PrintCurPos;
+
             size_t size = size_generator(en);
 
             ptrs.push_back(MyAlloc(size));
@@ -137,9 +150,13 @@ void main1() {
             CheckAllocator(FALSE);
         }
 
-        ZETA_PrintPos;
+        ZETA_PrintCurPos;
 
         for (int test_i = 0; test_i < 1000; ++test_i) {
+            Zeta_Debugger_ClearPipe();
+
+            ZETA_PrintCurPos;
+
             size_t idx = idx_generator(en) % ptrs.size();
 
             MyFree(ptrs[idx]);
@@ -150,7 +167,7 @@ void main1() {
             CheckAllocator(FALSE);
         }
 
-        ZETA_PrintPos;
+        ZETA_PrintCurPos;
     }
 
     // Zeta_TreeAllocator_Check(&allocator, 1, ptr_size_hm);

@@ -193,16 +193,18 @@ void* Zeta_RBTree_Insert(Zeta_BinTreeNodeOperator const* btn_opr, void* pos_l,
     return InsertBalance_(btn_opr, n);
 }
 
-#define GeneralInsert_(D, E)                                              \
-    ZETA_DebugAssert(btn_opr != NULL);                                    \
-                                                                          \
-    if (pos == NULL) {                                                    \
-        return Zeta_RBTree_Insert##E(                                     \
-            btn_opr, Zeta_GetMostLink(NULL, btn_opr->Get##E, root), n);   \
-    }                                                                     \
-                                                                          \
-    ZETA_DebugAssert(root == Zeta_GetMostLink(NULL, btn_opr->GetP, pos)); \
-                                                                          \
+#define GeneralInsert_(D, E)                                                  \
+    ZETA_DebugAssert(btn_opr != NULL);                                        \
+                                                                              \
+    if (pos == NULL) {                                                        \
+        return Zeta_RBTree_Insert##E(                                         \
+            btn_opr,                                                          \
+            Zeta_GetMostLink(btn_opr->context, btn_opr->Get##E, root), n);    \
+    }                                                                         \
+                                                                              \
+    ZETA_DebugAssert(root ==                                                  \
+                     Zeta_GetMostLink(btn_opr->context, btn_opr->GetP, pos)); \
+                                                                              \
     return Zeta_RBTree_Insert##D(btn_opr, pos, n);
 
 void* Zeta_RBTree_GeneralInsertL(Zeta_BinTreeNodeOperator const* btn_opr,

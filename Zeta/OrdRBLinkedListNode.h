@@ -17,7 +17,7 @@ void* Zeta_OrdRBLinkedListNode_GetL(void* n);
 void* Zeta_OrdRBLinkedListNode_GetR(void* n);
 
 int Zeta_OrdRBLinkedListNode_GetColor(void* n);
-void Zeta_OrdRBLinkedListNode_SetColor(void* n, int r_color);
+void Zeta_OrdRBLinkedListNode_SetColor(void* n, int color);
 
 size_t Zeta_OrdRBLinkedListNode_Count(void* n, void* m);
 

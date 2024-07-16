@@ -979,7 +979,7 @@ void Zeta_StageVector_Write(void* sv_, void* pos_cursor_, size_t cnt,
 
     void* l_n = Zeta_BinTree_StepL(&btn_opr, n);
 
-    if (GetNColor_(n) == ref_color) {
+    if (GetNColor_(n) == ref_color && 0 < seg_idx) {
         l_n = SplitRefSeg_(sv, &btn_opr, width, stride, l_n, seg, seg_idx);
 
         if (sv->lb != l_n) {

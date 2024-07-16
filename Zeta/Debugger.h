@@ -8,7 +8,7 @@ extern Zeta_Pipe* debug_pipe;
 
 extern bool_t zeta_assert_stage;
 
-#define ZETA_Debug_ImmPrint TRUE
+#define ZETA_Debug_ImmPrint FALSE
 
 #define ZETA_DebugLogCurPos                        \
     Zeta_Debugger_InitPipe();                      \

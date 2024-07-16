@@ -457,7 +457,11 @@ def AddDeps(builder, ZetaBuildDir, ZetaExeBuildDir, verbose, mode):
 
             f"{ZetaBuildDir}/BinTree.ll",
             f"{ZetaBuildDir}/DebugHashMap.ll",
+            f"{ZetaBuildDir}/DebugStrPipe.ll",
             f"{ZetaBuildDir}/DebugPipe.ll",
+            f"{ZetaBuildDir}/Debugger.ll",
+            f"{ZetaBuildDir}/io.ll",
+            f"{ZetaBuildDir}/Logger.ll",
             f"{ZetaBuildDir}/OrdRBLinkedListNode.ll",
             f"{ZetaBuildDir}/OrdRBTreeNode.ll",
             f"{ZetaBuildDir}/RBTree.ll",
@@ -471,7 +475,11 @@ def AddDeps(builder, ZetaBuildDir, ZetaExeBuildDir, verbose, mode):
             [
                 f"{ZetaBuildDir}/BinTree.ll",
                 f"{ZetaBuildDir}/DebugHashMap.ll",
+                f"{ZetaBuildDir}/DebugStrPipe.ll",
                 f"{ZetaBuildDir}/DebugPipe.ll",
+                f"{ZetaBuildDir}/Debugger.ll",
+                f"{ZetaBuildDir}/io.ll",
+                f"{ZetaBuildDir}/Logger.ll",
                 f"{ZetaBuildDir}/OrdRBLinkedListNode.ll",
                 f"{ZetaBuildDir}/OrdRBTreeNode.ll",
                 f"{ZetaBuildDir}/RBTree.ll",

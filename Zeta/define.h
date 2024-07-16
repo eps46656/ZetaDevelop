@@ -235,6 +235,8 @@ typedef unsigned unichar_t;
                                                                              \
         u128_t: (128))
 
+#define ZETA_IsPowerOf2(x) (__builtin_popcountll(x) == 1)
+
 #define ZETA_PtrToAddr(x) ((uintptr_t)(void*)(x))
 #define ZETA_AddrToPtr(x) ((void*)(uintptr_t)(x))
 
@@ -260,8 +262,9 @@ typedef unsigned unichar_t;
         x_tmp < y_tmp ? y_tmp : x_tmp;     \
     })
 
-#define ZETA_GetMaxOf(x, y) \
-    ZETA_GetMaxOf_(ZETA_UniqueName(ZETA_tmp_), ZETA_UniqueName(ZETA_tmp_), x, y)
+#define ZETA_GetMaxOf(x, y)                                                \
+    ZETA_GetMaxOf_(ZETA_UniqueName(ZETA_tmp_), ZETA_UniqueName(ZETA_tmp_), \
+                   (x), (y))
 
 #define ZETA_Swap_(x, y, tmp) \
     {                         \
