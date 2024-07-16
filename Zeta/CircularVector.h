@@ -5,7 +5,9 @@
 
 ZETA_ExternC_Beg;
 
-#define ZETA_CircularVector_max_capacity (ZETA_RangeMaxOf(size_t) / 2 + 1)
+#define ZETA_CircularVector_max_capacity ZETA_GetMaxMod(size_t)
+
+#define ZETA_CircularVector_vec_mem_copy_th (sizeof(void*) * 4 + 1)
 
 ZETA_DeclareStruct(Zeta_CircularVector);
 ZETA_DeclareStruct(Zeta_CircularVector_Cursor);
@@ -76,6 +78,11 @@ size_t Zeta_CircularVector_GetLongestContSucr(void* cv, size_t idx);
 
 void Zeta_CircularVector_Assign(void* dst_cv, void* src_cv, size_t dst_beg,
                                 size_t src_beg, size_t cnt);
+
+void Zeta_CircularVector_AssignFromSeqContainer(void* cv, void* cv_cursor,
+                                                Zeta_SeqContainer* seq_cntr,
+                                                void* seq_cntr_cursor,
+                                                size_t cnt);
 
 void Zeta_CircularVector_Check(void* cv);
 

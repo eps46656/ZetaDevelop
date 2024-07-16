@@ -7,8 +7,6 @@
     ((void*)((unsigned char*)(data) +               \
              (stride) * (((offset) + (idx)) % (capacity))))
 
-#define vec_mem_copy_th (sizeof(void*) * 4 + 1)
-
 void Zeta_CircularVector_Init(void* cv_) {
     Zeta_CircularVector* cv = cv_;
     ZETA_DebugAssert(cv != NULL);
@@ -192,7 +190,7 @@ void Zeta_CircularVector_Read(void* cv_, void* pos_cursor_, size_t cnt,
     ZETA_DebugAssert(idx <= size);
     ZETA_DebugAssert(cnt <= size - idx);
 
-    if (stride - width < vec_mem_copy_th) {
+    if (stride - width < ZETA_CircularVector_vec_mem_copy_th) {
         while (0 < cnt) {
             size_t cur_cnt = ZETA_GetMinOf(
                 cnt, Zeta_CircularVector_GetLongestContSucr(cv, idx));
@@ -251,7 +249,7 @@ void Zeta_CircularVector_Write(void* cv_, void* pos_cursor_, size_t cnt,
     ZETA_DebugAssert(idx <= size);
     ZETA_DebugAssert(cnt <= size - idx);
 
-    if (stride - width < vec_mem_copy_th) {
+    if (stride - width < ZETA_CircularVector_vec_mem_copy_th) {
         while (0 < cnt) {
             size_t cur_cnt = ZETA_GetMinOf(
                 cnt, Zeta_CircularVector_GetLongestContSucr(cv, idx));
@@ -466,7 +464,7 @@ void Zeta_CircularVector_Assign(void* dst_cv_, void* src_cv_, size_t dst_beg,
 
     if (dst_stride != src_stride) { goto ELE_FW_COPY; }
 
-    if (dst_stride - width < vec_mem_copy_th) {
+    if (dst_stride - width < ZETA_CircularVector_vec_mem_copy_th) {
         if (dst_cv != src_cv) {
             ZETA_DebugAssert(!ZETA_AreOverlapped(dst_data, dst_capacity,
                                                  src_data, src_capacity));
@@ -590,6 +588,70 @@ VEC_BW_COPY: {
 }
 }
 
+void Zeta_CircularVector_AssignFromSeqContainer(void* cv_, void* cv_cursor_,
+                                                Zeta_SeqContainer* seq_cntr,
+                                                void* seq_cntr_cursor,
+                                                size_t cnt) {
+    Zeta_CircularVector* cv = cv_;
+    Zeta_CircularVector_Cursor* cv_cursor = cv_cursor_;
+    Zeta_CircularVector_Cursor_Check(cv, cv_cursor);
+
+    if (seq_cntr->Read == Zeta_CircularVector_Read) {
+        Zeta_CircularVector_Cursor_Check(seq_cntr->context, seq_cntr_cursor);
+
+        Zeta_CircularVector_Assign(
+            cv, seq_cntr->context,
+            ((Zeta_CircularVector_Cursor*)cv_cursor)->idx,
+            ((Zeta_CircularVector_Cursor*)seq_cntr_cursor)->idx, cnt);
+
+        return;
+    }
+
+    void* data = cv->data;
+    size_t width = cv->width;
+    size_t stride = cv->stride;
+    size_t offset = cv->offset;
+    size_t size = cv->size;
+    size_t capacity = cv->capacity;
+
+    size_t idx = ((Zeta_CircularVector_Cursor*)cv_cursor)->idx;
+
+    ZETA_DebugAssert(idx <= size);
+    ZETA_DebugAssert(cnt <= size - idx);
+
+    ZETA_DebugAssert(seq_cntr->Read != NULL);
+
+    ZETA_DebugLogCurPos;
+
+    if (stride - width < ZETA_CircularVector_vec_mem_copy_th) {
+        ZETA_DebugLogCurPos;
+
+        while (0 < cnt) {
+            ZETA_DebugLogCurPos;
+
+            size_t cur_cnt = ZETA_GetMinOf(
+                cnt, Zeta_CircularVector_GetLongestContSucr(cv, idx));
+            cnt -= cur_cnt;
+
+            ZETA_DebugLogCurPos;
+
+            seq_cntr->Read(seq_cntr->context, seq_cntr_cursor, cur_cnt,
+                           Refer_(data, stride, offset, idx, capacity),
+                           seq_cntr_cursor);
+
+            idx += cur_cnt;
+        }
+    } else {
+        ZETA_DebugLogCurPos;
+
+        for (size_t end = idx + cnt; idx < end; ++idx) {
+            seq_cntr->Read(seq_cntr->context, seq_cntr_cursor, 1,
+                           Refer_(data, stride, offset, idx, capacity),
+                           seq_cntr_cursor);
+        }
+    }
+}
+
 void Zeta_CircularVector_Check(void* cv_) {
     Zeta_CircularVector* cv = cv_;
     ZETA_DebugAssert(cv != NULL);
@@ -605,7 +667,7 @@ void Zeta_CircularVector_Check(void* cv_) {
     ZETA_DebugAssert(width <= stride);
     ZETA_DebugAssert(offset == 0 || offset < capacity);
     ZETA_DebugAssert(size <= capacity);
-    ZETA_DebugAssert(capacity <= ZETA_GetMaxMod(size_t));
+    ZETA_DebugAssert(capacity <= ZETA_CircularVector_max_capacity);
 
     if (data == NULL) { ZETA_DebugAssert(capacity == 0); }
 }

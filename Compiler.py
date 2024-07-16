@@ -267,7 +267,7 @@ class Compiler:
             f"-o {ToPath(dst)}",
             "--verbose" if self.verbose else "",
             "-m64",
-            "-O1",
+            "-O3",
             "-g",
             # *[ToPath(lib) for lib in self.runtime_libs],
 
