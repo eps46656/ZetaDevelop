@@ -158,18 +158,18 @@ void* Zeta_CircularVector_Access(void* cv_, void* dst_cursor_, void* dst_ele,
     return ele;
 }
 
-void* Zeta_CircularVector_Refer(void* cv_, void* pos_cursor_) {
+void* Zeta_CircularVector_Refer(void* cv_, void const* pos_cursor_) {
     Zeta_CircularVector* cv = cv_;
-    Zeta_CircularVector_Cursor* pos_cursor = pos_cursor_;
+    Zeta_CircularVector_Cursor const* pos_cursor = pos_cursor_;
     Zeta_CircularVector_Cursor_Check(cv, pos_cursor);
 
     return pos_cursor->ele;
 }
 
-void Zeta_CircularVector_Read(void* cv_, void* pos_cursor_, size_t cnt,
+void Zeta_CircularVector_Read(void* cv_, void const* pos_cursor_, size_t cnt,
                               void* dst_, void* dst_cursor_) {
     Zeta_CircularVector* cv = cv_;
-    Zeta_CircularVector_Cursor* pos_cursor = pos_cursor_;
+    Zeta_CircularVector_Cursor const* pos_cursor = pos_cursor_;
     Zeta_CircularVector_Cursor* dst_cursor = dst_cursor_;
     Zeta_CircularVector_Cursor_Check(cv, pos_cursor);
 
@@ -276,7 +276,7 @@ void Zeta_CircularVector_Write(void* cv_, void* pos_cursor_, size_t cnt,
     }
 }
 
-void* Zeta_CircularVector_PushL(void* cv_, void* dst_cursor_) {
+void* Zeta_CircularVector_PushL(void* cv_, void* dst_cursor_, size_t cnt) {
     Zeta_CircularVector* cv = cv_;
     Zeta_CircularVector_Check(cv);
 
@@ -286,7 +286,7 @@ void* Zeta_CircularVector_PushL(void* cv_, void* dst_cursor_) {
     cursor.cv = cv;
     cursor.idx = 0;
 
-    Zeta_CircularVector_Insert(cv, &cursor, 1);
+    Zeta_CircularVector_Insert(cv, &cursor, cnt);
 
     if (dst_cursor != NULL) {
         dst_cursor->cv = cursor.cv;
@@ -297,7 +297,7 @@ void* Zeta_CircularVector_PushL(void* cv_, void* dst_cursor_) {
     return cursor.ele;
 }
 
-void* Zeta_CircularVector_PushR(void* cv_, void* dst_cursor_) {
+void* Zeta_CircularVector_PushR(void* cv_, void* dst_cursor_, size_t cnt) {
     Zeta_CircularVector* cv = cv_;
     Zeta_CircularVector_Check(cv);
 
@@ -307,7 +307,7 @@ void* Zeta_CircularVector_PushR(void* cv_, void* dst_cursor_) {
     cursor.cv = cv;
     cursor.idx = cv->size;
 
-    Zeta_CircularVector_Insert(cv, &cursor, 1);
+    Zeta_CircularVector_Insert(cv, &cursor, cnt);
 
     if (dst_cursor != NULL) {
         dst_cursor->cv = cursor.cv;
@@ -354,7 +354,7 @@ void* Zeta_CircularVector_Insert(void* cv_, void* pos_cursor_, size_t cnt) {
     return pos_cursor->ele;
 }
 
-void Zeta_CircularVector_PopL(void* cv_) {
+void Zeta_CircularVector_PopL(void* cv_, size_t cnt) {
     Zeta_CircularVector* cv = cv_;
     Zeta_CircularVector_Check(cv);
 
@@ -365,10 +365,10 @@ void Zeta_CircularVector_PopL(void* cv_) {
     pos_cursor.cv = cv;
     pos_cursor.idx = 0;
 
-    Zeta_CircularVector_Erase(cv, &pos_cursor, 1);
+    Zeta_CircularVector_Erase(cv, &pos_cursor, cnt);
 }
 
-void Zeta_CircularVector_PopR(void* cv_) {
+void Zeta_CircularVector_PopR(void* cv_, size_t cnt) {
     Zeta_CircularVector* cv = cv_;
     Zeta_CircularVector_Check(cv);
 
@@ -379,7 +379,7 @@ void Zeta_CircularVector_PopR(void* cv_) {
     pos_cursor.cv = cv;
     pos_cursor.idx = size - 1;
 
-    Zeta_CircularVector_Erase(cv, &pos_cursor, 1);
+    Zeta_CircularVector_Erase(cv, &pos_cursor, cnt);
 }
 
 void Zeta_CircularVector_Erase(void* cv_, void* pos_cursor_, size_t cnt) {
@@ -819,6 +819,8 @@ void Zeta_CircularVector_DeploySeqContainer(void* cv_,
     ZETA_DebugAssert(cv != NULL);
 
     ZETA_DebugAssert(seq_cntr != NULL);
+
+    Zeta_SeqContainer_Init(seq_cntr);
 
     seq_cntr->context = cv;
 

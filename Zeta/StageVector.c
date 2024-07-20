@@ -35,6 +35,7 @@ static void CheckSV_(void* sv_) {
     ZETA_DebugAssert(sv->origin->Read != NULL);
 
     size_t width = sv->origin->GetWidth(sv->origin->context);
+
     size_t stride = sv->origin->GetStride(sv->origin->context);
 
     ZETA_DebugAssert(0 < width);
@@ -142,12 +143,6 @@ static void TransRefSegToDatSeg_(Zeta_StageVector* sv,
 
 static void EraseSeg_(Zeta_StageVector* sv, Zeta_BinTreeNodeOperator* btn_opr,
                       Zeta_StageVector_Seg* seg) {
-    ZETA_DebugAssert(sv->seg_allocator != NULL);
-    ZETA_DebugAssert(sv->data_allocator != NULL);
-
-    ZETA_DebugAssert(sv->seg_allocator->Deallocate != NULL);
-    ZETA_DebugAssert(sv->data_allocator->Deallocate != NULL);
-
     void* n = &seg->n;
 
     sv->root = Zeta_RBTree_Extract(btn_opr, n);
@@ -158,6 +153,27 @@ static void EraseSeg_(Zeta_StageVector* sv, Zeta_BinTreeNodeOperator* btn_opr,
     }
 
     sv->seg_allocator->Deallocate(sv->seg_allocator->context, seg);
+}
+
+static void EraseAllSeg_(Zeta_StageVector* sv,
+                         Zeta_BinTreeNodeOperator* btn_opr, void* n) {
+    void* nl = Zeta_OrdCnt3RBTreeNode_GetL(NULL, n);
+    void* nr = Zeta_OrdCnt3RBTreeNode_GetR(NULL, n);
+
+    if (sv->lb != n && sv->rb != n) {
+        Zeta_StageVector_Seg* seg =
+            ZETA_MemberToStruct(Zeta_StageVector_Seg, n, n);
+
+        if (GetNColor_(n) == dat_color) {
+            sv->data_allocator->Deallocate(sv->data_allocator->context,
+                                           seg->dat.data);
+        }
+
+        sv->seg_allocator->Deallocate(sv->seg_allocator->context, seg);
+    }
+
+    if (nl != NULL) { EraseAllSeg_(sv, btn_opr, nl); }
+    if (nr != NULL) { EraseAllSeg_(sv, btn_opr, nr); }
 }
 
 static void RefOrigin_(Zeta_StageVector* sv,
@@ -562,6 +578,7 @@ static void RefShoveR_(Zeta_StageVector* sv, Zeta_StageVector_Seg* l_seg,
 
 void Zeta_StageVector_Init(void* sv_) {
     Zeta_StageVector* sv = sv_;
+
     CheckSV_(sv);
 
     void* lb_ = sv->seg_allocator->Allocate(sv->seg_allocator->context,
@@ -586,6 +603,20 @@ void Zeta_StageVector_Init(void* sv_) {
 
     InitTree_(sv, &btn_opr);
     RefOrigin_(sv, &btn_opr);
+}
+
+void Zeta_StageVector_Deinit(void* sv_) {
+    Zeta_StageVector* sv = sv_;
+    CheckSV_(sv);
+
+    Zeta_BinTreeNodeOperator btn_opr;
+    Zeta_BinTree_InitOpr(&btn_opr);
+    Zeta_OrdCnt3RBTreeNode_DeployBinTreeNodeOperator(NULL, &btn_opr);
+
+    EraseAllSeg_(sv, &btn_opr, sv->root);
+
+    sv->seg_allocator->Deallocate(sv->seg_allocator->context, sv->lb);
+    sv->seg_allocator->Deallocate(sv->seg_allocator->context, sv->rb);
 }
 
 size_t Zeta_StageVector_GetWidth(void* sv_) {
@@ -817,21 +848,18 @@ void* Zeta_StageVector_Access(void* sv_, void* dst_cursor_, void* dst_ele,
     return ele;
 }
 
-void* Zeta_StageVector_Refer(void* sv_, void* pos_cursor_) {
+void* Zeta_StageVector_Refer(void* sv_, void const* pos_cursor_) {
     Zeta_StageVector* sv = sv_;
-    CheckSV_(sv);
-
-    Zeta_StageVector_Cursor* pos_cursor = pos_cursor_;
+    Zeta_StageVector_Cursor const* pos_cursor = pos_cursor_;
     Zeta_StageVector_Cursor_Check(sv, pos_cursor);
 
     return pos_cursor->ele;
 }
 
-void Zeta_StageVector_Read(void* sv_, void* pos_cursor_, size_t cnt, void* dst_,
-                           void* dst_cursor_) {
+void Zeta_StageVector_Read(void* sv_, void const* pos_cursor_, size_t cnt,
+                           void* dst_, void* dst_cursor_) {
     Zeta_StageVector* sv = sv_;
-    Zeta_StageVector_Cursor* pos_cursor = pos_cursor_;
-
+    Zeta_StageVector_Cursor const* pos_cursor = pos_cursor_;
     Zeta_StageVector_Cursor_Check(sv, pos_cursor);
 
     Zeta_StageVector_Cursor* dst_cursor = dst_cursor_;
@@ -937,8 +965,6 @@ void Zeta_StageVector_Read(void* sv_, void* pos_cursor_, size_t cnt, void* dst_,
 void Zeta_StageVector_Write(void* sv_, void* pos_cursor_, size_t cnt,
                             void const* src_, void* dst_cursor_) {
     Zeta_StageVector* sv = sv_;
-    CheckSV_(sv);
-
     Zeta_StageVector_Cursor* pos_cursor = pos_cursor_;
     Zeta_StageVector_Cursor_Check(sv, pos_cursor);
 
@@ -1133,7 +1159,7 @@ void Zeta_StageVector_Write(void* sv_, void* pos_cursor_, size_t cnt,
     dst_cursor->ele = Zeta_CircularVector_Access(&cv, NULL, NULL, seg_idx);
 }
 
-void* Zeta_StageVector_PushL(void* sv_, void* dst_cursor_) {
+void* Zeta_StageVector_PushL(void* sv_, void* dst_cursor_, size_t cnt) {
     Zeta_StageVector* sv = sv_;
     CheckSV_(sv);
 
@@ -1142,7 +1168,7 @@ void* Zeta_StageVector_PushL(void* sv_, void* dst_cursor_) {
     Zeta_StageVector_Cursor pos_cursor;
     Zeta_StageVector_PeekL(sv, &pos_cursor, NULL);
 
-    Zeta_StageVector_Insert(sv, &pos_cursor, 1);
+    Zeta_StageVector_Insert(sv, &pos_cursor, cnt);
 
     if (dst_cursor != NULL) {
         dst_cursor->sv = sv;
@@ -1155,7 +1181,7 @@ void* Zeta_StageVector_PushL(void* sv_, void* dst_cursor_) {
     return pos_cursor.ele;
 }
 
-void* Zeta_StageVector_PushR(void* sv_, void* dst_cursor_) {
+void* Zeta_StageVector_PushR(void* sv_, void* dst_cursor_, size_t cnt) {
     Zeta_StageVector* sv = sv_;
     CheckSV_(sv);
 
@@ -1164,7 +1190,7 @@ void* Zeta_StageVector_PushR(void* sv_, void* dst_cursor_) {
     Zeta_StageVector_Cursor pos_cursor;
     Zeta_StageVector_GetRBCursor(sv, &pos_cursor);
 
-    Zeta_StageVector_Insert(sv, &pos_cursor, 1);
+    Zeta_StageVector_Insert(sv, &pos_cursor, cnt);
 
     if (dst_cursor != NULL) {
         dst_cursor->sv = sv;
@@ -1179,8 +1205,6 @@ void* Zeta_StageVector_PushR(void* sv_, void* dst_cursor_) {
 
 void* Zeta_StageVector_Insert(void* sv_, void* pos_cursor_, size_t ins_cnt) {
     Zeta_StageVector* sv = sv_;
-    CheckSV_(sv);
-
     Zeta_StageVector_Cursor* pos_cursor = pos_cursor_;
     Zeta_StageVector_Cursor_Check(sv, pos_cursor);
 
@@ -1807,24 +1831,22 @@ INS:;
     return pos_cursor->ele;
 }
 
-void Zeta_StageVector_PopL(void* sv) {
+void Zeta_StageVector_PopL(void* sv, size_t cnt) {
     Zeta_StageVector_Cursor pos_cursor;
     Zeta_StageVector_PeekL(sv, &pos_cursor, NULL);
 
-    Zeta_StageVector_Erase(sv, &pos_cursor, 1);
+    Zeta_StageVector_Erase(sv, &pos_cursor, cnt);
 }
 
-void Zeta_StageVector_PopR(void* sv) {
+void Zeta_StageVector_PopR(void* sv, size_t cnt) {
     Zeta_StageVector_Cursor pos_cursor;
     Zeta_StageVector_PeekR(sv, &pos_cursor, NULL);
 
-    Zeta_StageVector_Erase(sv, &pos_cursor, 1);
+    Zeta_StageVector_Erase(sv, &pos_cursor, cnt);
 }
 
 void Zeta_StageVector_Erase(void* sv_, void* pos_cursor_, size_t cnt) {
     Zeta_StageVector* sv = sv_;
-    CheckSV_(sv);
-
     Zeta_StageVector_Cursor* pos_cursor = pos_cursor_;
     Zeta_StageVector_Cursor_Check(sv, pos_cursor);
 
@@ -2246,43 +2268,15 @@ UPDATE_END:;
         Zeta_CircularVector_Access(&m_cv, NULL, NULL, pos_cursor->seg_idx);
 }
 
-static void EraseAll_(Zeta_StageVector* sv, Zeta_BinTreeNodeOperator* btn_opr,
-                      void* n) {
-    void* nl = Zeta_OrdCnt3RBTreeNode_GetL(NULL, n);
-    void* nr = Zeta_OrdCnt3RBTreeNode_GetR(NULL, n);
-
-    if (sv->lb != n && sv->rb != n) {
-        Zeta_StageVector_Seg* seg =
-            ZETA_MemberToStruct(Zeta_StageVector_Seg, n, n);
-
-        if (GetNColor_(n) == dat_color) {
-            sv->data_allocator->Deallocate(sv->data_allocator->context,
-                                           seg->dat.data);
-        }
-
-        sv->seg_allocator->Deallocate(sv->seg_allocator->context, seg);
-    }
-
-    if (nl != NULL) { EraseAll_(sv, btn_opr, nl); }
-
-    if (nr != NULL) { EraseAll_(sv, btn_opr, nr); }
-}
-
 void Zeta_StageVector_EraseAll(void* sv_) {
     Zeta_StageVector* sv = sv_;
     CheckSV_(sv);
-
-    ZETA_DebugAssert(sv->seg_allocator != NULL);
-    ZETA_DebugAssert(sv->data_allocator != NULL);
-
-    ZETA_DebugAssert(sv->seg_allocator->Deallocate != NULL);
-    ZETA_DebugAssert(sv->data_allocator->Deallocate != NULL);
 
     Zeta_BinTreeNodeOperator btn_opr;
     Zeta_BinTree_InitOpr(&btn_opr);
     Zeta_OrdCnt3RBTreeNode_DeployBinTreeNodeOperator(NULL, &btn_opr);
 
-    EraseAll_(sv, &btn_opr, sv->root);
+    EraseAllSeg_(sv, &btn_opr, sv->root);
 
     InitTree_(sv, &btn_opr);
 }
@@ -2291,17 +2285,11 @@ void Zeta_StageVector_Reset(void* sv_) {
     Zeta_StageVector* sv = sv_;
     CheckSV_(sv);
 
-    ZETA_DebugAssert(sv->seg_allocator != NULL);
-    ZETA_DebugAssert(sv->data_allocator != NULL);
-
-    ZETA_DebugAssert(sv->seg_allocator->Deallocate != NULL);
-    ZETA_DebugAssert(sv->data_allocator->Deallocate != NULL);
-
     Zeta_BinTreeNodeOperator btn_opr;
     Zeta_BinTree_InitOpr(&btn_opr);
     Zeta_OrdCnt3RBTreeNode_DeployBinTreeNodeOperator(NULL, &btn_opr);
 
-    EraseAll_(sv, &btn_opr, sv->root);
+    EraseAllSeg_(sv, &btn_opr, sv->root);
 
     InitTree_(sv, &btn_opr);
     RefOrigin_(sv, &btn_opr);
@@ -2616,11 +2604,6 @@ Zeta_StageVector_Stats Zeta_StageVector_GetStats(void* sv_) {
 bool_t Zeta_StageVector_Cursor_IsEqual(void* sv_, void const* cursor_a_,
                                        void const* cursor_b_) {
     Zeta_StageVector* sv = sv_;
-    CheckSV_(sv);
-
-    Zeta_BinTreeNodeOperator btn_opr;
-    Zeta_BinTree_InitOpr(&btn_opr);
-    Zeta_OrdCnt3RBTreeNode_DeployBinTreeNodeOperator(NULL, &btn_opr);
 
     Zeta_StageVector_Cursor const* cursor_a = cursor_a_;
     Zeta_StageVector_Cursor const* cursor_b = cursor_b_;
@@ -2634,11 +2617,6 @@ bool_t Zeta_StageVector_Cursor_IsEqual(void* sv_, void const* cursor_a_,
 int Zeta_StageVector_Cursor_Compare(void* sv_, void const* cursor_a_,
                                     void const* cursor_b_) {
     Zeta_StageVector* sv = sv_;
-    CheckSV_(sv);
-
-    Zeta_BinTreeNodeOperator btn_opr;
-    Zeta_BinTree_InitOpr(&btn_opr);
-    Zeta_OrdCnt3RBTreeNode_DeployBinTreeNodeOperator(NULL, &btn_opr);
 
     Zeta_StageVector_Cursor const* cursor_a = cursor_a_;
     Zeta_StageVector_Cursor const* cursor_b = cursor_b_;
@@ -2657,11 +2635,6 @@ int Zeta_StageVector_Cursor_Compare(void* sv_, void const* cursor_a_,
 size_t Zeta_StageVector_Cursor_GetDist(void* sv_, void const* cursor_a_,
                                        void const* cursor_b_) {
     Zeta_StageVector* sv = sv_;
-    CheckSV_(sv);
-
-    Zeta_BinTreeNodeOperator btn_opr;
-    Zeta_BinTree_InitOpr(&btn_opr);
-    Zeta_OrdCnt3RBTreeNode_DeployBinTreeNodeOperator(NULL, &btn_opr);
 
     Zeta_StageVector_Cursor const* cursor_a = cursor_a_;
     Zeta_StageVector_Cursor const* cursor_b = cursor_b_;
@@ -2674,12 +2647,6 @@ size_t Zeta_StageVector_Cursor_GetDist(void* sv_, void const* cursor_a_,
 
 size_t Zeta_StageVector_Cursor_GetIdx(void* sv_, void const* cursor_) {
     Zeta_StageVector* sv = sv_;
-    CheckSV_(sv);
-
-    Zeta_BinTreeNodeOperator btn_opr;
-    Zeta_BinTree_InitOpr(&btn_opr);
-    Zeta_OrdCnt3RBTreeNode_DeployBinTreeNodeOperator(NULL, &btn_opr);
-
     Zeta_StageVector_Cursor const* cursor = cursor_;
     Zeta_StageVector_Cursor_Check(sv, cursor);
 
@@ -2696,8 +2663,6 @@ void Zeta_StageVector_Cursor_StepR(void* sv, void* cursor) {
 
 void Zeta_StageVector_Cursor_AdvanceL(void* sv_, void* cursor_, size_t step) {
     Zeta_StageVector* sv = sv_;
-    CheckSV_(sv);
-
     Zeta_StageVector_Cursor* cursor = cursor_;
     Zeta_StageVector_Cursor_Check(sv, cursor);
 
@@ -2762,8 +2727,6 @@ void Zeta_StageVector_Cursor_AdvanceL(void* sv_, void* cursor_, size_t step) {
 
 void Zeta_StageVector_Cursor_AdvanceR(void* sv_, void* cursor_, size_t step) {
     Zeta_StageVector* sv = sv_;
-    CheckSV_(sv);
-
     Zeta_StageVector_Cursor* cursor = cursor_;
     Zeta_StageVector_Cursor_Check(sv, cursor);
 
@@ -2809,7 +2772,7 @@ void Zeta_StageVector_Cursor_AdvanceR(void* sv_, void* cursor_, size_t step) {
 }
 
 void Zeta_StageVector_Cursor_Check(void* sv_, void const* cursor_) {
-    if (!ZETA_IsDebug) { return; }
+#if ZETA_IsDebug
 
     Zeta_StageVector* sv = sv_;
     CheckSV_(sv);
@@ -2825,6 +2788,7 @@ void Zeta_StageVector_Cursor_Check(void* sv_, void const* cursor_) {
     ZETA_DebugAssert(re_cursor.n == cursor->n);
     ZETA_DebugAssert(re_cursor.seg_idx == cursor->seg_idx);
     ZETA_DebugAssert(re_cursor.ele == cursor->ele);
+#endif
 }
 
 void Zeta_StageVector_DeploySeqContainer(void* sv_,
@@ -2833,6 +2797,8 @@ void Zeta_StageVector_DeploySeqContainer(void* sv_,
     CheckSV_(sv);
 
     ZETA_DebugAssert(seq_cntr != NULL);
+
+    Zeta_SeqContainer_Init(seq_cntr);
 
     seq_cntr->context = sv;
 

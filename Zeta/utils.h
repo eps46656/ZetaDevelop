@@ -168,7 +168,9 @@ unsigned Zeta_GetFloorLog(unsigned long long val, unsigned long long base);
 
 unsigned Zeta_GetCeilLog(unsigned long long val, unsigned long long base);
 
-unsigned long long Zeta_GetSqrt(unsigned long long val);
+unsigned long long Zeta_GetFloorSqrt(unsigned long long val);
+
+unsigned long long Zeta_GetCeilSqrt(unsigned long long val);
 
 unsigned long long Zeta_FindNextConMod(unsigned long long beg,
                                        unsigned long long target,

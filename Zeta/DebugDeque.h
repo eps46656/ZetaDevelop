@@ -33,23 +33,23 @@ void* Zeta_DebugDeque_PeekR(void* dd, void* dst_cursor, void* dst_ele);
 void* Zeta_DebugDeque_Access(void* dd, void* dst_cursor, void* dst_ele,
                              size_t idx);
 
-void* Zeta_DebugDeque_Refer(void* dd, void* pos_cursor);
+void* Zeta_DebugDeque_Refer(void* dd, void const* pos_cursor);
 
-void Zeta_DebugDeque_Read(void* dd, void* pos_cursor, size_t cnt, void* dst,
-                          void* dst_cursor);
+void Zeta_DebugDeque_Read(void* dd, void const* pos_cursor, size_t cnt,
+                          void* dst, void* dst_cursor);
 
 void Zeta_DebugDeque_Write(void* dd, void* pos_cursor, size_t cnt,
                            void const* src, void* dst_cursor);
 
-void* Zeta_DebugDeque_PushL(void* dd, void* dst_cursor);
+void* Zeta_DebugDeque_PushL(void* dd, void* dst_cursor, size_t cnt);
 
-void* Zeta_DebugDeque_PushR(void* dd, void* dst_cursor);
+void* Zeta_DebugDeque_PushR(void* dd, void* dst_cursor, size_t cnt);
 
 void* Zeta_DebugDeque_Insert(void* dd, void* pos_cursor, size_t cnt);
 
-void Zeta_DebugDeque_PopL(void* dd);
+void Zeta_DebugDeque_PopL(void* dd, size_t cnt);
 
-void Zeta_DebugDeque_PopR(void* dd);
+void Zeta_DebugDeque_PopR(void* dd, size_t cnt);
 
 void Zeta_DebugDeque_Erase(void* dd, void* pos_cursor, size_t cnt);
 

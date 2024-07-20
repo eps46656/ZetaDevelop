@@ -31,23 +31,23 @@ struct Zeta_SeqContainer {
 
     void* (*Access)(void* context, void* dst_cursor, void* dst_ele, size_t idx);
 
-    void* (*Refer)(void* context, void* pos_cursor);
+    void* (*Refer)(void* context, void const* pos_cursor);
 
-    void (*Read)(void* context, void* pos_cursor, size_t cnt, void* dst,
+    void (*Read)(void* context, void const* pos_cursor, size_t cnt, void* dst,
                  void* dst_cursor);
 
     void (*Write)(void* context, void* pos_cursor, size_t cnt, void const* src,
                   void* dst_cursor);
 
-    void* (*PushL)(void* context, void* dst_cursor);
+    void* (*PushL)(void* context, void* dst_cursor, size_t cnt);
 
-    void* (*PushR)(void* context, void* dst_cursor);
+    void* (*PushR)(void* context, void* dst_cursor, size_t cnt);
 
     void* (*Insert)(void* context, void* pos_cursor, size_t cnt);
 
-    void (*PopL)(void* context);
+    void (*PopL)(void* context, size_t cnt);
 
-    void (*PopR)(void* context);
+    void (*PopR)(void* context, size_t cnt);
 
     void (*Erase)(void* context, void* pos_cursor, size_t cnt);
 

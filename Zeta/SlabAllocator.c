@@ -1,19 +1,22 @@
 #include "SlabAllocator.h"
 
+#include "Debugger.h"
 #include "utils.h"
 
 ZETA_StaticAssert(alignof(Zeta_SlabAllocator_SlabHead) % alignof(uintptr_t) ==
                   0);
 
-#define ZETA_SlabSize (stride * num + sizeof(Zeta_SlabAllocator_SlabHead))
+#define ZETA_SlabSize \
+    (stride * units_per_slab + sizeof(Zeta_SlabAllocator_SlabHead))
 
-#define GetSlabHeadFromSlabUnit_(unit)                                         \
-    ((Zeta_SlabAllocator_SlabHead*)((unsigned char*)(unit) +                   \
-                                    stride * (num - *((unsigned char*)(unit) + \
-                                                      width))))
+#define GetSlabHeadFromSlabUnit_(unit)                       \
+    ((Zeta_SlabAllocator_SlabHead*)((unsigned char*)(unit) + \
+                                    stride *                 \
+                                        (units_per_slab -    \
+                                         *((unsigned char*)(unit) + width))))
 
-#define GetSlabFromSlabHead_(slab_head) \
-    ((void*)((unsigned char*)(slab_head) - stride * num))
+#define SlabHeadToSlab_(slab_head) \
+    ((void*)((unsigned char*)(slab_head) - stride * units_per_slab))
 
 #define ZETA_GetFirstChunkFromSlab(slab) ((unsigned char*)(slab))
 
@@ -67,19 +70,19 @@ static bool_t ReleaseLastSlab_(Zeta_SlabAllocator* sa) {
 
     size_t width = sa->width;
     size_t stride = width + sizeof(unsigned char);
-    size_t num = sa->num;
+    size_t units_per_slab = sa->units_per_slab;
 
     Zeta_SlabAllocator_SlabHead* vacant_slab_head =
         ZETA_MemberToStruct(Zeta_SlabAllocator_SlabHead, n, vacant_slab_n);
-    void* vacant_slab = GetSlabFromSlabHead_(vacant_slab_head);
+    void* vacant_slab = SlabHeadToSlab_(vacant_slab_head);
 
     unsigned char* chunk = ZETA_GetFirstChunkFromSlab(vacant_slab);
 
-    for (size_t i = 0; i < num; ++i, chunk += stride) {
+    for (size_t i = 0; i < units_per_slab; ++i, chunk += stride) {
         LinkedListExtract_(&sa->hot_unit_head, (void*)chunk);
     }
 
-    sa->vacant_units_num -= num;
+    sa->vacant_units_cnt -= units_per_slab;
 
     ZETA_DebugAssert(sa->allocator != NULL);
     ZETA_DebugAssert(sa->allocator->Deallocate != NULL);
@@ -96,20 +99,16 @@ void Zeta_SlabAllocator_Init(void* sa_) {
     size_t align = sa->align;
     ZETA_DebugAssert(0 < align);
 
-    align = Zeta_GetLCM(align, alignof(uintptr_t));
-
-    sa->align = align;
+    sa->align = align = Zeta_GetLCM(align, alignof(uintptr_t));
 
     size_t width = sa->width;
     ZETA_DebugAssert(0 < width);
 
-    size_t stride = width + sizeof(unsigned char);
-
-    if (stride < sizeof(Zeta_OrdLinkedListNode)) {
-        stride = sizeof(Zeta_OrdLinkedListNode);
-    }
-
-    stride = Zeta_FindNextConMod(stride, 0, align);
+    size_t stride =
+        ZETA_CeilIntDiv(ZETA_GetMinOf(sizeof(Zeta_OrdLinkedListNode),
+                                      width + sizeof(unsigned char)),
+                        align) *
+        align;
 
     sa->width = stride - sizeof(unsigned char);
 
@@ -121,19 +120,19 @@ void Zeta_SlabAllocator_Init(void* sa_) {
     ZETA_DebugAssert(allocator->Allocate != NULL);
     ZETA_DebugAssert(allocator->Deallocate != NULL);
 
-    size_t num = sa->num;
-    ZETA_DebugAssert(0 < sa->num);
-    ZETA_DebugAssert(sa->num <= ZETA_SlabAllocator_max_num);
+    size_t units_per_slab = sa->units_per_slab;
+    ZETA_DebugAssert(0 < sa->units_per_slab);
+    ZETA_DebugAssert(sa->units_per_slab <=
+                     ZETA_SlabAllocator_max_units_per_slab);
 
     size_t real_slab_size = allocator->Query(allocator->context, ZETA_SlabSize);
 
-    num = (real_slab_size - sizeof(Zeta_SlabAllocator_SlabHead)) / stride;
-    if (ZETA_SlabAllocator_max_num < num) { num = ZETA_SlabAllocator_max_num; }
+    sa->units_per_slab = units_per_slab = ZETA_GetMinOf(
+        ZETA_SlabAllocator_max_units_per_slab,
+        (real_slab_size - sizeof(Zeta_SlabAllocator_SlabHead)) / stride);
 
-    sa->num = num;
-
-    sa->vacant_units_num = 0;
-    sa->occupied_units_num = 0;
+    sa->vacant_units_cnt = 0;
+    sa->occupied_units_cnt = 0;
 
     sa->hot_unit_head = NULL;
 
@@ -145,7 +144,7 @@ void Zeta_SlabAllocator_Deinit(void* sa_) {
     Zeta_SlabAllocator* sa = sa_;
     ZETA_DebugAssert(sa != NULL);
 
-    ZETA_DebugAssert(sa->occupied_units_num == 0);
+    ZETA_DebugAssert(sa->occupied_units_cnt == 0);
 
     while (ReleaseLastSlab_(sa)) {}
 }
@@ -170,7 +169,7 @@ void* Zeta_SlabAllocator_Allocate(void* sa_, size_t size) {
 
     size_t width = sa->width;
     size_t stride = width + sizeof(unsigned char);
-    size_t num = sa->num;
+    size_t units_per_slab = sa->units_per_slab;
 
     if (size == 0 || width < size) { return NULL; }
 
@@ -178,16 +177,15 @@ void* Zeta_SlabAllocator_Allocate(void* sa_, size_t size) {
         Zeta_SlabAllocator_SlabHead* slab_head =
             GetSlabHeadFromSlabUnit_(sa->hot_unit_head);
 
-        LinkedListExtract_(slab_head->vacant_units_num == num
-                               ? &sa->vacant_slab_n_head
-                               : &sa->occupied_slab_n_head,
-                           &slab_head->n);
-        LinkedListPushL_(&sa->occupied_slab_n_head, &slab_head->n);
+        if (slab_head->vacant_units_cnt == units_per_slab) {
+            LinkedListExtract_(&sa->vacant_slab_n_head, &slab_head->n);
+            LinkedListPushL_(&sa->occupied_slab_n_head, &slab_head->n);
+        }
 
-        --slab_head->vacant_units_num;
+        --slab_head->vacant_units_cnt;
 
-        --sa->vacant_units_num;
-        ++sa->occupied_units_num;
+        --sa->vacant_units_cnt;
+        ++sa->occupied_units_cnt;
 
         return LinkedListPopL_(&sa->hot_unit_head);
     }
@@ -197,25 +195,25 @@ void* Zeta_SlabAllocator_Allocate(void* sa_, size_t size) {
 
     void* slab = sa->allocator->Allocate(sa->allocator->context, ZETA_SlabSize);
     ZETA_DebugAssert(slab != NULL);
-    ZETA_DebugAssert(ZETA_PtrToAddr(slab) % sa->align == 0);
+    ZETA_DebugAssert(__builtin_is_aligned(slab, sa->align));
 
     Zeta_SlabAllocator_SlabHead* slab_head =
-        (void*)((unsigned char*)slab + stride * num);
+        (void*)((unsigned char*)slab + stride * units_per_slab);
 
     Zeta_OrdLinkedListNode_Init(&slab_head->n);
     LinkedListPushL_(&sa->occupied_slab_n_head, &slab_head->n);
 
-    slab_head->vacant_units_num = num - 1;
+    slab_head->vacant_units_cnt = units_per_slab - 1;
 
-    sa->vacant_units_num += num - 1;
-    ++sa->occupied_units_num;
+    sa->vacant_units_cnt += units_per_slab - 1;
+    ++sa->occupied_units_cnt;
 
     unsigned char* first_chunk = ZETA_GetFirstChunkFromSlab(slab);
     *(first_chunk + width) = 0;
 
-    unsigned char* chunk = first_chunk + stride * (num - 1);
+    unsigned char* chunk = first_chunk + stride * (units_per_slab - 1);
 
-    for (size_t i = num - 1; 0 < i; --i, chunk -= stride) {
+    for (size_t i = units_per_slab - 1; 0 < i; --i, chunk -= stride) {
         Zeta_OrdLinkedListNode_Init(chunk);
         LinkedListPushL_(&sa->hot_unit_head, (void*)chunk);
 
@@ -233,24 +231,24 @@ void Zeta_SlabAllocator_Deallocate(void* sa_, void* ptr) {
 
     size_t width = sa->width;
     size_t stride = width + sizeof(unsigned char);
-    size_t num = sa->num;
+    size_t units_per_slab = sa->units_per_slab;
 
     Zeta_OrdLinkedListNode_Init(ptr);
     LinkedListPushL_(&sa->hot_unit_head, ptr);
 
     Zeta_SlabAllocator_SlabHead* slab_head = GetSlabHeadFromSlabUnit_(ptr);
 
-    ++slab_head->vacant_units_num;
+    ++slab_head->vacant_units_cnt;
 
-    ++sa->vacant_units_num;
-    --sa->occupied_units_num;
+    ++sa->vacant_units_cnt;
+    --sa->occupied_units_cnt;
 
-    if (slab_head->vacant_units_num == num) {
+    if (slab_head->vacant_units_cnt == units_per_slab) {
         LinkedListExtract_(&sa->occupied_slab_n_head, &slab_head->n);
         LinkedListPushL_(&sa->vacant_slab_n_head, &slab_head->n);
     }
 
-    if (sa->buffer_units_num <= sa->vacant_units_num - sa->num) {
+    if (sa->buffer_units_cnt <= sa->vacant_units_cnt - sa->units_per_slab) {
         ReleaseLastSlab_(sa);
     }
 }
@@ -288,7 +286,7 @@ void Zeta_SlabAllocator_Check(void* sa_, Zeta_DebugHashMap* dst_used_records,
 
     size_t width = sa->width;
     size_t stride = width + sizeof(unsigned char);
-    size_t num = sa->num;
+    size_t units_per_slab = sa->units_per_slab;
 
     Zeta_DebugHashMap vacant_unit_mt;
     Zeta_DebugHashMap_Create(&vacant_unit_mt);
@@ -309,8 +307,8 @@ void Zeta_SlabAllocator_Check(void* sa_, Zeta_DebugHashMap* dst_used_records,
         }
     }
 
-    size_t check_vacant_units_num = 0;
-    size_t check_occupied_units_num = 0;
+    size_t check_vacant_units_cnt = 0;
+    size_t check_occupied_units_cnt = 0;
 
     if (sa->occupied_slab_n_head != NULL) {
         void* occupied_slab_n = sa->occupied_slab_n_head;
@@ -320,21 +318,21 @@ void Zeta_SlabAllocator_Check(void* sa_, Zeta_DebugHashMap* dst_used_records,
                 ZETA_MemberToStruct(Zeta_SlabAllocator_SlabHead, n,
                                     occupied_slab_n);
 
-            void* occupied_slab = GetSlabFromSlabHead_(occupied_slab_head);
+            void* occupied_slab = SlabHeadToSlab_(occupied_slab_head);
 
             unsigned char* first_chunk =
                 ZETA_GetFirstChunkFromSlab(occupied_slab);
             unsigned char* chunk = first_chunk;
 
-            size_t check_slab_vacant_units_num = 0;
+            size_t check_slab_vacant_units_cnt = 0;
 
-            for (size_t i = 0; i < num; ++i, chunk += stride) {
+            for (size_t i = 0; i < units_per_slab; ++i, chunk += stride) {
                 ZETA_DebugAssert(i == *(chunk + width));
 
                 if (Zeta_DebugHashMap_Find(&vacant_unit_mt,
                                            ZETA_PtrToAddr(chunk))
                         .b) {
-                    ++check_slab_vacant_units_num;
+                    ++check_slab_vacant_units_cnt;
                 } else {
                     Zeta_DebugHashMap_KeyValPair p = Zeta_DebugHashMap_Insert(
                         &occupied_unit_mt, ZETA_PtrToAddr(chunk));
@@ -343,14 +341,14 @@ void Zeta_SlabAllocator_Check(void* sa_, Zeta_DebugHashMap* dst_used_records,
 
                     *p.val = width;
 
-                    ++check_occupied_units_num;
+                    ++check_occupied_units_cnt;
                 }
             }
 
-            ZETA_DebugAssert(check_slab_vacant_units_num ==
-                             occupied_slab_head->vacant_units_num);
+            ZETA_DebugAssert(check_slab_vacant_units_cnt ==
+                             occupied_slab_head->vacant_units_cnt);
 
-            check_vacant_units_num += check_slab_vacant_units_num;
+            check_vacant_units_cnt += check_slab_vacant_units_cnt;
 
             size_t slab_size = ZETA_PtrToAddr(chunk) +
                                sizeof(Zeta_SlabAllocator_SlabHead) -
@@ -375,20 +373,20 @@ void Zeta_SlabAllocator_Check(void* sa_, Zeta_DebugHashMap* dst_used_records,
             Zeta_SlabAllocator_SlabHead* vacant_slab_head = ZETA_MemberToStruct(
                 Zeta_SlabAllocator_SlabHead, n, vacant_slab_n);
 
-            void* vacant_slab = GetSlabFromSlabHead_(vacant_slab_head);
+            void* vacant_slab = SlabHeadToSlab_(vacant_slab_head);
 
             unsigned char* first_chunk =
                 ZETA_GetFirstChunkFromSlab(vacant_slab);
             unsigned char* chunk = first_chunk;
 
-            for (size_t i = 0; i < num; ++i, chunk += stride) {
+            for (size_t i = 0; i < units_per_slab; ++i, chunk += stride) {
                 ZETA_DebugAssert(i == *(chunk + width));
                 ZETA_DebugAssert(Zeta_DebugHashMap_Find(&vacant_unit_mt,
                                                         ZETA_PtrToAddr(chunk))
                                      .b);
             }
 
-            check_vacant_units_num += num;
+            check_vacant_units_cnt += units_per_slab;
 
             size_t slab_size = ZETA_PtrToAddr(chunk) +
                                sizeof(Zeta_SlabAllocator_SlabHead) -
@@ -406,8 +404,8 @@ void Zeta_SlabAllocator_Check(void* sa_, Zeta_DebugHashMap* dst_used_records,
         }
     }
 
-    ZETA_DebugAssert(check_vacant_units_num == sa->vacant_units_num);
-    ZETA_DebugAssert(check_occupied_units_num == sa->occupied_units_num);
+    ZETA_DebugAssert(check_vacant_units_cnt == sa->vacant_units_cnt);
+    ZETA_DebugAssert(check_occupied_units_cnt == sa->occupied_units_cnt);
 
     Zeta_DebugHashMap_Move(dst_released_records, &occupied_unit_mt);
 

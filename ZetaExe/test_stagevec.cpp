@@ -4,18 +4,13 @@
 #include <random>
 #include <set>
 
-#include "../Zeta/CircularVector.h"
 #include "../Zeta/DebugDeque.h"
 #include "../Zeta/Debugger.h"
 #include "../Zeta/Logger.h"
-#include "../Zeta/SegVector.h"
-#include "../Zeta/StageVector.h"
+#include "CircularVectorUtils.h"
 #include "MemAllocatorCheck.h"
-#include "StdAllocator.h"
-
-// -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
+#include "RadixDequeUtils.h"
+#include "StageVectorUtils.h"
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
@@ -112,119 +107,7 @@ Zeta_SeqContainer* CreateDD() {
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 
-#define CAPACITY (256 * 1024 * 1024)
-
-void InitCV(Zeta_SeqContainer* seq_cntr, size_t capacity) {
-    Zeta_CircularVector* cv{ static_cast<Zeta_CircularVector*>(
-        std::malloc(sizeof(Zeta_CircularVector))) };
-
-    cv->data = std::malloc(sizeof(Val) * capacity);
-    cv->width = sizeof(Val);
-    cv->stride = sizeof(Val);
-    cv->offset = 0;
-    cv->size = 0;
-    cv->capacity = capacity;
-
-    Zeta_CircularVector_DeploySeqContainer(cv, seq_cntr);
-}
-
-Zeta_SeqContainer* CreateCV(size_t capacity) {
-    Zeta_SeqContainer* seq_cntr{ new Zeta_SeqContainer{} };
-    InitCV(seq_cntr, capacity);
-    return seq_cntr;
-}
-
-// -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
-
-struct SegVectorPack {
-    StdAllocator node_allocator_;
-    Zeta_Allocator node_allocator;
-
-    StdAllocator seg_allocator_;
-    Zeta_Allocator seg_allocator;
-
-    Zeta_SegVector sv;
-};
-
-void InitSV(Zeta_SeqContainer* seq_cntr) {
-    SegVectorPack* sv_pack{ static_cast<SegVectorPack*>(
-        std::malloc(sizeof(SegVectorPack))) };
-
-    new (&sv_pack->node_allocator_) StdAllocator{};
-    new (&sv_pack->seg_allocator_) StdAllocator{};
-
-    StdAllocator_DeployAllocator(&sv_pack->node_allocator_,
-                                 &sv_pack->node_allocator);
-    StdAllocator_DeployAllocator(&sv_pack->seg_allocator_,
-                                 &sv_pack->seg_allocator);
-
-    sv_pack->sv.width = sizeof(Val);
-    sv_pack->sv.stride = sizeof(Val);
-    sv_pack->sv.seg_capacity = 6;
-    sv_pack->sv.node_allocator = &sv_pack->node_allocator;
-    sv_pack->sv.seg_allocator = &sv_pack->seg_allocator;
-
-    Zeta_SegVector_Init(&sv_pack->sv);
-    Zeta_SegVector_DeploySeqContainer(&sv_pack->sv, seq_cntr);
-}
-
-Zeta_SeqContainer* CreateSV() {
-    Zeta_SeqContainer* seq_cntr{ new Zeta_SeqContainer{} };
-    InitSV(seq_cntr);
-    return seq_cntr;
-}
-
-void SV_Check(Zeta_SeqContainer* seq_cntr);
-
-// -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
-
-#define SEG_CAPACITY (6)
-
-struct StageVectorPack {
-    StdAllocator seg_allocator_;
-    Zeta_Allocator seg_allocator;
-
-    StdAllocator data_allocator_;
-    Zeta_Allocator data_allocator;
-
-    Zeta_StageVector stage_vec;
-};
-
-void InitStageVec(Zeta_SeqContainer* seq_cntr,
-                  Zeta_SeqContainer* origin_seq_cntr) {
-    StageVectorPack* stage_vec_pack{ static_cast<StageVectorPack*>(
-        std::malloc(sizeof(StageVectorPack))) };
-
-    new (&stage_vec_pack->seg_allocator_) StdAllocator{};
-    new (&stage_vec_pack->data_allocator_) StdAllocator{};
-
-    StdAllocator_DeployAllocator(&stage_vec_pack->seg_allocator_,
-                                 &stage_vec_pack->seg_allocator);
-    StdAllocator_DeployAllocator(&stage_vec_pack->data_allocator_,
-                                 &stage_vec_pack->data_allocator);
-
-    stage_vec_pack->stage_vec.origin = origin_seq_cntr;
-    stage_vec_pack->stage_vec.seg_capacity = SEG_CAPACITY;
-    stage_vec_pack->stage_vec.seg_allocator = &stage_vec_pack->seg_allocator;
-    stage_vec_pack->stage_vec.data_allocator = &stage_vec_pack->data_allocator;
-
-    Zeta_StageVector_Init(&stage_vec_pack->stage_vec);
-    Zeta_StageVector_DeploySeqContainer(&stage_vec_pack->stage_vec, seq_cntr);
-}
-
-Zeta_SeqContainer* CreateStageVec(Zeta_SeqContainer* origin_seq_cntr) {
-    Zeta_SeqContainer* seq_cntr{ new Zeta_SeqContainer{} };
-    InitStageVec(seq_cntr, origin_seq_cntr);
-    return seq_cntr;
-}
-
-// -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
+#define SEG_CAPACITY (32)
 
 void SC_Check(Zeta_SeqContainer* seq_cntr);
 
@@ -247,7 +130,7 @@ Val SC_Access(Zeta_SeqContainer* seq_cntr, size_t idx) {
 void* SC_PushL(Zeta_SeqContainer* seq_cntr, Val val) {
     Zeta_Cursor pos_cursor;
 
-    void* ele = seq_cntr->PushL(seq_cntr->context, &pos_cursor);
+    void* ele = seq_cntr->PushL(seq_cntr->context, &pos_cursor, 1);
 
     void* re_ele = seq_cntr->Refer(seq_cntr->context, &pos_cursor);
 
@@ -263,7 +146,7 @@ void* SC_PushL(Zeta_SeqContainer* seq_cntr, Val val) {
 Val* SC_PushR(Zeta_SeqContainer* seq_cntr, Val val) {
     Zeta_Cursor pos_cursor;
 
-    void* ele = seq_cntr->PushL(seq_cntr->context, &pos_cursor);
+    void* ele = seq_cntr->PushL(seq_cntr->context, &pos_cursor, 1);
 
     void* re_ele = seq_cntr->Refer(seq_cntr->context, &pos_cursor);
 
@@ -495,58 +378,10 @@ void SC_CheckIterator(Zeta_SeqContainer* seq_cntr, size_t idx_a, size_t idx_b) {
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 
-void SV_Check(Zeta_SeqContainer* seq_cntr) {
-    if (seq_cntr->GetSize != Zeta_SegVector_GetSize) { return; }
-
-    SegVectorPack* pack{ ZETA_MemberToStruct(SegVectorPack, sv,
-                                             seq_cntr->context) };
-
-    Zeta_DebugHashMap node_hm;
-    Zeta_DebugHashMap seg_hm;
-
-    Zeta_DebugHashMap_Create(&node_hm);
-    Zeta_DebugHashMap_Create(&seg_hm);
-
-    Zeta_SegVector_Check(&pack->sv, &node_hm, &seg_hm);
-
-    using record_t = std::unordered_map<unsigned long long, unsigned long long>;
-
-    CheckRecords(pack->node_allocator_.records, *(record_t*)node_hm.hash_map);
-
-    CheckRecords(pack->seg_allocator_.records, *(record_t*)seg_hm.hash_map);
-}
-
-void StageVec_Check(Zeta_SeqContainer* seq_cntr) {
-    if (seq_cntr->GetSize != Zeta_StageVector_GetSize) { return; }
-
-    StageVectorPack* pack{ ZETA_MemberToStruct(StageVectorPack, stage_vec,
-                                               seq_cntr->context) };
-
-    Zeta_DebugHashMap node_hm;
-    Zeta_DebugHashMap seg_hm;
-
-    Zeta_DebugHashMap_Create(&node_hm);
-    Zeta_DebugHashMap_Create(&seg_hm);
-
-    Zeta_StageVector_Check(&pack->stage_vec, &node_hm, &seg_hm);
-
-    using record_t = std::unordered_map<unsigned long long, unsigned long long>;
-
-    CheckRecords(pack->seg_allocator_.records, *(record_t*)node_hm.hash_map);
-
-    CheckRecords(pack->data_allocator_.records, *(record_t*)seg_hm.hash_map);
-}
-
 void SC_Check(Zeta_SeqContainer* seq_cntr) {
-    if (seq_cntr->GetSize == Zeta_SegVector_GetSize) {
-        ZETA_DebugLogCurPos;
-        SV_Check(seq_cntr);
-        return;
-    }
-
     if (seq_cntr->GetSize == Zeta_StageVector_GetSize) {
         ZETA_DebugLogCurPos;
-        StageVec_Check(seq_cntr);
+        CheckStageVec(seq_cntr);
         return;
     }
 }
@@ -932,7 +767,8 @@ void main2() {
 
     SC_Insert(seq_cntr_a_origin, 0, vals_a.size(), vals_a.data());
 
-    Zeta_SeqContainer* seq_cntr_b{ CreateStageVec(seq_cntr_a_origin) };
+    Zeta_SeqContainer* seq_cntr_b{ CreateStageVec<Val>(seq_cntr_a_origin,
+                                                       SEG_CAPACITY) };
 
     for (size_t _ = 0; _ < 64; ++_) {
         ZETA_PrintCurPos;
@@ -1028,16 +864,36 @@ void main2() {
 }
 
 void main3() {
-    ZETA_DebugLogCurPos;
+    ZETA_PrintCurPos;
 
-    int a = 3;
+    Zeta_SeqContainer* seq_cntr{ CreateRadixDeque<Val>(32, 32, 6) };
 
-    ZETA_PrintVar(a);
-    ZETA_PrintVar(a + 5);
+    ZETA_PrintCurPos;
 
-    ZETA_DebugLogCurPos;
+    ZETA_PrintVar(seq_cntr->GetWidth(seq_cntr->context));
 
-    ZETA_DebugAssert(FALSE);
+    Zeta_Cursor cursor;
+    Val* ele;
+
+    // seq_cntr->GetRBCursor(seq_cntr->context, &cursor);
+
+    ele = (Val*)seq_cntr->PushL(seq_cntr->context, &cursor, 1);
+    ZETA_PrintVar((void*)ele);
+    GetRandomVal(ele);
+
+    std::cout << *ele << "\n";
+
+    ele = (Val*)seq_cntr->PushL(seq_cntr->context, &cursor, 1);
+    ZETA_PrintVar((void*)ele);
+    GetRandomVal(ele);
+
+    std::cout << *ele << "\n";
+
+    ele = (Val*)seq_cntr->PushL(seq_cntr->context, &cursor, 1);
+    ZETA_PrintVar((void*)ele);
+    GetRandomVal(ele);
+
+    std::cout << *ele << "\n";
 }
 
 int main() {
@@ -1052,32 +908,7 @@ int main() {
 
     ZETA_PrintCurPos;
 
-    main2();
+    main3();
     printf("ok\a\n");
     return 0;
 }
-
-/*
-
-SegVector Insertion Strategy
-
-If m_node can contain more cnt elements:
-    Directly insert cnt elements into m_node.
-    return
-
-Choose the more vacant side of m_node as k_node
-
-If m_node and k_node can contain more cnt elements:
-    Directly insert cnt elements into m_node and k_node (Shove Operation).
-    return
-
-If the insertion point is not at the begining of m_node:
-    Split m_node into ml_node and mr_node.
-
-    If ml_node and mr_node can contain more cnt elements:
-        Insert cnt elements into ml_node and mr_node (Shove Operation).
-        return
-Else:
-    Insert cnt elements into ml_node and mr_node (Shove Operation).
-
-*/

@@ -74,7 +74,7 @@ struct Zeta_FileSys_NodeInfo {
 
 #define ZETA_FileSys_LinkIndicator_SelfLink ((size_t)(-1))
 
-#define ZETA_FileSys_LinkIndicator_BaskLink ((size_t)(-2))
+#define ZETA_FileSys_LinkIndicator_BackLink ((size_t)(-2))
 
 /*
 

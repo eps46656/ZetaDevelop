@@ -50,23 +50,23 @@ void* Zeta_CircularVector_PeekR(void* cv, void* dst_cursor, void* dst_ele);
 void* Zeta_CircularVector_Access(void* cv, void* dst_cursor, void* dst_ele,
                                  size_t idx);
 
-void* Zeta_CircularVector_Refer(void* cv, void* pos_cursor);
+void* Zeta_CircularVector_Refer(void* cv, void const* pos_cursor);
 
-void Zeta_CircularVector_Read(void* cv, void* pos_cursor, size_t cnt, void* dst,
-                              void* dst_cursor);
+void Zeta_CircularVector_Read(void* cv, void const* pos_cursor, size_t cnt,
+                              void* dst, void* dst_cursor);
 
 void Zeta_CircularVector_Write(void* cv, void* pos_cursor, size_t cnt,
                                void const* src, void* dst_cursor);
 
-void* Zeta_CircularVector_PushL(void* cv, void* dst_cursor);
+void* Zeta_CircularVector_PushL(void* cv, void* dst_cursor, size_t cnt);
 
-void* Zeta_CircularVector_PushR(void* cv, void* dst_cursor);
+void* Zeta_CircularVector_PushR(void* cv, void* dst_cursor, size_t cnt);
 
 void* Zeta_CircularVector_Insert(void* cv, void* pos_cursor, size_t cnt);
 
-void Zeta_CircularVector_PopL(void* cv);
+void Zeta_CircularVector_PopL(void* cv, size_t cnt);
 
-void Zeta_CircularVector_PopR(void* cv);
+void Zeta_CircularVector_PopR(void* cv, size_t cnt);
 
 void Zeta_CircularVector_Erase(void* cv, void* pos_cursor, size_t cnt);
 

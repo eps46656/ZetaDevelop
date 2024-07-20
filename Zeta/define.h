@@ -67,9 +67,15 @@ typedef unsigned unichar_t;
     struct struct_name;                     \
     ZETA_StaticAssert(TRUE)
 
+#if defined(__cplusplus)
+#define ZETA_AutoVar(var, expression) \
+    auto var = (expression);          \
+    ZETA_StaticAssert(TRUE)
+#else
 #define ZETA_AutoVar(var, expression)        \
     typeof((expression)) var = (expression); \
     ZETA_StaticAssert(TRUE)
+#endif
 
 #if defined(__cplusplus)
 #define ZETA_ExternC_Beg \
@@ -237,6 +243,27 @@ typedef unsigned unichar_t;
 
 #define ZETA_IsPowerOf2(x) (__builtin_popcountll(x) == 1)
 
+#define ZETA_FloorLog2_(x_tmp, x)                                 \
+    ({                                                            \
+        unsigned long long x_tmp = x;                             \
+        x_tmp == 0 ? -1                                           \
+                   : (int)(ZETA_WidthOf(unsigned long long) - 1 - \
+                           __builtin_clzll(x_tmp));               \
+    })
+
+#define ZETA_FloorLog2(x) ZETA_FloorLog2_(ZETA_UniqueName(ZETA_tmp_), x)
+
+#define ZETA_CeilLog2_(x_tmp, x)                                \
+    ({                                                          \
+        unsigned long long x_tmp = x;                           \
+        x_tmp == 0 ? -1                                         \
+                   : (int)(ZETA_WidthOf(unsigned long long) -   \
+                           (__builtin_popcountll(x_tmp) == 1) - \
+                           __builtin_clzll(x_tmp));             \
+    })
+
+#define ZETA_CeilLog2(x) ZETA_CeilLog2_(ZETA_UniqueName(ZETA_tmp_), x)
+
 #define ZETA_PtrToAddr(x) ((uintptr_t)(void*)(x))
 #define ZETA_AddrToPtr(x) ((void*)(uintptr_t)(x))
 
@@ -280,6 +307,15 @@ typedef unsigned unichar_t;
 
 ZETA_StaticAssert(ZETA_RangeMinOf(byte_t) <= 0);
 ZETA_StaticAssert(255 <= ZETA_RangeMaxOf(byte_t));
+
+#define ZETA_ModAddInv_(mod_tmp, val, mod)             \
+    ({                                                 \
+        ZETA_AutoVar(mod_tmp, (mod));                  \
+        mod_tmp - 1 - ((val) + mod_tmp - 1) % mod_tmp; \
+    })
+
+#define ZETA_ModAddInv(val, mod) \
+    ZETA_ModAddInv_(ZETA_UniqueName(ZETA_tmp_), (val), (mod))
 
 #define ZETA_CeilIntDiv_(x_tmp, y_tmp, x, y) \
     ({                                       \

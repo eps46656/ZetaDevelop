@@ -338,12 +338,18 @@ unsigned Zeta_GetCeilLog(unsigned long long val, unsigned long long base) {
 
 #undef base_exp_length
 
-unsigned long long Zeta_GetFloorSqrt(unsigned long long val) {
-    if (val <= 1) { return val; }
+int Zeta_GetFloorLog2(unsigned long long val) {
+    return val == 0 ? -1
+                    : (ZETA_WidthOf(unsigned long long) - __builtin_clzll(val));
+}
 
-    unsigned long long x = 1;
+int Zeta_GetCeilLog2(unsigned long long val) {
+    return val == 0 ? -1
+                    : (ZETA_WidthOf(unsigned long long) - __builtin_clzll(val) -
+                       (__builtin_popcountll(val) == 1));
+}
 
-    {
+/* {
         unsigned long long a = val;
 
         for (; 256 <= a; a /= 256) { x *= 16; }
@@ -359,7 +365,13 @@ unsigned long long Zeta_GetFloorSqrt(unsigned long long val) {
         }
 
         if (1 < a) { x *= 2; }
-    }
+    } */
+
+unsigned long long Zeta_GetFloorSqrt(unsigned long long val) {
+    if (val <= 1) { return val; }
+
+    unsigned long long x = (unsigned long long)1
+                           << (Zeta_GetFloorLog2(val) / 2 + 1);
 
     unsigned long long y = (val / x + x) / 2;
 
@@ -370,6 +382,34 @@ unsigned long long Zeta_GetFloorSqrt(unsigned long long val) {
 
     return x;
 }
+
+/*
+unsigned long long Zeta_GetFloorSqrt(unsigned long long val) {
+    if (val <= 16) {  //  0 1 2 3 4
+        if (val <= 4) { return val <= 1 ? val : 2; }
+    }
+
+    // 2^16 = 65536   2^8 = 256
+    // 2^8
+
+    unsigned long long ret = 1;
+
+    while (65536 <= val) {
+        val /= 65536;
+        ret *= 256;
+    }
+
+    if (256 <= val) {
+        val /= 256;
+        ret *= 16;
+    }
+
+    if (16 <= val) {
+        val /= 16;
+        ret *= 4;
+    }
+}
+*/
 
 unsigned long long Zeta_FindNextConMod(unsigned long long beg,
                                        unsigned long long target,

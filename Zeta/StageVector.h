@@ -96,23 +96,23 @@ void* Zeta_StageVector_PeekR(void* sv, void* dst_cursor, void* dst_ele);
 void* Zeta_StageVector_Access(void* sv, void* dst_cursor, void* dst_ele,
                               size_t idx);
 
-void* Zeta_StageVector_Refer(void* sv, void* pos_cursor);
+void* Zeta_StageVector_Refer(void* sv, void const* pos_cursor);
 
-void Zeta_StageVector_Read(void* sv, void* pos_cursor, size_t cnt, void* dst,
-                           void* dst_cursor);
+void Zeta_StageVector_Read(void* sv, void const* pos_cursor, size_t cnt,
+                           void* dst, void* dst_cursor);
 
 void Zeta_StageVector_Write(void* sv, void* pos_cursor, size_t cnt,
                             void const* src, void* dst_cursor);
 
-void* Zeta_StageVector_PushL(void* sv, void* dst_cursor);
+void* Zeta_StageVector_PushL(void* sv, void* dst_cursor, size_t cnt);
 
-void* Zeta_StageVector_PushR(void* sv, void* dst_cursor);
+void* Zeta_StageVector_PushR(void* sv, void* dst_cursor, size_t cnt);
 
 void* Zeta_StageVector_Insert(void* sv, void* pos_cursor, size_t cnt);
 
-void Zeta_StageVector_PopL(void* sv);
+void Zeta_StageVector_PopL(void* sv, size_t cnt);
 
-void Zeta_StageVector_PopR(void* sv);
+void Zeta_StageVector_PopR(void* sv, size_t cnt);
 
 void Zeta_StageVector_Erase(void* sv, void* pos_cursor, size_t cnt);
 

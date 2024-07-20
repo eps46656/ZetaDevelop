@@ -98,6 +98,7 @@ class Compiler:
             f"-m64",
             f"-std=c2x",
             *(f"-I {include_dir}" for include_dir in include_dirs),
+            "-ferror-limit=2",
         ]
 
         self.cpp_to_ll_args = [
@@ -106,6 +107,7 @@ class Compiler:
             f"-m64",
             f"-std=c++17",
             *(f"-I {include_dir}" for include_dir in include_dirs),
+            "-ferror-limit=2",
         ]
 
         if self.mode == mode_enum.debug:
@@ -117,8 +119,6 @@ class Compiler:
                 "-Wall",
                 "-Wextra",
                 "-Werror",
-
-
             ]
 
             '''

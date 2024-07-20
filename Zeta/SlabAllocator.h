@@ -17,7 +17,7 @@ Single SlabAllocator only provides single width of unit.
 ZETA_DeclareStruct(Zeta_SlabAllocator);
 ZETA_DeclareStruct(Zeta_SlabAllocator_SlabHead);
 
-#define ZETA_SlabAllocator_max_num ZETA_RangeMaxOf(unsigned char)
+#define ZETA_SlabAllocator_max_units_per_slab ZETA_RangeMaxOf(unsigned char)
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
@@ -26,12 +26,12 @@ ZETA_DeclareStruct(Zeta_SlabAllocator_SlabHead);
 struct Zeta_SlabAllocator {
     size_t align;
     size_t width;
-    size_t num;
+    size_t units_per_slab;
 
-    size_t buffer_units_num;
+    size_t buffer_units_cnt;
 
-    size_t vacant_units_num;
-    size_t occupied_units_num;
+    size_t vacant_units_cnt;
+    size_t occupied_units_cnt;
 
     Zeta_OrdLinkedListNode* hot_unit_head;
 
@@ -43,7 +43,7 @@ struct Zeta_SlabAllocator {
 
 struct Zeta_SlabAllocator_SlabHead {
     Zeta_OrdLinkedListNode n;
-    unsigned char vacant_units_num;
+    unsigned char vacant_units_cnt;
 };
 
 // -----------------------------------------------------------------------------

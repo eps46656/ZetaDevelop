@@ -1,7 +1,9 @@
+#pragma once
+
 #include <algorithm>
 #include <unordered_map>
 
-void CheckRecords(
+inline void CheckRecords(
     std::unordered_map<unsigned long long, unsigned long long> const&
         allocator_records,
     std::unordered_map<unsigned long long, unsigned long long> const&
@@ -29,7 +31,7 @@ void CheckRecords(
     }
 }
 
-void CheckNoOverlap(
+inline void CheckNoOverlap(
     std::unordered_map<unsigned long long, unsigned long long> const& records) {
     if (records.empty()) { return; }
 

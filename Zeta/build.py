@@ -402,7 +402,7 @@ def AddDeps(builder, ZetaBuildDir, verbose, mode):
         f"{ZetaDir}/DebugDeque.h",
         {
             f"{File}",
-            f"{ZetaDir}/define.h",
+            f"{ZetaDir}/SeqContainer.h",
         },
         None
     )
@@ -1363,6 +1363,41 @@ def AddDeps(builder, ZetaBuildDir, verbose, mode):
         lambda : compiler.c_to_ll(
             f"{ZetaBuildDir}/random.ll",
             f"{ZetaDir}/random.c",
+        )
+    )
+
+    builder.Add(
+        f"{ZetaDir}/RadixDeque.h",
+        {
+            f"{File}",
+            f"{ZetaDir}/Allocator.h",
+            f"{ZetaDir}/SeqContainer.h",
+        },
+        None
+    )
+
+    builder.Add(
+        f"{ZetaDir}/RadixDeque.c",
+        {
+            f"{File}",
+            f"{ZetaDir}/RadixDeque.h",
+
+            f"{ZetaDir}/Debugger.h",
+            f"{ZetaDir}/CircularVector.h",
+            f"{ZetaDir}/utils.h",
+        },
+        None
+    )
+
+    builder.Add(
+        f"{ZetaBuildDir}/RadixDeque.ll",
+        {
+            f"{File}",
+            f"{ZetaDir}/RadixDeque.c",
+        },
+        lambda : compiler.c_to_ll(
+            f"{ZetaBuildDir}/RadixDeque.ll",
+            f"{ZetaDir}/RadixDeque.c",
         )
     )
 

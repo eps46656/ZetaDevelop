@@ -1,10 +1,7 @@
 #include "SegUtils.h"
 
-#include "utils.h"
-
-#if ZETA_IsDebug
 #include "Debugger.h"
-#endif
+#include "utils.h"
 
 void SegShoveL(Zeta_CircularVector* l_cv, Zeta_CircularVector* r_cv,
                size_t rl_cnt, size_t ins_cnt, size_t shove_cnt) {

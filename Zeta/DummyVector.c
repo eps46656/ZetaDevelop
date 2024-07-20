@@ -1,5 +1,7 @@
 #include "DummyVector.h"
 
+#include "Debugger.h"
+
 static void CheckDSC_(void* dsc_) {
     Zeta_DummyVector* dsc = dsc_;
     ZETA_DebugAssert(dsc != NULL);
@@ -15,19 +17,22 @@ static void CheckCursor_(void* dsc_, void const* cursor_) {
     size_t const* cursor = cursor_;
     ZETA_DebugAssert(cursor != NULL);
 
-    ZETA_DebugAssert(*cursor == -1 || *cursor == 0);
+    ZETA_DebugAssert(*cursor == (size_t)(-1) || *cursor == 0);
 }
 
 size_t Zeta_DummyVector_GetWidth(void* dsc_) {
     Zeta_DummyVector* dsc = dsc_;
     CheckDSC_(dsc);
+
     return dsc->width;
 }
 
 size_t Zeta_DummyVector_GetStride(void* dsc_) {
     Zeta_DummyVector* dsc = dsc_;
+
     CheckDSC_(dsc);
-    return dsc->width;
+
+    return dsc->stride;
 }
 
 size_t Zeta_DummyVector_GetSize(void* dsc) {
@@ -48,12 +53,16 @@ void Zeta_DummyVector_GetRBCursor(void* dsc, void* dst_cursor) {
 }
 
 void* Zeta_DummyVector_PeekL(void* dsc, void* dst_cursor, void* dst_ele) {
+    ZETA_Unused(dst_ele);
+
     CheckDSC_(dsc);
     if (dst_cursor != NULL) { *(size_t*)dst_cursor = 0; }
     return NULL;
 }
 
 void* Zeta_DummyVector_PeekR(void* dsc, void* dst_cursor, void* dst_ele) {
+    ZETA_Unused(dst_ele);
+
     CheckDSC_(dsc);
     if (dst_cursor != NULL) { *(size_t*)dst_cursor = -1; }
     return NULL;
@@ -61,13 +70,20 @@ void* Zeta_DummyVector_PeekR(void* dsc, void* dst_cursor, void* dst_ele) {
 
 void* Zeta_DummyVector_Access(void* dsc, void* dst_cursor, void* dst_ele,
                               size_t idx) {
+    ZETA_Unused(dst_ele);
+
     CheckDSC_(dsc);
-    ZETA_DebugAssert(idx == -1 || idx == 0);
+    ZETA_DebugAssert(idx == (size_t)(-1) || idx == 0);
     if (dst_cursor != NULL) { *(size_t*)dst_cursor = idx; }
     return NULL;
 }
 
-void* Zeta_DummyVector_Refer(void* dsc, void* pos_cursor) { return NULL; }
+void* Zeta_DummyVector_Refer(void* dsc, void* pos_cursor) {
+    ZETA_Unused(dsc);
+    ZETA_Unused(pos_cursor);
+
+    return NULL;
+}
 
 void Zeta_DummyVector_Read(void* dsc, void* pos_cursor, size_t cnt, void* dst,
                            void* dst_cursor) {
@@ -123,7 +139,7 @@ void Zeta_DummyVector_Cursor_StepL(void* dsc, void* cursor_) {
     size_t* cursor = cursor_;
     CheckCursor_(dsc, cursor);
 
-    ZETA_DebugAssert(*cursor == -1);
+    ZETA_DebugAssert(*cursor == (size_t)(-1));
 
     ++*cursor;
 }
@@ -162,11 +178,15 @@ void Zeta_DummyVector_DeploySeqContainer(void* dsc_,
 
     ZETA_DebugAssert(seq_cntr != NULL);
 
+    Zeta_SeqContainer_Init(seq_cntr);
+
     seq_cntr->context = dsc;
 
     seq_cntr->cursor_width = sizeof(size_t);
 
     seq_cntr->GetWidth = Zeta_DummyVector_GetWidth;
+
+    seq_cntr->GetStride = Zeta_DummyVector_GetStride;
 
     seq_cntr->GetSize = Zeta_DummyVector_GetSize;
 
