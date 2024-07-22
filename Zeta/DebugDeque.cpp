@@ -214,14 +214,14 @@ void* Zeta_DebugDeque_PushR(void* dd_, void* dst_cursor_, size_t cnt) {
 
     std::deque<void*>* deque = (std::deque<void*>*)dd->deque;
 
-    size_t* dst_cursor = (size_t*)dst_cursor_;
-    if (dst_cursor != NULL) { *dst_cursor = 0; }
-
     size_t origin_size{ deque->size() };
+
+    size_t* dst_cursor = (size_t*)dst_cursor_;
+    if (dst_cursor != NULL) { *dst_cursor = origin_size; }
 
     while (0 < cnt--) { deque->push_back(new unsigned char[dd->width]); }
 
-    return deque->empty() ? NULL : (*deque)[origin_size];
+    return origin_size < deque->size() ? (*deque)[origin_size] : NULL;
 }
 
 void* Zeta_DebugDeque_Insert(void* dd_, void* pos_cursor_, size_t cnt) {
@@ -425,9 +425,13 @@ void Zeta_DebugDeque_DeploySeqContainer(void* dd_,
 
     ZETA_DebugAssert(seq_cntr != NULL);
 
+    Zeta_SeqContainer_Init(seq_cntr);
+
     seq_cntr->context = dd;
 
-    seq_cntr->cursor_width = sizeof(size_t);
+    seq_cntr->cursor_align = alignof(size_t);
+
+    seq_cntr->cursor_size = sizeof(size_t);
 
     seq_cntr->GetWidth = Zeta_DebugDeque_GetWidth;
 

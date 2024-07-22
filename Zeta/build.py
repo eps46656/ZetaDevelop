@@ -412,6 +412,7 @@ def AddDeps(builder, ZetaBuildDir, verbose, mode):
         {
             f"{File}",
             f"{ZetaDir}/DebugDeque.h",
+
             f"{ZetaDir}/Debugger.h",
             f"{ZetaDir}/utils.h",
         },

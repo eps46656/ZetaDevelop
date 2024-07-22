@@ -8,7 +8,7 @@ extern Zeta_Pipe* debug_pipe;
 
 extern bool_t zeta_assert_stage;
 
-#define ZETA_Debug_ImmPrint FALSE
+#define ZETA_Debug_ImmPrint TRUE
 
 #define ZETA_DebugLogCurPos                        \
     Zeta_Debugger_InitPipe();                      \
@@ -20,21 +20,21 @@ extern bool_t zeta_assert_stage;
     if (ZETA_Debug_ImmPrint) { ZETA_PrintVar(var); } \
     ZETA_LogVar(debug_pipe, var)
 
-#define ZETA_Pause                                         \
-    {                                                      \
-        ZETA_PrintPosFormat(__FILE__, __LINE__, __func__); \
-                                                           \
-        printf("\tpause...");                              \
-                                                           \
-        if (FALSE) {                                       \
-            fflush(stdout);                                \
-            char tmp;                                      \
-            scanf_s("%c", &tmp);                           \
-        } else {                                           \
-            printf("\n");                                  \
-            if (ZETA_ImmPrint) { fflush(stdout); }         \
-        }                                                  \
-    }                                                      \
+#define ZETA_Pause                                   \
+    {                                                \
+        ZETA_PrintPos(__FILE__, __LINE__, __func__); \
+                                                     \
+        printf("\tpause...");                        \
+                                                     \
+        if (TRUE) {                                  \
+            fflush(stdout);                          \
+            char tmp;                                \
+            scanf_s("%c", &tmp);                     \
+        } else {                                     \
+            printf("\n");                            \
+            if (ZETA_ImmPrint) { fflush(stdout); }   \
+        }                                            \
+    }                                                \
     ZETA_StaticAssert(TRUE)
 
 #define ZETA_AssertVerbose(pipe, cond, callback, callback_context)  \

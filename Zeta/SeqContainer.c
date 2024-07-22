@@ -3,6 +3,10 @@
 void Zeta_SeqContainer_Init(Zeta_SeqContainer* seq_cntr) {
     seq_cntr->context = NULL;
 
+    seq_cntr->cursor_align = 1;
+
+    seq_cntr->cursor_size = 0;
+
     seq_cntr->GetWidth = NULL;
 
     seq_cntr->GetStride = NULL;

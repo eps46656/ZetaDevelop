@@ -36,8 +36,7 @@ ZETA_ExternC_Beg;
     ZETA_StaticAssert(TRUE)
 
 #define ZETA_LogPos(pipe, filename, line_num, funcname, new_line)        \
-    ZETA_LogPos_(ZETA_UniqueName(ZETA_tmp_), ZETA_UniqueName(ZETA_tmp_), \
-                 ZETA_UniqueName(ZETA_tmp_), ZETA_UniqueName(ZETA_tmp_), \
+    ZETA_LogPos_(ZETA_TmpName, ZETA_TmpName, ZETA_TmpName, ZETA_TmpName, \
                  (pipe), (filename), (line_num), (funcname), (new_line))
 
 #define ZETA_LogCurPos(pipe) \
@@ -65,6 +64,9 @@ ZETA_ExternC_Beg;
             unsigned char: Zeta_Logger_LogUChar_(pipe_tmp, &varval_tmp),       \
             signed char: Zeta_Logger_LogSChar_(pipe_tmp, &varval_tmp),         \
                                                                                \
+            unsigned short: Zeta_Logger_LogUShort_(pipe_tmp, &varval_tmp),     \
+            short: Zeta_Logger_LogSShort_(pipe_tmp, &varval_tmp),              \
+                                                                               \
             unsigned: Zeta_Logger_LogUInt_(pipe_tmp, &varval_tmp),             \
             int: Zeta_Logger_LogSInt_(pipe_tmp, &varval_tmp),                  \
                                                                                \
@@ -84,27 +86,29 @@ ZETA_ExternC_Beg;
     }                                                                          \
     ZETA_StaticAssert(TRUE)
 
-#define ZETA_LogVar(pipe, var)                                           \
-    ZETA_LogVar_(ZETA_UniqueName(ZETA_tmp_), ZETA_UniqueName(ZETA_tmp_), \
-                 ZETA_UniqueName(ZETA_tmp_), pipe, var)
+#define ZETA_LogVar(pipe, var) \
+    ZETA_LogVar_(ZETA_TmpName, ZETA_TmpName, ZETA_TmpName, pipe, var)
 
-void Zeta_Logger_LogBool_(Zeta_Pipe* pipe, void* ptr);
+void Zeta_Logger_LogBool_(Zeta_Pipe* pipe, void const* ptr);
 
-void Zeta_Logger_LogChar_(Zeta_Pipe* pipe, void* ptr);
-void Zeta_Logger_LogUChar_(Zeta_Pipe* pipe, void* ptr);
-void Zeta_Logger_LogSChar_(Zeta_Pipe* pipe, void* ptr);
+void Zeta_Logger_LogChar_(Zeta_Pipe* pipe, void const* ptr);
+void Zeta_Logger_LogUChar_(Zeta_Pipe* pipe, void const* ptr);
+void Zeta_Logger_LogSChar_(Zeta_Pipe* pipe, void const* ptr);
 
-void Zeta_Logger_LogUInt_(Zeta_Pipe* pipe, void* ptr);
-void Zeta_Logger_LogSInt_(Zeta_Pipe* pipe, void* ptr);
+void Zeta_Logger_LogUShort_(Zeta_Pipe* pipe, void const* ptr);
+void Zeta_Logger_LogSShort_(Zeta_Pipe* pipe, void const* ptr);
 
-void Zeta_Logger_LogULong_(Zeta_Pipe* pipe, void* ptr);
-void Zeta_Logger_LogSLong_(Zeta_Pipe* pipe, void* ptr);
+void Zeta_Logger_LogUInt_(Zeta_Pipe* pipe, void const* ptr);
+void Zeta_Logger_LogSInt_(Zeta_Pipe* pipe, void const* ptr);
 
-void Zeta_Logger_LogULLong_(Zeta_Pipe* pipe, void* ptr);
-void Zeta_Logger_LogSLLong_(Zeta_Pipe* pipe, void* ptr);
+void Zeta_Logger_LogULong_(Zeta_Pipe* pipe, void const* ptr);
+void Zeta_Logger_LogSLong_(Zeta_Pipe* pipe, void const* ptr);
 
-void Zeta_Logger_LogPtr_(Zeta_Pipe* pipe, void* ptr);
+void Zeta_Logger_LogULLong_(Zeta_Pipe* pipe, void const* ptr);
+void Zeta_Logger_LogSLLong_(Zeta_Pipe* pipe, void const* ptr);
 
-void Zeta_Logger_LogStr_(Zeta_Pipe* pipe, void* ptr);
+void Zeta_Logger_LogPtr_(Zeta_Pipe* pipe, void const* ptr);
+
+void Zeta_Logger_LogStr_(Zeta_Pipe* pipe, void const* ptr);
 
 ZETA_ExternC_End;

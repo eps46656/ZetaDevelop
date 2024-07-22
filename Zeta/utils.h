@@ -46,6 +46,8 @@ void Zeta_MemSwap(void* x, void* y, size_t size);
  */
 void* Zeta_MemRotate(void* beg, void* mid, void* end);
 
+void Zeta_MemReverse(void* data, size_t stride, size_t size);
+
 /**
  * @brief Read little endian stored length bytes occupying integer from data.
  *

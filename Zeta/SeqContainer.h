@@ -13,7 +13,9 @@ ZETA_DeclareStruct(Zeta_SeqContainer);
 struct Zeta_SeqContainer {
     void* context;
 
-    size_t cursor_width;
+    size_t cursor_align;
+
+    size_t cursor_size;
 
     size_t (*GetWidth)(void* context);
 
@@ -78,5 +80,38 @@ struct Zeta_SeqContainer {
 // -----------------------------------------------------------------------------
 
 void Zeta_SeqContainer_Init(Zeta_SeqContainer* seq_cntr);
+
+#define ZETA_SeqContainer_GetWidth_(seq_cntr_tmp, seq_cntr) \
+    ({                                                      \
+        Zeta_SeqContainer const* seq_cntr_tmp = (seq_cntr); \
+        ZETA_DebugAssert(seq_cntr_tmp != NULL);             \
+        ZETA_DebugAssert(seq_cntr_tmp->GetSize != NULL);    \
+        seq_cntr_tmp->GetWidth(seq_cntr_tmp->context);      \
+    })
+
+#define ZETA_SeqContainer_GetWidth(seq_cntr) \
+    ZETA_SeqContainer_GetWidth_(ZETA_TmpeName, (seq_cntr))
+
+#define ZETA_SeqContainer_GetStride_(seq_cntr_tmp, seq_cntr) \
+    ({                                                       \
+        Zeta_SeqContainer const* seq_cntr_tmp = (seq_cntr);  \
+        ZETA_DebugAssert(seq_cntr_tmp != NULL);              \
+        ZETA_DebugAssert(seq_cntr_tmp->GetSize != NULL);     \
+        seq_cntr_tmp->GetStride(seq_cntr_tmp->context);      \
+    })
+
+#define ZETA_SeqContainer_GetStride(seq_cntr) \
+    ZETA_SeqContainer_GetStride_(ZETA_TmpeName, (seq_cntr))
+
+#define ZETA_SeqContainer_GetSize_(seq_cntr_tmp, seq_cntr)  \
+    ({                                                      \
+        Zeta_SeqContainer const* seq_cntr_tmp = (seq_cntr); \
+        ZETA_DebugAssert(seq_cntr_tmp != NULL);             \
+        ZETA_DebugAssert(seq_cntr_tmp->GetSize != NULL);    \
+        seq_cntr_tmp->GetSize(seq_cntr_tmp->context);       \
+    })
+
+#define ZETA_SeqContainer_GetSize(seq_cntr) \
+    ZETA_SeqContainer_GetSize_(ZETA_TmpeName, (seq_cntr))
 
 ZETA_ExternC_End;

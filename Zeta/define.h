@@ -62,6 +62,8 @@ typedef unsigned unichar_t;
 
 #define ZETA_UniqueName(prefix) ZETA_Concat(prefix, __COUNTER__)
 
+#define ZETA_TmpName ZETA_UniqueName(ZETA_tmp_)
+
 #define ZETA_DeclareStruct(struct_name)     \
     typedef struct struct_name struct_name; \
     struct struct_name;                     \
@@ -69,7 +71,7 @@ typedef unsigned unichar_t;
 
 #if defined(__cplusplus)
 #define ZETA_AutoVar(var, expression) \
-    auto var = (expression);          \
+    auto var{ (expression) };         \
     ZETA_StaticAssert(TRUE)
 #else
 #define ZETA_AutoVar(var, expression)        \
@@ -251,7 +253,7 @@ typedef unsigned unichar_t;
                            __builtin_clzll(x_tmp));               \
     })
 
-#define ZETA_FloorLog2(x) ZETA_FloorLog2_(ZETA_UniqueName(ZETA_tmp_), x)
+#define ZETA_FloorLog2(x) ZETA_FloorLog2_(ZETA_TmpName, x)
 
 #define ZETA_CeilLog2_(x_tmp, x)                                \
     ({                                                          \
@@ -262,7 +264,7 @@ typedef unsigned unichar_t;
                            __builtin_clzll(x_tmp));             \
     })
 
-#define ZETA_CeilLog2(x) ZETA_CeilLog2_(ZETA_UniqueName(ZETA_tmp_), x)
+#define ZETA_CeilLog2(x) ZETA_CeilLog2_(ZETA_TmpName, x)
 
 #define ZETA_PtrToAddr(x) ((uintptr_t)(void*)(x))
 #define ZETA_AddrToPtr(x) ((void*)(uintptr_t)(x))
@@ -278,9 +280,7 @@ typedef unsigned unichar_t;
         x_tmp < y_tmp ? x_tmp : y_tmp;     \
     })
 
-#define ZETA_GetMinOf(x, y)                                                \
-    ZETA_GetMinOf_(ZETA_UniqueName(ZETA_tmp_), ZETA_UniqueName(ZETA_tmp_), \
-                   (x), (y))
+#define ZETA_GetMinOf(x, y) ZETA_GetMinOf_(ZETA_TmpName, ZETA_TmpName, (x), (y))
 
 #define ZETA_GetMaxOf_(x_tmp, y_tmp, x, y) \
     ({                                     \
@@ -289,9 +289,7 @@ typedef unsigned unichar_t;
         x_tmp < y_tmp ? y_tmp : x_tmp;     \
     })
 
-#define ZETA_GetMaxOf(x, y)                                                \
-    ZETA_GetMaxOf_(ZETA_UniqueName(ZETA_tmp_), ZETA_UniqueName(ZETA_tmp_), \
-                   (x), (y))
+#define ZETA_GetMaxOf(x, y) ZETA_GetMaxOf_(ZETA_TmpName, ZETA_TmpName, (x), (y))
 
 #define ZETA_Swap_(x, y, tmp) \
     {                         \
@@ -301,7 +299,7 @@ typedef unsigned unichar_t;
     }                         \
     ZETA_StaticAssert(TRUE)
 
-#define ZETA_Swap(x, y) ZETA_Swap_((x), (y), ZETA_UniqueName(ZETA_tmp_))
+#define ZETA_Swap(x, y) ZETA_Swap_((x), (y), ZETA_TmpName)
 
 #define ZETA_GetMaxMod(type) (ZETA_RangeMaxOf(type) / 2 + 1)
 
@@ -314,8 +312,7 @@ ZETA_StaticAssert(255 <= ZETA_RangeMaxOf(byte_t));
         mod_tmp - 1 - ((val) + mod_tmp - 1) % mod_tmp; \
     })
 
-#define ZETA_ModAddInv(val, mod) \
-    ZETA_ModAddInv_(ZETA_UniqueName(ZETA_tmp_), (val), (mod))
+#define ZETA_ModAddInv(val, mod) ZETA_ModAddInv_(ZETA_TmpName, (val), (mod))
 
 #define ZETA_CeilIntDiv_(x_tmp, y_tmp, x, y) \
     ({                                       \
@@ -324,9 +321,8 @@ ZETA_StaticAssert(255 <= ZETA_RangeMaxOf(byte_t));
         (x_tmp + y_tmp - 1) / y_tmp;         \
     })
 
-#define ZETA_CeilIntDiv(x, y)                                                \
-    ZETA_CeilIntDiv_(ZETA_UniqueName(ZETA_tmp_), ZETA_UniqueName(ZETA_tmp_), \
-                     (x), (y))
+#define ZETA_CeilIntDiv(x, y) \
+    ZETA_CeilIntDiv_(ZETA_TmpName, ZETA_TmpName, (x), (y))
 
 #define ZETA_RoundIntDiv_(x_tmp, y_tmp, x, y) \
     ({                                        \
@@ -335,9 +331,8 @@ ZETA_StaticAssert(255 <= ZETA_RangeMaxOf(byte_t));
         (x_tmp + y_tmp / 2) / y_tmp;          \
     })
 
-#define ZETA_RoundIntDiv(x, y)                                                \
-    ZETA_RoundIntDiv_(ZETA_UniqueName(ZETA_tmp_), ZETA_UniqueName(ZETA_tmp_), \
-                      (x), (y))
+#define ZETA_RoundIntDiv(x, y) \
+    ZETA_RoundIntDiv_(ZETA_TmpName, ZETA_TmpName, (x), (y))
 
 #define ZETA_AreOverlapped_(a_beg_tmp, a_end_tmp, b_beg_tmp, b_end_tmp, a_beg, \
                             a_size, b_beg, b_size)                             \
@@ -351,11 +346,9 @@ ZETA_StaticAssert(255 <= ZETA_RangeMaxOf(byte_t));
         (b_beg_tmp < a_end_tmp) && (a_beg_tmp < b_end_tmp);                    \
     })
 
-#define ZETA_AreOverlapped(a_beg, a_size, b_beg, b_size)                 \
-    ZETA_AreOverlapped_(                                                 \
-        ZETA_UniqueName(ZETA_tmp_), ZETA_UniqueName(ZETA_tmp_),          \
-        ZETA_UniqueName(ZETA_tmp_), ZETA_UniqueName(ZETA_tmp_), (a_beg), \
-        (a_size), (b_beg), (b_size))
+#define ZETA_AreOverlapped(a_beg, a_size, b_beg, b_size)          \
+    ZETA_AreOverlapped_(ZETA_TmpName, ZETA_TmpName, ZETA_TmpName, \
+                        ZETA_TmpName, (a_beg), (a_size), (b_beg), (b_size))
 
 #define ZETA_ImmPrint (TRUE)
 

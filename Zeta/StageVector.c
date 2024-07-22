@@ -130,9 +130,12 @@ static void TransRefSegToDatSeg_(Zeta_StageVector* sv,
 
     size_t size = seg->ref.size;
 
-    Zeta_Cursor origin_cursor;
-    sv->origin->Access(sv->origin->context, &origin_cursor, NULL, seg->ref.beg);
-    sv->origin->Read(sv->origin->context, &origin_cursor, size, data, NULL);
+    void* origin_cursor = __builtin_alloca_with_align(
+        sv->origin->cursor_size,
+        ZETA_WidthOf(unsigned char) * alignof(max_align_t));
+
+    sv->origin->Access(sv->origin->context, origin_cursor, NULL, seg->ref.beg);
+    sv->origin->Read(sv->origin->context, origin_cursor, size, data, NULL);
 
     SetNColor_(&seg->n, dat_color);
 
@@ -226,17 +229,20 @@ L1:;
 
 L2:;
 
+    void* origin_cursor = __builtin_alloca_with_align(
+        sv->origin->cursor_size,
+        ZETA_WidthOf(unsigned char) * alignof(max_align_t));
+
     if (GetNColor_(l_n) == ref_color) {
         unsigned char* data = AllocateData_(sv);
 
-        Zeta_Cursor origin_cursor;
-        sv->origin->Access(sv->origin->context, &origin_cursor, NULL,
+        sv->origin->Access(sv->origin->context, origin_cursor, NULL,
                            l_seg->ref.beg);
-        sv->origin->Read(sv->origin->context, &origin_cursor, l_size, data,
+        sv->origin->Read(sv->origin->context, origin_cursor, l_size, data,
                          NULL);
-        sv->origin->Access(sv->origin->context, &origin_cursor, NULL,
+        sv->origin->Access(sv->origin->context, origin_cursor, NULL,
                            seg->ref.beg);
-        sv->origin->Read(sv->origin->context, &origin_cursor, seg_idx,
+        sv->origin->Read(sv->origin->context, origin_cursor, seg_idx,
                          data + stride * l_size, NULL);
 
         SetNColor_(l_n, dat_color);
@@ -257,16 +263,14 @@ L2:;
         Zeta_CircularVector_GetRBCursor(&cv, &cv_cursor);
         Zeta_CircularVector_Insert(&cv, &cv_cursor, seg_idx);
 
-        Zeta_Cursor origin_cursor;
-
-        sv->origin->Access(sv->origin->context, &origin_cursor, NULL,
+        sv->origin->Access(sv->origin->context, origin_cursor, NULL,
                            seg->ref.beg);
 
         for (size_t i = 0; i < seg_idx; ++i) {
             sv->origin->Read(
-                sv->origin->context, &origin_cursor, 1,
+                sv->origin->context, origin_cursor, 1,
                 Zeta_CircularVector_Access(&cv, NULL, NULL, l_size + i),
-                &origin_cursor);
+                origin_cursor);
         }
 
         l_seg->dat.offset = cv.offset;
@@ -285,11 +289,14 @@ static void PushRefL_(Zeta_StageVector* sv, Zeta_CircularVector* cv, size_t beg,
     Zeta_CircularVector_PeekL(cv, &cv_cursor, NULL);
     Zeta_CircularVector_Insert(cv, &cv_cursor, size);
 
-    Zeta_Cursor origin_cursor;
-    sv->origin->Access(sv->origin->context, &origin_cursor, NULL, beg);
+    void* origin_cursor = __builtin_alloca_with_align(
+        sv->origin->cursor_size,
+        ZETA_WidthOf(unsigned char) * alignof(max_align_t));
+
+    sv->origin->Access(sv->origin->context, origin_cursor, NULL, beg);
 
     Zeta_CircularVector_AssignFromSeqContainer(cv, &cv_cursor, sv->origin,
-                                               &origin_cursor, size);
+                                               origin_cursor, size);
 }
 
 static void PushRefR_(Zeta_StageVector* sv, Zeta_CircularVector* cv, size_t beg,
@@ -298,11 +305,14 @@ static void PushRefR_(Zeta_StageVector* sv, Zeta_CircularVector* cv, size_t beg,
     Zeta_CircularVector_GetRBCursor(cv, &cv_cursor);
     Zeta_CircularVector_Insert(cv, &cv_cursor, size);
 
-    Zeta_Cursor origin_cursor;
-    sv->origin->Access(sv->origin->context, &origin_cursor, NULL, beg);
+    void* origin_cursor = __builtin_alloca_with_align(
+        sv->origin->cursor_size,
+        ZETA_WidthOf(unsigned char) * alignof(max_align_t));
+
+    sv->origin->Access(sv->origin->context, origin_cursor, NULL, beg);
 
     Zeta_CircularVector_AssignFromSeqContainer(cv, &cv_cursor, sv->origin,
-                                               &origin_cursor, size);
+                                               origin_cursor, size);
 }
 
 static void Merge2_(Zeta_StageVector* sv, size_t width, size_t stride,
@@ -320,19 +330,21 @@ static void Merge2_(Zeta_StageVector* sv, size_t width, size_t stride,
     unsigned long long rand_seed =
         ZETA_PtrToAddr(a_seg) + ZETA_PtrToAddr(b_seg);
 
+    void* origin_cursor = __builtin_alloca_with_align(
+        sv->origin->cursor_size,
+        ZETA_WidthOf(unsigned char) * alignof(max_align_t));
+
     if (a_c == ref_color && b_c == ref_color) {
         unsigned char* data = AllocateData_(sv);
 
-        Zeta_Cursor origin_cursor;
-
-        sv->origin->Access(sv->origin->context, &origin_cursor, NULL,
+        sv->origin->Access(sv->origin->context, origin_cursor, NULL,
                            a_seg->ref.beg);
-        sv->origin->Read(sv->origin->context, &origin_cursor, a_size, data,
+        sv->origin->Read(sv->origin->context, origin_cursor, a_size, data,
                          NULL);
 
-        sv->origin->Access(sv->origin->context, &origin_cursor, NULL,
+        sv->origin->Access(sv->origin->context, origin_cursor, NULL,
                            b_seg->ref.beg);
-        sv->origin->Read(sv->origin->context, &origin_cursor, b_seg->ref.size,
+        sv->origin->Read(sv->origin->context, origin_cursor, b_seg->ref.size,
                          data + stride * a_size, NULL);
 
         a_seg->ref.size = 0;
@@ -419,9 +431,8 @@ static void Merge2_(Zeta_StageVector* sv, size_t width, size_t stride,
         }                                                                 \
     }
 
-#define SetSegState(seg, cv, vacant)                                     \
-    SetSegState_(ZETA_UniqueName(ZETA_tmp_), ZETA_UniqueName(ZETA_tmp_), \
-                 ZETA_UniqueName(ZETA_tmp_), seg, cv, vacant)
+#define SetSegState(seg, cv, vacant) \
+    SetSegState_(ZETA_TmpName, ZETA_TmpName, ZETA_TmpName, seg, cv, vacant)
 
 static void RefShoveL_(Zeta_StageVector* sv, Zeta_CircularVector* l_cv,
                        Zeta_StageVector_Seg* r_seg, size_t rl_size,
@@ -435,22 +446,24 @@ static void RefShoveL_(Zeta_StageVector* sv, Zeta_CircularVector* l_cv,
     size_t l_i = l_cv->size;
 
     Zeta_CircularVector_Cursor l_cursor;
-    Zeta_Cursor r_cursor;
+    void* r_cursor = __builtin_alloca_with_align(
+        sv->origin->cursor_size,
+        ZETA_WidthOf(unsigned char) * alignof(max_align_t));
 
     Zeta_CircularVector_GetRBCursor(l_cv, &l_cursor);
 
     Zeta_CircularVector_Insert(l_cv, &l_cursor, shove_cnt);
 
-    sv->origin->Access(sv->origin->context, &r_cursor, NULL, r_seg->ref.beg);
+    sv->origin->Access(sv->origin->context, r_cursor, NULL, r_seg->ref.beg);
 
     for (size_t i = cnt_a; 0 < i;) {
         size_t cur_i =
             ZETA_GetMinOf(i, Zeta_CircularVector_GetLongestContSucr(l_cv, l_i));
         i -= cur_i;
 
-        sv->origin->Read(sv->origin->context, &r_cursor, cur_i,
+        sv->origin->Read(sv->origin->context, r_cursor, cur_i,
                          Zeta_CircularVector_Access(l_cv, NULL, NULL, l_i),
-                         &r_cursor);
+                         r_cursor);
 
         l_i += cur_i;
     }
@@ -462,9 +475,9 @@ static void RefShoveL_(Zeta_StageVector* sv, Zeta_CircularVector* l_cv,
             ZETA_GetMinOf(i, Zeta_CircularVector_GetLongestContSucr(l_cv, l_i));
         i -= cur_i;
 
-        sv->origin->Read(sv->origin->context, &r_cursor, cur_i,
+        sv->origin->Read(sv->origin->context, r_cursor, cur_i,
                          Zeta_CircularVector_Access(l_cv, NULL, NULL, l_i),
-                         &r_cursor);
+                         r_cursor);
 
         l_i += cur_i;
     }
@@ -476,15 +489,15 @@ static void RefShoveL_(Zeta_StageVector* sv, Zeta_CircularVector* l_cv,
         unsigned char* data_i = data;
 
         if (cnt_a < rl_size) {
-            sv->origin->Read(sv->origin->context, &r_cursor, rl_size - cnt_a,
-                             data_i, &r_cursor);
+            sv->origin->Read(sv->origin->context, r_cursor, rl_size - cnt_a,
+                             data_i, r_cursor);
         }
 
         data_i += stride * (rl_size - cnt_a + ins_cnt - cnt_b);
 
         if (rl_size < r_seg->ref.size) {
-            sv->origin->Read(sv->origin->context, &r_cursor,
-                             r_seg->ref.size - rl_size, data_i, &r_cursor);
+            sv->origin->Read(sv->origin->context, r_cursor,
+                             r_seg->ref.size - rl_size, data_i, r_cursor);
         }
 
         SetNColor_(&r_seg->n, dat_color);
@@ -509,14 +522,17 @@ static void RefShoveR_(Zeta_StageVector* sv, Zeta_StageVector_Seg* l_seg,
 
     size_t r_i = 0;
 
-    Zeta_Cursor l_cursor;
+    void* l_cursor = __builtin_alloca_with_align(
+        sv->origin->cursor_size,
+        ZETA_WidthOf(unsigned char) * alignof(max_align_t));
+
     Zeta_CircularVector_Cursor r_cursor;
 
     Zeta_CircularVector_PeekL(r_cv, &r_cursor, NULL);
 
     Zeta_CircularVector_Insert(r_cv, &r_cursor, shove_cnt);
 
-    sv->origin->Access(sv->origin->context, &l_cursor, NULL,
+    sv->origin->Access(sv->origin->context, l_cursor, NULL,
                        l_seg->ref.beg + l_seg->ref.size - cnt_a - cnt_c);
 
     for (size_t i = cnt_c; 0 < i;) {
@@ -524,9 +540,9 @@ static void RefShoveR_(Zeta_StageVector* sv, Zeta_StageVector_Seg* l_seg,
             ZETA_GetMinOf(i, Zeta_CircularVector_GetLongestContSucr(r_cv, r_i));
         i -= cur_i;
 
-        sv->origin->Read(sv->origin->context, &l_cursor, cur_i,
+        sv->origin->Read(sv->origin->context, l_cursor, cur_i,
                          Zeta_CircularVector_Access(r_cv, NULL, NULL, r_i),
-                         &l_cursor);
+                         l_cursor);
 
         r_i += cur_i;
     }
@@ -538,9 +554,9 @@ static void RefShoveR_(Zeta_StageVector* sv, Zeta_StageVector_Seg* l_seg,
             ZETA_GetMinOf(i, Zeta_CircularVector_GetLongestContSucr(r_cv, r_i));
         i -= cur_i;
 
-        sv->origin->Read(sv->origin->context, &l_cursor, cur_i,
+        sv->origin->Read(sv->origin->context, l_cursor, cur_i,
                          Zeta_CircularVector_Access(r_cv, NULL, NULL, r_i),
-                         &l_cursor);
+                         l_cursor);
 
         r_i += cur_i;
     }
@@ -551,19 +567,18 @@ static void RefShoveR_(Zeta_StageVector* sv, Zeta_StageVector_Seg* l_seg,
         unsigned char* data = AllocateData_(sv);
         unsigned char* data_i = data;
 
-        sv->origin->Access(sv->origin->context, &l_cursor, NULL,
-                           l_seg->ref.beg);
+        sv->origin->Access(sv->origin->context, l_cursor, NULL, l_seg->ref.beg);
 
         if (lr_size < l_seg->ref.size) {
-            sv->origin->Read(sv->origin->context, &l_cursor,
-                             l_seg->ref.size - lr_size, data_i, &l_cursor);
+            sv->origin->Read(sv->origin->context, l_cursor,
+                             l_seg->ref.size - lr_size, data_i, l_cursor);
         }
 
         data_i += stride * (l_seg->ref.size - lr_size + ins_cnt - cnt_b);
 
         if (cnt_a < lr_size) {
-            sv->origin->Read(sv->origin->context, &l_cursor, lr_size - cnt_a,
-                             data_i, &l_cursor);
+            sv->origin->Read(sv->origin->context, l_cursor, lr_size - cnt_a,
+                             data_i, l_cursor);
         }
 
         SetNColor_(&l_seg->n, dat_color);
@@ -896,7 +911,9 @@ void Zeta_StageVector_Read(void* sv_, void const* pos_cursor_, size_t cnt,
 
     size_t seg_idx = pos_cursor->seg_idx;
 
-    Zeta_Cursor origin_cursor;
+    void* origin_cursor = __builtin_alloca_with_align(
+        sv->origin->cursor_size,
+        ZETA_WidthOf(unsigned char) * alignof(max_align_t));
 
     Zeta_CircularVector cv;
     cv.width = width;
@@ -913,9 +930,9 @@ void Zeta_StageVector_Read(void* sv_, void const* pos_cursor_, size_t cnt,
             seg_size = seg->ref.size;
             cur_cnt = ZETA_GetMinOf(cnt, seg_size - seg_idx);
 
-            sv->origin->Access(sv->origin->context, &origin_cursor, NULL,
+            sv->origin->Access(sv->origin->context, origin_cursor, NULL,
                                seg->ref.beg + seg_idx);
-            sv->origin->Read(sv->origin->context, &origin_cursor, cur_cnt, dst,
+            sv->origin->Read(sv->origin->context, origin_cursor, cur_cnt, dst,
                              NULL);
         } else {
             seg_size = seg->dat.size;
@@ -1021,6 +1038,10 @@ void Zeta_StageVector_Write(void* sv_, void* pos_cursor_, size_t cnt,
         seg_idx = 0;
     }
 
+    void* origin_cursor = __builtin_alloca_with_align(
+        sv->origin->cursor_size,
+        ZETA_WidthOf(unsigned char) * alignof(max_align_t));
+
     Zeta_CircularVector cv;
     cv.width = width;
     cv.stride = stride;
@@ -1103,12 +1124,11 @@ void Zeta_StageVector_Write(void* sv_, void* pos_cursor_, size_t cnt,
             continue;
         }
 
-        Zeta_Cursor origin_cursor;
-        sv->origin->Access(sv->origin->context, &origin_cursor, NULL,
+        sv->origin->Access(sv->origin->context, origin_cursor, NULL,
                            seg->ref.beg + cur_cnt);
 
-        sv->origin->Read(sv->origin->context, &origin_cursor,
-                         seg_size - cur_cnt, data + stride * cur_cnt, NULL);
+        sv->origin->Read(sv->origin->context, origin_cursor, seg_size - cur_cnt,
+                         data + stride * cur_cnt, NULL);
 
         seg->dat.data = data;
         seg->dat.offset = 0;
@@ -2672,9 +2692,7 @@ void Zeta_StageVector_Cursor_AdvanceL(void* sv_, void* cursor_, size_t step) {
     Zeta_BinTree_InitOpr(&btn_opr);
     Zeta_OrdCnt3RBTreeNode_DeployBinTreeNodeOperator(NULL, &btn_opr);
 
-    size_t size = Zeta_StageVector_GetSize(sv);
-
-    ZETA_DebugAssert(cursor->idx - step + 1 < size + 2);
+    ZETA_DebugAssert(step <= cursor->idx + 1);
 
     void* dst_n;
     size_t dst_seg_idx;
@@ -2738,7 +2756,7 @@ void Zeta_StageVector_Cursor_AdvanceR(void* sv_, void* cursor_, size_t step) {
 
     size_t size = Zeta_StageVector_GetSize(sv);
 
-    ZETA_DebugAssert(cursor->idx + step + 1 < size + 2);
+    ZETA_DebugAssert(step <= size - cursor->idx);
 
     void* dst_n;
     size_t dst_seg_idx;
@@ -2802,7 +2820,9 @@ void Zeta_StageVector_DeploySeqContainer(void* sv_,
 
     seq_cntr->context = sv;
 
-    seq_cntr->cursor_width = sizeof(Zeta_StageVector_Cursor);
+    seq_cntr->cursor_align = alignof(Zeta_StageVector_Cursor);
+
+    seq_cntr->cursor_size = sizeof(Zeta_StageVector_Cursor);
 
     seq_cntr->GetWidth = Zeta_StageVector_GetWidth;
 

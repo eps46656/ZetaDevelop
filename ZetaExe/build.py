@@ -107,10 +107,10 @@ def AddDeps(builder, ZetaBuildDir, ZetaExeBuildDir, verbose, mode):
     )
 
     builder.Add(
-        f"{ZetaExeDir}/RadixQueueUtils.h",
+        f"{ZetaExeDir}/RadixDequeUtils.h",
         {
             f"{File}",
-            f"{ZetaDir}/RadixQueue.h",
+            f"{ZetaDir}/RadixDeque.h",
             f"{ZetaExeDir}/StdAllocator.h",
         },
         None
@@ -836,6 +836,7 @@ def AddDeps(builder, ZetaBuildDir, ZetaExeBuildDir, verbose, mode):
             f"{ZetaDir}/Logger.h",
             f"{ZetaExeDir}/CircularVectorUtils.h",
             f"{ZetaExeDir}/MemAllocatorCheck.h",
+            f"{ZetaExeDir}/RadixDequeUtils.h",
             f"{ZetaExeDir}/StageVectorUtils.h",
         },
         None

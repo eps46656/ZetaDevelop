@@ -2,10 +2,7 @@
 
 #include "Debugger.h"
 
-void Zeta_MemCopy(void* dst_, void const* src_, size_t size) {
-    unsigned char* dst = dst_;
-    unsigned char const* src = src_;
-
+void Zeta_MemCopy(void* dst, void const* src, size_t size) {
     if (dst == src) { return; }
 
     ZETA_DebugAssert(dst != NULL);
@@ -16,10 +13,7 @@ void Zeta_MemCopy(void* dst_, void const* src_, size_t size) {
     __builtin_memcpy(dst, src, size);
 }
 
-void Zeta_MemMove(void* dst_, void const* src_, size_t size) {
-    unsigned char* dst = dst_;
-    unsigned char const* src = src_;
-
+void Zeta_MemMove(void* dst, void const* src, size_t size) {
     if (dst == src) { return; }
 
     ZETA_DebugAssert(dst != NULL);
@@ -72,6 +66,18 @@ void* Zeta_MemRotate(void* beg_, void* mid_, void* end_) {
     }
 
     return ret;
+}
+
+void Zeta_MemReverse(void* data_, size_t stride, size_t size) {
+    unsigned char* data = data_;
+    ZETA_DebugAssert(data);
+
+    if (stride == 0 || size <= 1) { return; }
+
+    unsigned char* i = data;
+    unsigned char* j = data + stride * (size - 1);
+
+    for (; i < j; i += stride, j -= stride) { Zeta_MemSwap(i, j, stride); }
 }
 
 unsigned long long Zeta_ReadLittleEndianStd(byte_t const* data,

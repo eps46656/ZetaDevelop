@@ -824,7 +824,9 @@ void Zeta_CircularVector_DeploySeqContainer(void* cv_,
 
     seq_cntr->context = cv;
 
-    seq_cntr->cursor_width = sizeof(Zeta_CircularVector_Cursor);
+    seq_cntr->cursor_align = alignof(Zeta_CircularVector_Cursor);
+
+    seq_cntr->cursor_size = sizeof(Zeta_CircularVector_Cursor);
 
     seq_cntr->GetStride = Zeta_CircularVector_GetStride;
 
