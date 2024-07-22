@@ -22,6 +22,8 @@ size_t Zeta_DebugDeque_GetStride(void* dd);
 
 size_t Zeta_DebugDeque_GetSize(void* dd);
 
+size_t Zeta_DebugDeque_GetCapacity(void* dd);
+
 void Zeta_DebugDeque_GetLBCursor(void* context, void* dst_cursor);
 
 void Zeta_DebugDeque_GetRBCursor(void* context, void* dst_cursor);

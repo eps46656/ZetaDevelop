@@ -655,6 +655,13 @@ size_t Zeta_StageVector_GetSize(void* sv_) {
     return Zeta_OrdCnt3RBTreeNode_GetAccSize(NULL, sv->root) - 2;
 }
 
+size_t Zeta_StageVector_GetCapacity(void* sv_) {
+    Zeta_StageVector* sv = sv_;
+    CheckSV_(sv);
+
+    return ZETA_RangeMaxOf(size_t);
+}
+
 void Zeta_StageVector_GetLBCursor(void* sv_, void* dst_cursor_) {
     Zeta_StageVector* sv = sv_;
     CheckSV_(sv);
@@ -2826,7 +2833,11 @@ void Zeta_StageVector_DeploySeqContainer(void* sv_,
 
     seq_cntr->GetWidth = Zeta_StageVector_GetWidth;
 
+    seq_cntr->GetStride = Zeta_StageVector_GetStride;
+
     seq_cntr->GetSize = Zeta_StageVector_GetSize;
+
+    seq_cntr->GetCapacity = Zeta_StageVector_GetCapacity;
 
     seq_cntr->GetLBCursor = Zeta_StageVector_GetLBCursor;
 

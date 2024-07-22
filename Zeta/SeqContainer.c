@@ -13,6 +13,8 @@ void Zeta_SeqContainer_Init(Zeta_SeqContainer* seq_cntr) {
 
     seq_cntr->GetSize = NULL;
 
+    seq_cntr->GetCapacity = NULL;
+
     seq_cntr->GetLBCursor = NULL;
 
     seq_cntr->GetRBCursor = NULL;

@@ -51,6 +51,15 @@ size_t Zeta_DebugDeque_GetSize(void* dd_) {
     return deque->size();
 }
 
+size_t Zeta_DebugDeque_GetCapacity(void* dd_) {
+    Zeta_DebugDeque* dd = (Zeta_DebugDeque*)dd_;
+    Zeta_DebugDeque_Check(dd);
+
+    std::deque<void*>* deque = (std::deque<void*>*)dd->deque;
+
+    return deque->max_size();
+}
+
 void Zeta_DebugDeque_GetLBCursor(void* dd_, void* dst_cursor_) {
     Zeta_DebugDeque* dd = (Zeta_DebugDeque*)dd_;
     Zeta_DebugDeque_Check(dd);
@@ -438,6 +447,8 @@ void Zeta_DebugDeque_DeploySeqContainer(void* dd_,
     seq_cntr->GetStride = Zeta_DebugDeque_GetStride;
 
     seq_cntr->GetSize = Zeta_DebugDeque_GetSize;
+
+    seq_cntr->GetCapacity = Zeta_DebugDeque_GetCapacity;
 
     seq_cntr->GetLBCursor = Zeta_DebugDeque_GetLBCursor;
 

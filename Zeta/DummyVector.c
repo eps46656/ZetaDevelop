@@ -40,6 +40,11 @@ size_t Zeta_DummyVector_GetSize(void* dsc) {
     return 0;
 }
 
+size_t Zeta_DummyVector_GetCapacity(void* dsc) {
+    CheckDSC_(dsc);
+    return 0;
+}
+
 void Zeta_DummyVector_GetLBCursor(void* dsc, void* dst_cursor) {
     CheckDSC_(dsc);
     ZETA_DebugAssert(dst_cursor != NULL);
@@ -78,15 +83,15 @@ void* Zeta_DummyVector_Access(void* dsc, void* dst_cursor, void* dst_ele,
     return NULL;
 }
 
-void* Zeta_DummyVector_Refer(void* dsc, void* pos_cursor) {
+void* Zeta_DummyVector_Refer(void* dsc, void const* pos_cursor) {
     ZETA_Unused(dsc);
     ZETA_Unused(pos_cursor);
 
     return NULL;
 }
 
-void Zeta_DummyVector_Read(void* dsc, void* pos_cursor, size_t cnt, void* dst,
-                           void* dst_cursor) {
+void Zeta_DummyVector_Read(void* dsc, void const* pos_cursor, size_t cnt,
+                           void* dst, void* dst_cursor) {
     CheckCursor_(dsc, pos_cursor);
     ZETA_DebugAssert(cnt == 0);
     ZETA_Unused(dst);
@@ -182,13 +187,15 @@ void Zeta_DummyVector_DeploySeqContainer(void* dsc_,
 
     seq_cntr->context = dsc;
 
-    seq_cntr->cursor_width = sizeof(size_t);
+    seq_cntr->cursor_size = sizeof(size_t);
 
     seq_cntr->GetWidth = Zeta_DummyVector_GetWidth;
 
     seq_cntr->GetStride = Zeta_DummyVector_GetStride;
 
     seq_cntr->GetSize = Zeta_DummyVector_GetSize;
+
+    seq_cntr->GetCapacity = Zeta_DummyVector_GetCapacity;
 
     seq_cntr->GetLBCursor = Zeta_DummyVector_GetLBCursor;
 

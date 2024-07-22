@@ -36,8 +36,8 @@ struct Zeta_RadixDeque {
     void** redundant_roots_lw[ZETA_RadixDeque_max_order + 1];
     void** redundant_roots_rw[ZETA_RadixDeque_max_order + 1];
 
-    unsigned short roots_cnt_lw[ZETA_RadixDeque_max_order + 1];
-    unsigned short roots_cnt_rw[ZETA_RadixDeque_max_order + 1];
+    unsigned char roots_cnt_lw[ZETA_RadixDeque_max_order + 1];
+    unsigned char roots_cnt_rw[ZETA_RadixDeque_max_order + 1];
 
     Zeta_Allocator* node_allocator;
     Zeta_Allocator* seg_allocator;
@@ -57,11 +57,15 @@ struct Zeta_RadixDeque_Cursor {
 
 void Zeta_RadixDeque_Init(void* rd);
 
+void Zeta_RadixDeque_Deinit(void* rd);
+
 size_t Zeta_RadixDeque_GetWidth(void* rd);
 
 size_t Zeta_RadixDeque_GetStride(void* rd);
 
 size_t Zeta_RadixDeque_GetSize(void* rd);
+
+size_t Zeta_RadixDeque_GetCapacity(void* rd);
 
 void Zeta_RadixDeque_GetLBCursor(void* rd, void* dst_cursor);
 

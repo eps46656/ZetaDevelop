@@ -81,6 +81,8 @@ size_t Zeta_StageVector_GetStride(void* sv);
 
 size_t Zeta_StageVector_GetSize(void* sv);
 
+size_t Zeta_StageVector_GetCapacity(void* sv);
+
 void Zeta_StageVector_GetLBCursor(void* sv, void* dst_cursor);
 
 void Zeta_StageVector_GetRBCursor(void* sv, void* dst_cursor);

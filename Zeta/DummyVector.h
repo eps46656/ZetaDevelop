@@ -17,6 +17,8 @@ size_t Zeta_DummyVector_GetStride(void* dsc);
 
 size_t Zeta_DummyVector_GetSize(void* dsc);
 
+size_t Zeta_DummyVector_GetCapacity(void* dsc);
+
 void Zeta_DummyVector_GetLBCursor(void* dsc, void* dst_cursor);
 
 void Zeta_DummyVector_GetRBCursor(void* dsc, void* dst_cursor);
@@ -28,10 +30,10 @@ void* Zeta_DummyVector_PeekR(void* dsc, void* dst_cursor, void* dst_ele);
 void* Zeta_DummyVector_Access(void* dsc, void* dst_cursor, void* dst_ele,
                               size_t idx);
 
-void* Zeta_DummyVector_Refer(void* dsc, void* pos_cursor);
+void* Zeta_DummyVector_Refer(void* dsc, void const* pos_cursor);
 
-void Zeta_DummyVector_Read(void* dsc, void* pos_cursor, size_t cnt, void* dst,
-                           void* dst_cursor);
+void Zeta_DummyVector_Read(void* dsc, void const* pos_cursor, size_t cnt,
+                           void* dst, void* dst_cursor);
 
 bool_t Zeta_DummyVector_Cursor_IsEqual(void* dsc, void const* cursor_a,
                                        void const* cursor_b);

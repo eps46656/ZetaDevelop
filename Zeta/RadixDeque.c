@@ -4,6 +4,44 @@
 #include "RadixDeque.h"
 #include "utils.h"
 
+static size_t CalcCapacity_(size_t seg_capacity, size_t branch_num,
+                            unsigned order) {
+    /*
+
+    seg_capacity * (branch_num * 2) * (
+        1 +
+        branch_num +
+        branch_num**2 +
+        branch_num**3 +
+        branch_num**(order)
+    )
+
+    */
+
+    size_t ret = 0;
+
+    size_t k = seg_capacity * branch_num * 2;
+
+    for (unsigned order_i = 0;;) {
+        if (ZETA_RangeMaxOf(size_t) - k < ret) {
+            return ZETA_RangeMaxOf(size_t);
+        }
+
+        ret += k;
+
+        if (order_i == order) { break; }
+
+        if (ZETA_RangeMaxOf(size_t) / branch_num < k) {
+            return ZETA_RangeMaxOf(size_t);
+        }
+
+        ++order_i;
+        k *= branch_num;
+    }
+
+    return ret;
+}
+
 static void CheckRD_(Zeta_RadixDeque* rd) {
     ZETA_DebugAssert(rd != NULL);
 
@@ -28,6 +66,13 @@ static void CheckRD_(Zeta_RadixDeque* rd) {
 
     ZETA_DebugAssert(offset < seg_capacity);
 
+    size_t size = rd->size;
+
+    size_t capacity =
+        CalcCapacity_(rd->seg_capacity, rd->branch_num, rd->order);
+
+    ZETA_DebugAssert(size <= capacity);
+
     ZETA_DebugAssert(rd->node_allocator != NULL);
     ZETA_DebugAssert(rd->node_allocator->Allocate != NULL);
     ZETA_DebugAssert(rd->node_allocator->Deallocate != NULL);
@@ -46,28 +91,20 @@ static void CheckRD_(Zeta_RadixDeque* rd) {
             tree_size * (rd->roots_cnt_lw[order_i] + rd->roots_cnt_rw[order_i]);
     }
 
-    size_t first_seg_l_vacant = rd->offset;
-    size_t last_seg_r_vacant =
-        ZETA_ModAddInv(rd->offset + rd->size, seg_capacity);
+    size_t first_seg_l_vacant = offset;
+    size_t last_seg_r_vacant = ZETA_ModAddInv(offset + size, seg_capacity);
 
-    ZETA_DebugAssert(size_acc ==
-                     rd->size + first_seg_l_vacant + last_seg_r_vacant);
+    ZETA_DebugAssert(size_acc == size + first_seg_l_vacant + last_seg_r_vacant);
 }
 
 static void* AllocateNode_(Zeta_RadixDeque* rd) {
-    ZETA_DebugLogCurPos;
-
     ZETA_DebugAssert(rd->node_allocator->Allocate != NULL);
 
     void* node = rd->node_allocator->Allocate(rd->node_allocator->context,
                                               sizeof(void*) * rd->branch_num);
 
-    ZETA_DebugLogCurPos;
-
     ZETA_DebugAssert(node != NULL);
     ZETA_DebugAssert(__builtin_is_aligned(node, sizeof(void*)));
-
-    ZETA_DebugLogCurPos;
 
     return node;
 }
@@ -185,7 +222,6 @@ static Zeta_RadixDeque_Cursor Access_(Zeta_RadixDeque* rd, size_t idx) {
 
     size_t seg_capacity = rd->seg_capacity;
     size_t branch_num = rd->branch_num;
-
     unsigned order = rd->order;
 
     size_t offset = rd->offset + idx;
@@ -202,8 +238,8 @@ static Zeta_RadixDeque_Cursor Access_(Zeta_RadixDeque* rd, size_t idx) {
     void*** roots_b;
     void*** redundant_roots_a;
     void*** redundant_roots_b;
-    unsigned short* roots_cnt_a;
-    unsigned short* roots_cnt_b;
+    unsigned char* roots_cnt_a;
+    unsigned char* roots_cnt_b;
     size_t seg_offset;
 
     if (Zeta_Choose2(l_seg_cnt <= r_seg_cnt, r_seg_cnt <= l_seg_cnt,
@@ -302,14 +338,11 @@ RET:;
 
 static void PushSeg_(Zeta_RadixDeque* rd, int dir, size_t cnt) {
     size_t branch_num = rd->branch_num;
-
     unsigned order = rd->order;
-
-    ZETA_DebugLogCurPos;
 
     void*** roots;
     void*** redundant_roots;
-    unsigned short* roots_cnt;
+    unsigned char* roots_cnt;
 
     if (dir == 0) {
         roots = rd->roots_lw;
@@ -324,20 +357,12 @@ static void PushSeg_(Zeta_RadixDeque* rd, int dir, size_t cnt) {
     while (0 < cnt--) {
         void* new_root = AllocateSeg_(rd);
 
-        ZETA_DebugLogCurPos;
-
         ZETA_DebugAssert(roots_cnt[0] < branch_num * 2);
 
         for (unsigned order_i = 0;; ++order_i) {
-            ZETA_DebugLogVar(order_i);
-
             unsigned root_cnt = roots_cnt[order_i] + 1;
 
-            ZETA_DebugLogVar(root_cnt);
-
             if (root_cnt <= branch_num) {
-                ZETA_DebugLogVar(root_cnt);
-
                 ZETA_CheckAssert(root_cnt - 1 < branch_num);
 
                 roots[order_i][dir == 0 ? branch_num - root_cnt
@@ -345,12 +370,8 @@ static void PushSeg_(Zeta_RadixDeque* rd, int dir, size_t cnt) {
 
                 roots_cnt[order_i] = root_cnt;
 
-                ZETA_DebugLogVar(root_cnt);
-
                 break;
             }
-
-            ZETA_DebugLogCurPos;
 
             ZETA_CheckAssert(root_cnt - branch_num - 1 < branch_num);
 
@@ -360,29 +381,17 @@ static void PushSeg_(Zeta_RadixDeque* rd, int dir, size_t cnt) {
 
             if (root_cnt < branch_num * 2 || order_i == order ||
                 roots_cnt[order_i + 1] == branch_num * 2) {
-                ZETA_DebugLogCurPos;
-
                 roots_cnt[order_i] = root_cnt;
                 break;
             }
 
-            ZETA_DebugLogCurPos;
-
             roots_cnt[order_i] = branch_num;
-
-            ZETA_DebugLogCurPos;
 
             new_root = roots[order_i];
 
-            ZETA_DebugLogCurPos;
-
             roots[order_i] = redundant_roots[order_i];
 
-            ZETA_DebugLogCurPos;
-
             redundant_roots[order_i] = AllocateNode_(rd);
-
-            ZETA_DebugLogCurPos;
         }
     }
 }
@@ -393,15 +402,14 @@ static void PopSeg_(Zeta_RadixDeque* rd, int dir, size_t cnt) {
     ZETA_Unused(cnt);
 
     size_t branch_num = rd->branch_num;
-
     unsigned order = rd->order;
 
     void*** roots_a;
     void*** roots_b;
     void*** redundant_roots_a;
     void*** redundant_roots_b;
-    unsigned short* roots_cnt_a;
-    unsigned short* roots_cnt_b;
+    unsigned char* roots_cnt_a;
+    unsigned char* roots_cnt_b;
 
     if (dir == 0) {
         roots_a = rd->roots_lw;
@@ -423,8 +431,6 @@ static void PopSeg_(Zeta_RadixDeque* rd, int dir, size_t cnt) {
     size_t tree_size = 1;
 
     for (;;) {
-        ZETA_DebugLogCurPos;
-
         for (;;) {
             size_t root_cnt = roots_cnt_a[order_i];
 
@@ -512,13 +518,6 @@ static void PopSeg_(Zeta_RadixDeque* rd, int dir, size_t cnt) {
                 size_t cnt_a = ZETA_GetMinOf(move_cnt, branch_num - cur_cnt);
                 size_t cnt_b = move_cnt - cnt_a;
 
-                ZETA_DebugLogVar(branch_num);
-                ZETA_DebugLogVar(root_cnt);
-                ZETA_DebugLogVar(cur_cnt);
-                ZETA_DebugLogVar(move_cnt);
-                ZETA_DebugLogVar(cnt_a);
-                ZETA_DebugLogVar(cnt_b);
-
                 Zeta_MemCopy(roots_a[order_i] + branch_num - cnt_b,
                              redundant_roots_b[order_i], sizeof(void*) * cnt_b);
 
@@ -542,9 +541,6 @@ static void PopSeg_(Zeta_RadixDeque* rd, int dir, size_t cnt) {
             roots_cnt_a[order_i] = move_cnt;
             roots_cnt_b[order_i] = root_cnt - cur_cnt;
 
-            ZETA_DebugLogVar(roots_cnt_a[order_i]);
-            ZETA_DebugLogVar(roots_cnt_b[order_i]);
-
             if (branch_num <= cur_cnt) {
                 root_cnt -= branch_num;
                 cur_cnt -= branch_num;
@@ -552,16 +548,8 @@ static void PopSeg_(Zeta_RadixDeque* rd, int dir, size_t cnt) {
             }
 
             if (dir == 0) {
-                ZETA_DebugLogCurPos;
                 size_t cnt_a = ZETA_GetMinOf(branch_num, root_cnt) - cur_cnt;
                 size_t cnt_b = root_cnt - cur_cnt - cnt_a;
-
-                ZETA_DebugLogVar(branch_num);
-                ZETA_DebugLogVar(root_cnt);
-                ZETA_DebugLogVar(cur_cnt);
-                ZETA_DebugLogVar(move_cnt);
-                ZETA_DebugLogVar(cnt_a);
-                ZETA_DebugLogVar(cnt_b);
 
                 Zeta_MemMove(roots_b[order_i], roots_b[order_i] + cur_cnt,
                              sizeof(void*) * cnt_a);
@@ -638,8 +626,29 @@ void Zeta_RadixDeque_Init(void* rd_) {
         rd->roots_cnt_lw[order_i] = 0;
         rd->roots_cnt_rw[order_i] = 0;
     }
+}
 
-    ZETA_DebugLogCurPos;
+void Zeta_RadixDeque_Deinit(void* rd_) {
+    Zeta_RadixDeque* rd = rd_;
+    CheckRD_(rd);
+
+    Zeta_RaixDeque_EraseAll(rd);
+
+    unsigned order = rd->order;
+
+    for (unsigned order_i = 0; order_i <= order; ++order_i) {
+        rd->node_allocator->Deallocate(rd->node_allocator->context,
+                                       rd->roots_lw[order_i]);
+
+        rd->node_allocator->Deallocate(rd->node_allocator->context,
+                                       rd->roots_rw[order_i]);
+
+        rd->node_allocator->Deallocate(rd->node_allocator->context,
+                                       rd->redundant_roots_lw[order_i]);
+
+        rd->node_allocator->Deallocate(rd->node_allocator->context,
+                                       rd->redundant_roots_rw[order_i]);
+    }
 }
 
 size_t Zeta_RadixDeque_GetWidth(void* rd_) {
@@ -661,6 +670,13 @@ size_t Zeta_RadixDeque_GetSize(void* rd_) {
     CheckRD_(rd);
 
     return rd->size;
+}
+
+size_t Zeta_RadixDeque_GetCapacity(void* rd_) {
+    Zeta_RadixDeque* rd = rd_;
+    CheckRD_(rd);
+
+    return CalcCapacity_(rd->seg_capacity, rd->branch_num, rd->order);
 }
 
 void Zeta_RadixDeque_GetLBCursor(void* rd_, void* dst_cursor) {
@@ -753,10 +769,9 @@ void Zeta_RadixDeque_Read(void* rd_, void const* pos_cursor_, size_t cnt,
     size_t stride = rd->stride;
     size_t seg_capacity = rd->seg_capacity;
     size_t branch_num = rd->branch_num;
+    unsigned order = rd->order;
 
     size_t ret_idx = pos_cursor->idx + cnt;
-
-    unsigned order = rd->order;
 
     unsigned char* dst = dst_;
     ZETA_DebugAssert(dst != NULL);
@@ -864,10 +879,9 @@ void Zeta_RadixDeque_Write(void* rd_, void* pos_cursor_, size_t cnt,
     size_t stride = rd->stride;
     size_t seg_capacity = rd->seg_capacity;
     size_t branch_num = rd->branch_num;
+    unsigned order = rd->order;
 
     size_t ret_idx = pos_cursor->idx + cnt;
-
-    unsigned order = rd->order;
 
     unsigned char const* src = src_;
     ZETA_DebugAssert(src != NULL);
@@ -952,48 +966,31 @@ void* Zeta_RadixDeque_PushL(void* rd_, void* dst_cursor_, size_t cnt) {
     Zeta_RadixDeque* rd = rd_;
     CheckRD_(rd);
 
-    ZETA_DebugLogCurPos;
-
     Zeta_RadixDeque_Cursor* dst_cursor = dst_cursor_;
-
-    ZETA_DebugLogCurPos;
 
     if (cnt == 0) { goto RET; }
 
-    ZETA_DebugLogCurPos;
-
     size_t seg_capacity = rd->seg_capacity;
 
-    ZETA_DebugLogCurPos;
+    size_t capacity =
+        CalcCapacity_(rd->seg_capacity, rd->branch_num, rd->order);
+
+    ZETA_DebugAssert(cnt <= capacity - rd->size);
 
     size_t r_vacant = ZETA_ModAddInv(rd->offset + rd->size, seg_capacity);
-
-    ZETA_DebugLogCurPos;
 
     PushSeg_(rd, 0,
              ZETA_CeilIntDiv(rd->size + r_vacant + cnt, seg_capacity) -
                  ZETA_CeilIntDiv(rd->size + r_vacant, seg_capacity));
 
-    ZETA_DebugLogCurPos;
-
-    ZETA_DebugLogCurPos;
-
     rd->offset =
         (rd->offset + seg_capacity - cnt % seg_capacity) % seg_capacity;
 
-    ZETA_DebugLogCurPos;
-
     rd->size += cnt;
-
-    ZETA_DebugLogVar(rd->size);
 
 RET:;
 
-    ZETA_DebugLogCurPos;
-
     Zeta_RadixDeque_Cursor pos_cursor = Access_(rd, 0);
-
-    ZETA_DebugLogCurPos;
 
     if (dst_cursor != NULL) {
         dst_cursor->rd = pos_cursor.rd;
@@ -1010,27 +1007,20 @@ void* Zeta_RadixDeque_PushR(void* rd_, void* dst_cursor_, size_t cnt) {
     Zeta_RadixDeque* rd = rd_;
     CheckRD_(rd);
 
-    ZETA_DebugLogCurPos;
-
     Zeta_RadixDeque_Cursor* dst_cursor = dst_cursor_;
-
-    ZETA_DebugLogCurPos;
 
     size_t origin_size = rd->size;
 
-    ZETA_DebugLogCurPos;
-
     if (cnt == 0) { goto RET; }
-
-    ZETA_DebugLogCurPos;
 
     size_t seg_capacity = rd->seg_capacity;
 
-    ZETA_DebugLogCurPos;
+    size_t capacity =
+        CalcCapacity_(rd->seg_capacity, rd->branch_num, rd->order);
+
+    ZETA_DebugAssert(cnt <= capacity - rd->size);
 
     size_t l_vacant = rd->offset;
-
-    ZETA_DebugLogCurPos;
 
     PushSeg_(rd, 1,
              ZETA_CeilIntDiv(l_vacant + rd->size + cnt, seg_capacity) -
@@ -1038,15 +1028,9 @@ void* Zeta_RadixDeque_PushR(void* rd_, void* dst_cursor_, size_t cnt) {
 
     rd->size += cnt;
 
-    ZETA_DebugLogCurPos;
-
 RET:;
 
-    ZETA_DebugLogCurPos;
-
     Zeta_RadixDeque_Cursor pos_cursor = Access_(rd, origin_size);
-
-    ZETA_DebugLogCurPos;
 
     if (dst_cursor != NULL) {
         dst_cursor->rd = pos_cursor.rd;
@@ -1162,13 +1146,9 @@ static void CheckTree_(Zeta_RadixDeque* rd, Zeta_DebugHashMap* dst_node_hm,
     ZETA_DebugAssert(n != NULL);
 
     if (order_i == 0) {
-        ZETA_DebugLogCurPos;
-
         AddPtrSize_(dst_seg_hm, n, rd->stride * rd->seg_capacity);
         return;
     }
-
-    ZETA_DebugLogCurPos;
 
     AddPtrSize_(dst_node_hm, n, sizeof(void*) * rd->branch_num);
 
@@ -1205,8 +1185,6 @@ void Zeta_RadixDeque_Check(void* rd_, Zeta_DebugHashMap* dst_node_hm,
                     sizeof(void*) * branch_num);
     }
 
-    ZETA_DebugLogCurPos;
-
     for (unsigned order_i = 0; order_i <= order; ++order_i) {
         unsigned cnt_a = ZETA_GetMinOf(branch_num, rd->roots_cnt_lw[order_i]);
         unsigned cnt_b = rd->roots_cnt_lw[order_i] - cnt_a;
@@ -1222,8 +1200,6 @@ void Zeta_RadixDeque_Check(void* rd_, Zeta_DebugHashMap* dst_node_hm,
         }
     }
 
-    ZETA_DebugLogCurPos;
-
     for (unsigned order_i = 0; order_i <= order; ++order_i) {
         unsigned cnt_a = ZETA_GetMinOf(branch_num, rd->roots_cnt_rw[order_i]);
         unsigned cnt_b = rd->roots_cnt_rw[order_i] - cnt_a;
@@ -1238,8 +1214,6 @@ void Zeta_RadixDeque_Check(void* rd_, Zeta_DebugHashMap* dst_node_hm,
                        rd->redundant_roots_rw[order_i][root_i], order_i);
         }
     }
-
-    ZETA_DebugLogCurPos;
 }
 
 bool_t Zeta_RadixDeque_Cursor_IsEqual(void* rd_, void const* cursor_a_,

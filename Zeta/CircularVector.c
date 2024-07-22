@@ -834,6 +834,8 @@ void Zeta_CircularVector_DeploySeqContainer(void* cv_,
 
     seq_cntr->GetSize = Zeta_CircularVector_GetSize;
 
+    seq_cntr->GetCapacity = Zeta_CircularVector_GetCapacity;
+
     seq_cntr->GetLBCursor = Zeta_CircularVector_GetLBCursor;
 
     seq_cntr->GetRBCursor = Zeta_CircularVector_GetRBCursor;
