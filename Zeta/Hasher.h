@@ -1,6 +1,8 @@
-#pragma
+#pragma once
 
 #include "define.h"
+
+ZETA_ExternC_Beg;
 
 ZETA_DeclareStruct(Zeta_Hasher);
 
@@ -13,12 +15,11 @@ struct Zeta_Hasher {
      */
     void* context;
 
-    /**
-     * @brief Get the number of bytes a hash result occupied.
-     *
-     * @param context The context of hasher.
-     */
+    void (*Reset)(void* context);
+
     size_t (*GetSize)(void* context);
+
+    size_t (*GetResultWidth)(void* context);
 
     /**
      * @brief Save the hash result to dst.
@@ -26,12 +27,16 @@ struct Zeta_Hasher {
      * @param context The context of hasher.
      * @param dst The destination of result.
      */
-    byte_t (*GetResult)(void* context, byte_t* dst);
+    void (*GetResult)(void* context, byte_t* dst);
 
     /**
      * @brief Get the number of bytes a hash result occupied.
      *
      * @param context The context of hasher.
      */
-    void (*Rotate)(void* context, byte_t const* data, size_t size);
+    void (*Rotate)(void* context, byte_t const* data, size_t cnt);
 };
+
+void Zeta_Hasher_Init(void* hasher);
+
+ZETA_ExternC_End;

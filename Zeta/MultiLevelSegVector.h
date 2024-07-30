@@ -1,7 +1,7 @@
 #pragma once
 
 #include "Allocator.h"
-#include "CircularVector.h"
+#include "CircularArray.h"
 #include "MultiLevelTable.h"
 #include "SeqContainer.h"
 

@@ -352,8 +352,9 @@ ZETA_StaticAssert(255 <= ZETA_RangeMaxOf(byte_t));
 
 #define ZETA_ImmPrint (TRUE)
 
-#define ZETA_PrintPos(filename, line, func)                                   \
-    printf("%48s:%-4llu\t%-24s", filename, (unsigned long long)(line), func); \
+#define ZETA_PrintPos(filename, line, func)                              \
+    printf("%48s:%-4llu\t%-24s", (filename), (unsigned long long)(line), \
+           (func));                                                      \
     ZETA_StaticAssert(TRUE)
 
 #define ZETA_PrintCurPos                         \

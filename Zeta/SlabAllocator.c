@@ -266,6 +266,8 @@ void Zeta_SlabAllocator_DeployAllocator(void* sa_, Zeta_Allocator* dst) {
 
     ZETA_DebugAssert(dst != NULL);
 
+    Zeta_Allocator_Init(dst);
+
     dst->context = sa;
 
     dst->GetAlign = Zeta_SlabAllocator_GetAlign;
@@ -273,6 +275,7 @@ void Zeta_SlabAllocator_DeployAllocator(void* sa_, Zeta_Allocator* dst) {
     dst->Query = Zeta_SlabAllocator_Query;
 
     dst->Allocate = Zeta_SlabAllocator_Allocate;
+
     dst->Deallocate = Zeta_SlabAllocator_Deallocate;
 }
 

@@ -3,7 +3,7 @@
 #include <random>
 #include <set>
 
-#include "../Zeta/CircularVector.h"
+#include "../Zeta/CircularArray.h"
 #include "../Zeta/DebugDeque.h"
 #include "../Zeta/SegVector.h"
 #include "MemAllocatorCheck.h"
@@ -93,7 +93,7 @@ void InitDD(Zeta_SeqContainer* seq_cntr) {
 
 #define CAPACITY (256 * 1024 * 1024)
 
-Zeta_CircularVector cv;
+Zeta_CircularArray cv;
 
 void InitCV(Zeta_SeqContainer* seq_cntr) {
     cv.width = sizeof(Val);
@@ -103,7 +103,7 @@ void InitCV(Zeta_SeqContainer* seq_cntr) {
     cv.capacity = CAPACITY;
     cv.data = std::malloc(sizeof(Val) * CAPACITY);
 
-    Zeta_CircularVector_DeploySeqContainer(&cv, seq_cntr);
+    Zeta_CircularArray_DeploySeqContainer(&cv, seq_cntr);
 }
 
 // -----------------------------------------------------------------------------

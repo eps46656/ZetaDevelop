@@ -3,15 +3,9 @@
 #include "../Zeta/define.h"
 
 void main3() {
-    unsigned char const* str = ZETA_ToUCharStr(":");
+    int a = ({ 5 + 6; });
 
-    printf("%d\n", str[0]);
-    printf("%d\n", str[1]);
-    printf("%d\n", str[2]);
-    printf("%d\n", str[3]);
-    printf("%d\n", str[4]);
-
-    // printf("%llu\n", strlen(str));
+    printf("%d\n", a);
 }
 
 int main() {

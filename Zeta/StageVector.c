@@ -1,6 +1,6 @@
 #include "StageVector.h"
 
-#include "CircularVector.h"
+#include "CircularArray.h"
 #include "Debugger.h"
 #include "RBTree.h"
 #include "SegUtils.h"
@@ -9,7 +9,11 @@
 #define ref_color (ZETA_StageVector_ref_color)
 #define dat_color (ZETA_StageVector_dat_color)
 
-#define GetNColor_(n) ({ Zeta_OrdCnt3RBTreeNode_GetLColor(NULL, (n)); })
+#define GetNColor_(n)                                 \
+    ({                                                \
+        ZETA_DebugAssert(sv->lb != n && sv->rb != n); \
+        Zeta_OrdCnt3RBTreeNode_GetLColor(NULL, (n));  \
+    })
 
 #define SetNColor_(n, c)                              \
     ZETA_DebugAssert(sv->lb != n && sv->rb != n);     \
@@ -73,6 +77,7 @@ static void* AllocateData_(Zeta_StageVector* sv) {
     void* data = sv->data_allocator->Allocate(
         sv->data_allocator->context,
         Zeta_StageVector_GetStride(sv) * sv->seg_capacity);
+
     ZETA_DebugAssert(data != NULL);
 
     return data;
@@ -82,12 +87,11 @@ static Zeta_StageVector_Seg* AllocateNode_(Zeta_StageVector* sv) {
     ZETA_DebugAssert(sv->seg_allocator != NULL);
     ZETA_DebugAssert(sv->seg_allocator->Allocate != NULL);
 
-    void* seg_ = sv->seg_allocator->Allocate(sv->seg_allocator->context,
-                                             sizeof(Zeta_StageVector_Seg));
-    ZETA_DebugAssert(seg_ != NULL);
-    ZETA_DebugAssert(__builtin_is_aligned(seg_, alignof(Zeta_StageVector_Seg)));
+    Zeta_StageVector_Seg* seg = sv->seg_allocator->Allocate(
+        sv->seg_allocator->context, sizeof(Zeta_StageVector_Seg));
 
-    Zeta_StageVector_Seg* seg = seg_;
+    ZETA_DebugAssert(seg != NULL);
+    ZETA_DebugAssert(__builtin_is_aligned(seg, alignof(Zeta_StageVector_Seg)));
 
     Zeta_OrdCnt3RBTreeNode_Init(NULL, &seg->n);
 
@@ -251,17 +255,17 @@ L2:;
         l_seg->dat.offset = 0;
         l_seg->dat.size = l_size + seg_idx;
     } else {
-        Zeta_CircularVector cv;
-        cv.data = l_seg->dat.data;
-        cv.width = width;
-        cv.stride = stride;
-        cv.offset = l_seg->dat.offset;
-        cv.size = l_size;
-        cv.capacity = seg_capacity;
+        Zeta_CircularArray ca;
+        ca.data = l_seg->dat.data;
+        ca.width = width;
+        ca.stride = stride;
+        ca.offset = l_seg->dat.offset;
+        ca.size = l_size;
+        ca.capacity = seg_capacity;
 
-        Zeta_CircularVector_Cursor cv_cursor;
-        Zeta_CircularVector_GetRBCursor(&cv, &cv_cursor);
-        Zeta_CircularVector_Insert(&cv, &cv_cursor, seg_idx);
+        Zeta_CircularArray_Cursor ca_cursor;
+        Zeta_CircularArray_GetRBCursor(&ca, &ca_cursor);
+        Zeta_CircularArray_Insert(&ca, &ca_cursor, seg_idx);
 
         sv->origin->Access(sv->origin->context, origin_cursor, NULL,
                            seg->ref.beg);
@@ -269,12 +273,12 @@ L2:;
         for (size_t i = 0; i < seg_idx; ++i) {
             sv->origin->Read(
                 sv->origin->context, origin_cursor, 1,
-                Zeta_CircularVector_Access(&cv, NULL, NULL, l_size + i),
+                Zeta_CircularArray_Access(&ca, NULL, NULL, l_size + i),
                 origin_cursor);
         }
 
-        l_seg->dat.offset = cv.offset;
-        l_seg->dat.size = cv.size;
+        l_seg->dat.offset = ca.offset;
+        l_seg->dat.size = ca.size;
     }
 
     seg->ref.beg += seg_idx;
@@ -283,11 +287,11 @@ L2:;
     return l_n;
 }
 
-static void PushRefL_(Zeta_StageVector* sv, Zeta_CircularVector* cv, size_t beg,
+static void PushRefL_(Zeta_StageVector* sv, Zeta_CircularArray* ca, size_t beg,
                       size_t size) {
-    Zeta_CircularVector_Cursor cv_cursor;
-    Zeta_CircularVector_PeekL(cv, &cv_cursor, NULL);
-    Zeta_CircularVector_Insert(cv, &cv_cursor, size);
+    Zeta_CircularArray_Cursor ca_cursor;
+    Zeta_CircularArray_PeekL(ca, &ca_cursor, NULL);
+    Zeta_CircularArray_Insert(ca, &ca_cursor, size);
 
     void* origin_cursor = __builtin_alloca_with_align(
         sv->origin->cursor_size,
@@ -295,15 +299,15 @@ static void PushRefL_(Zeta_StageVector* sv, Zeta_CircularVector* cv, size_t beg,
 
     sv->origin->Access(sv->origin->context, origin_cursor, NULL, beg);
 
-    Zeta_CircularVector_AssignFromSeqContainer(cv, &cv_cursor, sv->origin,
-                                               origin_cursor, size);
+    Zeta_CircularArray_AssignFromSeqContainer(ca, &ca_cursor, sv->origin,
+                                              origin_cursor, size);
 }
 
-static void PushRefR_(Zeta_StageVector* sv, Zeta_CircularVector* cv, size_t beg,
+static void PushRefR_(Zeta_StageVector* sv, Zeta_CircularArray* ca, size_t beg,
                       size_t size) {
-    Zeta_CircularVector_Cursor cv_cursor;
-    Zeta_CircularVector_GetRBCursor(cv, &cv_cursor);
-    Zeta_CircularVector_Insert(cv, &cv_cursor, size);
+    Zeta_CircularArray_Cursor ca_cursor;
+    Zeta_CircularArray_GetRBCursor(ca, &ca_cursor);
+    Zeta_CircularArray_Insert(ca, &ca_cursor, size);
 
     void* origin_cursor = __builtin_alloca_with_align(
         sv->origin->cursor_size,
@@ -311,8 +315,8 @@ static void PushRefR_(Zeta_StageVector* sv, Zeta_CircularVector* cv, size_t beg,
 
     sv->origin->Access(sv->origin->context, origin_cursor, NULL, beg);
 
-    Zeta_CircularVector_AssignFromSeqContainer(cv, &cv_cursor, sv->origin,
-                                               origin_cursor, size);
+    Zeta_CircularArray_AssignFromSeqContainer(ca, &ca_cursor, sv->origin,
+                                              origin_cursor, size);
 }
 
 static void Merge2_(Zeta_StageVector* sv, size_t width, size_t stride,
@@ -364,21 +368,21 @@ static void Merge2_(Zeta_StageVector* sv, size_t width, size_t stride,
         return;
     }
 
-    Zeta_CircularVector a_cv;
-    a_cv.data = a_seg->dat.data;
-    a_cv.width = width;
-    a_cv.stride = stride;
-    a_cv.offset = a_seg->dat.offset;
-    a_cv.size = a_seg->dat.size;
-    a_cv.capacity = seg_capacity;
+    Zeta_CircularArray a_ca;
+    a_ca.data = a_seg->dat.data;
+    a_ca.width = width;
+    a_ca.stride = stride;
+    a_ca.offset = a_seg->dat.offset;
+    a_ca.size = a_seg->dat.size;
+    a_ca.capacity = seg_capacity;
 
-    Zeta_CircularVector b_cv;
-    b_cv.data = b_seg->dat.data;
-    b_cv.width = width;
-    b_cv.stride = stride;
-    b_cv.offset = b_seg->dat.offset;
-    b_cv.size = b_seg->dat.size;
-    b_cv.capacity = seg_capacity;
+    Zeta_CircularArray b_ca;
+    b_ca.data = b_seg->dat.data;
+    b_ca.width = width;
+    b_ca.stride = stride;
+    b_ca.offset = b_seg->dat.offset;
+    b_ca.size = b_seg->dat.size;
+    b_ca.capacity = seg_capacity;
 
     size_t merge_a_cost = (a_c == ref_color ? a_size : 0) + b_size;
     size_t merge_b_cost = (b_c == ref_color ? b_size : 0) + a_size;
@@ -386,83 +390,83 @@ static void Merge2_(Zeta_StageVector* sv, size_t width, size_t stride,
     if (Zeta_Choose2(merge_a_cost <= merge_b_cost, merge_b_cost <= merge_a_cost,
                      &rand_seed) == 0) {
         if (b_c == ref_color) {
-            PushRefR_(sv, &a_cv, b_seg->ref.beg, b_size);
+            PushRefR_(sv, &a_ca, b_seg->ref.beg, b_size);
         } else {
-            SegShoveL(&a_cv, &b_cv, 0, 0, b_size);
+            SegShoveL(&a_ca, &b_ca, 0, 0, b_size);
         }
     } else {
         if (a_c == ref_color) {
-            PushRefL_(sv, &b_cv, a_seg->ref.beg, a_size);
+            PushRefL_(sv, &b_ca, a_seg->ref.beg, a_size);
         } else {
-            SegShoveR(&a_cv, &b_cv, 0, 0, a_size);
+            SegShoveR(&a_ca, &b_ca, 0, 0, a_size);
         }
     }
 
     if (a_c == ref_color) {
         a_seg->ref.size = 0;
     } else {
-        a_seg->dat.offset = a_cv.offset;
-        a_seg->dat.size = a_cv.size;
+        a_seg->dat.offset = a_ca.offset;
+        a_seg->dat.size = a_ca.size;
     }
 
     if (b_c == ref_color) {
         b_seg->ref.size = 0;
     } else {
-        b_seg->dat.offset = b_cv.offset;
-        b_seg->dat.size = b_cv.size;
+        b_seg->dat.offset = b_ca.offset;
+        b_seg->dat.size = b_ca.size;
     }
 }
 
-#define SetSegState_(seg_tmp, cv_tmp, vacant_tmp, seg, cv, vacant)        \
+#define SetSegState_(seg_tmp, ca_tmp, vacant_tmp, seg, ca, vacant)        \
     {                                                                     \
         Zeta_StageVector_Seg* seg_tmp = (seg);                            \
-        Zeta_CircularVector* cv_tmp = (cv);                               \
+        Zeta_CircularArray* ca_tmp = (ca);                                \
         size_t* vacant_tmp = (vacant);                                    \
                                                                           \
         if (GetNColor_(&seg_tmp->n) == ref_color) {                       \
-            cv_tmp->size = seg_tmp->ref.size;                             \
+            ca_tmp->size = seg_tmp->ref.size;                             \
             *vacant_tmp =                                                 \
-                seg_capacity - ZETA_GetMinOf(cv_tmp->size, seg_capacity); \
+                seg_capacity - ZETA_GetMinOf(ca_tmp->size, seg_capacity); \
         } else {                                                          \
-            cv_tmp->data = seg_tmp->dat.data;                             \
-            cv_tmp->offset = seg_tmp->dat.offset;                         \
-            cv_tmp->size = seg_tmp->dat.size;                             \
-            *vacant_tmp = seg_capacity - cv_tmp->size;                    \
+            ca_tmp->data = seg_tmp->dat.data;                             \
+            ca_tmp->offset = seg_tmp->dat.offset;                         \
+            ca_tmp->size = seg_tmp->dat.size;                             \
+            *vacant_tmp = seg_capacity - ca_tmp->size;                    \
         }                                                                 \
     }
 
-#define SetSegState(seg, cv, vacant) \
-    SetSegState_(ZETA_TmpName, ZETA_TmpName, ZETA_TmpName, seg, cv, vacant)
+#define SetSegState(seg, ca, vacant) \
+    SetSegState_(ZETA_TmpName, ZETA_TmpName, ZETA_TmpName, seg, ca, vacant)
 
-static void RefShoveL_(Zeta_StageVector* sv, Zeta_CircularVector* l_cv,
+static void RefShoveL_(Zeta_StageVector* sv, Zeta_CircularArray* l_ca,
                        Zeta_StageVector_Seg* r_seg, size_t rl_size,
                        size_t ins_cnt, size_t shove_cnt) {
-    size_t stride = l_cv->stride;
+    size_t stride = l_ca->stride;
 
     size_t cnt_a = ZETA_GetMinOf(rl_size, shove_cnt);
     size_t cnt_b = ZETA_GetMinOf(ins_cnt, shove_cnt - cnt_a);
     size_t cnt_c = shove_cnt - cnt_a - cnt_b;
 
-    size_t l_i = l_cv->size;
+    size_t l_i = l_ca->size;
 
-    Zeta_CircularVector_Cursor l_cursor;
+    Zeta_CircularArray_Cursor l_cursor;
     void* r_cursor = __builtin_alloca_with_align(
         sv->origin->cursor_size,
         ZETA_WidthOf(unsigned char) * alignof(max_align_t));
 
-    Zeta_CircularVector_GetRBCursor(l_cv, &l_cursor);
+    Zeta_CircularArray_GetRBCursor(l_ca, &l_cursor);
 
-    Zeta_CircularVector_Insert(l_cv, &l_cursor, shove_cnt);
+    Zeta_CircularArray_Insert(l_ca, &l_cursor, shove_cnt);
 
     sv->origin->Access(sv->origin->context, r_cursor, NULL, r_seg->ref.beg);
 
     for (size_t i = cnt_a; 0 < i;) {
         size_t cur_i =
-            ZETA_GetMinOf(i, Zeta_CircularVector_GetLongestContSucr(l_cv, l_i));
+            ZETA_GetMinOf(i, Zeta_CircularArray_GetLongestContSucr(l_ca, l_i));
         i -= cur_i;
 
         sv->origin->Read(sv->origin->context, r_cursor, cur_i,
-                         Zeta_CircularVector_Access(l_cv, NULL, NULL, l_i),
+                         Zeta_CircularArray_Access(l_ca, NULL, NULL, l_i),
                          r_cursor);
 
         l_i += cur_i;
@@ -472,11 +476,11 @@ static void RefShoveL_(Zeta_StageVector* sv, Zeta_CircularVector* l_cv,
 
     for (size_t i = cnt_c; 0 < i;) {
         size_t cur_i =
-            ZETA_GetMinOf(i, Zeta_CircularVector_GetLongestContSucr(l_cv, l_i));
+            ZETA_GetMinOf(i, Zeta_CircularArray_GetLongestContSucr(l_ca, l_i));
         i -= cur_i;
 
         sv->origin->Read(sv->origin->context, r_cursor, cur_i,
-                         Zeta_CircularVector_Access(l_cv, NULL, NULL, l_i),
+                         Zeta_CircularArray_Access(l_ca, NULL, NULL, l_i),
                          r_cursor);
 
         l_i += cur_i;
@@ -512,9 +516,9 @@ static void RefShoveL_(Zeta_StageVector* sv, Zeta_CircularVector* l_cv,
 }
 
 static void RefShoveR_(Zeta_StageVector* sv, Zeta_StageVector_Seg* l_seg,
-                       Zeta_CircularVector* r_cv, size_t lr_size,
-                       size_t ins_cnt, size_t shove_cnt) {
-    size_t stride = r_cv->stride;
+                       Zeta_CircularArray* r_ca, size_t lr_size, size_t ins_cnt,
+                       size_t shove_cnt) {
+    size_t stride = r_ca->stride;
 
     size_t cnt_a = ZETA_GetMinOf(lr_size, shove_cnt);
     size_t cnt_b = ZETA_GetMinOf(ins_cnt, shove_cnt - cnt_a);
@@ -526,22 +530,22 @@ static void RefShoveR_(Zeta_StageVector* sv, Zeta_StageVector_Seg* l_seg,
         sv->origin->cursor_size,
         ZETA_WidthOf(unsigned char) * alignof(max_align_t));
 
-    Zeta_CircularVector_Cursor r_cursor;
+    Zeta_CircularArray_Cursor r_cursor;
 
-    Zeta_CircularVector_PeekL(r_cv, &r_cursor, NULL);
+    Zeta_CircularArray_PeekL(r_ca, &r_cursor, NULL);
 
-    Zeta_CircularVector_Insert(r_cv, &r_cursor, shove_cnt);
+    Zeta_CircularArray_Insert(r_ca, &r_cursor, shove_cnt);
 
     sv->origin->Access(sv->origin->context, l_cursor, NULL,
                        l_seg->ref.beg + l_seg->ref.size - cnt_a - cnt_c);
 
     for (size_t i = cnt_c; 0 < i;) {
         size_t cur_i =
-            ZETA_GetMinOf(i, Zeta_CircularVector_GetLongestContSucr(r_cv, r_i));
+            ZETA_GetMinOf(i, Zeta_CircularArray_GetLongestContSucr(r_ca, r_i));
         i -= cur_i;
 
         sv->origin->Read(sv->origin->context, l_cursor, cur_i,
-                         Zeta_CircularVector_Access(r_cv, NULL, NULL, r_i),
+                         Zeta_CircularArray_Access(r_ca, NULL, NULL, r_i),
                          l_cursor);
 
         r_i += cur_i;
@@ -551,11 +555,11 @@ static void RefShoveR_(Zeta_StageVector* sv, Zeta_StageVector_Seg* l_seg,
 
     for (size_t i = cnt_a; 0 < i;) {
         size_t cur_i =
-            ZETA_GetMinOf(i, Zeta_CircularVector_GetLongestContSucr(r_cv, r_i));
+            ZETA_GetMinOf(i, Zeta_CircularArray_GetLongestContSucr(r_ca, r_i));
         i -= cur_i;
 
         sv->origin->Read(sv->origin->context, l_cursor, cur_i,
-                         Zeta_CircularVector_Access(r_cv, NULL, NULL, r_i),
+                         Zeta_CircularArray_Access(r_ca, NULL, NULL, r_i),
                          l_cursor);
 
         r_i += cur_i;
@@ -596,21 +600,19 @@ void Zeta_StageVector_Init(void* sv_) {
 
     CheckSV_(sv);
 
-    void* lb_ = sv->seg_allocator->Allocate(sv->seg_allocator->context,
-                                            sizeof(Zeta_OrdCnt3RBTreeNode));
-    void* rb_ = sv->seg_allocator->Allocate(sv->seg_allocator->context,
-                                            sizeof(Zeta_OrdCnt3RBTreeNode));
+    Zeta_OrdCnt3RBTreeNode* lb = sv->seg_allocator->Allocate(
+        sv->seg_allocator->context, sizeof(Zeta_OrdCnt3RBTreeNode));
+    Zeta_OrdCnt3RBTreeNode* rb = sv->seg_allocator->Allocate(
+        sv->seg_allocator->context, sizeof(Zeta_OrdCnt3RBTreeNode));
 
-    ZETA_DebugAssert(lb_ != NULL);
-    ZETA_DebugAssert(rb_ != NULL);
+    ZETA_DebugAssert(lb != NULL);
+    ZETA_DebugAssert(rb != NULL);
 
-    ZETA_DebugAssert(
-        __builtin_is_aligned(lb_, alignof(Zeta_OrdCnt3RBTreeNode)));
-    ZETA_DebugAssert(
-        __builtin_is_aligned(rb_, alignof(Zeta_OrdCnt3RBTreeNode)));
+    ZETA_DebugAssert(__builtin_is_aligned(lb, alignof(Zeta_OrdCnt3RBTreeNode)));
+    ZETA_DebugAssert(__builtin_is_aligned(rb, alignof(Zeta_OrdCnt3RBTreeNode)));
 
-    sv->lb = lb_;
-    sv->rb = rb_;
+    sv->lb = lb;
+    sv->rb = rb;
 
     Zeta_BinTreeNodeOperator btn_opr;
     Zeta_BinTree_InitOpr(&btn_opr);
@@ -727,15 +729,15 @@ void* Zeta_StageVector_PeekL(void* sv_, void* dst_cursor_, void* dst_ele) {
     if (GetNColor_(n) == ref_color) {
         sv->origin->Access(sv->origin->context, NULL, dst_ele, seg->ref.beg);
     } else {
-        Zeta_CircularVector cv;
-        cv.data = seg->dat.data;
-        cv.width = width;
-        cv.stride = stride;
-        cv.offset = seg->dat.offset;
-        cv.size = seg->dat.size;
-        cv.capacity = seg_capacity;
+        Zeta_CircularArray ca;
+        ca.data = seg->dat.data;
+        ca.width = width;
+        ca.stride = stride;
+        ca.offset = seg->dat.offset;
+        ca.size = seg->dat.size;
+        ca.capacity = seg_capacity;
 
-        ele = Zeta_CircularVector_PeekL(&cv, NULL, dst_ele);
+        ele = Zeta_CircularArray_PeekL(&ca, NULL, dst_ele);
     }
 
     if (dst_cursor != NULL) {
@@ -792,15 +794,15 @@ void* Zeta_StageVector_PeekR(void* sv_, void* dst_cursor_, void* dst_ele) {
     } else {
         seg_size = seg->dat.size;
 
-        Zeta_CircularVector cv;
-        cv.data = seg->dat.data;
-        cv.width = width;
-        cv.stride = stride;
-        cv.offset = seg->dat.offset;
-        cv.size = seg_size;
-        cv.capacity = seg_capacity;
+        Zeta_CircularArray ca;
+        ca.data = seg->dat.data;
+        ca.width = width;
+        ca.stride = stride;
+        ca.offset = seg->dat.offset;
+        ca.size = seg_size;
+        ca.capacity = seg_capacity;
 
-        ele = Zeta_CircularVector_PeekR(&cv, NULL, dst_ele);
+        ele = Zeta_CircularArray_PeekR(&ca, NULL, dst_ele);
     }
 
     if (dst_cursor != NULL) {
@@ -844,15 +846,15 @@ void* Zeta_StageVector_Access(void* sv_, void* dst_cursor_, void* dst_ele,
         seg = ZETA_MemberToStruct(Zeta_StageVector_Seg, n, n);
 
         if (GetNColor_(n) == dat_color) {
-            Zeta_CircularVector cv;
-            cv.data = seg->dat.data;
-            cv.width = width;
-            cv.stride = stride;
-            cv.offset = seg->dat.offset;
-            cv.size = seg->dat.size;
-            cv.capacity = seg_capacity;
+            Zeta_CircularArray ca;
+            ca.data = seg->dat.data;
+            ca.width = width;
+            ca.stride = stride;
+            ca.offset = seg->dat.offset;
+            ca.size = seg->dat.size;
+            ca.capacity = seg_capacity;
 
-            ele = Zeta_CircularVector_Access(&cv, NULL, dst_ele, seg_idx);
+            ele = Zeta_CircularArray_Access(&ca, NULL, dst_ele, seg_idx);
         } else if (dst_ele != NULL) {
             sv->origin->Access(sv->origin->context, NULL, dst_ele,
                                seg->ref.beg + seg_idx);
@@ -922,10 +924,10 @@ void Zeta_StageVector_Read(void* sv_, void const* pos_cursor_, size_t cnt,
         sv->origin->cursor_size,
         ZETA_WidthOf(unsigned char) * alignof(max_align_t));
 
-    Zeta_CircularVector cv;
-    cv.width = width;
-    cv.stride = stride;
-    cv.capacity = seg_capacity;
+    Zeta_CircularArray ca;
+    ca.width = width;
+    ca.stride = stride;
+    ca.capacity = seg_capacity;
 
     while (0 < cnt) {
         seg = ZETA_MemberToStruct(Zeta_StageVector_Seg, n, n);
@@ -945,13 +947,13 @@ void Zeta_StageVector_Read(void* sv_, void const* pos_cursor_, size_t cnt,
             seg_size = seg->dat.size;
             cur_cnt = ZETA_GetMinOf(cnt, seg_size - seg_idx);
 
-            cv.data = seg->dat.data;
-            cv.offset = seg->dat.offset;
-            cv.size = seg_size;
+            ca.data = seg->dat.data;
+            ca.offset = seg->dat.offset;
+            ca.size = seg_size;
 
-            Zeta_CircularVector_Cursor cv_cursor;
-            Zeta_CircularVector_Access(&cv, &cv_cursor, NULL, seg_idx);
-            Zeta_CircularVector_Read(&cv, &cv_cursor, cur_cnt, dst, NULL);
+            Zeta_CircularArray_Cursor ca_cursor;
+            Zeta_CircularArray_Access(&ca, &ca_cursor, NULL, seg_idx);
+            Zeta_CircularArray_Read(&ca, &ca_cursor, cur_cnt, dst, NULL);
         }
 
         dst += stride * cur_cnt;
@@ -979,11 +981,11 @@ void Zeta_StageVector_Read(void* sv_, void const* pos_cursor_, size_t cnt,
 
     seg = ZETA_MemberToStruct(Zeta_StageVector_Seg, n, n);
 
-    cv.data = seg->dat.data;
-    cv.offset = seg->dat.offset;
-    cv.size = seg->dat.size;
+    ca.data = seg->dat.data;
+    ca.offset = seg->dat.offset;
+    ca.size = seg->dat.size;
 
-    dst_cursor->ele = Zeta_CircularVector_Access(&cv, NULL, NULL, seg_idx);
+    dst_cursor->ele = Zeta_CircularArray_Access(&ca, NULL, NULL, seg_idx);
 }
 
 void Zeta_StageVector_Write(void* sv_, void* pos_cursor_, size_t cnt,
@@ -1049,24 +1051,24 @@ void Zeta_StageVector_Write(void* sv_, void* pos_cursor_, size_t cnt,
         sv->origin->cursor_size,
         ZETA_WidthOf(unsigned char) * alignof(max_align_t));
 
-    Zeta_CircularVector cv;
-    cv.width = width;
-    cv.stride = stride;
-    cv.capacity = seg_capacity;
+    Zeta_CircularArray ca;
+    ca.width = width;
+    ca.stride = stride;
+    ca.capacity = seg_capacity;
 
     while (0 < cnt) {
         seg = ZETA_MemberToStruct(Zeta_StageVector_Seg, n, n);
 
         if (GetNColor_(n) == dat_color) {
-            cv.data = seg->dat.data;
-            cv.offset = seg->dat.offset;
-            cv.size = seg->dat.size;
+            ca.data = seg->dat.data;
+            ca.offset = seg->dat.offset;
+            ca.size = seg->dat.size;
 
-            size_t cur_cnt = ZETA_GetMinOf(cnt, cv.size - seg_idx);
+            size_t cur_cnt = ZETA_GetMinOf(cnt, ca.size - seg_idx);
 
-            Zeta_CircularVector cv_cursor;
-            Zeta_CircularVector_Access(&cv, &cv_cursor, NULL, seg_idx);
-            Zeta_CircularVector_Write(&cv, &cv_cursor, cur_cnt, src, NULL);
+            Zeta_CircularArray ca_cursor;
+            Zeta_CircularArray_Access(&ca, &ca_cursor, NULL, seg_idx);
+            Zeta_CircularArray_Write(&ca, &ca_cursor, cur_cnt, src, NULL);
 
             src += stride * cur_cnt;
 
@@ -1091,7 +1093,6 @@ void Zeta_StageVector_Write(void* sv_, void* pos_cursor_, size_t cnt,
                 seg_size, ZETA_CeilIntDiv(seg_size, seg_capacity));
 
             Zeta_StageVector_Seg* new_seg = AllocateRefSeg_(sv);
-
             sv->root = Zeta_RBTree_Insert(&btn_opr, l_n, n, &new_seg->n);
 
             new_seg->ref.beg = seg->ref.beg;
@@ -1179,11 +1180,11 @@ void Zeta_StageVector_Write(void* sv_, void* pos_cursor_, size_t cnt,
 
     seg = ZETA_MemberToStruct(Zeta_StageVector_Seg, n, n);
 
-    cv.data = seg->dat.data;
-    cv.offset = seg->dat.offset;
-    cv.size = seg->dat.size;
+    ca.data = seg->dat.data;
+    ca.offset = seg->dat.offset;
+    ca.size = seg->dat.size;
 
-    dst_cursor->ele = Zeta_CircularVector_Access(&cv, NULL, NULL, seg_idx);
+    dst_cursor->ele = Zeta_CircularArray_Access(&ca, NULL, NULL, seg_idx);
 }
 
 void* Zeta_StageVector_PushL(void* sv_, void* dst_cursor_, size_t cnt) {
@@ -1263,22 +1264,22 @@ void* Zeta_StageVector_Insert(void* sv_, void* pos_cursor_, size_t ins_cnt) {
     size_t m_vacant;
     size_t r_vacant;
 
-    Zeta_CircularVector l_cv;
-    l_cv.width = width;
-    l_cv.stride = stride;
-    l_cv.capacity = seg_capacity;
+    Zeta_CircularArray l_ca;
+    l_ca.width = width;
+    l_ca.stride = stride;
+    l_ca.capacity = seg_capacity;
 
-    Zeta_CircularVector m_cv;
-    m_cv.width = width;
-    m_cv.stride = stride;
-    m_cv.capacity = seg_capacity;
+    Zeta_CircularArray m_ca;
+    m_ca.width = width;
+    m_ca.stride = stride;
+    m_ca.capacity = seg_capacity;
 
-    Zeta_CircularVector r_cv;
-    r_cv.width = width;
-    r_cv.stride = stride;
-    r_cv.capacity = seg_capacity;
+    Zeta_CircularArray r_ca;
+    r_ca.width = width;
+    r_ca.stride = stride;
+    r_ca.capacity = seg_capacity;
 
-    Zeta_CircularVector cv_cursor;
+    Zeta_CircularArray ca_cursor;
 
     if (seg_idx == 0) {
         l_n = Zeta_BinTree_StepL(&btn_opr, m_n);
@@ -1289,48 +1290,48 @@ void* Zeta_StageVector_Insert(void* sv_, void* pos_cursor_, size_t ins_cnt) {
         m_seg = NULL;
 
         if (sv->lb == l_n) {
-            l_cv.size = 0;
+            l_ca.size = 0;
             l_vacant = 0;
         } else {
             l_seg = ZETA_MemberToStruct(Zeta_StageVector_Seg, n, l_n);
-            SetSegState(l_seg, &l_cv, &l_vacant);
+            SetSegState(l_seg, &l_ca, &l_vacant);
         }
 
         if (sv->rb == r_n) {
-            r_cv.size = 0;
+            r_ca.size = 0;
             r_vacant = 0;
         } else {
             r_seg = ZETA_MemberToStruct(Zeta_StageVector_Seg, n, r_n);
-            SetSegState(r_seg, &r_cv, &r_vacant);
+            SetSegState(r_seg, &r_ca, &r_vacant);
         }
     } else {
         m_seg = ZETA_MemberToStruct(Zeta_StageVector_Seg, n, m_n);
-        SetSegState(m_seg, &m_cv, &m_vacant);
+        SetSegState(m_seg, &m_ca, &m_vacant);
 
         if (ins_cnt <= m_vacant) {
             void* ele;
 
             if (GetNColor_(m_n) == ref_color) {
-                m_cv.data = AllocateData_(sv);
-                m_cv.offset = 0;
-                m_cv.size = 0;
+                m_ca.data = AllocateData_(sv);
+                m_ca.offset = 0;
+                m_ca.size = 0;
 
-                RefShoveL_(sv, &m_cv, m_seg, seg_idx, ins_cnt,
+                RefShoveL_(sv, &m_ca, m_seg, seg_idx, ins_cnt,
                            m_seg->ref.size + ins_cnt);
 
                 SetNColor_(&m_seg->n, dat_color);
 
-                m_seg->dat.data = m_cv.data;
+                m_seg->dat.data = m_ca.data;
 
-                ele = Zeta_CircularVector_Access(&m_cv, NULL, NULL, seg_idx);
+                ele = Zeta_CircularArray_Access(&m_ca, NULL, NULL, seg_idx);
             } else {
-                Zeta_CircularVector_Access(&m_cv, &cv_cursor, NULL, seg_idx);
-                ele = Zeta_CircularVector_Insert(&m_cv, &cv_cursor, ins_cnt);
+                Zeta_CircularArray_Access(&m_ca, &ca_cursor, NULL, seg_idx);
+                ele = Zeta_CircularArray_Insert(&m_ca, &ca_cursor, ins_cnt);
             }
 
-            m_seg->dat.offset = m_cv.offset;
-            m_seg->dat.size = m_cv.size;
-            Zeta_BinTree_SetSize(&btn_opr, m_n, m_cv.size);
+            m_seg->dat.offset = m_ca.offset;
+            m_seg->dat.size = m_ca.size;
+            Zeta_BinTree_SetSize(&btn_opr, m_n, m_ca.size);
 
             pos_cursor->n = m_n;
             pos_cursor->seg_idx = seg_idx;
@@ -1343,26 +1344,26 @@ void* Zeta_StageVector_Insert(void* sv_, void* pos_cursor_, size_t ins_cnt) {
         r_n = Zeta_BinTree_StepR(&btn_opr, m_n);
 
         if (sv->lb == l_n) {
-            l_cv.size = 0;
+            l_ca.size = 0;
             l_vacant = 0;
         } else {
             l_seg = ZETA_MemberToStruct(Zeta_StageVector_Seg, n, l_n);
-            SetSegState(l_seg, &l_cv, &l_vacant);
+            SetSegState(l_seg, &l_ca, &l_vacant);
         }
 
         if (sv->rb == r_n) {
-            r_cv.size = 0;
+            r_ca.size = 0;
             r_vacant = 0;
         } else {
             r_seg = ZETA_MemberToStruct(Zeta_StageVector_Seg, n, r_n);
-            SetSegState(r_seg, &r_cv, &r_vacant);
+            SetSegState(r_seg, &r_ca, &r_vacant);
         }
 
         size_t ml_size = seg_idx;
-        size_t mr_size = m_cv.size - seg_idx;
+        size_t mr_size = m_ca.size - seg_idx;
 
-        size_t new_l_m_size = l_cv.size + m_cv.size + ins_cnt;
-        size_t new_m_r_size = m_cv.size + r_cv.size + ins_cnt;
+        size_t new_l_m_size = l_ca.size + m_ca.size + ins_cnt;
+        size_t new_m_r_size = m_ca.size + r_ca.size + ins_cnt;
 
         size_t l_m_vacant = l_vacant + m_vacant;
         size_t m_r_vacant = m_vacant + r_vacant;
@@ -1382,104 +1383,104 @@ void* Zeta_StageVector_Insert(void* sv_, void* pos_cursor_, size_t ins_cnt) {
         if (shove_dir == 0) {
             if (GetNColor_(l_n) == ref_color) {
                 TransRefSegToDatSeg_(sv, l_seg);
-                l_cv.data = l_seg->dat.data;
-                l_cv.offset = l_seg->dat.offset;
+                l_ca.data = l_seg->dat.data;
+                l_ca.offset = l_seg->dat.offset;
             }
 
-            size_t ret_seg_idx = l_cv.size + ml_size;
+            size_t ret_seg_idx = l_ca.size + ml_size;
 
-            size_t new_l_size = (new_l_m_size + (m_cv.size <= l_cv.size)) / 2;
+            size_t new_l_size = (new_l_m_size + (m_ca.size <= l_ca.size)) / 2;
 
             if (GetNColor_(m_n) == ref_color) {
-                RefShoveL_(sv, &l_cv, m_seg, ml_size, ins_cnt,
-                           new_l_size - l_cv.size);
+                RefShoveL_(sv, &l_ca, m_seg, ml_size, ins_cnt,
+                           new_l_size - l_ca.size);
 
                 if (GetNColor_(m_n) == ref_color) {
-                    m_cv.size = m_seg->ref.size;
+                    m_ca.size = m_seg->ref.size;
                 } else {
-                    m_cv.data = m_seg->dat.data;
-                    m_cv.offset = m_seg->dat.offset;
-                    m_cv.size = m_seg->dat.size;
+                    m_ca.data = m_seg->dat.data;
+                    m_ca.offset = m_seg->dat.offset;
+                    m_ca.size = m_seg->dat.size;
                 }
             } else {
-                SegShoveL(&l_cv, &m_cv, ml_size, ins_cnt,
-                          new_l_size - l_cv.size);
+                SegShoveL(&l_ca, &m_ca, ml_size, ins_cnt,
+                          new_l_size - l_ca.size);
 
-                m_seg->dat.offset = m_cv.offset;
-                m_seg->dat.size = m_cv.size;
+                m_seg->dat.offset = m_ca.offset;
+                m_seg->dat.size = m_ca.size;
             }
 
-            Zeta_BinTree_SetSize(&btn_opr, m_n, m_cv.size);
+            Zeta_BinTree_SetSize(&btn_opr, m_n, m_ca.size);
 
-            l_seg->dat.offset = l_cv.offset;
-            l_seg->dat.size = l_cv.size;
-            Zeta_BinTree_SetSize(&btn_opr, l_n, l_cv.size);
+            l_seg->dat.offset = l_ca.offset;
+            l_seg->dat.size = l_ca.size;
+            Zeta_BinTree_SetSize(&btn_opr, l_n, l_ca.size);
 
-            if (ret_seg_idx < l_cv.size) {
+            if (ret_seg_idx < l_ca.size) {
                 pos_cursor->n = l_n;
                 pos_cursor->seg_idx = ret_seg_idx;
                 pos_cursor->ele =
-                    Zeta_CircularVector_Access(&l_cv, NULL, NULL, ret_seg_idx);
+                    Zeta_CircularArray_Access(&l_ca, NULL, NULL, ret_seg_idx);
             } else {
-                ret_seg_idx -= l_cv.size;
+                ret_seg_idx -= l_ca.size;
 
                 pos_cursor->n = m_n;
                 pos_cursor->seg_idx = ret_seg_idx;
                 pos_cursor->ele = GetNColor_(m_n) == ref_color
                                       ? NULL
-                                      : Zeta_CircularVector_Access(
-                                            &m_cv, NULL, NULL, ret_seg_idx);
+                                      : Zeta_CircularArray_Access(
+                                            &m_ca, NULL, NULL, ret_seg_idx);
             }
         } else {
             if (GetNColor_(r_n) == ref_color) {
                 TransRefSegToDatSeg_(sv, r_seg);
-                r_cv.data = r_seg->dat.data;
-                r_cv.offset = r_seg->dat.offset;
+                r_ca.data = r_seg->dat.data;
+                r_ca.offset = r_seg->dat.offset;
             }
 
             size_t ret_seg_idx = seg_idx;
 
-            size_t new_r_size = (new_m_r_size + (m_cv.size <= r_cv.size)) / 2;
+            size_t new_r_size = (new_m_r_size + (m_ca.size <= r_ca.size)) / 2;
 
             if (GetNColor_(m_n) == ref_color) {
-                RefShoveR_(sv, m_seg, &r_cv, mr_size, ins_cnt,
-                           new_r_size - r_cv.size);
+                RefShoveR_(sv, m_seg, &r_ca, mr_size, ins_cnt,
+                           new_r_size - r_ca.size);
 
                 if (GetNColor_(m_n) == ref_color) {
-                    m_cv.size = m_seg->ref.size;
+                    m_ca.size = m_seg->ref.size;
                 } else {
-                    m_cv.data = m_seg->dat.data;
-                    m_cv.offset = m_seg->dat.offset;
-                    m_cv.size = m_seg->dat.size;
+                    m_ca.data = m_seg->dat.data;
+                    m_ca.offset = m_seg->dat.offset;
+                    m_ca.size = m_seg->dat.size;
                 }
             } else {
-                SegShoveR(&m_cv, &r_cv, mr_size, ins_cnt,
-                          new_r_size - r_cv.size);
+                SegShoveR(&m_ca, &r_ca, mr_size, ins_cnt,
+                          new_r_size - r_ca.size);
 
-                m_seg->dat.offset = m_cv.offset;
-                m_seg->dat.size = m_cv.size;
+                m_seg->dat.offset = m_ca.offset;
+                m_seg->dat.size = m_ca.size;
             }
 
-            Zeta_BinTree_SetSize(&btn_opr, m_n, m_cv.size);
+            Zeta_BinTree_SetSize(&btn_opr, m_n, m_ca.size);
 
-            r_seg->dat.offset = r_cv.offset;
-            r_seg->dat.size = r_cv.size;
-            Zeta_BinTree_SetSize(&btn_opr, r_n, r_cv.size);
+            r_seg->dat.offset = r_ca.offset;
+            r_seg->dat.size = r_ca.size;
+            Zeta_BinTree_SetSize(&btn_opr, r_n, r_ca.size);
 
-            if (ret_seg_idx < m_cv.size) {
+            if (ret_seg_idx < m_ca.size) {
                 pos_cursor->n = m_n;
                 pos_cursor->seg_idx = ret_seg_idx;
                 pos_cursor->ele = GetNColor_(m_n) == ref_color
                                       ? NULL
-                                      : Zeta_CircularVector_Access(
-                                            &m_cv, NULL, NULL, ret_seg_idx);
+                                      : Zeta_CircularArray_Access(
+                                            &m_ca, NULL, NULL, ret_seg_idx);
             } else {
-                ret_seg_idx -= m_cv.size;
+                ret_seg_idx -= m_ca.size;
 
                 pos_cursor->n = r_n;
                 pos_cursor->seg_idx = ret_seg_idx;
                 pos_cursor->ele =
-                    Zeta_CircularVector_Access(&r_cv, NULL, NULL, ret_seg_idx);
+                    Zeta_CircularArray_Access(&r_ca, NULL, NULL, ret_seg_idx);
             }
         }
 
@@ -1491,41 +1492,41 @@ void* Zeta_StageVector_Insert(void* sv_, void* pos_cursor_, size_t ins_cnt) {
             if (GetNColor_(l_n) == ref_color) {
                 TransRefSegToDatSeg_(sv, l_seg);
 
-                l_cv.data = l_seg->dat.data;
-                l_cv.offset = l_seg->dat.offset;
+                l_ca.data = l_seg->dat.data;
+                l_ca.offset = l_seg->dat.offset;
             }
 
             if (GetNColor_(m_n) == ref_color) {
-                PushRefR_(sv, &l_cv, m_seg->ref.beg, ml_size);
+                PushRefR_(sv, &l_ca, m_seg->ref.beg, ml_size);
 
                 m_seg->ref.beg += ml_size;
-                m_cv.size -= ml_size;
+                m_ca.size -= ml_size;
             } else {
-                SegShoveL(&l_cv, &m_cv, 0, 0, ml_size);
+                SegShoveL(&l_ca, &m_ca, 0, 0, ml_size);
             }
 
             ml_size = 0;
-            l_vacant = seg_capacity - l_cv.size;
+            l_vacant = seg_capacity - l_ca.size;
         }
 
         if (mr_size <= r_vacant) {
             if (GetNColor_(r_n) == ref_color) {
                 TransRefSegToDatSeg_(sv, r_seg);
 
-                r_cv.data = r_seg->dat.data;
-                r_cv.offset = r_seg->dat.offset;
+                r_ca.data = r_seg->dat.data;
+                r_ca.offset = r_seg->dat.offset;
             }
 
             if (GetNColor_(m_n) == ref_color) {
-                PushRefL_(sv, &r_cv, m_seg->ref.beg + ml_size, mr_size);
+                PushRefL_(sv, &r_ca, m_seg->ref.beg + ml_size, mr_size);
 
-                m_cv.size -= mr_size;
+                m_ca.size -= mr_size;
             } else {
-                SegShoveR(&m_cv, &r_cv, 0, 0, mr_size);
+                SegShoveR(&m_ca, &r_ca, 0, 0, mr_size);
             }
 
             mr_size = 0;
-            r_vacant = seg_capacity - r_cv.size;
+            r_vacant = seg_capacity - r_ca.size;
         }
 
         if (ml_size == 0 && mr_size == 0) { goto INS; }
@@ -1533,10 +1534,10 @@ void* Zeta_StageVector_Insert(void* sv_, void* pos_cursor_, size_t ins_cnt) {
         if (ml_size == 0) {
             r_n = m_n;
             r_seg = m_seg;
-            r_cv.data = m_cv.data;
-            r_cv.offset = m_cv.offset;
-            r_cv.size = m_cv.size;
-            r_vacant = seg_capacity - ZETA_GetMinOf(r_cv.size, seg_capacity);
+            r_ca.data = m_ca.data;
+            r_ca.offset = m_ca.offset;
+            r_ca.size = m_ca.size;
+            r_vacant = seg_capacity - ZETA_GetMinOf(r_ca.size, seg_capacity);
 
             m_n = NULL;
             m_seg = NULL;
@@ -1547,10 +1548,10 @@ void* Zeta_StageVector_Insert(void* sv_, void* pos_cursor_, size_t ins_cnt) {
         if (mr_size == 0) {
             l_n = m_n;
             l_seg = m_seg;
-            l_cv.data = m_cv.data;
-            l_cv.offset = m_cv.offset;
-            l_cv.size = m_cv.size;
-            l_vacant = seg_capacity - ZETA_GetMinOf(l_cv.size, seg_capacity);
+            l_ca.data = m_ca.data;
+            l_ca.offset = m_ca.offset;
+            l_ca.size = m_ca.size;
+            l_vacant = seg_capacity - ZETA_GetMinOf(l_ca.size, seg_capacity);
 
             m_n = NULL;
             m_seg = NULL;
@@ -1570,16 +1571,16 @@ void* Zeta_StageVector_Insert(void* sv_, void* pos_cursor_, size_t ins_cnt) {
                 l_n = &new_l_seg->n;
                 l_seg = new_l_seg;
                 l_seg->ref.beg = m_seg->ref.beg;
-                l_cv.size = ml_size;
+                l_ca.size = ml_size;
                 l_vacant =
-                    seg_capacity - ZETA_GetMinOf(l_cv.size, seg_capacity);
+                    seg_capacity - ZETA_GetMinOf(l_ca.size, seg_capacity);
 
                 r_n = m_n;
                 r_seg = m_seg;
                 r_seg->ref.beg += ml_size;
-                r_cv.size = mr_size;
+                r_ca.size = mr_size;
                 r_vacant =
-                    seg_capacity - ZETA_GetMinOf(r_cv.size, seg_capacity);
+                    seg_capacity - ZETA_GetMinOf(r_ca.size, seg_capacity);
             } else {
                 Zeta_StageVector_Seg* new_l_seg = AllocateDatSeg_(sv);
                 sv->root =
@@ -1587,20 +1588,20 @@ void* Zeta_StageVector_Insert(void* sv_, void* pos_cursor_, size_t ins_cnt) {
 
                 l_n = &new_l_seg->n;
                 l_seg = new_l_seg;
-                l_cv.data = new_l_seg->dat.data;
-                l_cv.offset = 0;
-                l_cv.size = 0;
+                l_ca.data = new_l_seg->dat.data;
+                l_ca.offset = 0;
+                l_ca.size = 0;
 
                 r_n = m_n;
                 r_seg = m_seg;
-                r_cv.data = m_cv.data;
-                r_cv.offset = m_cv.offset;
-                r_cv.size = m_cv.size;
+                r_ca.data = m_ca.data;
+                r_ca.offset = m_ca.offset;
+                r_ca.size = m_ca.size;
 
-                SegShoveL(&l_cv, &r_cv, 0, 0, ml_size);
+                SegShoveL(&l_ca, &r_ca, 0, 0, ml_size);
 
-                l_vacant = seg_capacity - l_cv.size;
-                r_vacant = seg_capacity - r_cv.size;
+                l_vacant = seg_capacity - l_ca.size;
+                r_vacant = seg_capacity - r_ca.size;
             }
         } else {
             if (GetNColor_(m_n) == ref_color) {
@@ -1610,16 +1611,16 @@ void* Zeta_StageVector_Insert(void* sv_, void* pos_cursor_, size_t ins_cnt) {
 
                 l_n = m_n;
                 l_seg = m_seg;
-                l_cv.size = ml_size;
+                l_ca.size = ml_size;
                 l_vacant =
-                    seg_capacity - ZETA_GetMinOf(l_cv.size, seg_capacity);
+                    seg_capacity - ZETA_GetMinOf(l_ca.size, seg_capacity);
 
                 r_n = &new_r_seg->n;
                 r_seg = new_r_seg;
                 r_seg->ref.beg = m_seg->ref.beg + ml_size;
-                r_cv.size = mr_size;
+                r_ca.size = mr_size;
                 r_vacant =
-                    seg_capacity - ZETA_GetMinOf(r_cv.size, seg_capacity);
+                    seg_capacity - ZETA_GetMinOf(r_ca.size, seg_capacity);
             } else {
                 Zeta_StageVector_Seg* new_r_seg = AllocateDatSeg_(sv);
                 sv->root =
@@ -1627,20 +1628,20 @@ void* Zeta_StageVector_Insert(void* sv_, void* pos_cursor_, size_t ins_cnt) {
 
                 l_n = m_n;
                 l_seg = m_seg;
-                l_cv.data = m_cv.data;
-                l_cv.offset = m_cv.offset;
-                l_cv.size = m_cv.size;
+                l_ca.data = m_ca.data;
+                l_ca.offset = m_ca.offset;
+                l_ca.size = m_ca.size;
 
                 r_n = &new_r_seg->n;
                 r_seg = new_r_seg;
-                r_cv.data = r_seg->dat.data;
-                r_cv.offset = 0;
-                r_cv.size = 0;
+                r_ca.data = r_seg->dat.data;
+                r_ca.offset = 0;
+                r_ca.size = 0;
 
-                SegShoveR(&l_cv, &r_cv, 0, 0, mr_size);
+                SegShoveR(&l_ca, &r_ca, 0, 0, mr_size);
 
-                l_vacant = seg_capacity - l_cv.size;
-                r_vacant = seg_capacity - r_cv.size;
+                l_vacant = seg_capacity - l_ca.size;
+                r_vacant = seg_capacity - r_ca.size;
             }
         }
 
@@ -1660,74 +1661,74 @@ INS:;
         size_t res_size =
             seg_capacity - 1 - (ins_cnt + seg_capacity - 1) % seg_capacity;
 
-        if (l_cv.size + r_cv.size <= res_size) {
+        if (l_ca.size + r_ca.size <= res_size) {
             l_shove = TRUE;
             r_shove = TRUE;
-        } else if (l_cv.size != r_cv.size
-                       ? l_cv.size < r_cv.size
+        } else if (l_ca.size != r_ca.size
+                       ? l_ca.size < r_ca.size
                        : Zeta_SimpleRandomRotate(&rand_seed) % 2 == 0) {
-            l_shove = l_cv.size <= res_size;
+            l_shove = l_ca.size <= res_size;
             r_shove = FALSE;
         } else {
             l_shove = FALSE;
-            r_shove = r_cv.size <= res_size;
+            r_shove = r_ca.size <= res_size;
         }
 
-        if (l_cv.size == 0) { l_shove = FALSE; }
-        if (r_cv.size == 0) { r_shove = FALSE; }
+        if (l_ca.size == 0) { l_shove = FALSE; }
+        if (r_ca.size == 0) { r_shove = FALSE; }
     }
 
     if (l_is_ref && l_shove) {
-        l_seg->ref.size = l_cv.size;
+        l_seg->ref.size = l_ca.size;
 
         TransRefSegToDatSeg_(sv, l_seg);
 
-        l_cv.data = l_seg->dat.data;
-        l_cv.offset = 0;
+        l_ca.data = l_seg->dat.data;
+        l_ca.offset = 0;
     }
 
     if (r_is_ref && r_shove) {
-        r_seg->ref.size = r_cv.size;
+        r_seg->ref.size = r_ca.size;
 
         TransRefSegToDatSeg_(sv, r_seg);
 
-        r_cv.data = r_seg->dat.data;
-        r_cv.offset = 0;
+        r_ca.data = r_seg->dat.data;
+        r_ca.offset = 0;
     }
 
     size_t total_size =
-        (l_shove ? l_cv.size : 0) + ins_cnt + (r_shove ? r_cv.size : 0);
+        (l_shove ? l_ca.size : 0) + ins_cnt + (r_shove ? r_ca.size : 0);
 
-    size_t ret_seg_idx = l_cv.size;
+    size_t ret_seg_idx = l_ca.size;
 
     if (l_shove && r_shove && total_size <= seg_capacity) {
-        if (Zeta_Choose2(r_cv.size <= l_cv.size, l_cv.size <= r_cv.size,
+        if (Zeta_Choose2(r_ca.size <= l_ca.size, l_ca.size <= r_ca.size,
                          &rand_seed) == 0) {
-            SegShoveL(&l_cv, &r_cv, 0, ins_cnt, ins_cnt + r_cv.size);
+            SegShoveL(&l_ca, &r_ca, 0, ins_cnt, ins_cnt + r_ca.size);
 
             EraseSeg_(sv, &btn_opr, r_seg);
 
-            l_seg->dat.offset = l_cv.offset;
-            l_seg->dat.size = l_cv.size;
-            Zeta_BinTree_SetSize(&btn_opr, l_n, l_cv.size);
+            l_seg->dat.offset = l_ca.offset;
+            l_seg->dat.size = l_ca.size;
+            Zeta_BinTree_SetSize(&btn_opr, l_n, l_ca.size);
 
             pos_cursor->n = l_n;
             pos_cursor->seg_idx = ret_seg_idx;
             pos_cursor->ele =
-                Zeta_CircularVector_Access(&l_cv, NULL, NULL, ret_seg_idx);
+                Zeta_CircularArray_Access(&l_ca, NULL, NULL, ret_seg_idx);
         } else {
-            SegShoveR(&l_cv, &r_cv, 0, ins_cnt, l_cv.size + ins_cnt);
+            SegShoveR(&l_ca, &r_ca, 0, ins_cnt, l_ca.size + ins_cnt);
 
             EraseSeg_(sv, &btn_opr, l_seg);
 
-            r_seg->dat.offset = r_cv.offset;
-            r_seg->dat.size = r_cv.size;
-            Zeta_BinTree_SetSize(&btn_opr, r_n, r_cv.size);
+            r_seg->dat.offset = r_ca.offset;
+            r_seg->dat.size = r_ca.size;
+            Zeta_BinTree_SetSize(&btn_opr, r_n, r_ca.size);
 
             pos_cursor->n = r_n;
             pos_cursor->seg_idx = ret_seg_idx;
             pos_cursor->ele =
-                Zeta_CircularVector_Access(&r_cv, NULL, NULL, ret_seg_idx);
+                Zeta_CircularArray_Access(&r_ca, NULL, NULL, ret_seg_idx);
         }
 
         return pos_cursor->ele;
@@ -1740,48 +1741,48 @@ INS:;
         new_l_size = GetAvgCnt_(total_size);
         total_size -= new_l_size;
     } else {
-        new_l_size = l_cv.size;
+        new_l_size = l_ca.size;
     }
 
     if (r_shove) {
         new_r_size = GetAvgCnt_(total_size);
         total_size -= new_r_size;
     } else {
-        new_r_size = r_cv.size;
+        new_r_size = r_ca.size;
     }
 
-    if (l_cv.size < new_l_size) {
-        Zeta_CircularVector_Cursor cv_cursor;
-        Zeta_CircularVector_GetRBCursor(&l_cv, &cv_cursor);
-        Zeta_CircularVector_Insert(&l_cv, &cv_cursor, new_l_size - l_cv.size);
+    if (l_ca.size < new_l_size) {
+        Zeta_CircularArray_Cursor ca_cursor;
+        Zeta_CircularArray_GetRBCursor(&l_ca, &ca_cursor);
+        Zeta_CircularArray_Insert(&l_ca, &ca_cursor, new_l_size - l_ca.size);
     }
 
-    if (r_cv.size < new_r_size) {
-        Zeta_CircularVector_Cursor cv_cursor;
-        Zeta_CircularVector_PeekL(&r_cv, &cv_cursor, NULL);
-        Zeta_CircularVector_Insert(&r_cv, &cv_cursor, new_r_size - r_cv.size);
+    if (r_ca.size < new_r_size) {
+        Zeta_CircularArray_Cursor ca_cursor;
+        Zeta_CircularArray_PeekL(&r_ca, &ca_cursor, NULL);
+        Zeta_CircularArray_Insert(&r_ca, &ca_cursor, new_r_size - r_ca.size);
     }
 
     if (sv->lb != l_n) {
         if (GetNColor_(l_n) == ref_color) {
-            l_seg->ref.size = l_cv.size;
+            l_seg->ref.size = l_ca.size;
         } else {
-            l_seg->dat.offset = l_cv.offset;
-            l_seg->dat.size = l_cv.size;
+            l_seg->dat.offset = l_ca.offset;
+            l_seg->dat.size = l_ca.size;
         }
 
-        Zeta_BinTree_SetSize(&btn_opr, l_n, l_cv.size);
+        Zeta_BinTree_SetSize(&btn_opr, l_n, l_ca.size);
     }
 
     if (sv->rb != r_n) {
         if (GetNColor_(r_n) == ref_color) {
-            r_seg->ref.size = r_cv.size;
+            r_seg->ref.size = r_ca.size;
         } else {
-            r_seg->dat.offset = r_cv.offset;
-            r_seg->dat.size = r_cv.size;
+            r_seg->dat.offset = r_ca.offset;
+            r_seg->dat.size = r_ca.size;
         }
 
-        Zeta_BinTree_SetSize(&btn_opr, r_n, r_cv.size);
+        Zeta_BinTree_SetSize(&btn_opr, r_n, r_ca.size);
     }
 
     if (0 < total_size && m_n != NULL) {
@@ -1821,25 +1822,25 @@ INS:;
 
     if (m_n != NULL) { EraseSeg_(sv, &btn_opr, m_seg); }
 
-    if (ret_seg_idx < l_cv.size) {
+    if (ret_seg_idx < l_ca.size) {
         pos_cursor->n = l_n;
         pos_cursor->seg_idx = ret_seg_idx;
 
         if (GetNColor_(l_n) == ref_color) {
             pos_cursor->ele = NULL;
         } else {
-            l_cv.data = l_seg->dat.data;
-            l_cv.offset = l_seg->dat.offset;
-            l_cv.size = l_seg->dat.size;
+            l_ca.data = l_seg->dat.data;
+            l_ca.offset = l_seg->dat.offset;
+            l_ca.size = l_seg->dat.size;
 
             pos_cursor->ele =
-                Zeta_CircularVector_Access(&l_cv, NULL, NULL, ret_seg_idx);
+                Zeta_CircularArray_Access(&l_ca, NULL, NULL, ret_seg_idx);
         }
 
         return pos_cursor->ele;
     }
 
-    ret_seg_idx -= l_cv.size;
+    ret_seg_idx -= l_ca.size;
 
     pos_cursor->n = r_n;
     pos_cursor->seg_idx = ret_seg_idx;
@@ -1847,12 +1848,12 @@ INS:;
     if (GetNColor_(r_n) == ref_color) {
         pos_cursor->ele = NULL;
     } else {
-        r_cv.data = r_seg->dat.data;
-        r_cv.offset = r_seg->dat.offset;
-        r_cv.size = r_seg->dat.size;
+        r_ca.data = r_seg->dat.data;
+        r_ca.offset = r_seg->dat.offset;
+        r_ca.size = r_seg->dat.size;
 
         pos_cursor->ele =
-            Zeta_CircularVector_Access(&r_cv, NULL, NULL, ret_seg_idx);
+            Zeta_CircularArray_Access(&r_ca, NULL, NULL, ret_seg_idx);
     }
 
     return pos_cursor->ele;
@@ -1904,10 +1905,10 @@ void Zeta_StageVector_Erase(void* sv_, void* pos_cursor_, size_t cnt) {
 
     Zeta_StageVector_Seg* last_seg = m_n;
 
-    Zeta_CircularVector m_cv;
-    m_cv.width = width;
-    m_cv.stride = stride;
-    m_cv.capacity = seg_capacity;
+    Zeta_CircularArray m_ca;
+    m_ca.width = width;
+    m_ca.stride = stride;
+    m_ca.capacity = seg_capacity;
 
     if (GetNColor_(m_n) == ref_color && 0 < seg_idx) {
         ZETA_DebugLogCurPos;
@@ -1977,16 +1978,16 @@ void Zeta_StageVector_Erase(void* sv_, void* pos_cursor_, size_t cnt) {
 
         size_t cur_cnt = ZETA_GetMinOf(cnt, m_seg->dat.size - seg_idx);
 
-        m_cv.data = m_seg->dat.data;
-        m_cv.offset = m_seg->dat.offset;
-        m_cv.size = m_seg->dat.size;
+        m_ca.data = m_seg->dat.data;
+        m_ca.offset = m_seg->dat.offset;
+        m_ca.size = m_seg->dat.size;
 
-        Zeta_CircularVector_Cursor cv_cursor;
-        Zeta_CircularVector_Access(&m_cv, &cv_cursor, NULL, seg_idx);
-        Zeta_CircularVector_Erase(&m_cv, &cv_cursor, cur_cnt);
+        Zeta_CircularArray_Cursor ca_cursor;
+        Zeta_CircularArray_Access(&m_ca, &ca_cursor, NULL, seg_idx);
+        Zeta_CircularArray_Erase(&m_ca, &ca_cursor, cur_cnt);
 
-        m_seg->dat.offset = m_cv.offset;
-        m_seg->dat.size = m_cv.size;
+        m_seg->dat.offset = m_ca.offset;
+        m_seg->dat.size = m_ca.size;
 
         cnt -= cur_cnt;
 
@@ -2287,12 +2288,12 @@ UPDATE_END:;
     Zeta_StageVector_Seg* seg =
         ZETA_MemberToStruct(Zeta_StageVector_Seg, n, pos_cursor->n);
 
-    m_cv.data = seg->dat.data;
-    m_cv.offset = seg->dat.offset;
-    m_cv.size = seg->dat.size;
+    m_ca.data = seg->dat.data;
+    m_ca.offset = seg->dat.offset;
+    m_ca.size = seg->dat.size;
 
     pos_cursor->ele =
-        Zeta_CircularVector_Access(&m_cv, NULL, NULL, pos_cursor->seg_idx);
+        Zeta_CircularArray_Access(&m_ca, NULL, NULL, pos_cursor->seg_idx);
 }
 
 void Zeta_StageVector_EraseAll(void* sv_) {
@@ -2739,15 +2740,15 @@ void Zeta_StageVector_Cursor_AdvanceL(void* sv_, void* cursor_, size_t step) {
         return;
     }
 
-    Zeta_CircularVector cv;
-    cv.data = dst_seg->dat.data;
-    cv.width = Zeta_StageVector_GetWidth(sv);
-    cv.stride = Zeta_StageVector_GetStride(sv);
-    cv.offset = dst_seg->dat.offset;
-    cv.size = dst_seg->dat.size;
-    cv.capacity = sv->seg_capacity;
+    Zeta_CircularArray ca;
+    ca.data = dst_seg->dat.data;
+    ca.width = Zeta_StageVector_GetWidth(sv);
+    ca.stride = Zeta_StageVector_GetStride(sv);
+    ca.offset = dst_seg->dat.offset;
+    ca.size = dst_seg->dat.size;
+    ca.capacity = sv->seg_capacity;
 
-    cursor->ele = Zeta_CircularVector_Access(&cv, NULL, NULL, cursor->seg_idx);
+    cursor->ele = Zeta_CircularArray_Access(&ca, NULL, NULL, cursor->seg_idx);
 }
 
 void Zeta_StageVector_Cursor_AdvanceR(void* sv_, void* cursor_, size_t step) {
@@ -2785,15 +2786,15 @@ void Zeta_StageVector_Cursor_AdvanceR(void* sv_, void* cursor_, size_t step) {
     Zeta_StageVector_Seg* dst_seg =
         ZETA_MemberToStruct(Zeta_StageVector_Seg, n, dst_n);
 
-    Zeta_CircularVector cv;
-    cv.data = dst_seg->dat.data;
-    cv.width = Zeta_StageVector_GetWidth(sv);
-    cv.stride = Zeta_StageVector_GetStride(sv);
-    cv.offset = dst_seg->dat.offset;
-    cv.size = dst_seg->dat.size;
-    cv.capacity = sv->seg_capacity;
+    Zeta_CircularArray ca;
+    ca.data = dst_seg->dat.data;
+    ca.width = Zeta_StageVector_GetWidth(sv);
+    ca.stride = Zeta_StageVector_GetStride(sv);
+    ca.offset = dst_seg->dat.offset;
+    ca.size = dst_seg->dat.size;
+    ca.capacity = sv->seg_capacity;
 
-    cursor->ele = Zeta_CircularVector_Access(&cv, NULL, NULL, cursor->seg_idx);
+    cursor->ele = Zeta_CircularArray_Access(&ca, NULL, NULL, cursor->seg_idx);
 }
 
 void Zeta_StageVector_Cursor_Check(void* sv_, void const* cursor_) {

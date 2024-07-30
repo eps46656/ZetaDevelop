@@ -11,5 +11,6 @@ void Zeta_Allocator_Init(void* allocator_) {
     allocator->Query = NULL;
 
     allocator->Allocate = NULL;
+
     allocator->Deallocate = NULL;
 }

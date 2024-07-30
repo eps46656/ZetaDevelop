@@ -4,11 +4,25 @@
 
 typedef Zeta_SHA256Hasher_word_t word_t;
 
-void Zeta_SHA256_Hash(byte_t* dst, byte_t const* data, byte_t const* data_end) {
+static word_t const k_table[] = {
+    0x428A2F98, 0x71374491, 0xB5C0FBCF, 0xE9B5DBA5, 0x3956C25B, 0x59F111F1,
+    0x923F82A4, 0xAB1C5ED5, 0xD807AA98, 0x12835B01, 0x243185BE, 0x550C7DC3,
+    0x72BE5D74, 0x80DEB1FE, 0x9BDC06A7, 0xC19BF174, 0xE49B69C1, 0xEFBE4786,
+    0x0FC19DC6, 0x240CA1CC, 0x2DE92C6F, 0x4A7484AA, 0x5CB0A9DC, 0x76F988DA,
+    0x983E5152, 0xA831C66D, 0xB00327C8, 0xBF597FC7, 0xC6E00BF3, 0xD5A79147,
+    0x06CA6351, 0x14292967, 0x27B70A85, 0x2E1B2138, 0x4D2C6DFC, 0x53380D13,
+    0x650A7354, 0x766A0ABB, 0x81C2C92E, 0x92722C85, 0xA2BFE8A1, 0xA81A664B,
+    0xC24B8B70, 0xC76C51A3, 0xD192E819, 0xD6990624, 0xF40E3585, 0x106AA070,
+    0x19A4C116, 0x1E376C08, 0x2748774C, 0x34B0BCB5, 0x391C0CB3, 0x4ED8AA4A,
+    0x5B9CCA4F, 0x682E6FF3, 0x748F82EE, 0x78A5636F, 0x84C87814, 0x8CC70208,
+    0x90BEFFFA, 0xA4506CEB, 0xBEF9A3F7, 0xC67178F2
+};
+
+void Zeta_SHA256_Hash(byte_t* dst, byte_t const* src, size_t cnt) {
     Zeta_SHA256Hasher hasher;
     Zeta_SHA256Hasher_Init(&hasher);
 
-    Zeta_SHA256Hasher_Rotate(&hasher, data, data_end);
+    Zeta_SHA256Hasher_Rotate(&hasher, src, cnt);
 
     Zeta_SHA256Hasher_GetDigits(&hasher, dst);
 }
@@ -29,36 +43,24 @@ void Zeta_SHA256Hasher_Init(void* hasher_) {
     hasher->size = 0;
 }
 
+size_t Zeta_SHA256Hasher_Reset(void* hasher) { Zeta_SHA256Hasher_Init(hasher); }
+
 size_t Zeta_SHA256Hasher_GetSize(void* hasher_) {
     Zeta_SHA256Hasher* hasher = hasher_;
     ZETA_DebugAssert(hasher != NULL);
     return hasher->size;
 }
 
-size_t Zeta_SHA256Hasher_GetResultSize(void* hasher_) {
+size_t Zeta_SHA256Hasher_GetResultWidth(void* hasher_) {
     Zeta_SHA256Hasher* hasher = hasher_;
     ZETA_DebugAssert(hasher != NULL);
     return 32;
 }
 
 static void HashChunk_(word_t* hs, byte_t const* data) {
-    word_t const k[] = {
-        0x428A2F98, 0x71374491, 0xB5C0FBCF, 0xE9B5DBA5, 0x3956C25B, 0x59F111F1,
-        0x923F82A4, 0xAB1C5ED5, 0xD807AA98, 0x12835B01, 0x243185BE, 0x550C7DC3,
-        0x72BE5D74, 0x80DEB1FE, 0x9BDC06A7, 0xC19BF174, 0xE49B69C1, 0xEFBE4786,
-        0x0FC19DC6, 0x240CA1CC, 0x2DE92C6F, 0x4A7484AA, 0x5CB0A9DC, 0x76F988DA,
-        0x983E5152, 0xA831C66D, 0xB00327C8, 0xBF597FC7, 0xC6E00BF3, 0xD5A79147,
-        0x06CA6351, 0x14292967, 0x27B70A85, 0x2E1B2138, 0x4D2C6DFC, 0x53380D13,
-        0x650A7354, 0x766A0ABB, 0x81C2C92E, 0x92722C85, 0xA2BFE8A1, 0xA81A664B,
-        0xC24B8B70, 0xC76C51A3, 0xD192E819, 0xD6990624, 0xF40E3585, 0x106AA070,
-        0x19A4C116, 0x1E376C08, 0x2748774C, 0x34B0BCB5, 0x391C0CB3, 0x4ED8AA4A,
-        0x5B9CCA4F, 0x682E6FF3, 0x748F82EE, 0x78A5636F, 0x84C87814, 0x8CC70208,
-        0x90BEFFFA, 0xA4506CEB, 0xBEF9A3F7, 0xC67178F2
-    };
-
     word_t w[64];
 
-    for (int i = 0; i < 16; ++i) { w[i] = Zeta_ReadBigEndian(data + 4 * i, 4); }
+    for (int i = 0; i < 16; ++i) { w[i] = ZETA_ReadBigEndian4(data + 4 * i); }
 
     for (int i = 16; i < 64; ++i) {
         word_t s0 = __builtin_rotateright32(w[i - 15], 7) ^
@@ -88,7 +90,7 @@ static void HashChunk_(word_t* hs, byte_t const* data) {
         word_t maj = (a & b) ^ (a & c) ^ (b & c);
         word_t ch = (e & f) ^ (~e & g);
 
-        word_t t1 = h + s1 + ch + k[i] + w[i];
+        word_t t1 = h + s1 + ch + k_table[i] + w[i];
         word_t t2 = s0 + maj;
 
         h = g;
@@ -143,26 +145,27 @@ void Zeta_SHA256Hasher_GetResult(void* hasher_, byte_t* dst) {
     }
 }
 
-void Zeta_SHA256Hasher_Rotate(void* hasher_, byte_t const* data,
-                              byte_t const* data_end) {
+void Zeta_SHA256Hasher_Rotate(void* hasher_, byte_t const* src, size_t cnt) {
     Zeta_SHA256Hasher* hasher = hasher_;
     ZETA_DebugAssert(hasher != NULL);
 
-    ZETA_DebugAssert(data != NULL);
-    ZETA_DebugAssert(data_end != NULL);
-    ZETA_DebugAssert(data <= data_end);
+    ZETA_DebugAssert(src != NULL);
 
-    if (data == data_end) { return; }
+    if (cnt) { return; }
+
+    byte_t const* src_end = src + cnt;
 
     size_t cur_size = hasher->size;
 
-    for (; data < data_end; ++data) {
-        byte_t x = *data;
-        ZETA_DebugAssert(0 <= x);
-        ZETA_DebugAssert(x <= 255);
+    while (0 < cnt) {
+        size_t cur_cnt = ZETA_GetMinOf(cnt, 64 - cur_size % 64);
+        cnt -= cur_cnt;
 
-        hasher->last_chunk[cur_size % 64] = x;
-        ++cur_size;
+        Zeta_MemMove(hasher->last_chunk + cur_size % 64, src,
+                     sizeof(byte_t) * cur_cnt);
+
+        cur_size += cur_cnt;
+        src += cur_cnt;
 
         if (cur_size % 64 == 0) { HashChunk_(hasher->hs, hasher->last_chunk); }
     }

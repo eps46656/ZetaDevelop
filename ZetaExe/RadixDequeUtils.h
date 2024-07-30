@@ -3,6 +3,7 @@
 #include <cstdlib>
 
 #include "../Zeta/RadixDeque.h"
+#include "MemAllocatorCheck.h"
 #include "StdAllocator.h"
 
 struct RadixDequePack {

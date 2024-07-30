@@ -406,11 +406,15 @@ void Zeta_TreeAllocator_DeployAllocator(void* ta_, Zeta_Allocator* dst) {
 
     ZETA_DebugAssert(dst != NULL);
 
+    Zeta_Allocator_Init(dst);
+
     dst->context = ta;
 
     dst->GetAlign = Zeta_TreeAllocator_GetAlign;
+
     dst->Query = Zeta_TreeAllocator_Query;
 
     dst->Allocate = Zeta_TreeAllocator_Allocate;
+
     dst->Deallocate = Zeta_TreeAllocator_Deallocate;
 }

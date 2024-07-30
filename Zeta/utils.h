@@ -48,6 +48,60 @@ void* Zeta_MemRotate(void* beg, void* mid, void* end);
 
 void Zeta_MemReverse(void* data, size_t stride, size_t size);
 
+void Zeta_EleCopy(void* dst, void const* src, size_t stride, size_t width,
+                  size_t size);
+
+void Zeta_EleMove(void* dst, void const* src, size_t stride, size_t width,
+                  size_t size);
+
+#define ZETA_ReadLittleEndian4_(src_tmp, src)                      \
+    ({                                                             \
+        byte_t const* src_tmp = (void const*)(src);                \
+        ZETA_DebugAssert(src_tmp != NULL);                         \
+                                                                   \
+        ((u32_t)src_tmp[0] << 0) | ((u32_t)src_tmp[1] << 8) |      \
+            ((u32_t)src_tmp[2] << 16) | ((u32_t)src_tmp[3] << 24); \
+    })
+
+#define ZETA_ReadLittleEndian4(src) ZETA_ReadLittleEndian4_(ZETA_TmpName, (src))
+
+#define ZETA_ReadLittleEndian8_(src_tmp, src)                       \
+    ({                                                              \
+        byte_t const* src_tmp = (void const*)(src);                 \
+        ZETA_DebugAssert(src_tmp != NULL);                          \
+                                                                    \
+        ((u64_t)src_tmp[0] << 0) | ((u64_t)src_tmp[1] << 8) |       \
+            ((u64_t)src_tmp[2] << 16) | ((u64_t)src_tmp[3] << 24) | \
+            ((u64_t)src_tmp[4] << 32) | ((u64_t)src_tmp[5] << 40) | \
+            ((u64_t)src_tmp[6] << 48) | ((u64_t)src_tmp[7] << 56);  \
+    })
+
+#define ZETA_ReadLittleEndian8(src) ZETA_ReadLittleEndian8_(ZETA_TmpName, (src))
+
+#define ZETA_ReadBigEndian4_(src_tmp, src)                       \
+    ({                                                           \
+        byte_t const* src_tmp = (void const*)(src);              \
+        ZETA_DebugAssert(src_tmp != NULL);                       \
+                                                                 \
+        ((u32_t)src_tmp[0] << 24) | ((u32_t)src_tmp[1] << 16) |  \
+            ((u32_t)src_tmp[2] << 8) | ((u32_t)src_tmp[3] << 0); \
+    })
+
+#define ZETA_ReadBigEndian4(src) ZETA_ReadBigEndian4_(ZETA_TmpName, (src))
+
+#define ZETA_ReadBigEndian8_(src_tmp, src)                          \
+    ({                                                              \
+        byte_t const* src_tmp = (void const*)(src);                 \
+        ZETA_DebugAssert(src_tmp != NULL);                          \
+                                                                    \
+        ((u64_t)src_tmp[0] << 56) | ((u64_t)src_tmp[1] << 48) |     \
+            ((u64_t)src_tmp[2] << 40) | ((u64_t)src_tmp[3] << 32) | \
+            ((u64_t)src_tmp[4] << 24) | ((u64_t)src_tmp[5] << 16) | \
+            ((u64_t)src_tmp[6] << 8) | ((u64_t)src_tmp[7] << 0);    \
+    })
+
+#define ZETA_ReadBigEndian8(src) ZETA_ReadBigEndian8_(ZETA_TmpName, (src))
+
 /**
  * @brief Read little endian stored length bytes occupying integer from data.
  *

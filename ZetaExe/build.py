@@ -90,10 +90,23 @@ def AddDeps(builder, ZetaBuildDir, ZetaExeBuildDir, verbose, mode):
     )
 
     builder.Add(
-        f"{ZetaExeDir}/CircularVectorUtils.h",
+        f"{ZetaExeDir}/CircularArrayUtils.h",
         {
             f"{File}",
-            f"{ZetaDir}/CircularVector.h",
+            f"{ZetaDir}/CircularArray.h",
+            f"{ZetaExeDir}/MemAllocatorCheck.h",
+            f"{ZetaExeDir}/StdAllocator.h",
+        },
+        None
+    )
+
+    builder.Add(
+        f"{ZetaExeDir}/DynamicVectorUtils.h",
+        {
+            f"{File}",
+            f"{ZetaDir}/DynamicVector.h",
+            f"{ZetaExeDir}/MemAllocatorCheck.h",
+            f"{ZetaExeDir}/StdAllocator.h",
         },
         None
     )
@@ -111,6 +124,18 @@ def AddDeps(builder, ZetaBuildDir, ZetaExeBuildDir, verbose, mode):
         {
             f"{File}",
             f"{ZetaDir}/RadixDeque.h",
+            f"{ZetaExeDir}/MemAllocatorCheck.h",
+            f"{ZetaExeDir}/StdAllocator.h",
+        },
+        None
+    )
+
+    builder.Add(
+        f"{ZetaExeDir}/RadixVectorUtils.h",
+        {
+            f"{File}",
+            f"{ZetaDir}/RadixVector.h",
+            f"{ZetaExeDir}/MemAllocatorCheck.h",
             f"{ZetaExeDir}/StdAllocator.h",
         },
         None
@@ -570,7 +595,7 @@ def AddDeps(builder, ZetaBuildDir, ZetaExeBuildDir, verbose, mode):
 
             f"{ZetaBuildDir}/SegVector.ll",
             f"{ZetaBuildDir}/BinTree.ll",
-            f"{ZetaBuildDir}/CircularVector.ll",
+            f"{ZetaBuildDir}/CircularArray.ll",
             f"{ZetaBuildDir}/DebugDeque.ll",
             f"{ZetaBuildDir}/DebugHashMap.ll",
             f"{ZetaBuildDir}/DebugPipe.ll",
@@ -585,7 +610,7 @@ def AddDeps(builder, ZetaBuildDir, ZetaExeBuildDir, verbose, mode):
             [
                 f"{ZetaBuildDir}/SegVector.ll",
                 f"{ZetaBuildDir}/BinTree.ll",
-                f"{ZetaBuildDir}/CircularVector.ll",
+                f"{ZetaBuildDir}/CircularArray.ll",
                 f"{ZetaBuildDir}/DebugDeque.ll",
                 f"{ZetaBuildDir}/DebugHashMap.ll",
                 f"{ZetaBuildDir}/DebugPipe.ll",
@@ -626,7 +651,7 @@ def AddDeps(builder, ZetaBuildDir, ZetaExeBuildDir, verbose, mode):
             f"{File}",
 
             f"{ZetaBuildDir}/BinTree.ll",
-            f"{ZetaBuildDir}/CircularVector.ll",
+            f"{ZetaBuildDir}/CircularArray.ll",
             f"{ZetaBuildDir}/DebugDeque.ll",
             f"{ZetaBuildDir}/DebugHashMap.ll",
             f"{ZetaBuildDir}/DebugPipe.ll",
@@ -641,7 +666,7 @@ def AddDeps(builder, ZetaBuildDir, ZetaExeBuildDir, verbose, mode):
             f"{ZetaExeBuildDir}/test_segvec2.exe",
             [
                 f"{ZetaBuildDir}/BinTree.ll",
-                f"{ZetaBuildDir}/CircularVector.ll",
+                f"{ZetaBuildDir}/CircularArray.ll",
                 f"{ZetaBuildDir}/DebugDeque.ll",
                 f"{ZetaBuildDir}/DebugHashMap.ll",
                 f"{ZetaBuildDir}/DebugPipe.ll",
@@ -684,7 +709,7 @@ def AddDeps(builder, ZetaBuildDir, ZetaExeBuildDir, verbose, mode):
 
             f"{ZetaBuildDir}/SegVector.ll",
             f"{ZetaBuildDir}/BinTree.ll",
-            f"{ZetaBuildDir}/CircularVector.ll",
+            f"{ZetaBuildDir}/CircularArray.ll",
             f"{ZetaBuildDir}/DebugDeque.ll",
             f"{ZetaBuildDir}/DebugHashMap.ll",
             f"{ZetaBuildDir}/DebugPipe.ll",
@@ -699,7 +724,7 @@ def AddDeps(builder, ZetaBuildDir, ZetaExeBuildDir, verbose, mode):
             [
                 f"{ZetaBuildDir}/SegVector.ll",
                 f"{ZetaBuildDir}/BinTree.ll",
-                f"{ZetaBuildDir}/CircularVector.ll",
+                f"{ZetaBuildDir}/CircularArray.ll",
                 f"{ZetaBuildDir}/DebugDeque.ll",
                 f"{ZetaBuildDir}/DebugHashMap.ll",
                 f"{ZetaBuildDir}/DebugPipe.ll",
@@ -741,7 +766,7 @@ def AddDeps(builder, ZetaBuildDir, ZetaExeBuildDir, verbose, mode):
 
             f"{ZetaBuildDir}/SegVector.ll",
             f"{ZetaBuildDir}/BinTree.ll",
-            f"{ZetaBuildDir}/CircularVector.ll",
+            f"{ZetaBuildDir}/CircularArray.ll",
             f"{ZetaBuildDir}/DebugHashMap.ll",
             f"{ZetaBuildDir}/DebugPipe.ll",
             f"{ZetaBuildDir}/RBTree.ll",
@@ -755,7 +780,7 @@ def AddDeps(builder, ZetaBuildDir, ZetaExeBuildDir, verbose, mode):
             [
                 f"{ZetaBuildDir}/SegVector.ll",
                 f"{ZetaBuildDir}/BinTree.ll",
-                f"{ZetaBuildDir}/CircularVector.ll",
+                f"{ZetaBuildDir}/CircularArray.ll",
                 f"{ZetaBuildDir}/DebugHashMap.ll",
                 f"{ZetaBuildDir}/DebugPipe.ll",
                 f"{ZetaBuildDir}/RBTree.ll",
@@ -772,7 +797,7 @@ def AddDeps(builder, ZetaBuildDir, ZetaExeBuildDir, verbose, mode):
         {
             f"{File}",
             f"{ZetaDir}/DebugDeque.h",
-            f"{ZetaDir}/CircularVector.h",
+            f"{ZetaDir}/CircularArray.h",
             f"{ZetaDir}/SegVector.h",
             f"{ZetaExeDir}/StdAllocator.h"
         },
@@ -797,7 +822,7 @@ def AddDeps(builder, ZetaBuildDir, ZetaExeBuildDir, verbose, mode):
             f"{File}",
 
             f"{ZetaBuildDir}/BinTree.ll",
-            f"{ZetaBuildDir}/CircularVector.ll",
+            f"{ZetaBuildDir}/CircularArray.ll",
             f"{ZetaBuildDir}/DebugDeque.ll",
             f"{ZetaBuildDir}/DebugHashMap.ll",
             f"{ZetaBuildDir}/DebugPipe.ll",
@@ -812,7 +837,7 @@ def AddDeps(builder, ZetaBuildDir, ZetaExeBuildDir, verbose, mode):
             f"{ZetaExeBuildDir}/test_seqcntr.exe",
             [
                 f"{ZetaBuildDir}/BinTree.ll",
-                f"{ZetaBuildDir}/CircularVector.ll",
+                f"{ZetaBuildDir}/CircularArray.ll",
                 f"{ZetaBuildDir}/DebugDeque.ll",
                 f"{ZetaBuildDir}/DebugHashMap.ll",
                 f"{ZetaBuildDir}/DebugPipe.ll",
@@ -834,9 +859,11 @@ def AddDeps(builder, ZetaBuildDir, ZetaExeBuildDir, verbose, mode):
             f"{ZetaDir}/DebugDeque.h",
             f"{ZetaDir}/Debugger.h",
             f"{ZetaDir}/Logger.h",
-            f"{ZetaExeDir}/CircularVectorUtils.h",
+            f"{ZetaExeDir}/CircularArrayUtils.h",
+            f"{ZetaExeDir}/DynamicVectorUtils.h",
             f"{ZetaExeDir}/MemAllocatorCheck.h",
             f"{ZetaExeDir}/RadixDequeUtils.h",
+            f"{ZetaExeDir}/RadixVectorUtils.h",
             f"{ZetaExeDir}/StageVectorUtils.h",
         },
         None
@@ -884,15 +911,17 @@ def AddDeps(builder, ZetaBuildDir, ZetaExeBuildDir, verbose, mode):
             f"{File}",
 
             f"{ZetaBuildDir}/BinTree.ll",
-            f"{ZetaBuildDir}/CircularVector.ll",
+            f"{ZetaBuildDir}/CircularArray.ll",
             f"{ZetaBuildDir}/DebugDeque.ll",
             f"{ZetaBuildDir}/DebugHashMap.ll",
             f"{ZetaBuildDir}/Debugger.ll",
             f"{ZetaBuildDir}/DebugPipe.ll",
             f"{ZetaBuildDir}/DebugStrPipe.ll",
+            f"{ZetaBuildDir}/DynamicVector.ll",
             f"{ZetaBuildDir}/io.ll",
             f"{ZetaBuildDir}/Logger.ll",
             f"{ZetaBuildDir}/RBTree.ll",
+            f"{ZetaBuildDir}/RadixVector.ll",
             f"{ZetaBuildDir}/RadixDeque.ll",
             f"{ZetaBuildDir}/OrdCnt3RBTreeNode.ll",
             f"{ZetaBuildDir}/OrdCntRBTreeNode.ll",
@@ -908,15 +937,17 @@ def AddDeps(builder, ZetaBuildDir, ZetaExeBuildDir, verbose, mode):
 
             [
                 f"{ZetaBuildDir}/BinTree.ll",
-                f"{ZetaBuildDir}/CircularVector.ll",
+                f"{ZetaBuildDir}/CircularArray.ll",
                 f"{ZetaBuildDir}/DebugDeque.ll",
                 f"{ZetaBuildDir}/DebugHashMap.ll",
                 f"{ZetaBuildDir}/Debugger.ll",
                 f"{ZetaBuildDir}/DebugPipe.ll",
                 f"{ZetaBuildDir}/DebugStrPipe.ll",
+                f"{ZetaBuildDir}/DynamicVector.ll",
                 f"{ZetaBuildDir}/io.ll",
                 f"{ZetaBuildDir}/Logger.ll",
                 f"{ZetaBuildDir}/RBTree.ll",
+                f"{ZetaBuildDir}/RadixVector.ll",
                 f"{ZetaBuildDir}/RadixDeque.ll",
                 f"{ZetaBuildDir}/OrdCnt3RBTreeNode.ll",
                 f"{ZetaBuildDir}/OrdCntRBTreeNode.ll",
@@ -934,7 +965,7 @@ def AddDeps(builder, ZetaBuildDir, ZetaExeBuildDir, verbose, mode):
         f"{ZetaExeDir}/test_stagevec_speed.cpp",
         {
             f"{File}",
-            f"{ZetaDir}/CircularVector.h",
+            f"{ZetaDir}/CircularArray.h",
             f"{ZetaDir}/DebugDeque.h",
             f"{ZetaDir}/Debugger.h",
             f"{ZetaDir}/Logger.h",
@@ -964,7 +995,7 @@ def AddDeps(builder, ZetaBuildDir, ZetaExeBuildDir, verbose, mode):
             f"{File}",
 
             f"{ZetaBuildDir}/BinTree.ll",
-            f"{ZetaBuildDir}/CircularVector.ll",
+            f"{ZetaBuildDir}/CircularArray.ll",
             f"{ZetaBuildDir}/DebugDeque.ll",
             f"{ZetaBuildDir}/DebugHashMap.ll",
             f"{ZetaBuildDir}/Debugger.ll",
@@ -988,7 +1019,7 @@ def AddDeps(builder, ZetaBuildDir, ZetaExeBuildDir, verbose, mode):
 
             [
                 f"{ZetaBuildDir}/BinTree.ll",
-                f"{ZetaBuildDir}/CircularVector.ll",
+                f"{ZetaBuildDir}/CircularArray.ll",
                 f"{ZetaBuildDir}/DebugDeque.ll",
                 f"{ZetaBuildDir}/DebugHashMap.ll",
                 f"{ZetaBuildDir}/Debugger.ll",

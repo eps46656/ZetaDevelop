@@ -75,6 +75,8 @@ void* Zeta_RadixDeque_PeekL(void* rd, void* dst_cursor, void* dst_ele);
 
 void* Zeta_RadixDeque_PeekR(void* rd, void* dst_cursor, void* dst_ele);
 
+void* Zeta_RadixDeque_Refer(void* rd, void const* pos_cursor);
+
 void* Zeta_RadixDeque_Access(void* rd, void* dst_cursor, void* dst_ele,
                              size_t idx);
 

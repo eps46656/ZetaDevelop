@@ -80,6 +80,67 @@ void Zeta_MemReverse(void* data_, size_t stride, size_t size) {
     for (; i < j; i += stride, j -= stride) { Zeta_MemSwap(i, j, stride); }
 }
 
+void Zeta_EleCopy(void* dst_, void const* src_, size_t stride, size_t width,
+                  size_t size) {
+    unsigned char* dst = dst_;
+    unsigned char const* src = src_;
+
+    ZETA_DebugAssert(0 < width);
+    ZETA_DebugAssert(width <= stride);
+
+    if (size == 0 || dst == src) { return; }
+
+    size_t length = stride * (size - 1) + width;
+
+    if (stride - width <= sizeof(void*) * 2) {
+        Zeta_MemCopy(dst, src, length);
+        return;
+    }
+
+    ZETA_DebugAssert(dst != NULL);
+    ZETA_DebugAssert(src != NULL);
+
+    ZETA_DebugAssert(!ZETA_AreOverlapped(dst, dst + length, src, src + length));
+
+    for (size_t i = 0; i < size; ++i, dst += stride, src += stride) {
+        Zeta_MemCopy(dst, src, width);
+    }
+}
+
+void Zeta_EleMove(void* dst_, void const* src_, size_t stride, size_t width,
+                  size_t size) {
+    unsigned char* dst = dst_;
+    unsigned char const* src = src_;
+
+    ZETA_DebugAssert(0 < width);
+    ZETA_DebugAssert(width <= stride);
+
+    if (size == 0 || dst == src) { return; }
+
+    size_t length = stride * (size - 1) + width;
+
+    if (stride - width <= sizeof(void*) * 2) {
+        Zeta_MemMove(dst, src, length);
+        return;
+    }
+
+    ZETA_DebugAssert(dst != NULL);
+    ZETA_DebugAssert(src != NULL);
+
+    if (ZETA_AreOverlapped(dst, dst + length, src, src + length) && src < dst) {
+        dst += stride * (size - 1);
+        src += stride * (size - 1);
+
+        for (size_t i = 0; i < size; ++i, dst -= stride, src -= stride) {
+            Zeta_MemMove(dst, src, width);
+        }
+    } else {
+        for (size_t i = 0; i < size; ++i, dst += stride, src += stride) {
+            Zeta_MemMove(dst, src, width);
+        }
+    }
+}
+
 unsigned long long Zeta_ReadLittleEndianStd(byte_t const* data,
                                             unsigned length) {
     ZETA_DebugAssert(data != NULL);
@@ -212,6 +273,8 @@ unsigned long long Zeta_GetLCM(unsigned long long x, unsigned long long y) {
 
 unsigned long long Zeta_GetPower(unsigned long long base,
                                  unsigned long long exp) {
+    ZETA_DebugAssert(base != 0 || exp != 0);
+
     unsigned long long ret = 1;
 
     for (; 0 < exp; exp /= 2) {
@@ -251,6 +314,8 @@ unsigned long long Zeta_GetPowerMod(unsigned long long base,
                                     unsigned long long mod) {
     ZETA_DebugAssert(0 < mod);
     ZETA_DebugAssert(mod <= ZETA_GetMaxMod(unsigned long long));
+
+    ZETA_DebugAssert(base != 0 || exp != 0);
 
     base %= mod;
 
