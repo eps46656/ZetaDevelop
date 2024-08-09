@@ -37,6 +37,15 @@ struct Zeta_Hasher {
     void (*Rotate)(void* context, byte_t const* data, size_t cnt);
 };
 
+/**
+ * @brief An interface of hasher.
+ */
+struct Zeta_Hasher {
+    void* context;
+
+    unsigned long long (*Hash)(void* context, void const* elem);
+};
+
 void Zeta_Hasher_Init(void* hasher);
 
 ZETA_ExternC_End;

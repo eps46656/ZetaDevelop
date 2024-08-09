@@ -93,17 +93,17 @@ void InitDD(Zeta_SeqContainer* seq_cntr) {
 
 #define CAPACITY (256 * 1024 * 1024)
 
-Zeta_CircularArray cv;
+Zeta_CircularArray ca;
 
 void InitCV(Zeta_SeqContainer* seq_cntr) {
-    cv.width = sizeof(Val);
-    cv.stride = sizeof(Val);
-    cv.offset = 0;
-    cv.size = 0;
-    cv.capacity = CAPACITY;
-    cv.data = std::malloc(sizeof(Val) * CAPACITY);
+    ca.width = sizeof(Val);
+    ca.stride = sizeof(Val);
+    ca.offset = 0;
+    ca.size = 0;
+    ca.capacity = CAPACITY;
+    ca.data = std::malloc(sizeof(Val) * CAPACITY);
 
-    Zeta_CircularArray_DeploySeqContainer(&cv, seq_cntr);
+    Zeta_CircularArray_DeploySeqContainer(&ca, seq_cntr);
 }
 
 // -----------------------------------------------------------------------------
@@ -337,8 +337,8 @@ void SV_Check(Zeta_SeqContainer* seq_cntr) {
     Zeta_DebugHashMap node_hm;
     Zeta_DebugHashMap seg_hm;
 
-    Zeta_DebugHashMap_Create(&node_hm);
-    Zeta_DebugHashMap_Create(&seg_hm);
+    Zeta_DebugHashMap_Init(&node_hm);
+    Zeta_DebugHashMap_Init(&seg_hm);
 
     Zeta_SegVector_Check(&sv, &node_hm, &seg_hm);
 
@@ -674,7 +674,7 @@ int main() {
     main2();
     std::cout << "ok\n";
 
-    printf(__func__);
+    printf(__PRETTY_FUNCTION__);
 }
 
 /*

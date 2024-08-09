@@ -13,59 +13,90 @@ struct StageVectorPack {
     StdAllocator data_allocator_;
     Zeta_Allocator data_allocator;
 
-    Zeta_StageVector stage_vec;
+    Zeta_StageVector stage_vector;
 };
 
 template <typename Val>
-void InitStageVec(Zeta_SeqContainer* seq_cntr,
-                  Zeta_SeqContainer* origin_seq_cntr, size_t seg_capacity) {
-    StageVectorPack* stage_vec_pack{ static_cast<StageVectorPack*>(
+void InitStageVector(Zeta_SeqContainer* seq_cntr,
+                     Zeta_SeqContainer* origin_seq_cntr, size_t seg_capacity) {
+    StageVectorPack* stage_vector_pack{ static_cast<StageVectorPack*>(
         std::malloc(sizeof(StageVectorPack))) };
 
-    new (&stage_vec_pack->seg_allocator_) StdAllocator{};
-    new (&stage_vec_pack->data_allocator_) StdAllocator{};
+    new (&stage_vector_pack->seg_allocator_) StdAllocator{};
+    new (&stage_vector_pack->data_allocator_) StdAllocator{};
 
-    StdAllocator_DeployAllocator(&stage_vec_pack->seg_allocator_,
-                                 &stage_vec_pack->seg_allocator);
-    StdAllocator_DeployAllocator(&stage_vec_pack->data_allocator_,
-                                 &stage_vec_pack->data_allocator);
+    StdAllocator_DeployAllocator(&stage_vector_pack->seg_allocator_,
+                                 &stage_vector_pack->seg_allocator);
+    StdAllocator_DeployAllocator(&stage_vector_pack->data_allocator_,
+                                 &stage_vector_pack->data_allocator);
 
-    stage_vec_pack->stage_vec.origin = origin_seq_cntr;
-    stage_vec_pack->stage_vec.seg_capacity = seg_capacity;
-    stage_vec_pack->stage_vec.seg_allocator = &stage_vec_pack->seg_allocator;
-    stage_vec_pack->stage_vec.data_allocator = &stage_vec_pack->data_allocator;
+    stage_vector_pack->stage_vector.origin = origin_seq_cntr;
+    stage_vector_pack->stage_vector.seg_capacity = seg_capacity;
+    stage_vector_pack->stage_vector.seg_allocator =
+        &stage_vector_pack->seg_allocator;
+    stage_vector_pack->stage_vector.data_allocator =
+        &stage_vector_pack->data_allocator;
 
-    Zeta_StageVector_Init(&stage_vec_pack->stage_vec);
-    Zeta_StageVector_DeploySeqContainer(&stage_vec_pack->stage_vec, seq_cntr);
+    Zeta_StageVector_Init(&stage_vector_pack->stage_vector);
+    Zeta_StageVector_DeploySeqContainer(&stage_vector_pack->stage_vector,
+                                        seq_cntr);
+}
+
+void DeinitStageVector(Zeta_SeqContainer* seq_cntr) {
+    if (seq_cntr == NULL || seq_cntr->GetSize != Zeta_StageVector_GetSize) {
+        return;
+    }
+
+    StageVectorPack* stage_vector_pack{ ZETA_MemberToStruct(
+        StageVectorPack, stage_vector, seq_cntr->context) };
+
+    Zeta_StageVector_Deinit(seq_cntr->context);
+
+    stage_vector_pack->seg_allocator_.~StdAllocator();
+    stage_vector_pack->data_allocator_.~StdAllocator();
+
+    std::free(stage_vector_pack);
 }
 
 template <typename Val>
-Zeta_SeqContainer* CreateStageVec(Zeta_SeqContainer* origin_seq_cntr,
-                                  size_t seg_capacity) {
+Zeta_SeqContainer* CreateStageVector(Zeta_SeqContainer* origin_seq_cntr,
+                                     size_t seg_capacity) {
     Zeta_SeqContainer* seq_cntr{ new Zeta_SeqContainer{} };
-    InitStageVec<Val>(seq_cntr, origin_seq_cntr, seg_capacity);
+    InitStageVector<Val>(seq_cntr, origin_seq_cntr, seg_capacity);
     return seq_cntr;
 }
 
-void CheckStageVec(Zeta_SeqContainer const* seq_cntr) {
+void DestroyStageVector(Zeta_SeqContainer* seq_cntr) {
+    if (seq_cntr == NULL || seq_cntr->GetSize != Zeta_StageVector_GetSize) {
+        return;
+    }
+
+    DeinitStageVector(seq_cntr);
+
+    delete seq_cntr;
+}
+
+void CheckStageVector(Zeta_SeqContainer const* seq_cntr) {
     if (seq_cntr->GetSize != Zeta_StageVector_GetSize) { return; }
 
-    StageVectorPack* pack{ ZETA_MemberToStruct(StageVectorPack, stage_vec,
+    StageVectorPack* pack{ ZETA_MemberToStruct(StageVectorPack, stage_vector,
                                                seq_cntr->context) };
 
     Zeta_DebugHashMap seg_hm;
     Zeta_DebugHashMap data_hm;
 
-    Zeta_DebugHashMap_Create(&seg_hm);
-    Zeta_DebugHashMap_Create(&data_hm);
+    Zeta_DebugHashMap_Init(&seg_hm);
+    Zeta_DebugHashMap_Init(&data_hm);
 
-    Zeta_StageVector_Check(
-        const_cast<void*>(static_cast<void const*>(&pack->stage_vec)), &seg_hm,
-        &data_hm);
+    Zeta_StageVector_Sanitize(
+        const_cast<void*>(static_cast<void const*>(&pack->stage_vector)),
+        &seg_hm, &data_hm);
 
     using record_t = std::unordered_map<unsigned long long, unsigned long long>;
 
     CheckRecords(pack->seg_allocator_.records, *(record_t*)seg_hm.hash_map);
-
     CheckRecords(pack->data_allocator_.records, *(record_t*)data_hm.hash_map);
+
+    Zeta_DebugHashMap_Deinit(&seg_hm);
+    Zeta_DebugHashMap_Deinit(&data_hm);
 }

@@ -1,9 +1,11 @@
 #include "SeqContainer.h"
 
-void Zeta_SeqContainer_Init(Zeta_SeqContainer* seq_cntr) {
-    seq_cntr->context = NULL;
+#include "Debugger.h"
 
-    seq_cntr->cursor_align = 1;
+void Zeta_SeqContainer_Init(Zeta_SeqContainer* seq_cntr) {
+    ZETA_DebugAssert(seq_cntr != NULL);
+
+    seq_cntr->context = NULL;
 
     seq_cntr->cursor_size = 0;
 

@@ -1,6 +1,5 @@
 #pragma once
 
-#include "Cursor.h"
 #include "SeqContainer.h"
 
 ZETA_ExternC_Beg;
@@ -24,7 +23,7 @@ struct Zeta_CircularArray {
 struct Zeta_CircularArray_Cursor {
     Zeta_CircularArray* ca;
     size_t idx;
-    void* ele;
+    void* ref;
 };
 
 void Zeta_CircularArray_Init(void* ca);
@@ -43,11 +42,11 @@ void Zeta_CircularArray_GetLBCursor(void* ca, void* dst_cursor);
 
 void Zeta_CircularArray_GetRBCursor(void* ca, void* dst_cursor);
 
-void* Zeta_CircularArray_PeekL(void* ca, void* dst_cursor, void* dst_ele);
+void* Zeta_CircularArray_PeekL(void* ca, void* dst_cursor, void* dst_elem);
 
-void* Zeta_CircularArray_PeekR(void* ca, void* dst_cursor, void* dst_ele);
+void* Zeta_CircularArray_PeekR(void* ca, void* dst_cursor, void* dst_elem);
 
-void* Zeta_CircularArray_Access(void* ca, void* dst_cursor, void* dst_ele,
+void* Zeta_CircularArray_Access(void* ca, void* dst_cursor, void* dst_elem,
                                 size_t idx);
 
 void* Zeta_CircularArray_Refer(void* ca, void const* pos_cursor);

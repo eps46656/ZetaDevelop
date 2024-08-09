@@ -13,8 +13,6 @@ ZETA_DeclareStruct(Zeta_SeqContainer);
 struct Zeta_SeqContainer {
     void* context;
 
-    size_t cursor_align;
-
     size_t cursor_size;
 
     size_t (*GetWidth)(void* context);
@@ -29,11 +27,12 @@ struct Zeta_SeqContainer {
 
     void (*GetRBCursor)(void* context, void* dst_cursor);
 
-    void* (*PeekL)(void* context, void* dst_cursor, void* dst_ele);
+    void* (*PeekL)(void* context, void* dst_cursor, void* dst_elem);
 
-    void* (*PeekR)(void* context, void* dst_cursor, void* dst_ele);
+    void* (*PeekR)(void* context, void* dst_cursor, void* dst_elem);
 
-    void* (*Access)(void* context, void* dst_cursor, void* dst_ele, size_t idx);
+    void* (*Access)(void* context, void* dst_cursor, void* dst_elem,
+                    size_t idx);
 
     void* (*Refer)(void* context, void const* pos_cursor);
 

@@ -145,8 +145,8 @@ void Check() {
     Zeta_DebugHashMap node_hm;
     Zeta_DebugHashMap seg_hm;
 
-    Zeta_DebugHashMap_Create(&node_hm);
-    Zeta_DebugHashMap_Create(&seg_hm);
+    Zeta_DebugHashMap_Init(&node_hm);
+    Zeta_DebugHashMap_Init(&seg_hm);
 
     Zeta_SegVector_Check(&sv, &node_hm, &seg_hm);
 

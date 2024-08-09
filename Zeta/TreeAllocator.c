@@ -189,7 +189,6 @@ void* Zeta_TreeAllocator_Allocate(void* ta_, size_t size) {
     if (choose_ret == choose_ret_failed) { return NULL; }
 
     Zeta_BinTreeNodeOperator btn_opr;
-    Zeta_BinTree_InitOpr(&btn_opr);
     Zeta_OrdRBTreeNode_DeployBinTreeNodeOperator(NULL, &btn_opr);
 
     Zeta_OrdRBLinkedListNode_SetColor(&l_head->hn, occupied_color);
@@ -231,7 +230,6 @@ void Zeta_TreeAllocator_Deallocate(void* ta_, void* ptr) {
     if (ptr == NULL) { return; }
 
     Zeta_BinTreeNodeOperator btn_opr;
-    Zeta_BinTree_InitOpr(&btn_opr);
     Zeta_OrdRBTreeNode_DeployBinTreeNodeOperator(NULL, &btn_opr);
 
     Zeta_TreeAllocator_Head* m_head =
@@ -353,7 +351,7 @@ void Zeta_TreeAllocator_Check(void* ta_, bool_t print_state,
     ZETA_DebugAssert(Zeta_OrdRBTreeNode_GetP(NULL, ta->sn_root) == NULL);
 
     Zeta_DebugHashMap vacant_head_mt;
-    Zeta_DebugHashMap_Create(&vacant_head_mt);
+    Zeta_DebugHashMap_Init(&vacant_head_mt);
 
     GetVacantHead_(&vacant_head_mt, SNToHead_(ta->sn_root), 0,
                    ZETA_RangeMaxOf(size_t));
@@ -397,7 +395,7 @@ void Zeta_TreeAllocator_Check(void* ta_, bool_t print_state,
     }
 
     ZETA_DebugAssert(Zeta_DebugHashMap_GetSize(&vacant_head_mt) == 0);
-    Zeta_DebugHashMap_Destroy(&vacant_head_mt);
+    Zeta_DebugHashMap_Deinit(&vacant_head_mt);
 }
 
 void Zeta_TreeAllocator_DeployAllocator(void* ta_, Zeta_Allocator* dst) {

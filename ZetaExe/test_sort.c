@@ -3,7 +3,7 @@
 #include "../Zeta/Algorithm.h"
 #include "../Zeta/random.h"
 
-typedef long long int lli;
+typedef unsigned long long val_t;
 
 int Comparer(void* context, void const* x, void const* y) {
     ZETA_Unused(context);

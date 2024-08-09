@@ -12,30 +12,37 @@ mode_enum = EmptyClass
 mode_enum.debug = GetEnumInt()
 mode_enum.release = GetEnumInt()
 
+arch_enum = EmptyClass
+arch_enum.x86_64 = GetEnumInt()
+arch_enum.arm = GetEnumInt()
+arch_enum.arm32 = GetEnumInt()
+arch_enum.arm64 = GetEnumInt()
+arch_enum.riscv32 = GetEnumInt()
+arch_enum.riscv64 = GetEnumInt()
+
+vendor_enum = EmptyClass
+vendor_enum.pc = GetEnumInt()
+
+sys_enum = EmptyClass
+sys_enum.linux = GetEnumInt()
+sys_enum.windows = GetEnumInt()
+
+env_enum = EmptyClass
+env_enum.gnu = GetEnumInt()
+env_enum.elf = GetEnumInt()
+env_enum.msvc = GetEnumInt()
+
+# ------------------------------------------------------------------------------
+
 target = EmptyClass
 
-target.arch_enum = EmptyClass
-target.arch_enum.x86_64 = GetEnumInt()
-target.arch_enum.arm = GetEnumInt()
-target.arch_enum.arm32 = GetEnumInt()
-target.arch_enum.arm64 = GetEnumInt()
-target.arch_enum.riscv32 = GetEnumInt()
-target.arch_enum.riscv64 = GetEnumInt()
+target.arch = arch_enum.x86_64
+# target.arch = arch_enum.riscv64
 
-target.vendor_enum = EmptyClass
-target.vendor_enum.pc = GetEnumInt()
+target.vendor = vendor_enum.pc
 
-target.sys_enum = EmptyClass
-target.sys_enum.linux = GetEnumInt()
-target.sys_enum.windows = GetEnumInt()
+target.sys = sys_enum.linux
+# target.sys = sys_enum.windows
 
-target.env_enum = EmptyClass
-target.env_enum.gnu = GetEnumInt()
-target.env_enum.elf = GetEnumInt()
-target.env_enum.msvc = GetEnumInt()
-
-target.arch = target.arch_enum.x86_64
-# target.arch = target.arch_enum.riscv64
-target.vendor = target.vendor_enum.pc
-target.sys = target.sys_enum.windows
-target.env = target.env_enum.msvc
+target.env = env_enum.gnu
+# target.env = env_enum.msvc

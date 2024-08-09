@@ -5,27 +5,27 @@ import os
 
 def GetClangTriple(target):
     arch_table = {
-        target.arch_enum.x86_64: "x86_64",
-        target.arch_enum.arm: "arm",
-        target.arch_enum.arm32: "arm32",
-        target.arch_enum.arm64: "arm64",
-        target.arch_enum.riscv32: "riscv32",
-        target.arch_enum.riscv64: "riscv64",
+        arch_enum.x86_64: "x86_64",
+        arch_enum.arm: "arm",
+        arch_enum.arm32: "arm32",
+        arch_enum.arm64: "arm64",
+        arch_enum.riscv32: "riscv32",
+        arch_enum.riscv64: "riscv64",
     }
 
     vendor_table = {
-        target.vendor_enum.pc: "pc",
+        vendor_enum.pc: "pc",
     }
 
     sys_table = {
-        target.sys_enum.linux: "linux",
-        target.sys_enum.windows: "windows",
+        sys_enum.linux: "linux",
+        sys_enum.windows: "windows",
     }
 
     env_table = {
-        target.env_enum.gnu: "gun",
-        target.env_enum.elf: "elf",
-        target.env_enum.msvc: "msvc",
+        env_enum.gnu: "gun",
+        env_enum.elf: "elf",
+        env_enum.msvc: "msvc",
     }
 
     arch = arch_table[target.arch]
@@ -37,12 +37,12 @@ def GetClangTriple(target):
 
 def GetLLCArch(target):
     arch_table = {
-        target.arch_enum.x86_64: "x86-64",
-        target.arch_enum.arm: "arm",
-        target.arch_enum.arm32: "arm32",
-        target.arch_enum.arm64: "arm64",
-        target.arch_enum.riscv32: "riscv32",
-        target.arch_enum.riscv64: "riscv64",
+        arch_enum.x86_64: "x86-64",
+        arch_enum.arm: "arm",
+        arch_enum.arm32: "arm32",
+        arch_enum.arm64: "arm64",
+        arch_enum.riscv32: "riscv32",
+        arch_enum.riscv64: "riscv64",
     }
 
     arch = arch_table[target.arch]
@@ -64,24 +64,27 @@ class Compiler:
         self.target.sys = config.target.sys
         self.target.env = config.target.env
 
-        self.c_to_ll_command = None
-        self.cpp_to_ll_command = None
+        self.c_to_obj_command = None
+        self.cpp_to_obj_command = None
         self.link_lls_command = None
         self.opt_ll_command = None
         self.ll_to_obj_command = None
+        self.ll_to_exe_command = None
 
         if os.name == "nt":
-            self.c_to_ll_command = "clang"
-            self.cpp_to_ll_command = "clang++"
+            self.c_to_obj_command = "clang"
+            self.cpp_to_obj_command = "clang"
             self.link_lls_command = "llvm-link"
             self.opt_ll_command = "opt"
             self.ll_to_obj_command = "llc"
+            self.ll_to_exe_command = "clang"
         else:
-            self.c_to_ll_command = "clang-18"
-            self.cpp_to_ll_command = "clang++-18"
+            self.c_to_obj_command = "clang-18"
+            self.cpp_to_obj_command = "clang-18"
             self.link_lls_command = "llvm-link-18"
             self.opt_ll_command = "opt-18"
             self.ll_to_obj_command = "llc-18"
+            self.ll_to_exe_command = "clang-18"
 
         self.c_include_dirs = config.__dict__.get("c_include_dirs", [])
         self.cpp_include_dirs = config.__dict__.get("cpp_include_dirs", [])
@@ -92,60 +95,65 @@ class Compiler:
             # ToPath("C:\Program Files\llvm-mingw-20231003-msvcrt-x86_64\include")
         ]
 
-        self.c_to_ll_args = [
+        self.c_to_obj_args = [
             f"-v" if self.verbose else "",
             # f"-target {clang_triple}",
             f"-m64",
-            f"-std=c2x",
+            # f"-std=c2x",
             *(f"-I {include_dir}" for include_dir in include_dirs),
             "-ferror-limit=2",
-            "-O3",
         ]
 
-        self.cpp_to_ll_args = [
+        self.cpp_to_obj_args = [
             f"-v" if self.verbose else "",
             # f"-target {clang_triple}",
             f"-m64",
-            f"-std=c++17",
+            # f"-std=c++17",
             *(f"-I {include_dir}" for include_dir in include_dirs),
             "-ferror-limit=2",
-            "-O3",
         ]
 
         if self.mode == mode_enum.debug:
-            self.c_to_ll_args += [
+            self.c_to_obj_args += [
+                "-O1",
                 "-g",
                 "-D DEBUG",
 
                 "-Wall",
                 "-Wextra",
                 "-Werror",
+
+                "-fno-omit-frame-pointer",
+                "-fno-optimize-sibling-calls",
+                "-fsanitize=address",
+                # "-fsanitize=memory",
+                # "-fsanitize-memory-track-origins",
+                # "-fsanitize=undefined",
             ]
 
-            '''
-            "-fno-omit-frame-pointer",
-            "-fsanitize=address",
-            # "-fsanitize=memory",
-            # "-fsanitize-memory-track-origins",
-            "-fsanitize=undefined",
-            '''
-
-            self.cpp_to_ll_args += [
+            self.cpp_to_obj_args += [
+                "-O1",
                 "-g",
-
                 "-D DEBUG",
 
                 "-Wall",
                 "-Wextra",
                 "-Werror",
+
+                "-fno-omit-frame-pointer",
+                "-fno-optimize-sibling-calls",
+                "-fsanitize=address",
+                # "-fsanitize=memory",
+                # "-fsanitize-memory-track-origins",
+                # "-fsanitize=undefined",
             ]
 
         if self.mode == mode_enum.release:
-            self.c_to_ll_args += [
+            self.c_to_obj_args += [
                 "-O3",
             ]
 
-            self.cpp_to_ll_args += [
+            self.cpp_to_obj_args += [
                 "-O3",
             ]
 
@@ -157,14 +165,42 @@ class Compiler:
             f"-march={GetLLCArch(self.target)}",
         ]
 
-    def c_to_ll(self, dst, src):
+        self.ll_to_exe_args = [
+            "--verbose" if self.verbose else "",
+
+            "-m64",
+
+            "-lstdc++",
+            # "-lm",
+        ]
+
+        if self.mode == mode_enum.debug:
+            self.ll_to_exe_args += [
+                "-O1",
+                "-g",
+                "-D DEBUG",
+
+                "-fno-omit-frame-pointer",
+                "-fno-optimize-sibling-calls",
+                "-fsanitize=address",
+                # "-fsanitize=memory",
+                # "-fsanitize-memory-track-origins",
+                # "-fsanitize=undefined",
+            ]
+
+        if self.mode == mode_enum.release:
+            self.ll_to_exe_args += [
+                "-O3",
+            ]
+
+    def c_to_obj(self, dst, src):
         os.makedirs(os.path.dirname(dst), exist_ok=True)
 
         cmd = " ".join([
-            self.c_to_ll_command,
+            self.c_to_obj_command,
+            f"--compile",
             f"-o {ToPath(dst)}",
-            f"-emit-llvm -S",
-            *self.c_to_ll_args,
+            *self.c_to_obj_args,
             ToPath(src),
         ])
 
@@ -174,14 +210,14 @@ class Compiler:
 
         return rc
 
-    def cpp_to_ll(self, dst, src):
+    def cpp_to_obj(self, dst, src):
         os.makedirs(os.path.dirname(dst), exist_ok=True)
 
         cmd = " ".join([
-            self.cpp_to_ll_command,
+            self.cpp_to_obj_command,
+            f"--compile",
             f"-o {ToPath(dst)}",
-            f"-emit-llvm -S",
-            *self.cpp_to_ll_args,
+            *self.cpp_to_obj_args,
             ToPath(src),
         ])
 
@@ -234,11 +270,26 @@ class Compiler:
         os.makedirs(os.path.dirname(linked_tmp_file), exist_ok=True)
         os.makedirs(os.path.dirname(opted_tmp_file), exist_ok=True)
 
+        '''
+        cmd = " ".join([
+            self.ll_to_exe_command,
+            f"-o {ToPath(dst)}",
+            *self.ll_to_exe_args,
+            *[ToPath(src) for src in FilterNotNone(srcs)],
+        ])
+
+        HighLightPrint(f"cmd = {cmd}")
+
+        rc = os.system(cmd)
+
+        return rc
+        '''
+
         cmd = " ".join([
             self.link_lls_command,
+            f"-S",
             f"-o {ToPath(linked_tmp_file)}",
             f"-v" if self.verbose else "",
-            f"-S",
             *[ToPath(src) for src in FilterNotNone(srcs)],
         ])
 
@@ -249,10 +300,11 @@ class Compiler:
         if rc != 0:
             return rc
 
+        '''
         cmd = " ".join([
             self.opt_ll_command,
-            f"-o {ToPath(opted_tmp_file)}",
             f"-S",
+            f"-o {ToPath(opted_tmp_file)}",
             ToPath(linked_tmp_file),
         ])
 
@@ -262,18 +314,27 @@ class Compiler:
 
         if rc != 0:
             return rc
+        '''
 
         cmd = " ".join([
-            self.c_to_ll_command,
+            self.ll_to_exe_command,
             f"-o {ToPath(dst)}",
-            "--verbose" if self.verbose else "",
-            "-m64",
-            "-O3",
-            "-g",
-            # *[ToPath(lib) for lib in self.runtime_libs],
+            *self.ll_to_exe_args,
+            ToPath(linked_tmp_file),
+        ])
 
-            "-lstdc++",
-            ToPath(opted_tmp_file),
+        HighLightPrint(f"cmd = {cmd}")
+
+        rc = os.system(cmd)
+
+        return rc
+
+    def to_exe(self, dst, srcs):
+        cmd = " ".join([
+            self.ll_to_exe_command,
+            f"-o {ToPath(dst)}",
+            *self.ll_to_exe_args,
+            *[ToPath(src) for src in FilterNotNone(srcs)],
         ])
 
         HighLightPrint(f"cmd = {cmd}")

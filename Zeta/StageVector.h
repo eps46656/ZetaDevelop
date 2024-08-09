@@ -1,7 +1,6 @@
 #pragma once
 
 #include "Allocator.h"
-#include "Cursor.h"
 #include "DebugHashMap.h"
 #include "OrdCnt3RBTreeNode.h"
 #include "SeqContainer.h"
@@ -57,7 +56,7 @@ struct Zeta_StageVector_Cursor {
     size_t idx;
     void* n;
     size_t seg_idx;
-    void* ele;
+    void* ref;
 };
 
 struct Zeta_StageVector_Stats {
@@ -87,15 +86,15 @@ void Zeta_StageVector_GetLBCursor(void* sv, void* dst_cursor);
 
 void Zeta_StageVector_GetRBCursor(void* sv, void* dst_cursor);
 
-void* Zeta_StageVector_FindFirst(void* sv, void* dst_cursor, void* dst_ele,
+void* Zeta_StageVector_FindFirst(void* sv, void* dst_cursor, void* dst_elem,
                                  void* context,
                                  bool_t (*Compare)(void* context, void* ele));
 
-void* Zeta_StageVector_PeekL(void* sv, void* dst_cursor, void* dst_ele);
+void* Zeta_StageVector_PeekL(void* sv, void* dst_cursor, void* dst_elem);
 
-void* Zeta_StageVector_PeekR(void* sv, void* dst_cursor, void* dst_ele);
+void* Zeta_StageVector_PeekR(void* sv, void* dst_cursor, void* dst_elem);
 
-void* Zeta_StageVector_Access(void* sv, void* dst_cursor, void* dst_ele,
+void* Zeta_StageVector_Access(void* sv, void* dst_cursor, void* dst_elem,
                               size_t idx);
 
 void* Zeta_StageVector_Refer(void* sv, void const* pos_cursor);
@@ -122,8 +121,10 @@ void Zeta_StageVector_EraseAll(void* sv);
 
 void Zeta_StageVector_Reset(void* sv);
 
-void Zeta_StageVector_Check(void* sv, Zeta_DebugHashMap* dst_seg_hm,
-                            Zeta_DebugHashMap* dst_data_hm);
+void Zeta_StageVector_Check(void* sv);
+
+void Zeta_StageVector_Sanitize(void* sv, Zeta_AssocContainer* dst_seg,
+                               Zeta_AssocContainer* dst_data);
 
 void Zeta_StageVector_PrintState(void* sv);
 

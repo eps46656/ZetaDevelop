@@ -292,10 +292,10 @@ void Zeta_SlabAllocator_Check(void* sa_, Zeta_DebugHashMap* dst_used_records,
     size_t units_per_slab = sa->units_per_slab;
 
     Zeta_DebugHashMap vacant_unit_mt;
-    Zeta_DebugHashMap_Create(&vacant_unit_mt);
+    Zeta_DebugHashMap_Init(&vacant_unit_mt);
 
     Zeta_DebugHashMap occupied_unit_mt;
-    Zeta_DebugHashMap_Create(&occupied_unit_mt);
+    Zeta_DebugHashMap_Init(&occupied_unit_mt);
 
     if (sa->hot_unit_head != NULL) {
         Zeta_OrdLinkedListNode* hot_unit = sa->hot_unit_head;
@@ -412,6 +412,6 @@ void Zeta_SlabAllocator_Check(void* sa_, Zeta_DebugHashMap* dst_used_records,
 
     Zeta_DebugHashMap_Move(dst_released_records, &occupied_unit_mt);
 
-    Zeta_DebugHashMap_Destroy(&vacant_unit_mt);
-    Zeta_DebugHashMap_Destroy(&occupied_unit_mt);
+    Zeta_DebugHashMap_Deinit(&vacant_unit_mt);
+    Zeta_DebugHashMap_Deinit(&occupied_unit_mt);
 }

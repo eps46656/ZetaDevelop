@@ -165,7 +165,7 @@ void Zeta_OrdCnt3RBTreeNode_DeployBinTreeNodeOperator(
     void* context, Zeta_BinTreeNodeOperator* btn_opr) {
     ZETA_Unused(context);
 
-    ZETA_DebugAssert(btn_opr != NULL);
+    Zeta_BinTree_InitOpr(btn_opr);
 
     btn_opr->context = NULL;
 

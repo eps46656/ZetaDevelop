@@ -101,6 +101,17 @@ def AddDeps(builder, ZetaBuildDir, ZetaExeBuildDir, verbose, mode):
     )
 
     builder.Add(
+        f"{ZetaExeDir}/DebugDequeUtils.h",
+        {
+            f"{File}",
+            f"{ZetaDir}/DebugDeque.h",
+            f"{ZetaExeDir}/MemAllocatorCheck.h",
+            f"{ZetaExeDir}/StdAllocator.h",
+        },
+        None
+    )
+
+    builder.Add(
         f"{ZetaExeDir}/DynamicVectorUtils.h",
         {
             f"{File}",
@@ -184,13 +195,13 @@ def AddDeps(builder, ZetaBuildDir, ZetaExeBuildDir, verbose, mode):
     )
 
     builder.Add(
-        f"{ZetaExeBuildDir}/test_1.ll",
+        f"{ZetaExeBuildDir}/test_1.o",
         {
             f"{File}",
             f"{ZetaExeDir}/test_1.c",
         },
-        lambda : compiler.c_to_ll(
-            f"{ZetaExeBuildDir}/test_1.ll",
+        lambda : compiler.c_to_obj(
+            f"{ZetaExeBuildDir}/test_1.o",
             f"{ZetaExeDir}/test_1.c",
         )
     )
@@ -206,13 +217,13 @@ def AddDeps(builder, ZetaBuildDir, ZetaExeBuildDir, verbose, mode):
     )
 
     builder.Add(
-        f"{ZetaExeBuildDir}/test_binheap.ll",
+        f"{ZetaExeBuildDir}/test_binheap.o",
         {
             f"{File}",
             f"{ZetaExeDir}/test_binheap.c",
         },
-        lambda : compiler.cpp_to_ll(
-            f"{ZetaExeBuildDir}/test_binheap.ll",
+        lambda : compiler.cpp_to_obj(
+            f"{ZetaExeBuildDir}/test_binheap.o",
             f"{ZetaExeDir}/test_binheap.cpp",
         )
     )
@@ -322,13 +333,13 @@ def AddDeps(builder, ZetaBuildDir, ZetaExeBuildDir, verbose, mode):
     )
 
     builder.Add(
-        f"{ZetaExeBuildDir}/test_2.ll",
+        f"{ZetaExeBuildDir}/test_2.o",
         {
             f"{File}",
             f"{ZetaExeDir}/test_2.c"
         },
-        lambda : compiler.c_to_ll(
-            f"{ZetaExeBuildDir}/test_2.ll",
+        lambda : compiler.c_to_obj(
+            f"{ZetaExeBuildDir}/test_2.o",
             f"{ZetaExeDir}/test_2.c",
         )
     )
@@ -344,13 +355,13 @@ def AddDeps(builder, ZetaBuildDir, ZetaExeBuildDir, verbose, mode):
     )
 
     builder.Add(
-        f"{ZetaExeBuildDir}/test_3.ll",
+        f"{ZetaExeBuildDir}/test_3.o",
         {
             f"{File}",
             f"{ZetaExeDir}/test_3.c"
         },
-        lambda : compiler.c_to_ll(
-            f"{ZetaExeBuildDir}/test_3.ll",
+        lambda : compiler.c_to_obj(
+            f"{ZetaExeBuildDir}/test_3.o",
             f"{ZetaExeDir}/test_3.c",
         )
     )
@@ -359,12 +370,12 @@ def AddDeps(builder, ZetaBuildDir, ZetaExeBuildDir, verbose, mode):
         f"{ZetaExeBuildDir}/test_3.exe",
         {
             f"{File}",
-            f"{ZetaExeBuildDir}/test_3.ll"
+            f"{ZetaExeBuildDir}/test_3.o"
         },
         lambda : compiler.lls_to_exe(
             f"{ZetaExeBuildDir}/test_3.exe",
             [
-                f"{ZetaExeBuildDir}/test_3.ll",
+                f"{ZetaExeBuildDir}/test_3.o",
             ]
         )
     )
@@ -381,13 +392,13 @@ def AddDeps(builder, ZetaBuildDir, ZetaExeBuildDir, verbose, mode):
     )
 
     builder.Add(
-        f"{ZetaExeBuildDir}/test_btree.ll",
+        f"{ZetaExeBuildDir}/test_btree.o",
         {
             f"{File}",
             f"{ZetaExeDir}/test_btree.cpp"
         },
-        lambda : compiler.cpp_to_ll(
-            f"{ZetaExeBuildDir}/test_btree.ll",
+        lambda : compiler.cpp_to_obj(
+            f"{ZetaExeBuildDir}/test_btree.o",
             f"{ZetaExeDir}/test_btree.cpp",
         )
     )
@@ -396,16 +407,16 @@ def AddDeps(builder, ZetaBuildDir, ZetaExeBuildDir, verbose, mode):
         f"{ZetaExeBuildDir}/test_btree.exe",
         {
             f"{File}",
-            f"{ZetaExeBuildDir}/test_btree.ll",
-            f"{ZetaBuildDir}/BTree.ll",
-            f"{ZetaBuildDir}/utils.ll",
+            f"{ZetaExeBuildDir}/test_btree.o",
+            f"{ZetaBuildDir}/BTree.o",
+            f"{ZetaBuildDir}/utils.o",
         },
         lambda : compiler.lls_to_exe(
             f"{ZetaExeBuildDir}/test_btree.exe",
             [
-                f"{ZetaExeBuildDir}/test_btree.ll",
-                f"{ZetaBuildDir}/BTree.ll",
-                f"{ZetaBuildDir}/utils.ll",
+                f"{ZetaExeBuildDir}/test_btree.o",
+                f"{ZetaBuildDir}/BTree.o",
+                f"{ZetaBuildDir}/utils.o",
             ]
         )
     )
@@ -420,13 +431,13 @@ def AddDeps(builder, ZetaBuildDir, ZetaExeBuildDir, verbose, mode):
     )
 
     builder.Add(
-        f"{ZetaExeBuildDir}/test_datetime.ll",
+        f"{ZetaExeBuildDir}/test_datetime.o",
         {
             f"{File}",
             f"{ZetaExeDir}/test_datetime.cpp",
         },
-        lambda : compiler.cpp_to_ll(
-            f"{ZetaExeBuildDir}/test_datetime.ll",
+        lambda : compiler.cpp_to_obj(
+            f"{ZetaExeBuildDir}/test_datetime.o",
             f"{ZetaExeDir}/test_datetime.cpp",
         )
     )
@@ -436,16 +447,16 @@ def AddDeps(builder, ZetaBuildDir, ZetaExeBuildDir, verbose, mode):
         {
             f"{File}",
 
-            f"{ZetaBuildDir}/DateTime.ll",
+            f"{ZetaBuildDir}/DateTime.o",
 
-            f"{ZetaExeBuildDir}/test_datetime.ll",
+            f"{ZetaExeBuildDir}/test_datetime.o",
         },
         lambda : compiler.lls_to_exe(
             f"{ZetaExeBuildDir}/test_datetime.exe",
             [
-                f"{ZetaBuildDir}/DateTime.ll",
+                f"{ZetaBuildDir}/DateTime.o",
 
-                f"{ZetaExeBuildDir}/test_datetime.ll",
+                f"{ZetaExeBuildDir}/test_datetime.o",
             ]
         )
     )
@@ -493,13 +504,13 @@ def AddDeps(builder, ZetaBuildDir, ZetaExeBuildDir, verbose, mode):
     )
 
     builder.Add(
-        f"{ZetaExeBuildDir}/test_treealloc.ll",
+        f"{ZetaExeBuildDir}/test_treealloc.o",
         {
             f"{File}",
             f"{ZetaExeDir}/test_treealloc.cpp",
         },
-        lambda : compiler.cpp_to_ll(
-            f"{ZetaExeBuildDir}/test_treealloc.ll",
+        lambda : compiler.cpp_to_obj(
+            f"{ZetaExeBuildDir}/test_treealloc.o",
             f"{ZetaExeDir}/test_treealloc.cpp",
         )
     )
@@ -509,38 +520,38 @@ def AddDeps(builder, ZetaBuildDir, ZetaExeBuildDir, verbose, mode):
         {
             f"{File}",
 
-            f"{ZetaBuildDir}/BinTree.ll",
-            f"{ZetaBuildDir}/DebugHashMap.ll",
-            f"{ZetaBuildDir}/DebugStrPipe.ll",
-            f"{ZetaBuildDir}/DebugPipe.ll",
-            f"{ZetaBuildDir}/Debugger.ll",
-            f"{ZetaBuildDir}/io.ll",
-            f"{ZetaBuildDir}/Logger.ll",
-            f"{ZetaBuildDir}/OrdRBLinkedListNode.ll",
-            f"{ZetaBuildDir}/OrdRBTreeNode.ll",
-            f"{ZetaBuildDir}/RBTree.ll",
-            f"{ZetaBuildDir}/TreeAllocator.ll",
-            f"{ZetaBuildDir}/utils.ll",
+            f"{ZetaBuildDir}/BinTree.o",
+            f"{ZetaBuildDir}/DebugHashMap.o",
+            f"{ZetaBuildDir}/DebugStrPipe.o",
+            f"{ZetaBuildDir}/DebugPipe.o",
+            f"{ZetaBuildDir}/Debugger.o",
+            f"{ZetaBuildDir}/io.o",
+            f"{ZetaBuildDir}/Logger.o",
+            f"{ZetaBuildDir}/OrdRBLinkedListNode.o",
+            f"{ZetaBuildDir}/OrdRBTreeNode.o",
+            f"{ZetaBuildDir}/RBTree.o",
+            f"{ZetaBuildDir}/TreeAllocator.o",
+            f"{ZetaBuildDir}/utils.o",
 
-            f"{ZetaExeBuildDir}/test_treealloc.ll",
+            f"{ZetaExeBuildDir}/test_treealloc.o",
         },
         lambda : compiler.lls_to_exe(
             f"{ZetaExeBuildDir}/test_treealloc.exe",
             [
-                f"{ZetaBuildDir}/BinTree.ll",
-                f"{ZetaBuildDir}/DebugHashMap.ll",
-                f"{ZetaBuildDir}/DebugStrPipe.ll",
-                f"{ZetaBuildDir}/DebugPipe.ll",
-                f"{ZetaBuildDir}/Debugger.ll",
-                f"{ZetaBuildDir}/io.ll",
-                f"{ZetaBuildDir}/Logger.ll",
-                f"{ZetaBuildDir}/OrdRBLinkedListNode.ll",
-                f"{ZetaBuildDir}/OrdRBTreeNode.ll",
-                f"{ZetaBuildDir}/RBTree.ll",
-                f"{ZetaBuildDir}/TreeAllocator.ll",
-                f"{ZetaBuildDir}/utils.ll",
+                f"{ZetaBuildDir}/BinTree.o",
+                f"{ZetaBuildDir}/DebugHashMap.o",
+                f"{ZetaBuildDir}/DebugStrPipe.o",
+                f"{ZetaBuildDir}/DebugPipe.o",
+                f"{ZetaBuildDir}/Debugger.o",
+                f"{ZetaBuildDir}/io.o",
+                f"{ZetaBuildDir}/Logger.o",
+                f"{ZetaBuildDir}/OrdRBLinkedListNode.o",
+                f"{ZetaBuildDir}/OrdRBTreeNode.o",
+                f"{ZetaBuildDir}/RBTree.o",
+                f"{ZetaBuildDir}/TreeAllocator.o",
+                f"{ZetaBuildDir}/utils.o",
 
-                f"{ZetaExeBuildDir}/test_treealloc.ll",
+                f"{ZetaExeBuildDir}/test_treealloc.o",
             ]
         )
     )
@@ -561,9 +572,116 @@ def AddDeps(builder, ZetaBuildDir, ZetaExeBuildDir, verbose, mode):
         f"{ZetaExeDir}/test_utf8.c",
         {
             f"{File}",
-            f"{ZetaDir}/define.h"
+
+            f"{ZetaDir}/Debugger.h",
+            f"{ZetaDir}/UTF8.h",
         },
         None
+    )
+
+    builder.Add(
+        f"{ZetaExeBuildDir}/test_utf8.o",
+        {
+            f"{File}",
+
+            f"{ZetaExeDir}/test_utf8.c",
+
+            f"{ZetaDir}/UTF8.h",
+        },
+
+        lambda : compiler.cpp_to_obj(
+            f"{ZetaExeBuildDir}/test_utf8.o",
+            f"{ZetaExeDir}/test_utf8.c",
+        )
+    )
+
+    builder.Add(
+        f"{ZetaExeBuildDir}/test_utf8.exe",
+        {
+            f"{File}",
+
+            f"{ZetaBuildDir}/Debugger.o",
+            f"{ZetaBuildDir}/DebugPipe.o",
+            f"{ZetaBuildDir}/DebugStrPipe.o",
+            f"{ZetaBuildDir}/Logger.o",
+            f"{ZetaBuildDir}/io.o",
+            f"{ZetaBuildDir}/UTF8.o",
+            f"{ZetaBuildDir}/utils.o",
+
+            f"{ZetaExeBuildDir}/test_utf8.o",
+        },
+        lambda : compiler.to_exe(
+            f"{ZetaExeBuildDir}/test_utf8.exe",
+            [
+                f"{ZetaBuildDir}/Debugger.o",
+                f"{ZetaBuildDir}/DebugPipe.o",
+                f"{ZetaBuildDir}/DebugStrPipe.o",
+                f"{ZetaBuildDir}/Logger.o",
+                f"{ZetaBuildDir}/io.o",
+                f"{ZetaBuildDir}/UTF8.o",
+                f"{ZetaBuildDir}/utils.o",
+
+                f"{ZetaExeBuildDir}/test_utf8.o",
+            ]
+        )
+    )
+
+    builder.Add(
+        f"{ZetaExeDir}/test_utf16.c",
+        {
+            f"{File}",
+
+            f"{ZetaDir}/Debugger.h",
+            f"{ZetaDir}/UTF16.h",
+        },
+        None
+    )
+
+    builder.Add(
+        f"{ZetaExeBuildDir}/test_utf16.o",
+        {
+            f"{File}",
+
+            f"{ZetaExeDir}/test_utf16.c",
+
+            f"{ZetaDir}/UTF16.h",
+        },
+
+        lambda : compiler.cpp_to_obj(
+            f"{ZetaExeBuildDir}/test_utf16.o",
+            f"{ZetaExeDir}/test_utf16.c",
+        )
+    )
+
+    builder.Add(
+        f"{ZetaExeBuildDir}/test_utf16.exe",
+        {
+            f"{File}",
+
+            f"{ZetaBuildDir}/Debugger.o",
+            f"{ZetaBuildDir}/DebugPipe.o",
+            f"{ZetaBuildDir}/DebugStrPipe.o",
+            f"{ZetaBuildDir}/Logger.o",
+            f"{ZetaBuildDir}/io.o",
+            f"{ZetaBuildDir}/UTF16.o",
+            f"{ZetaBuildDir}/utils.o",
+
+            f"{ZetaExeBuildDir}/test_utf16.o",
+        },
+        lambda : compiler.to_exe(
+            f"{ZetaExeBuildDir}/test_utf16.exe",
+            [
+                f"{ZetaBuildDir}/Debugger.o",
+                f"{ZetaBuildDir}/DebugPipe.o",
+                f"{ZetaBuildDir}/DebugStrPipe.o",
+                f"{ZetaBuildDir}/Logger.o",
+                f"{ZetaBuildDir}/io.o",
+                f"{ZetaBuildDir}/UTF16.o",
+                f"{ZetaBuildDir}/utils.o",
+
+                f"{ZetaExeBuildDir}/test_utf16.o",
+            ]
+        )
     )
 
     builder.Add(
@@ -577,13 +695,13 @@ def AddDeps(builder, ZetaBuildDir, ZetaExeBuildDir, verbose, mode):
     )
 
     builder.Add(
-        f"{ZetaExeBuildDir}/test_segvec.ll",
+        f"{ZetaExeBuildDir}/test_segvec.o",
         {
             f"{File}",
             f"{ZetaExeDir}/test_segvec.cpp",
         },
-        lambda : compiler.cpp_to_ll(
-            f"{ZetaExeBuildDir}/test_segvec.ll",
+        lambda : compiler.cpp_to_obj(
+            f"{ZetaExeBuildDir}/test_segvec.o",
             f"{ZetaExeDir}/test_segvec.cpp",
         )
     )
@@ -593,32 +711,32 @@ def AddDeps(builder, ZetaBuildDir, ZetaExeBuildDir, verbose, mode):
         {
             f"{File}",
 
-            f"{ZetaBuildDir}/SegVector.ll",
-            f"{ZetaBuildDir}/BinTree.ll",
-            f"{ZetaBuildDir}/CircularArray.ll",
-            f"{ZetaBuildDir}/DebugDeque.ll",
-            f"{ZetaBuildDir}/DebugHashMap.ll",
-            f"{ZetaBuildDir}/DebugPipe.ll",
-            f"{ZetaBuildDir}/RBTree.ll",
-            f"{ZetaBuildDir}/OrdCntRBTreeNode.ll",
-            f"{ZetaBuildDir}/utils.ll",
+            f"{ZetaBuildDir}/SegVector.o",
+            f"{ZetaBuildDir}/BinTree.o",
+            f"{ZetaBuildDir}/CircularArray.o",
+            f"{ZetaBuildDir}/DebugDeque.o",
+            f"{ZetaBuildDir}/DebugHashMap.o",
+            f"{ZetaBuildDir}/DebugPipe.o",
+            f"{ZetaBuildDir}/RBTree.o",
+            f"{ZetaBuildDir}/OrdCntRBTreeNode.o",
+            f"{ZetaBuildDir}/utils.o",
 
-            f"{ZetaExeBuildDir}/test_segvec.ll",
+            f"{ZetaExeBuildDir}/test_segvec.o",
         },
         lambda : compiler.lls_to_exe(
             f"{ZetaExeBuildDir}/test_segvec.exe",
             [
-                f"{ZetaBuildDir}/SegVector.ll",
-                f"{ZetaBuildDir}/BinTree.ll",
-                f"{ZetaBuildDir}/CircularArray.ll",
-                f"{ZetaBuildDir}/DebugDeque.ll",
-                f"{ZetaBuildDir}/DebugHashMap.ll",
-                f"{ZetaBuildDir}/DebugPipe.ll",
-                f"{ZetaBuildDir}/RBTree.ll",
-                f"{ZetaBuildDir}/OrdCntRBTreeNode.ll",
-                f"{ZetaBuildDir}/utils.ll",
+                f"{ZetaBuildDir}/SegVector.o",
+                f"{ZetaBuildDir}/BinTree.o",
+                f"{ZetaBuildDir}/CircularArray.o",
+                f"{ZetaBuildDir}/DebugDeque.o",
+                f"{ZetaBuildDir}/DebugHashMap.o",
+                f"{ZetaBuildDir}/DebugPipe.o",
+                f"{ZetaBuildDir}/RBTree.o",
+                f"{ZetaBuildDir}/OrdCntRBTreeNode.o",
+                f"{ZetaBuildDir}/utils.o",
 
-                f"{ZetaExeBuildDir}/test_segvec.ll",
+                f"{ZetaExeBuildDir}/test_segvec.o",
             ]
         )
     )
@@ -634,13 +752,13 @@ def AddDeps(builder, ZetaBuildDir, ZetaExeBuildDir, verbose, mode):
     )
 
     builder.Add(
-        f"{ZetaExeBuildDir}/test_segvec2.ll",
+        f"{ZetaExeBuildDir}/test_segvec2.o",
         {
             f"{File}",
             f"{ZetaExeDir}/test_segvec2.cpp",
         },
-        lambda : compiler.cpp_to_ll(
-            f"{ZetaExeBuildDir}/test_segvec2.ll",
+        lambda : compiler.cpp_to_obj(
+            f"{ZetaExeBuildDir}/test_segvec2.o",
             f"{ZetaExeDir}/test_segvec2.cpp",
         )
     )
@@ -650,32 +768,32 @@ def AddDeps(builder, ZetaBuildDir, ZetaExeBuildDir, verbose, mode):
         {
             f"{File}",
 
-            f"{ZetaBuildDir}/BinTree.ll",
-            f"{ZetaBuildDir}/CircularArray.ll",
-            f"{ZetaBuildDir}/DebugDeque.ll",
-            f"{ZetaBuildDir}/DebugHashMap.ll",
-            f"{ZetaBuildDir}/DebugPipe.ll",
-            f"{ZetaBuildDir}/OrdCntRBTreeNode.ll",
-            f"{ZetaBuildDir}/RBTree.ll",
-            f"{ZetaBuildDir}/SegVector.ll",
-            f"{ZetaBuildDir}/utils.ll",
+            f"{ZetaBuildDir}/BinTree.o",
+            f"{ZetaBuildDir}/CircularArray.o",
+            f"{ZetaBuildDir}/DebugDeque.o",
+            f"{ZetaBuildDir}/DebugHashMap.o",
+            f"{ZetaBuildDir}/DebugPipe.o",
+            f"{ZetaBuildDir}/OrdCntRBTreeNode.o",
+            f"{ZetaBuildDir}/RBTree.o",
+            f"{ZetaBuildDir}/SegVector.o",
+            f"{ZetaBuildDir}/utils.o",
 
-            f"{ZetaExeBuildDir}/test_segvec2.ll",
+            f"{ZetaExeBuildDir}/test_segvec2.o",
         },
         lambda : compiler.lls_to_exe(
             f"{ZetaExeBuildDir}/test_segvec2.exe",
             [
-                f"{ZetaBuildDir}/BinTree.ll",
-                f"{ZetaBuildDir}/CircularArray.ll",
-                f"{ZetaBuildDir}/DebugDeque.ll",
-                f"{ZetaBuildDir}/DebugHashMap.ll",
-                f"{ZetaBuildDir}/DebugPipe.ll",
-                f"{ZetaBuildDir}/OrdCntRBTreeNode.ll",
-                f"{ZetaBuildDir}/RBTree.ll",
-                f"{ZetaBuildDir}/SegVector.ll",
-                f"{ZetaBuildDir}/utils.ll",
+                f"{ZetaBuildDir}/BinTree.o",
+                f"{ZetaBuildDir}/CircularArray.o",
+                f"{ZetaBuildDir}/DebugDeque.o",
+                f"{ZetaBuildDir}/DebugHashMap.o",
+                f"{ZetaBuildDir}/DebugPipe.o",
+                f"{ZetaBuildDir}/OrdCntRBTreeNode.o",
+                f"{ZetaBuildDir}/RBTree.o",
+                f"{ZetaBuildDir}/SegVector.o",
+                f"{ZetaBuildDir}/utils.o",
 
-                f"{ZetaExeBuildDir}/test_segvec2.ll",
+                f"{ZetaExeBuildDir}/test_segvec2.o",
             ]
         )
     )
@@ -691,13 +809,13 @@ def AddDeps(builder, ZetaBuildDir, ZetaExeBuildDir, verbose, mode):
     )
 
     builder.Add(
-        f"{ZetaExeBuildDir}/test_segvec_speed.ll",
+        f"{ZetaExeBuildDir}/test_segvec_speed.o",
         {
             f"{File}",
             f"{ZetaExeDir}/test_segvec_speed.cpp",
         },
-        lambda : compiler.cpp_to_ll(
-            f"{ZetaExeBuildDir}/test_segvec_speed.ll",
+        lambda : compiler.cpp_to_obj(
+            f"{ZetaExeBuildDir}/test_segvec_speed.o",
             f"{ZetaExeDir}/test_segvec_speed.cpp",
         )
     )
@@ -707,32 +825,32 @@ def AddDeps(builder, ZetaBuildDir, ZetaExeBuildDir, verbose, mode):
         {
             f"{File}",
 
-            f"{ZetaBuildDir}/SegVector.ll",
-            f"{ZetaBuildDir}/BinTree.ll",
-            f"{ZetaBuildDir}/CircularArray.ll",
-            f"{ZetaBuildDir}/DebugDeque.ll",
-            f"{ZetaBuildDir}/DebugHashMap.ll",
-            f"{ZetaBuildDir}/DebugPipe.ll",
-            f"{ZetaBuildDir}/RBTree.ll",
-            f"{ZetaBuildDir}/OrdCntRBTreeNode.ll",
-            f"{ZetaBuildDir}/utils.ll",
+            f"{ZetaBuildDir}/SegVector.o",
+            f"{ZetaBuildDir}/BinTree.o",
+            f"{ZetaBuildDir}/CircularArray.o",
+            f"{ZetaBuildDir}/DebugDeque.o",
+            f"{ZetaBuildDir}/DebugHashMap.o",
+            f"{ZetaBuildDir}/DebugPipe.o",
+            f"{ZetaBuildDir}/RBTree.o",
+            f"{ZetaBuildDir}/OrdCntRBTreeNode.o",
+            f"{ZetaBuildDir}/utils.o",
 
-            f"{ZetaExeBuildDir}/test_segvec_speed.ll",
+            f"{ZetaExeBuildDir}/test_segvec_speed.o",
         },
         lambda : compiler.lls_to_exe(
             f"{ZetaExeBuildDir}/test_segvec_speed.exe",
             [
-                f"{ZetaBuildDir}/SegVector.ll",
-                f"{ZetaBuildDir}/BinTree.ll",
-                f"{ZetaBuildDir}/CircularArray.ll",
-                f"{ZetaBuildDir}/DebugDeque.ll",
-                f"{ZetaBuildDir}/DebugHashMap.ll",
-                f"{ZetaBuildDir}/DebugPipe.ll",
-                f"{ZetaBuildDir}/RBTree.ll",
-                f"{ZetaBuildDir}/OrdCntRBTreeNode.ll",
-                f"{ZetaBuildDir}/utils.ll",
+                f"{ZetaBuildDir}/SegVector.o",
+                f"{ZetaBuildDir}/BinTree.o",
+                f"{ZetaBuildDir}/CircularArray.o",
+                f"{ZetaBuildDir}/DebugDeque.o",
+                f"{ZetaBuildDir}/DebugHashMap.o",
+                f"{ZetaBuildDir}/DebugPipe.o",
+                f"{ZetaBuildDir}/RBTree.o",
+                f"{ZetaBuildDir}/OrdCntRBTreeNode.o",
+                f"{ZetaBuildDir}/utils.o",
 
-                f"{ZetaExeBuildDir}/test_segvec_speed.ll",
+                f"{ZetaExeBuildDir}/test_segvec_speed.o",
             ]
         )
     )
@@ -748,13 +866,13 @@ def AddDeps(builder, ZetaBuildDir, ZetaExeBuildDir, verbose, mode):
     )
 
     builder.Add(
-        f"{ZetaExeBuildDir}/test_segvec2_speed.ll",
+        f"{ZetaExeBuildDir}/test_segvec2_speed.o",
         {
             f"{File}",
             f"{ZetaExeDir}/test_segvec2_speed.cpp",
         },
-        lambda : compiler.cpp_to_ll(
-            f"{ZetaExeBuildDir}/test_segvec2_speed.ll",
+        lambda : compiler.cpp_to_obj(
+            f"{ZetaExeBuildDir}/test_segvec2_speed.o",
             f"{ZetaExeDir}/test_segvec2_speed.cpp",
         )
     )
@@ -764,30 +882,30 @@ def AddDeps(builder, ZetaBuildDir, ZetaExeBuildDir, verbose, mode):
         {
             f"{File}",
 
-            f"{ZetaBuildDir}/SegVector.ll",
-            f"{ZetaBuildDir}/BinTree.ll",
-            f"{ZetaBuildDir}/CircularArray.ll",
-            f"{ZetaBuildDir}/DebugHashMap.ll",
-            f"{ZetaBuildDir}/DebugPipe.ll",
-            f"{ZetaBuildDir}/RBTree.ll",
-            f"{ZetaBuildDir}/OrdCntRBTreeNode.ll",
-            f"{ZetaBuildDir}/utils.ll",
+            f"{ZetaBuildDir}/SegVector.o",
+            f"{ZetaBuildDir}/BinTree.o",
+            f"{ZetaBuildDir}/CircularArray.o",
+            f"{ZetaBuildDir}/DebugHashMap.o",
+            f"{ZetaBuildDir}/DebugPipe.o",
+            f"{ZetaBuildDir}/RBTree.o",
+            f"{ZetaBuildDir}/OrdCntRBTreeNode.o",
+            f"{ZetaBuildDir}/utils.o",
 
-            f"{ZetaExeBuildDir}/test_segvec2_speed.ll",
+            f"{ZetaExeBuildDir}/test_segvec2_speed.o",
         },
         lambda : compiler.lls_to_exe(
             f"{ZetaExeBuildDir}/test_segvec2_speed.exe",
             [
-                f"{ZetaBuildDir}/SegVector.ll",
-                f"{ZetaBuildDir}/BinTree.ll",
-                f"{ZetaBuildDir}/CircularArray.ll",
-                f"{ZetaBuildDir}/DebugHashMap.ll",
-                f"{ZetaBuildDir}/DebugPipe.ll",
-                f"{ZetaBuildDir}/RBTree.ll",
-                f"{ZetaBuildDir}/OrdCntRBTreeNode.ll",
-                f"{ZetaBuildDir}/utils.ll",
+                f"{ZetaBuildDir}/SegVector.o",
+                f"{ZetaBuildDir}/BinTree.o",
+                f"{ZetaBuildDir}/CircularArray.o",
+                f"{ZetaBuildDir}/DebugHashMap.o",
+                f"{ZetaBuildDir}/DebugPipe.o",
+                f"{ZetaBuildDir}/RBTree.o",
+                f"{ZetaBuildDir}/OrdCntRBTreeNode.o",
+                f"{ZetaBuildDir}/utils.o",
 
-                f"{ZetaExeBuildDir}/test_segvec2_speed.ll",
+                f"{ZetaExeBuildDir}/test_segvec2_speed.o",
             ]
         )
     )
@@ -805,13 +923,13 @@ def AddDeps(builder, ZetaBuildDir, ZetaExeBuildDir, verbose, mode):
     )
 
     builder.Add(
-        f"{ZetaExeBuildDir}/test_seqcntr.ll",
+        f"{ZetaExeBuildDir}/test_seqcntr.o",
         {
             f"{File}",
             f"{ZetaExeDir}/test_seqcntr.cpp",
         },
-        lambda : compiler.cpp_to_ll(
-            f"{ZetaExeBuildDir}/test_seqcntr.ll",
+        lambda : compiler.cpp_to_obj(
+            f"{ZetaExeBuildDir}/test_seqcntr.o",
             f"{ZetaExeDir}/test_seqcntr.cpp",
         )
     )
@@ -821,32 +939,32 @@ def AddDeps(builder, ZetaBuildDir, ZetaExeBuildDir, verbose, mode):
         {
             f"{File}",
 
-            f"{ZetaBuildDir}/BinTree.ll",
-            f"{ZetaBuildDir}/CircularArray.ll",
-            f"{ZetaBuildDir}/DebugDeque.ll",
-            f"{ZetaBuildDir}/DebugHashMap.ll",
-            f"{ZetaBuildDir}/DebugPipe.ll",
-            f"{ZetaBuildDir}/RBTree.ll",
-            f"{ZetaBuildDir}/OrdCntRBTreeNode.ll",
-            f"{ZetaBuildDir}/SegVector.ll",
-            f"{ZetaBuildDir}/utils.ll",
+            f"{ZetaBuildDir}/BinTree.o",
+            f"{ZetaBuildDir}/CircularArray.o",
+            f"{ZetaBuildDir}/DebugDeque.o",
+            f"{ZetaBuildDir}/DebugHashMap.o",
+            f"{ZetaBuildDir}/DebugPipe.o",
+            f"{ZetaBuildDir}/RBTree.o",
+            f"{ZetaBuildDir}/OrdCntRBTreeNode.o",
+            f"{ZetaBuildDir}/SegVector.o",
+            f"{ZetaBuildDir}/utils.o",
 
-            f"{ZetaExeBuildDir}/test_seqcntr.ll",
+            f"{ZetaExeBuildDir}/test_seqcntr.o",
         },
         lambda : compiler.lls_to_exe(
             f"{ZetaExeBuildDir}/test_seqcntr.exe",
             [
-                f"{ZetaBuildDir}/BinTree.ll",
-                f"{ZetaBuildDir}/CircularArray.ll",
-                f"{ZetaBuildDir}/DebugDeque.ll",
-                f"{ZetaBuildDir}/DebugHashMap.ll",
-                f"{ZetaBuildDir}/DebugPipe.ll",
-                f"{ZetaBuildDir}/RBTree.ll",
-                f"{ZetaBuildDir}/OrdCntRBTreeNode.ll",
-                f"{ZetaBuildDir}/SegVector.ll",
-                f"{ZetaBuildDir}/utils.ll",
+                f"{ZetaBuildDir}/BinTree.o",
+                f"{ZetaBuildDir}/CircularArray.o",
+                f"{ZetaBuildDir}/DebugDeque.o",
+                f"{ZetaBuildDir}/DebugHashMap.o",
+                f"{ZetaBuildDir}/DebugPipe.o",
+                f"{ZetaBuildDir}/RBTree.o",
+                f"{ZetaBuildDir}/OrdCntRBTreeNode.o",
+                f"{ZetaBuildDir}/SegVector.o",
+                f"{ZetaBuildDir}/utils.o",
 
-                f"{ZetaExeBuildDir}/test_seqcntr.ll",
+                f"{ZetaExeBuildDir}/test_seqcntr.o",
             ]
         )
     )
@@ -860,6 +978,7 @@ def AddDeps(builder, ZetaBuildDir, ZetaExeBuildDir, verbose, mode):
             f"{ZetaDir}/Debugger.h",
             f"{ZetaDir}/Logger.h",
             f"{ZetaExeDir}/CircularArrayUtils.h",
+            f"{ZetaExeDir}/DebugDequeUtils.h",
             f"{ZetaExeDir}/DynamicVectorUtils.h",
             f"{ZetaExeDir}/MemAllocatorCheck.h",
             f"{ZetaExeDir}/RadixDequeUtils.h",
@@ -870,13 +989,13 @@ def AddDeps(builder, ZetaBuildDir, ZetaExeBuildDir, verbose, mode):
     )
 
     builder.Add(
-        f"{ZetaExeBuildDir}/test_stagevec.ll",
+        f"{ZetaExeBuildDir}/test_stagevec.o",
         {
             f"{File}",
             f"{ZetaExeDir}/test_stagevec.cpp",
         },
-        lambda : compiler.cpp_to_ll(
-            f"{ZetaExeBuildDir}/test_stagevec.ll",
+        lambda : compiler.cpp_to_obj(
+            f"{ZetaExeBuildDir}/test_stagevec.o",
             f"{ZetaExeDir}/test_stagevec.cpp",
         )
     )
@@ -885,23 +1004,11 @@ def AddDeps(builder, ZetaBuildDir, ZetaExeBuildDir, verbose, mode):
         f"{ZetaExeBuildDir}/test_stagevec.s",
         {
             f"{File}",
-            f"{ZetaExeBuildDir}/test_stagevec.ll",
+            f"{ZetaExeBuildDir}/test_stagevec.o",
         },
         lambda : compiler.ll_to_asm(
             f"{ZetaExeBuildDir}/test_stagevec.s",
-            f"{ZetaExeBuildDir}/test_stagevec.ll",
-        )
-    )
-
-    builder.Add(
-        f"{ZetaExeBuildDir}/test_stagevec.o",
-        {
-            f"{File}",
-            f"{ZetaExeBuildDir}/test_stagevec.ll",
-        },
-        lambda : compiler.ll_to_obj(
             f"{ZetaExeBuildDir}/test_stagevec.o",
-            f"{ZetaExeBuildDir}/test_stagevec.ll",
         )
     )
 
@@ -910,53 +1017,53 @@ def AddDeps(builder, ZetaBuildDir, ZetaExeBuildDir, verbose, mode):
         {
             f"{File}",
 
-            f"{ZetaBuildDir}/BinTree.ll",
-            f"{ZetaBuildDir}/CircularArray.ll",
-            f"{ZetaBuildDir}/DebugDeque.ll",
-            f"{ZetaBuildDir}/DebugHashMap.ll",
-            f"{ZetaBuildDir}/Debugger.ll",
-            f"{ZetaBuildDir}/DebugPipe.ll",
-            f"{ZetaBuildDir}/DebugStrPipe.ll",
-            f"{ZetaBuildDir}/DynamicVector.ll",
-            f"{ZetaBuildDir}/io.ll",
-            f"{ZetaBuildDir}/Logger.ll",
-            f"{ZetaBuildDir}/RBTree.ll",
-            f"{ZetaBuildDir}/RadixVector.ll",
-            f"{ZetaBuildDir}/RadixDeque.ll",
-            f"{ZetaBuildDir}/OrdCnt3RBTreeNode.ll",
-            f"{ZetaBuildDir}/OrdCntRBTreeNode.ll",
-            f"{ZetaBuildDir}/SegUtils.ll",
-            f"{ZetaBuildDir}/SeqContainer.ll",
-            f"{ZetaBuildDir}/StageVector.ll",
-            f"{ZetaBuildDir}/utils.ll",
+            f"{ZetaBuildDir}/BinTree.o",
+            f"{ZetaBuildDir}/CircularArray.o",
+            f"{ZetaBuildDir}/DebugDeque.o",
+            f"{ZetaBuildDir}/DebugHashMap.o",
+            f"{ZetaBuildDir}/Debugger.o",
+            f"{ZetaBuildDir}/DebugPipe.o",
+            f"{ZetaBuildDir}/DebugStrPipe.o",
+            f"{ZetaBuildDir}/DynamicVector.o",
+            f"{ZetaBuildDir}/io.o",
+            f"{ZetaBuildDir}/Logger.o",
+            f"{ZetaBuildDir}/RBTree.o",
+            f"{ZetaBuildDir}/RadixVector.o",
+            f"{ZetaBuildDir}/RadixDeque.o",
+            f"{ZetaBuildDir}/OrdCnt3RBTreeNode.o",
+            f"{ZetaBuildDir}/OrdCntRBTreeNode.o",
+            f"{ZetaBuildDir}/SegUtils.o",
+            f"{ZetaBuildDir}/SeqContainer.o",
+            f"{ZetaBuildDir}/StageVector.o",
+            f"{ZetaBuildDir}/utils.o",
 
-            f"{ZetaExeBuildDir}/test_stagevec.ll",
+            f"{ZetaExeBuildDir}/test_stagevec.o",
         },
-        lambda : compiler.lls_to_exe(
+        lambda : compiler.to_exe(
             f"{ZetaExeBuildDir}/test_stagevec.exe",
 
             [
-                f"{ZetaBuildDir}/BinTree.ll",
-                f"{ZetaBuildDir}/CircularArray.ll",
-                f"{ZetaBuildDir}/DebugDeque.ll",
-                f"{ZetaBuildDir}/DebugHashMap.ll",
-                f"{ZetaBuildDir}/Debugger.ll",
-                f"{ZetaBuildDir}/DebugPipe.ll",
-                f"{ZetaBuildDir}/DebugStrPipe.ll",
-                f"{ZetaBuildDir}/DynamicVector.ll",
-                f"{ZetaBuildDir}/io.ll",
-                f"{ZetaBuildDir}/Logger.ll",
-                f"{ZetaBuildDir}/RBTree.ll",
-                f"{ZetaBuildDir}/RadixVector.ll",
-                f"{ZetaBuildDir}/RadixDeque.ll",
-                f"{ZetaBuildDir}/OrdCnt3RBTreeNode.ll",
-                f"{ZetaBuildDir}/OrdCntRBTreeNode.ll",
-                f"{ZetaBuildDir}/SegUtils.ll",
-                f"{ZetaBuildDir}/SeqContainer.ll",
-                f"{ZetaBuildDir}/StageVector.ll",
-                f"{ZetaBuildDir}/utils.ll",
+                f"{ZetaBuildDir}/BinTree.o",
+                f"{ZetaBuildDir}/CircularArray.o",
+                f"{ZetaBuildDir}/DebugDeque.o",
+                f"{ZetaBuildDir}/DebugHashMap.o",
+                f"{ZetaBuildDir}/Debugger.o",
+                f"{ZetaBuildDir}/DebugPipe.o",
+                f"{ZetaBuildDir}/DebugStrPipe.o",
+                f"{ZetaBuildDir}/DynamicVector.o",
+                f"{ZetaBuildDir}/io.o",
+                f"{ZetaBuildDir}/Logger.o",
+                f"{ZetaBuildDir}/RBTree.o",
+                f"{ZetaBuildDir}/RadixVector.o",
+                f"{ZetaBuildDir}/RadixDeque.o",
+                f"{ZetaBuildDir}/OrdCnt3RBTreeNode.o",
+                f"{ZetaBuildDir}/OrdCntRBTreeNode.o",
+                f"{ZetaBuildDir}/SegUtils.o",
+                f"{ZetaBuildDir}/SeqContainer.o",
+                f"{ZetaBuildDir}/StageVector.o",
+                f"{ZetaBuildDir}/utils.o",
 
-                f"{ZetaExeBuildDir}/test_stagevec.ll",
+                f"{ZetaExeBuildDir}/test_stagevec.o",
             ]
         )
     )
@@ -978,13 +1085,13 @@ def AddDeps(builder, ZetaBuildDir, ZetaExeBuildDir, verbose, mode):
     )
 
     builder.Add(
-        f"{ZetaExeBuildDir}/test_stagevec_speed.ll",
+        f"{ZetaExeBuildDir}/test_stagevec_speed.o",
         {
             f"{File}",
             f"{ZetaExeDir}/test_stagevec_speed.cpp",
         },
-        lambda : compiler.cpp_to_ll(
-            f"{ZetaExeBuildDir}/test_stagevec_speed.ll",
+        lambda : compiler.cpp_to_obj(
+            f"{ZetaExeBuildDir}/test_stagevec_speed.o",
             f"{ZetaExeDir}/test_stagevec_speed.cpp",
         )
     )
@@ -994,49 +1101,49 @@ def AddDeps(builder, ZetaBuildDir, ZetaExeBuildDir, verbose, mode):
         {
             f"{File}",
 
-            f"{ZetaBuildDir}/BinTree.ll",
-            f"{ZetaBuildDir}/CircularArray.ll",
-            f"{ZetaBuildDir}/DebugDeque.ll",
-            f"{ZetaBuildDir}/DebugHashMap.ll",
-            f"{ZetaBuildDir}/Debugger.ll",
-            f"{ZetaBuildDir}/DebugPipe.ll",
-            f"{ZetaBuildDir}/DebugStrPipe.ll",
-            f"{ZetaBuildDir}/DummyVector.ll",
-            f"{ZetaBuildDir}/io.ll",
-            f"{ZetaBuildDir}/Logger.ll",
-            f"{ZetaBuildDir}/RBTree.ll",
-            f"{ZetaBuildDir}/OrdCnt3RBTreeNode.ll",
-            f"{ZetaBuildDir}/OrdCntRBTreeNode.ll",
-            f"{ZetaBuildDir}/SegUtils.ll",
-            f"{ZetaBuildDir}/SeqContainer.ll",
-            f"{ZetaBuildDir}/StageVector.ll",
-            f"{ZetaBuildDir}/utils.ll",
+            f"{ZetaBuildDir}/BinTree.o",
+            f"{ZetaBuildDir}/CircularArray.o",
+            f"{ZetaBuildDir}/DebugDeque.o",
+            f"{ZetaBuildDir}/DebugHashMap.o",
+            f"{ZetaBuildDir}/Debugger.o",
+            f"{ZetaBuildDir}/DebugPipe.o",
+            f"{ZetaBuildDir}/DebugStrPipe.o",
+            f"{ZetaBuildDir}/DummyVector.o",
+            f"{ZetaBuildDir}/io.o",
+            f"{ZetaBuildDir}/Logger.o",
+            f"{ZetaBuildDir}/RBTree.o",
+            f"{ZetaBuildDir}/OrdCnt3RBTreeNode.o",
+            f"{ZetaBuildDir}/OrdCntRBTreeNode.o",
+            f"{ZetaBuildDir}/SegUtils.o",
+            f"{ZetaBuildDir}/SeqContainer.o",
+            f"{ZetaBuildDir}/StageVector.o",
+            f"{ZetaBuildDir}/utils.o",
 
-            f"{ZetaExeBuildDir}/test_stagevec_speed.ll",
+            f"{ZetaExeBuildDir}/test_stagevec_speed.o",
         },
         lambda : compiler.lls_to_exe(
             f"{ZetaExeBuildDir}/test_stagevec_speed.exe",
 
             [
-                f"{ZetaBuildDir}/BinTree.ll",
-                f"{ZetaBuildDir}/CircularArray.ll",
-                f"{ZetaBuildDir}/DebugDeque.ll",
-                f"{ZetaBuildDir}/DebugHashMap.ll",
-                f"{ZetaBuildDir}/Debugger.ll",
-                f"{ZetaBuildDir}/DebugPipe.ll",
-                f"{ZetaBuildDir}/DebugStrPipe.ll",
-                f"{ZetaBuildDir}/DummyVector.ll",
-                f"{ZetaBuildDir}/io.ll",
-                f"{ZetaBuildDir}/Logger.ll",
-                f"{ZetaBuildDir}/RBTree.ll",
-                f"{ZetaBuildDir}/OrdCnt3RBTreeNode.ll",
-                f"{ZetaBuildDir}/OrdCntRBTreeNode.ll",
-                f"{ZetaBuildDir}/SegUtils.ll",
-                f"{ZetaBuildDir}/SeqContainer.ll",
-                f"{ZetaBuildDir}/StageVector.ll",
-                f"{ZetaBuildDir}/utils.ll",
+                f"{ZetaBuildDir}/BinTree.o",
+                f"{ZetaBuildDir}/CircularArray.o",
+                f"{ZetaBuildDir}/DebugDeque.o",
+                f"{ZetaBuildDir}/DebugHashMap.o",
+                f"{ZetaBuildDir}/Debugger.o",
+                f"{ZetaBuildDir}/DebugPipe.o",
+                f"{ZetaBuildDir}/DebugStrPipe.o",
+                f"{ZetaBuildDir}/DummyVector.o",
+                f"{ZetaBuildDir}/io.o",
+                f"{ZetaBuildDir}/Logger.o",
+                f"{ZetaBuildDir}/RBTree.o",
+                f"{ZetaBuildDir}/OrdCnt3RBTreeNode.o",
+                f"{ZetaBuildDir}/OrdCntRBTreeNode.o",
+                f"{ZetaBuildDir}/SegUtils.o",
+                f"{ZetaBuildDir}/SeqContainer.o",
+                f"{ZetaBuildDir}/StageVector.o",
+                f"{ZetaBuildDir}/utils.o",
 
-                f"{ZetaExeBuildDir}/test_stagevec_speed.ll",
+                f"{ZetaExeBuildDir}/test_stagevec_speed.o",
             ]
         )
     )
@@ -1078,13 +1185,13 @@ def AddDeps(builder, ZetaBuildDir, ZetaExeBuildDir, verbose, mode):
     )
 
     builder.Add(
-        f"{ZetaExeBuildDir}/test_kmp.ll",
+        f"{ZetaExeBuildDir}/test_kmp.o",
         {
             f"{File}",
             f"{ZetaExeDir}/test_kmp.cpp"
         },
-        lambda : compiler.cpp_to_ll(
-            f"{ZetaExeBuildDir}/test_kmp.ll",
+        lambda : compiler.cpp_to_obj(
+            f"{ZetaExeBuildDir}/test_kmp.o",
             f"{ZetaExeDir}/test_kmp.cpp",
         )
     )
@@ -1093,12 +1200,12 @@ def AddDeps(builder, ZetaBuildDir, ZetaExeBuildDir, verbose, mode):
         f"{ZetaExeBuildDir}/test_kmp.exe",
         {
             f"{File}",
-            f"{ZetaExeBuildDir}/test_kmp.ll"
+            f"{ZetaExeBuildDir}/test_kmp.o"
         },
         lambda : compiler.lls_to_exe(
             f"{ZetaExeBuildDir}/test_kmp.exe",
             [
-                f"{ZetaExeBuildDir}/test_kmp.ll",
+                f"{ZetaExeBuildDir}/test_kmp.o",
             ]
         )
     )
@@ -1113,13 +1220,13 @@ def AddDeps(builder, ZetaBuildDir, ZetaExeBuildDir, verbose, mode):
     )
 
     builder.Add(
-        f"{ZetaExeBuildDir}/test_LeftistHeap.ll",
+        f"{ZetaExeBuildDir}/test_LeftistHeap.o",
         {
             f"{File}",
             f"{ZetaExeDir}/test_LeftistHeap.cpp",
         },
-        lambda : compiler.cpp_to_ll(
-            f"{ZetaExeBuildDir}/test_LeftistHeap.ll",
+        lambda : compiler.cpp_to_obj(
+            f"{ZetaExeBuildDir}/test_LeftistHeap.o",
             f"{ZetaExeDir}/test_LeftistHeap.cpp",
         )
     )
@@ -1128,12 +1235,12 @@ def AddDeps(builder, ZetaBuildDir, ZetaExeBuildDir, verbose, mode):
         f"{ZetaExeBuildDir}/test_LeftistHeap.exe",
         {
             f"{File}",
-            f"{ZetaExeBuildDir}/test_LeftistHeap.ll",
+            f"{ZetaExeBuildDir}/test_LeftistHeap.o",
         },
         lambda : compiler.lls_to_exe(
             f"{ZetaExeBuildDir}/test_LeftistHeap.exe",
             [
-                f"{ZetaExeBuildDir}/test_LeftistHeap.ll",
+                f"{ZetaExeBuildDir}/test_LeftistHeap.o",
             ]
         )
     )
@@ -1148,13 +1255,13 @@ def AddDeps(builder, ZetaBuildDir, ZetaExeBuildDir, verbose, mode):
     )
 
     builder.Add(
-        f"{ZetaExeBuildDir}/test_log.ll",
+        f"{ZetaExeBuildDir}/test_log.o",
         {
             f"{File}",
             f"{ZetaExeDir}/test_log.cpp",
         },
-        lambda : compiler.cpp_to_ll(
-            f"{ZetaExeBuildDir}/test_log.ll",
+        lambda : compiler.cpp_to_obj(
+            f"{ZetaExeBuildDir}/test_log.o",
             f"{ZetaExeDir}/test_log.cpp",
         )
     )
@@ -1164,25 +1271,25 @@ def AddDeps(builder, ZetaBuildDir, ZetaExeBuildDir, verbose, mode):
         {
             f"{File}",
 
-            f"{ZetaBuildDir}/DebugStrPipe.ll",
-            f"{ZetaBuildDir}/Debugger.ll",
-            f"{ZetaBuildDir}/Logger.ll",
-            f"{ZetaBuildDir}/io.ll",
-            f"{ZetaBuildDir}/utils.ll",
+            f"{ZetaBuildDir}/DebugStrPipe.o",
+            f"{ZetaBuildDir}/Debugger.o",
+            f"{ZetaBuildDir}/Logger.o",
+            f"{ZetaBuildDir}/io.o",
+            f"{ZetaBuildDir}/utils.o",
 
-            f"{ZetaExeBuildDir}/test_log.ll",
+            f"{ZetaExeBuildDir}/test_log.o",
         },
         lambda : compiler.lls_to_exe(
             f"{ZetaExeBuildDir}/test_log.exe",
 
             [
-                f"{ZetaBuildDir}/DebugStrPipe.ll",
-                f"{ZetaBuildDir}/Debugger.ll",
-                f"{ZetaBuildDir}/Logger.ll",
-                f"{ZetaBuildDir}/io.ll",
-                f"{ZetaBuildDir}/utils.ll",
+                f"{ZetaBuildDir}/DebugStrPipe.o",
+                f"{ZetaBuildDir}/Debugger.o",
+                f"{ZetaBuildDir}/Logger.o",
+                f"{ZetaBuildDir}/io.o",
+                f"{ZetaBuildDir}/utils.o",
 
-                f"{ZetaExeBuildDir}/test_log.ll",
+                f"{ZetaExeBuildDir}/test_log.o",
             ]
         )
     )
@@ -1211,13 +1318,13 @@ def AddDeps(builder, ZetaBuildDir, ZetaExeBuildDir, verbose, mode):
     )
 
     builder.Add(
-        f"{ZetaExeBuildDir}/test_lrucm.ll",
+        f"{ZetaExeBuildDir}/test_lrucm.o",
         {
             f"{File}",
             f"{ZetaExeDir}/test_lrucm.cpp",
         },
-        lambda : compiler.cpp_to_ll(
-            f"{ZetaExeBuildDir}/test_lrucm.ll",
+        lambda : compiler.cpp_to_obj(
+            f"{ZetaExeBuildDir}/test_lrucm.o",
             f"{ZetaExeDir}/test_lrucm.cpp",
         )
     )
@@ -1227,40 +1334,40 @@ def AddDeps(builder, ZetaBuildDir, ZetaExeBuildDir, verbose, mode):
         {
             f"{File}",
 
-            f"{ZetaBuildDir}/Allocator.ll",
-            f"{ZetaBuildDir}/BinTree.ll",
-            f"{ZetaBuildDir}/BlockVector.ll",
-            f"{ZetaBuildDir}/DebugHashMap.ll",
-            f"{ZetaBuildDir}/DebugPipe.ll",
-            f"{ZetaBuildDir}/DummyBlockVector.ll",
-            f"{ZetaBuildDir}/DummyCacheManager.ll",
-            f"{ZetaBuildDir}/LRUCacheManager.ll",
-            f"{ZetaBuildDir}/OrdLinkedListNode.ll",
-            f"{ZetaBuildDir}/OrdRBLinkedListNode.ll",
-            f"{ZetaBuildDir}/OrdRBTreeNode.ll",
-            f"{ZetaBuildDir}/RBTree.ll",
-            f"{ZetaBuildDir}/utils.ll",
+            f"{ZetaBuildDir}/Allocator.o",
+            f"{ZetaBuildDir}/BinTree.o",
+            f"{ZetaBuildDir}/BlockVector.o",
+            f"{ZetaBuildDir}/DebugHashMap.o",
+            f"{ZetaBuildDir}/DebugPipe.o",
+            f"{ZetaBuildDir}/DummyBlockVector.o",
+            f"{ZetaBuildDir}/DummyCacheManager.o",
+            f"{ZetaBuildDir}/LRUCacheManager.o",
+            f"{ZetaBuildDir}/OrdLinkedListNode.o",
+            f"{ZetaBuildDir}/OrdRBLinkedListNode.o",
+            f"{ZetaBuildDir}/OrdRBTreeNode.o",
+            f"{ZetaBuildDir}/RBTree.o",
+            f"{ZetaBuildDir}/utils.o",
 
-            f"{ZetaExeBuildDir}/test_lrucm.ll",
+            f"{ZetaExeBuildDir}/test_lrucm.o",
         },
         lambda : compiler.lls_to_exe(
             f"{ZetaExeBuildDir}/test_lrucm.exe",
             [
-                f"{ZetaBuildDir}/Allocator.ll",
-                f"{ZetaBuildDir}/BinTree.ll",
-                f"{ZetaBuildDir}/BlockVector.ll",
-                f"{ZetaBuildDir}/DebugHashMap.ll",
-                f"{ZetaBuildDir}/DebugPipe.ll",
-                f"{ZetaBuildDir}/DummyBlockVector.ll",
-                f"{ZetaBuildDir}/DummyCacheManager.ll",
-                f"{ZetaBuildDir}/LRUCacheManager.ll",
-                f"{ZetaBuildDir}/OrdLinkedListNode.ll",
-                f"{ZetaBuildDir}/OrdRBLinkedListNode.ll",
-                f"{ZetaBuildDir}/OrdRBTreeNode.ll",
-                f"{ZetaBuildDir}/RBTree.ll",
-                f"{ZetaBuildDir}/utils.ll",
+                f"{ZetaBuildDir}/Allocator.o",
+                f"{ZetaBuildDir}/BinTree.o",
+                f"{ZetaBuildDir}/BlockVector.o",
+                f"{ZetaBuildDir}/DebugHashMap.o",
+                f"{ZetaBuildDir}/DebugPipe.o",
+                f"{ZetaBuildDir}/DummyBlockVector.o",
+                f"{ZetaBuildDir}/DummyCacheManager.o",
+                f"{ZetaBuildDir}/LRUCacheManager.o",
+                f"{ZetaBuildDir}/OrdLinkedListNode.o",
+                f"{ZetaBuildDir}/OrdRBLinkedListNode.o",
+                f"{ZetaBuildDir}/OrdRBTreeNode.o",
+                f"{ZetaBuildDir}/RBTree.o",
+                f"{ZetaBuildDir}/utils.o",
 
-                f"{ZetaExeBuildDir}/test_lrucm.ll",
+                f"{ZetaExeBuildDir}/test_lrucm.o",
             ]
         )
     )
@@ -1303,13 +1410,13 @@ def AddDeps(builder, ZetaBuildDir, ZetaExeBuildDir, verbose, mode):
     )
 
     builder.Add(
-        f"{ZetaExeBuildDir}/test_slaballoc.ll",
+        f"{ZetaExeBuildDir}/test_slaballoc.o",
         {
             f"{File}",
             f"{ZetaExeDir}/test_slaballoc.cpp",
         },
-        lambda : compiler.cpp_to_ll(
-            f"{ZetaExeBuildDir}/test_slaballoc.ll",
+        lambda : compiler.cpp_to_obj(
+            f"{ZetaExeBuildDir}/test_slaballoc.o",
             f"{ZetaExeDir}/test_slaballoc.cpp",
         )
     )
@@ -1319,26 +1426,26 @@ def AddDeps(builder, ZetaBuildDir, ZetaExeBuildDir, verbose, mode):
         {
             f"{File}",
 
-            f"{ZetaBuildDir}/Allocator.ll",
-            f"{ZetaBuildDir}/DebugHashMap.ll",
-            f"{ZetaBuildDir}/OrdLinkedListNode.ll",
-            f"{ZetaBuildDir}/OrdRBLinkedListNode.ll",
-            f"{ZetaBuildDir}/SlabAllocator.ll",
-            f"{ZetaBuildDir}/utils.ll",
+            f"{ZetaBuildDir}/Allocator.o",
+            f"{ZetaBuildDir}/DebugHashMap.o",
+            f"{ZetaBuildDir}/OrdLinkedListNode.o",
+            f"{ZetaBuildDir}/OrdRBLinkedListNode.o",
+            f"{ZetaBuildDir}/SlabAllocator.o",
+            f"{ZetaBuildDir}/utils.o",
 
-            f"{ZetaExeBuildDir}/test_slaballoc.ll",
+            f"{ZetaExeBuildDir}/test_slaballoc.o",
         },
         lambda : compiler.lls_to_exe(
             f"{ZetaExeBuildDir}/test_slaballoc.exe",
             [
-                f"{ZetaBuildDir}/Allocator.ll",
-                f"{ZetaBuildDir}/DebugHashMap.ll",
-                f"{ZetaBuildDir}/OrdLinkedListNode.ll",
-                f"{ZetaBuildDir}/OrdRBLinkedListNode.ll",
-                f"{ZetaBuildDir}/SlabAllocator.ll",
-                f"{ZetaBuildDir}/utils.ll",
+                f"{ZetaBuildDir}/Allocator.o",
+                f"{ZetaBuildDir}/DebugHashMap.o",
+                f"{ZetaBuildDir}/OrdLinkedListNode.o",
+                f"{ZetaBuildDir}/OrdRBLinkedListNode.o",
+                f"{ZetaBuildDir}/SlabAllocator.o",
+                f"{ZetaBuildDir}/utils.o",
 
-                f"{ZetaExeBuildDir}/test_slaballoc.ll",
+                f"{ZetaExeBuildDir}/test_slaballoc.o",
             ]
         )
     )
@@ -1354,15 +1461,15 @@ def AddDeps(builder, ZetaBuildDir, ZetaExeBuildDir, verbose, mode):
     )
 
     builder.Add(
-        f"{ZetaExeBuildDir}/test_mlv.ll",
+        f"{ZetaExeBuildDir}/test_mlv.o",
         {
             f"{File}",
             f"{ZetaDir}/MultiLevelTable.h",
             f"{ZetaExeDir}/StdAllocator.h",
             f"{ZetaExeDir}/test_mlv.cpp",
         },
-        lambda : compiler.cpp_to_ll(
-            f"{ZetaExeBuildDir}/test_mlv.ll",
+        lambda : compiler.cpp_to_obj(
+            f"{ZetaExeBuildDir}/test_mlv.o",
             f"{ZetaExeDir}/test_mlv.cpp",
         )
     )
@@ -1372,23 +1479,23 @@ def AddDeps(builder, ZetaBuildDir, ZetaExeBuildDir, verbose, mode):
         {
             f"{File}",
 
-            f"{ZetaBuildDir}/Allocator.ll",
-            f"{ZetaBuildDir}/DebugHashMap.ll",
-            f"{ZetaBuildDir}/MultiLevelTable.ll",
-            f"{ZetaBuildDir}/utils.ll",
+            f"{ZetaBuildDir}/Allocator.o",
+            f"{ZetaBuildDir}/DebugHashMap.o",
+            f"{ZetaBuildDir}/MultiLevelTable.o",
+            f"{ZetaBuildDir}/utils.o",
 
-            f"{ZetaExeBuildDir}/test_mlv.ll",
+            f"{ZetaExeBuildDir}/test_mlv.o",
         },
         lambda : compiler.lls_to_exe(
             f"{ZetaExeBuildDir}/test_mlv.exe",
 
             [
-                f"{ZetaBuildDir}/Allocator.ll",
-                f"{ZetaBuildDir}/DebugHashMap.ll",
-                f"{ZetaBuildDir}/MultiLevelTable.ll",
-                f"{ZetaBuildDir}/utils.ll",
+                f"{ZetaBuildDir}/Allocator.o",
+                f"{ZetaBuildDir}/DebugHashMap.o",
+                f"{ZetaBuildDir}/MultiLevelTable.o",
+                f"{ZetaBuildDir}/utils.o",
 
-                f"{ZetaExeBuildDir}/test_mlv.ll",
+                f"{ZetaExeBuildDir}/test_mlv.o",
             ]
         )
     )
@@ -1405,15 +1512,15 @@ def AddDeps(builder, ZetaBuildDir, ZetaExeBuildDir, verbose, mode):
     )
 
     builder.Add(
-        f"{ZetaExeBuildDir}/test_mlt.ll",
+        f"{ZetaExeBuildDir}/test_mlt.o",
         {
             f"{File}",
             f"{ZetaDir}/MultiLevelTable.h",
             f"{ZetaExeDir}/StdAllocator.h",
             f"{ZetaExeDir}/test_mlt.cpp",
         },
-        lambda : compiler.cpp_to_ll(
-            f"{ZetaExeBuildDir}/test_mlt.ll",
+        lambda : compiler.cpp_to_obj(
+            f"{ZetaExeBuildDir}/test_mlt.o",
             f"{ZetaExeDir}/test_mlt.cpp",
         )
     )
@@ -1423,25 +1530,25 @@ def AddDeps(builder, ZetaBuildDir, ZetaExeBuildDir, verbose, mode):
         {
             f"{File}",
 
-            f"{ZetaBuildDir}/Allocator.ll",
-            f"{ZetaBuildDir}/DebugHashMap.ll",
-            f"{ZetaBuildDir}/MultiLevelTable.ll",
-            f"{ZetaBuildDir}/OrdLinkedListNode.ll",
-            f"{ZetaBuildDir}/utils.ll",
+            f"{ZetaBuildDir}/Allocator.o",
+            f"{ZetaBuildDir}/DebugHashMap.o",
+            f"{ZetaBuildDir}/MultiLevelTable.o",
+            f"{ZetaBuildDir}/OrdLinkedListNode.o",
+            f"{ZetaBuildDir}/utils.o",
 
-            f"{ZetaExeBuildDir}/test_mlt.ll",
+            f"{ZetaExeBuildDir}/test_mlt.o",
         },
         lambda : compiler.lls_to_exe(
             f"{ZetaExeBuildDir}/test_mlt.exe",
 
             [
-                f"{ZetaBuildDir}/Allocator.ll",
-                f"{ZetaBuildDir}/DebugHashMap.ll",
-                f"{ZetaBuildDir}/MultiLevelTable.ll",
-                f"{ZetaBuildDir}/OrdLinkedListNode.ll",
-                f"{ZetaBuildDir}/utils.ll",
+                f"{ZetaBuildDir}/Allocator.o",
+                f"{ZetaBuildDir}/DebugHashMap.o",
+                f"{ZetaBuildDir}/MultiLevelTable.o",
+                f"{ZetaBuildDir}/OrdLinkedListNode.o",
+                f"{ZetaBuildDir}/utils.o",
 
-                f"{ZetaExeBuildDir}/test_mlt.ll",
+                f"{ZetaExeBuildDir}/test_mlt.o",
             ]
         )
     )
@@ -1486,13 +1593,13 @@ def AddDeps(builder, ZetaBuildDir, ZetaExeBuildDir, verbose, mode):
     )
 
     builder.Add(
-        f"{ZetaExeBuildDir}/test_pipe.ll",
+        f"{ZetaExeBuildDir}/test_pipe.o",
         {
             f"{File}",
             f"{ZetaExeDir}/test_pipe.c",
         },
-        lambda : compiler.c_to_ll(
-            f"{ZetaExeBuildDir}/test_pipe.ll",
+        lambda : compiler.c_to_obj(
+            f"{ZetaExeBuildDir}/test_pipe.o",
             f"{ZetaExeDir}/test_pipe.c",
         )
     )
@@ -1501,22 +1608,22 @@ def AddDeps(builder, ZetaBuildDir, ZetaExeBuildDir, verbose, mode):
         f"{ZetaExeBuildDir}/test_pipe.exe",
         {
             f"{File}",
-            f"{ZetaBuildDir}/DebugStrPipe.ll",
-            f"{ZetaBuildDir}/Debugger.ll",
-            f"{ZetaBuildDir}/io.ll",
-            f"{ZetaBuildDir}/Logger.ll",
-            f"{ZetaBuildDir}/utils.ll",
-            f"{ZetaExeBuildDir}/test_pipe.ll",
+            f"{ZetaBuildDir}/DebugStrPipe.o",
+            f"{ZetaBuildDir}/Debugger.o",
+            f"{ZetaBuildDir}/io.o",
+            f"{ZetaBuildDir}/Logger.o",
+            f"{ZetaBuildDir}/utils.o",
+            f"{ZetaExeBuildDir}/test_pipe.o",
         },
         lambda : compiler.lls_to_exe(
             f"{ZetaExeBuildDir}/test_pipe.exe",
             [
-                f"{ZetaBuildDir}/DebugStrPipe.ll",
-                f"{ZetaBuildDir}/Debugger.ll",
-                f"{ZetaBuildDir}/io.ll",
-                f"{ZetaBuildDir}/Logger.ll",
-                f"{ZetaBuildDir}/utils.ll",
-                f"{ZetaExeBuildDir}/test_pipe.ll",
+                f"{ZetaBuildDir}/DebugStrPipe.o",
+                f"{ZetaBuildDir}/Debugger.o",
+                f"{ZetaBuildDir}/io.o",
+                f"{ZetaBuildDir}/Logger.o",
+                f"{ZetaBuildDir}/utils.o",
+                f"{ZetaExeBuildDir}/test_pipe.o",
             ]
         )
     )
@@ -1533,15 +1640,15 @@ def AddDeps(builder, ZetaBuildDir, ZetaExeBuildDir, verbose, mode):
     )
 
     builder.Add(
-        f"{ZetaExeBuildDir}/test_scheduler.ll",
+        f"{ZetaExeBuildDir}/test_scheduler.o",
         {
             f"{File}",
             f"{ZetaDir}/MultiLevelTable.h",
             f"{ZetaExeDir}/StdAllocator.h",
             f"{ZetaExeDir}/test_scheduler.cpp",
         },
-        lambda : compiler.cpp_to_ll(
-            f"{ZetaExeBuildDir}/test_scheduler.ll",
+        lambda : compiler.cpp_to_obj(
+            f"{ZetaExeBuildDir}/test_scheduler.o",
             f"{ZetaExeDir}/test_scheduler.cpp",
         )
     )
@@ -1551,25 +1658,25 @@ def AddDeps(builder, ZetaBuildDir, ZetaExeBuildDir, verbose, mode):
         {
             f"{File}",
 
-            f"{ZetaBuildDir}/Allocator.ll",
-            f"{ZetaBuildDir}/DebugHashMap.ll",
-            f"{ZetaBuildDir}/MultiLevelTable.ll",
-            f"{ZetaBuildDir}/OrdLinkedListNode.ll",
-            f"{ZetaBuildDir}/utils.ll",
+            f"{ZetaBuildDir}/Allocator.o",
+            f"{ZetaBuildDir}/DebugHashMap.o",
+            f"{ZetaBuildDir}/MultiLevelTable.o",
+            f"{ZetaBuildDir}/OrdLinkedListNode.o",
+            f"{ZetaBuildDir}/utils.o",
 
-            f"{ZetaExeBuildDir}/test_scheduler.ll",
+            f"{ZetaExeBuildDir}/test_scheduler.o",
         },
         lambda : compiler.lls_to_exe(
             f"{ZetaExeBuildDir}/test_scheduler.exe",
 
             [
-                f"{ZetaBuildDir}/Allocator.ll",
-                f"{ZetaBuildDir}/DebugHashMap.ll",
-                f"{ZetaBuildDir}/MultiLevelTable.ll",
-                f"{ZetaBuildDir}/OrdLinkedListNode.ll",
-                f"{ZetaBuildDir}/utils.ll",
+                f"{ZetaBuildDir}/Allocator.o",
+                f"{ZetaBuildDir}/DebugHashMap.o",
+                f"{ZetaBuildDir}/MultiLevelTable.o",
+                f"{ZetaBuildDir}/OrdLinkedListNode.o",
+                f"{ZetaBuildDir}/utils.o",
 
-                f"{ZetaExeBuildDir}/test_scheduler.ll",
+                f"{ZetaExeBuildDir}/test_scheduler.o",
             ]
         )
     )
@@ -1597,13 +1704,13 @@ def AddDeps(builder, ZetaBuildDir, ZetaExeBuildDir, verbose, mode):
     )
 
     builder.Add(
-        f"{ZetaExeBuildDir}/test_cntrbt.ll",
+        f"{ZetaExeBuildDir}/test_cntrbt.o",
         {
             f"{File}",
             f"{ZetaExeDir}/test_cntrbt.cpp",
         },
-        lambda : compiler.cpp_to_ll(
-            f"{ZetaExeBuildDir}/test_cntrbt.ll",
+        lambda : compiler.cpp_to_obj(
+            f"{ZetaExeBuildDir}/test_cntrbt.o",
             f"{ZetaExeDir}/test_cntrbt.cpp",
         )
     )
@@ -1613,35 +1720,35 @@ def AddDeps(builder, ZetaBuildDir, ZetaExeBuildDir, verbose, mode):
         {
             f"{File}",
 
-            f"{ZetaBuildDir}/BinTree.ll",
-            f"{ZetaBuildDir}/Logger.ll",
-            f"{ZetaBuildDir}/Debugger.ll",
-            f"{ZetaBuildDir}/DebugStrPipe.ll",
-            f"{ZetaBuildDir}/DebugPipe.ll",
-            f"{ZetaBuildDir}/io.ll",
-            f"{ZetaBuildDir}/RBTree.ll",
-            f"{ZetaBuildDir}/OrdCntRBTreeNode.ll",
-            f"{ZetaBuildDir}/OrdCnt3RBTreeNode.ll",
-            f"{ZetaBuildDir}/utils.ll",
+            f"{ZetaBuildDir}/BinTree.o",
+            f"{ZetaBuildDir}/Logger.o",
+            f"{ZetaBuildDir}/Debugger.o",
+            f"{ZetaBuildDir}/DebugStrPipe.o",
+            f"{ZetaBuildDir}/DebugPipe.o",
+            f"{ZetaBuildDir}/io.o",
+            f"{ZetaBuildDir}/RBTree.o",
+            f"{ZetaBuildDir}/OrdCntRBTreeNode.o",
+            f"{ZetaBuildDir}/OrdCnt3RBTreeNode.o",
+            f"{ZetaBuildDir}/utils.o",
 
-            f"{ZetaExeBuildDir}/test_cntrbt.ll",
+            f"{ZetaExeBuildDir}/test_cntrbt.o",
         },
         lambda : compiler.lls_to_exe(
             f"{ZetaExeBuildDir}/test_cntrbt.exe",
 
             [
-                f"{ZetaBuildDir}/BinTree.ll",
-                f"{ZetaBuildDir}/Debugger.ll",
-                f"{ZetaBuildDir}/DebugStrPipe.ll",
-                f"{ZetaBuildDir}/DebugPipe.ll",
-                f"{ZetaBuildDir}/io.ll",
-                f"{ZetaBuildDir}/Logger.ll",
-                f"{ZetaBuildDir}/RBTree.ll",
-                f"{ZetaBuildDir}/OrdCntRBTreeNode.ll",
-                f"{ZetaBuildDir}/OrdCnt3RBTreeNode.ll",
-                f"{ZetaBuildDir}/utils.ll",
+                f"{ZetaBuildDir}/BinTree.o",
+                f"{ZetaBuildDir}/Debugger.o",
+                f"{ZetaBuildDir}/DebugStrPipe.o",
+                f"{ZetaBuildDir}/DebugPipe.o",
+                f"{ZetaBuildDir}/io.o",
+                f"{ZetaBuildDir}/Logger.o",
+                f"{ZetaBuildDir}/RBTree.o",
+                f"{ZetaBuildDir}/OrdCntRBTreeNode.o",
+                f"{ZetaBuildDir}/OrdCnt3RBTreeNode.o",
+                f"{ZetaBuildDir}/utils.o",
 
-                f"{ZetaExeBuildDir}/test_cntrbt.ll",
+                f"{ZetaExeBuildDir}/test_cntrbt.o",
             ]
         )
     )
@@ -1704,17 +1811,17 @@ def main():
     parser.add_argument("--target",
                         dest="target",
                         action="store",
-                        required=True,)
+                        required=True)
+
+    parser.add_argument("--verbose",
+                        dest="verbose",
+                        action="store_true")
 
     parser.add_argument("--mode",
                         dest="mode",
                         action="store",
                         choices=["debug", "release"],
-                        required=True,)
-
-    parser.add_argument("--verbose",
-                        dest="verbose",
-                        action="store_true")
+                        required=True)
 
     parser.add_argument("--run_target",
                         dest="run_target",

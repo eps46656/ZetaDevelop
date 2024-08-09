@@ -23,11 +23,11 @@ void Zeta_DummyVector_GetLBCursor(void* dsc, void* dst_cursor);
 
 void Zeta_DummyVector_GetRBCursor(void* dsc, void* dst_cursor);
 
-void* Zeta_DummyVector_PeekL(void* dsc, void* dst_cursor, void* dst_ele);
+void* Zeta_DummyVector_PeekL(void* dsc, void* dst_cursor, void* dst_elem);
 
-void* Zeta_DummyVector_PeekR(void* dsc, void* dst_cursor, void* dst_ele);
+void* Zeta_DummyVector_PeekR(void* dsc, void* dst_cursor, void* dst_elem);
 
-void* Zeta_DummyVector_Access(void* dsc, void* dst_cursor, void* dst_ele,
+void* Zeta_DummyVector_Access(void* dsc, void* dst_cursor, void* dst_elem,
                               size_t idx);
 
 void* Zeta_DummyVector_Refer(void* dsc, void const* pos_cursor);

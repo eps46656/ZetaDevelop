@@ -170,7 +170,6 @@ void main1() {
                                                                 size_t) };
     std::uniform_int_distribution<size_t> size_generator{ 0, 16 };
 
-    Zeta_BinTree_InitOpr(&btn_opr);
     Zeta_OrdCntRBTreeNode_DeployBinTreeNodeOperator(NULL, &btn_opr);
 
     size_sum = 0;

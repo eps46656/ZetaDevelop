@@ -1,6 +1,6 @@
 
 #include "../Zeta/Debugger.h"
-#include "../Zeta/UTF8.h"
+#include "../Zeta/UTF16.h"
 
 #define BIN_PATTERN "%c%c%c%c%c%c%c%c"
 
@@ -22,18 +22,24 @@ void Print(unsigned char* b, size_t size) {
 }
 
 int main() {
+    bool_t little_endian = TRUE;
+
     size_t size = 512 * 1024 * 1024 - 1;
 
-    size_t beg = 1677721600;
-    size_t end = beg + size;
+    size_t beg = 0xE000;
+    size_t end = 0x10000;
 
-    ZETA_PrintVar(0x7FFFFFFF);
+    size_t max = 0x10FFFF;
 
-    if (0x7FFFFFFFull + 1 < end) { end = 0x7FFFFFFFull + 1; }
+    ZETA_PrintVar(max);
+
+    if (max + 1 < end) { end = max + 1; }
 
     size = end - beg;
 
-    ZETA_PrintVar((ull)end);
+    ZETA_PrintVar(beg);
+    ZETA_PrintVar(end);
+    ZETA_PrintVar(size);
 
     unichar_t* data_uni = malloc(sizeof(unichar_t) * size);
 
@@ -41,29 +47,30 @@ int main() {
     unichar_t* data_uni_re_beg = data_uni_re;
     unichar_t* data_uni_re_end = data_uni_re + size;
 
-    unsigned char* data_utf8 = malloc(sizeof(unsigned char) * (size * 6 + 1));
-    unsigned char* data_utf8_beg = data_utf8;
-    unsigned char* data_utf8_end = data_utf8 + (size * 6 + 1);
+    unsigned char* data_utf16 = malloc(sizeof(unsigned char) * (size * 6 + 1));
+    unsigned char* data_utf16_beg = data_utf16;
+    unsigned char* data_utf16_end = data_utf16 + (size * 6 + 1);
 
     for (size_t i = 0; i < size; ++i) { data_uni[i] = beg + i; }
 
-    Zeta_UTF8_EncodeRet en_ret =
-        Zeta_UTF8_Encode(size * 6 + 1, data_utf8_beg, size, data_uni);
+    Zeta_UTF16_EncodeRet en_ret = Zeta_UTF16_Encode(
+        size * 6 + 1, data_utf16_beg, size, data_uni, little_endian);
 
-    ZETA_DebugAssert(en_ret.ret_code == ZETA_UTF8_RetCode_success);
-    ZETA_DebugAssert(en_ret.nxt_dst != data_utf8_end);
+    ZETA_DebugAssert(en_ret.ret_code == ZETA_UTF16_RetCode_success);
+    ZETA_DebugAssert(en_ret.nxt_dst != data_utf16_end);
     ZETA_DebugAssert(en_ret.nxt_src == data_uni + size);
 
-    ZETA_PrintVar(en_ret.nxt_dst - data_utf8_beg);
+    ZETA_PrintVar(en_ret.nxt_dst - data_utf16_beg);
 
-    unsigned char* data_utf8_mid = en_ret.nxt_dst;
+    unsigned char* data_utf16_mid = en_ret.nxt_dst;
 
-    Zeta_UTF8_DecodeRet de_ret = Zeta_UTF8_Decode(
-        size, data_uni_re_beg, en_ret.nxt_dst - data_utf8_beg, data_utf8_beg);
+    Zeta_UTF16_DecodeRet de_ret = Zeta_UTF16_Decode(
+        size, data_uni_re_beg, data_utf16_mid - data_utf16_beg, data_utf16_beg,
+        little_endian);
 
-    ZETA_DebugAssert(de_ret.ret_code == ZETA_UTF8_RetCode_success);
+    ZETA_DebugAssert(de_ret.ret_code == ZETA_UTF16_RetCode_success);
     ZETA_DebugAssert(de_ret.nxt_dst == data_uni_re_end);
-    ZETA_DebugAssert(de_ret.nxt_src == data_utf8_mid);
+    ZETA_DebugAssert(de_ret.nxt_src == data_utf16_mid);
 
     // printf("size re = %llu\n", (ull)(data_uni_re_iter - data_uni_re));
 

@@ -158,7 +158,7 @@ void Check() {
         ZETA_DebugAssert(*val_p == de[i]);
     }
 
-    Zeta_DebugHashMap* tm = (Zeta_DebugHashMap*)Zeta_DebugHashMap_Create();
+    Zeta_DebugHashMap* tm = (Zeta_DebugHashMap*)Zeta_DebugHashMap_Init();
 
     Zeta_MultiLevelVector_GetAllPages(&dv.mlv, tm);
 

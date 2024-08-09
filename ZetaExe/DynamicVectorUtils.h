@@ -39,16 +39,23 @@ void InitDynamicVector(Zeta_SeqContainer* seq_cntr, size_t seg_capacity) {
     dynamic_vec_pack->dynamic_vec.seg_allocator =
         &dynamic_vec_pack->seg_allocator;
 
-    ZETA_PrintCurPos;
-
     Zeta_DynamicVector_Init(&dynamic_vec_pack->dynamic_vec);
-
-    ZETA_PrintCurPos;
 
     Zeta_DynamicVector_DeploySeqContainer(&dynamic_vec_pack->dynamic_vec,
                                           seq_cntr);
+}
 
-    ZETA_PrintCurPos;
+void DeinitDynamicVector(Zeta_SeqContainer* seq_cntr) {
+    if (seq_cntr == NULL || seq_cntr->GetSize != Zeta_DynamicVector_GetSize) {
+        return;
+    }
+
+    DynamicVectorPack* dynamic_vec_pack{ ZETA_MemberToStruct(
+        DynamicVectorPack, dynamic_vec, seq_cntr->context) };
+
+    Zeta_DynamicVector_Deinit(seq_cntr->context);
+
+    std::free(dynamic_vec_pack);
 }
 
 template <typename Val>
@@ -60,7 +67,17 @@ Zeta_SeqContainer* CreateDynamicVector(size_t seg_capacity) {
     return seq_cntr;
 }
 
-void CheckDynamicVector(Zeta_SeqContainer const* seq_cntr) {
+void DestroyDynamicVector(Zeta_SeqContainer* seq_cntr) {
+    if (seq_cntr == NULL || seq_cntr->GetSize != Zeta_DynamicVector_GetSize) {
+        return;
+    }
+
+    DeinitDynamicVector(seq_cntr);
+
+    delete seq_cntr;
+}
+
+void SanitizeDynamicVector(Zeta_SeqContainer const* seq_cntr) {
     if (seq_cntr->GetSize != Zeta_DynamicVector_GetSize) { return; }
 
     DynamicVectorPack* pack{ ZETA_MemberToStruct(DynamicVectorPack, dynamic_vec,
@@ -69,16 +86,18 @@ void CheckDynamicVector(Zeta_SeqContainer const* seq_cntr) {
     Zeta_DebugHashMap data_hm;
     Zeta_DebugHashMap seg_hm;
 
-    Zeta_DebugHashMap_Create(&data_hm);
-    Zeta_DebugHashMap_Create(&seg_hm);
+    Zeta_DebugHashMap_Init(&data_hm);
+    Zeta_DebugHashMap_Init(&seg_hm);
 
-    Zeta_DynamicVector_Check(
+    Zeta_DynamicVector_Sanitize(
         const_cast<void*>(static_cast<void const*>(&pack->dynamic_vec)),
         &data_hm, &seg_hm);
 
     using record_t = std::unordered_map<unsigned long long, unsigned long long>;
 
     CheckRecords(pack->data_allocator_.records, *(record_t*)data_hm.hash_map);
-
     CheckRecords(pack->seg_allocator_.records, *(record_t*)seg_hm.hash_map);
+
+    Zeta_DebugHashMap_Deinit(&data_hm);
+    Zeta_DebugHashMap_Deinit(&seg_hm);
 }

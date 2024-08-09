@@ -149,7 +149,6 @@ void DummyCM_LogOut(void* s_node) {
 
 void LRUCM_Check() {
     Zeta_BinTreeNodeOperator rbtn_opr;
-    Zeta_BinTree_InitOpr(&rbtn_opr);
     Zeta_OrdRBTreeNode_DeployBinTreeNodeOperator(NULL, &rbtn_opr);
 
     std::unordered_set<Zeta_LRUCacheManager_SNode*> s_nodes;

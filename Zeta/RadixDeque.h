@@ -48,7 +48,7 @@ struct Zeta_RadixDeque_Cursor {
     size_t idx;
     void* seg;
     size_t seg_idx;
-    void* ele;
+    void* ref;
 };
 
 // -----------------------------------------------------------------------------
@@ -71,13 +71,13 @@ void Zeta_RadixDeque_GetLBCursor(void* rd, void* dst_cursor);
 
 void Zeta_RadixDeque_GetRBCursor(void* rd, void* dst_cursor);
 
-void* Zeta_RadixDeque_PeekL(void* rd, void* dst_cursor, void* dst_ele);
+void* Zeta_RadixDeque_PeekL(void* rd, void* dst_cursor, void* dst_elem);
 
-void* Zeta_RadixDeque_PeekR(void* rd, void* dst_cursor, void* dst_ele);
+void* Zeta_RadixDeque_PeekR(void* rd, void* dst_cursor, void* dst_elem);
 
 void* Zeta_RadixDeque_Refer(void* rd, void const* pos_cursor);
 
-void* Zeta_RadixDeque_Access(void* rd, void* dst_cursor, void* dst_ele,
+void* Zeta_RadixDeque_Access(void* rd, void* dst_cursor, void* dst_elem,
                              size_t idx);
 
 void Zeta_RadixDeque_Read(void* rd, void const* pos_cursor, size_t cnt,
@@ -96,8 +96,10 @@ void Zeta_RadixDeque_PopR(void* rd, size_t cnt);
 
 void Zeta_RadixDeque_EraseAll(void* rd);
 
-void Zeta_RadixDeque_Check(void* rd, Zeta_DebugHashMap* dst_node_hm,
-                           Zeta_DebugHashMap* dst_seg_hm);
+void Zeta_RadixDeque_Check(void* rd);
+
+void Zeta_RadixDeque_Sanitize(void* rd, Zeta_DebugHashMap* dst_node_hm,
+                              Zeta_DebugHashMap* dst_seg_hm);
 
 bool_t Zeta_RadixDeque_Cursor_IsEqual(void* rd, void const* cursor_a,
                                       void const* cursor_b);

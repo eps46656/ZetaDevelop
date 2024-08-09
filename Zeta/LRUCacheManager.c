@@ -1,5 +1,6 @@
 #include "LRUCacheManager.h"
 
+#include "Debugger.h"
 #include "RBTree.h"
 #include "utils.h"
 
@@ -140,8 +141,6 @@ static void WriteBack_(Zeta_LRUCacheManager* lrucm,
     ZETA_DebugAssert(lrucm->blk_vec != NULL);
     ZETA_DebugAssert(lrucm->blk_vec->WriteBlock != NULL);
 
-    ZETA_PrintPos;
-
     lrucm->blk_vec->WriteBlock(lrucm->blk_vec->context, c_node->blk_num,
                                c_node->frame);
 }
@@ -175,7 +174,6 @@ void UnrefLast_(Zeta_LRUCacheManager* lrucm,
     if (s_node->al_cnt <= s_node->max_al_cnt) { return; }
 
     Zeta_BinTreeNodeOperator rbtn_opr;
-    Zeta_BinTree_InitOpr(&rbtn_opr);
     Zeta_OrdRBTreeNode_DeployBinTreeNodeOperator(NULL, &rbtn_opr);
 
     Zeta_LRUCacheManager_XNode* x_node =
@@ -240,7 +238,6 @@ static Zeta_LRUCacheManager_XNode* F_(Zeta_LRUCacheManager* lrucm,
     ZETA_DebugAssert(lrucm->x_node_allocator->Deallocate != NULL);
 
     Zeta_BinTreeNodeOperator rbtn_opr;
-    Zeta_BinTree_InitOpr(&rbtn_opr);
     Zeta_OrdRBTreeNode_DeployBinTreeNodeOperator(NULL, &rbtn_opr);
 
     Zeta_OrdRBTreeNode* ct_node = FindCT_(lrucm->ct_root, blk_num);
@@ -507,7 +504,6 @@ bool_t Zeta_LRUCacheManager_UnrefOverCache(void* lrucm_) {
     if (&lrucm->cl_head == cl_node) { return FALSE; }
 
     Zeta_BinTreeNodeOperator rbtn_opr;
-    Zeta_BinTree_InitOpr(&rbtn_opr);
     Zeta_OrdRBTreeNode_DeployBinTreeNodeOperator(NULL, &rbtn_opr);
 
     --lrucm->c_node_cnt;

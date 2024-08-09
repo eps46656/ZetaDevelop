@@ -28,11 +28,11 @@ void Zeta_DebugDeque_GetLBCursor(void* context, void* dst_cursor);
 
 void Zeta_DebugDeque_GetRBCursor(void* context, void* dst_cursor);
 
-void* Zeta_DebugDeque_PeekL(void* dd, void* dst_cursor, void* dst_ele);
+void* Zeta_DebugDeque_PeekL(void* dd, void* dst_cursor, void* dst_elem);
 
-void* Zeta_DebugDeque_PeekR(void* dd, void* dst_cursor, void* dst_ele);
+void* Zeta_DebugDeque_PeekR(void* dd, void* dst_cursor, void* dst_elem);
 
-void* Zeta_DebugDeque_Access(void* dd, void* dst_cursor, void* dst_ele,
+void* Zeta_DebugDeque_Access(void* dd, void* dst_cursor, void* dst_elem,
                              size_t idx);
 
 void* Zeta_DebugDeque_Refer(void* dd, void const* pos_cursor);

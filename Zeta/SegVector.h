@@ -1,7 +1,6 @@
 #pragma once
 
 #include "Allocator.h"
-#include "Cursor.h"
 #include "DebugHashMap.h"
 #include "OrdCntRBTreeNode.h"
 #include "SeqContainer.h"
@@ -68,15 +67,15 @@ void Zeta_SegVector_GetLBCursor(void* sv, void* dst_cursor);
 
 void Zeta_SegVector_GetRBCursor(void* sv, void* dst_cursor);
 
-void* Zeta_SegVector_FindFirst(void* sv, void* dst_cursor, void* dst_ele,
+void* Zeta_SegVector_FindFirst(void* sv, void* dst_cursor, void* dst_elem,
                                void* context,
                                bool_t (*Compare)(void* context, void* ele));
 
-void* Zeta_SegVector_PeekL(void* sv, void* dst_cursor, void* dst_ele);
+void* Zeta_SegVector_PeekL(void* sv, void* dst_cursor, void* dst_elem);
 
-void* Zeta_SegVector_PeekR(void* sv, void* dst_cursor, void* dst_ele);
+void* Zeta_SegVector_PeekR(void* sv, void* dst_cursor, void* dst_elem);
 
-void* Zeta_SegVector_Access(void* sv, void* dst_cursor, void* dst_ele,
+void* Zeta_SegVector_Access(void* sv, void* dst_cursor, void* dst_elem,
                             size_t idx);
 
 void* Zeta_SegVector_Refer(void* sv, void* pos_cursor);

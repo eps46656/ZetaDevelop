@@ -1,5 +1,7 @@
 #include "OrdBinTreeNode.h"
 
+#include "Debugger.h"
+
 void Zeta_OrdBinTreeNode_Init(void* context, void* n_) {
     ZETA_Unused(context);
 
@@ -69,7 +71,7 @@ void Zeta_OrdBinTreeNode_DeployBinTreeNodeOperator(
     void* context, Zeta_BinTreeNodeOperator* btn_opr) {
     ZETA_Unused(context);
 
-    ZETA_DebugAssert(btn_opr != NULL);
+    Zeta_BinTree_InitOpr(btn_opr);
 
     btn_opr->context = NULL;
 

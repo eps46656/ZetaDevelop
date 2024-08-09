@@ -167,8 +167,8 @@ void Check() {
     Zeta_DebugHashMap node_records;
     Zeta_DebugHashMap table_records;
 
-    Zeta_DebugHashMap_Create(&node_records);
-    Zeta_DebugHashMap_Create(&table_records);
+    Zeta_DebugHashMap_Init(&node_records);
+    Zeta_DebugHashMap_Init(&table_records);
 
     Zeta_MultiLevelTable_Check(&mlv, &node_records);
 
@@ -179,8 +179,8 @@ void Check() {
     // StdAllocator_CheckRecords(&mlv_node_allocator_, &node_records);
     // StdAllocator_CheckRecords(&mlv_table_allocator_, &table_records);
 
-    Zeta_DebugHashMap_Destroy(&node_records);
-    Zeta_DebugHashMap_Destroy(&table_records);
+    Zeta_DebugHashMap_Deinit(&node_records);
+    Zeta_DebugHashMap_Deinit(&table_records);
 }
 
 void main1() {

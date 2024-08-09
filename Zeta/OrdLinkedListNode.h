@@ -30,11 +30,4 @@ void Zeta_OrdLinkedListNode_InsertSegR(void* n, void* m_beg, void* m_end);
 
 void Zeta_OrdLinkedListNode_Extract(void* n);
 
-// -----------------------------------------------------------------------------
-
-void* Zeta_OrdLinkedList_InsertL(void* head, void* n, void* m);
-void* Zeta_OrdLinkedList_InsertR(void* head, void* n, void* m);
-
-void* Zeta_OrdLinkedList_Extract(void* head, void* n);
-
 ZETA_ExternC_End;

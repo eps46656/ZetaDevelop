@@ -110,7 +110,7 @@ void Zeta_EleMove(void* dst, void const* src, size_t stride, size_t width,
  *
  * @return The read integer
  */
-unsigned long long Zeta_ReadLittleEndianStd(byte_t const* data,
+unsigned long long Zeta_ReadLittleEndianULL(byte_t const* data,
                                             unsigned length);
 
 /**
@@ -132,7 +132,7 @@ u128_t Zeta_ReadLittleEndian(byte_t const* data, unsigned length);
  *
  * @return The remaining value after
  */
-unsigned long long Zeta_WriteLittleEndianStd(byte_t* dst,
+unsigned long long Zeta_WriteLittleEndianULL(byte_t* dst,
                                              unsigned long long val,
                                              unsigned length);
 
@@ -155,7 +155,7 @@ u128_t Zeta_WriteLittleEndian(byte_t* dst, u128_t val, unsigned length);
  *
  * @return The read integer
  */
-unsigned long long Zeta_ReadBigEndianStd(byte_t const* data, unsigned length);
+unsigned long long Zeta_ReadBigEndianULL(byte_t const* data, unsigned length);
 
 /**
  * @brief Read big endian stored length bytes occupying integer from data.
@@ -174,7 +174,7 @@ u128_t Zeta_ReadBigEndian(byte_t const* data, unsigned length);
  * @param length The number of bytes the integer occupied.
  * @param val The target integer.
  */
-unsigned long long Zeta_WriteBigEndianStd(byte_t* dst, unsigned long long val,
+unsigned long long Zeta_WriteBigEndianULL(byte_t* dst, unsigned long long val,
                                           unsigned length);
 
 /**

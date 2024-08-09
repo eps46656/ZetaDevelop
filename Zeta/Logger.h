@@ -14,9 +14,9 @@ ZETA_ExternC_Beg;
                      filename, line_num, funcname, new_line)                   \
     {                                                                          \
         Zeta_Pipe* pipe_tmp = (pipe);                                          \
-        unsigned char const filename_tmp[] = filename;                         \
+        unsigned char const filename_tmp[] = (filename);                       \
         size_t line_num_tmp = (line_num);                                      \
-        unsigned char const funcname_tmp[] = funcname;                         \
+        unsigned char* const funcname_tmp = (unsigned char* const)(funcname);  \
                                                                                \
         Zeta_Pipe_WriteStr(pipe_tmp, filename_tmp, ZETA_io_r_just,             \
                            ZETA_LogPos_filename_just_width, ' ');              \
@@ -40,7 +40,7 @@ ZETA_ExternC_Beg;
                  (pipe), (filename), (line_num), (funcname), (new_line))
 
 #define ZETA_LogCurPos(pipe) \
-    ZETA_LogPos((pipe), __FILE__, __LINE__, __func__, TRUE)
+    ZETA_LogPos((pipe), __FILE__, __LINE__, __PRETTY_FUNCTION__, TRUE)
 
 #define ZETA_LogVar_(pipe_tmp, varname_tmp, varval_tmp, pipe, var)             \
     {                                                                          \
@@ -48,7 +48,7 @@ ZETA_ExternC_Beg;
         unsigned char varname_tmp[] = ZETA_ToStr(var);                         \
         ZETA_AutoVar(varval_tmp, var);                                         \
                                                                                \
-        ZETA_LogPos(pipe_tmp, __FILE__, __LINE__, __func__, FALSE);            \
+        ZETA_LogPos(pipe_tmp, __FILE__, __LINE__, __PRETTY_FUNCTION__, FALSE); \
                                                                                \
         pipe_tmp->Write(pipe_tmp->context, 1, "\t");                           \
                                                                                \

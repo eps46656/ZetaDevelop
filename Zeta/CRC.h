@@ -16,7 +16,7 @@ void Zeta_CRCHasher_Init(void* hasher, unsigned _BitInt(64) div,
 
 unsigned _BitInt(64) Zeta_CRCHasher_GetResult(void* hasher);
 
-void Zeta_CRCHasher_Rotate(void* hasher, byte_t const* data,
-                           byte_t const* data_end, int reverse);
+void Zeta_CRCHasher_Rotate(void* hasher, size_t cnt, unsigned char const* src,
+                           int reverse);
 
 ZETA_ExternC_End;

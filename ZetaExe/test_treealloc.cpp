@@ -88,7 +88,7 @@ void MyFree(void* ptr) {
 
 void CheckAllocator(bool_t print_state) {
     Zeta_DebugHashMap records;
-    Zeta_DebugHashMap_Create(&records);
+    Zeta_DebugHashMap_Init(&records);
 
     std::unordered_map<unsigned long long, unsigned long long>&
         records_hash_map = *static_cast<

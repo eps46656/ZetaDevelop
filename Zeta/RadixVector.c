@@ -1,8 +1,23 @@
 #include "RadixVector.h"
 
 #include "Debugger.h"
+#include "MemCheck.h"
 #include "RadixVector.h"
 #include "utils.h"
+
+#if ZETA_IsDebug
+
+#define CheckRV_(rv) Zeta_RadixVector_Check((rv))
+
+#define CheckRVCursor_(rv, cursor) Zeta_RadixVector_Cursor_Check((rv), (cursor))
+
+#else
+
+#define CheckRV_(rv)
+
+#define CheckRVCursor_(rv, cursor)
+
+#endif
 
 static size_t CalcCapacity_(size_t seg_capacity, size_t branch_num,
                             unsigned order) {
@@ -40,55 +55,6 @@ static size_t CalcCapacity_(size_t seg_capacity, size_t branch_num,
     }
 
     return ret;
-}
-
-static void CheckRV_(Zeta_RadixVector* rv) {
-    ZETA_DebugAssert(rv != NULL);
-
-    size_t width = rv->width;
-    size_t stride = rv->stride;
-    size_t seg_capacity = rv->seg_capacity;
-    size_t branch_num = rv->branch_num;
-    unsigned order = rv->order;
-
-    ZETA_DebugAssert(0 < width);
-    ZETA_DebugAssert(width <= stride);
-
-    ZETA_DebugAssert(0 < seg_capacity);
-    ZETA_DebugAssert(seg_capacity <= ZETA_RadixVector_max_seg_capacity);
-
-    ZETA_DebugAssert(ZETA_RadixVector_min_branch_num <= branch_num);
-    ZETA_DebugAssert(branch_num <= ZETA_RadixVector_max_branch_num);
-
-    ZETA_DebugAssert(order <= ZETA_RadixVector_max_order);
-
-    size_t size = rv->size;
-
-    size_t capacity =
-        CalcCapacity_(rv->seg_capacity, rv->branch_num, rv->order);
-
-    ZETA_DebugAssert(size <= capacity);
-
-    ZETA_DebugAssert(rv->node_allocator != NULL);
-    ZETA_DebugAssert(rv->node_allocator->Allocate != NULL);
-    ZETA_DebugAssert(rv->node_allocator->Deallocate != NULL);
-
-    ZETA_DebugAssert(rv->seg_allocator != NULL);
-    ZETA_DebugAssert(rv->seg_allocator->Allocate != NULL);
-    ZETA_DebugAssert(rv->seg_allocator->Deallocate != NULL);
-
-    size_t tree_size = seg_capacity;
-
-    size_t size_acc = 0;
-
-    for (unsigned order_i = 0; order_i <= order;
-         ++order_i, tree_size *= branch_num) {
-        size_acc += tree_size * rv->roots_cnt[order_i];
-    }
-
-    size_t last_seg_r_vacant = ZETA_ModAddInv(size, seg_capacity);
-
-    ZETA_DebugAssert(size_acc == size + last_seg_r_vacant);
 }
 
 static void* AllocateNode_(Zeta_RadixVector* rv) {
@@ -331,7 +297,7 @@ static void PopSeg_(Zeta_RadixVector* rv, size_t cnt) {
         }
 
         if (root_cnt == 0) {
-            rv->roots_cnt[order] = 0;
+            rv->roots_cnt[order_i] = 0;
 
             if (order_i == order) { break; }
 
@@ -471,30 +437,30 @@ void Zeta_RadixVector_GetRBCursor(void* rv_, void* dst_cursor) {
     Zeta_RadixVector_Access(rv, dst_cursor, NULL, rv->size);
 }
 
-void* Zeta_RadixVector_PeekL(void* rv_, void* dst_cursor, void* dst_ele) {
+void* Zeta_RadixVector_PeekL(void* rv_, void* dst_cursor, void* dst_elem) {
     Zeta_RadixVector* rv = rv_;
     CheckRV_(rv);
 
-    return Zeta_RadixVector_Access(rv, dst_cursor, dst_ele, 0);
+    return Zeta_RadixVector_Access(rv, dst_cursor, dst_elem, 0);
 }
 
-void* Zeta_RadixVector_PeekR(void* rv_, void* dst_cursor, void* dst_ele) {
+void* Zeta_RadixVector_PeekR(void* rv_, void* dst_cursor, void* dst_elem) {
     Zeta_RadixVector* rv = rv_;
     CheckRV_(rv);
 
-    return Zeta_RadixVector_Access(rv, dst_cursor, dst_ele, rv->size - 1);
+    return Zeta_RadixVector_Access(rv, dst_cursor, dst_elem, rv->size - 1);
 }
 
 void* Zeta_RadixVector_Refer(void* rv_, void const* pos_cursor_) {
     Zeta_RadixVector* rv = rv_;
     Zeta_RadixVector_Cursor const* pos_cursor = pos_cursor_;
 
-    Zeta_RadixVector_Cursor_Check(rv, pos_cursor);
+    CheckRVCursor_(rv, pos_cursor);
 
-    return pos_cursor->ele;
+    return pos_cursor->ref;
 }
 
-void* Zeta_RadixVector_Access(void* rv_, void* dst_cursor_, void* dst_ele,
+void* Zeta_RadixVector_Access(void* rv_, void* dst_cursor_, void* dst_elem,
                               size_t idx) {
     Zeta_RadixVector* rv = rv_;
     CheckRV_(rv);
@@ -510,14 +476,14 @@ void* Zeta_RadixVector_Access(void* rv_, void* dst_cursor_, void* dst_ele,
         dst_cursor->idx = pos_cursor.idx;
         dst_cursor->seg = pos_cursor.seg;
         dst_cursor->seg_idx = pos_cursor.seg_idx;
-        dst_cursor->ele = pos_cursor.ele;
+        dst_cursor->ref = pos_cursor.ref;
     }
 
-    if (pos_cursor.ele != NULL && dst_ele != NULL) {
-        Zeta_MemCopy(dst_ele, pos_cursor.ele, rv->width);
+    if (pos_cursor.ref != NULL && dst_elem != NULL) {
+        Zeta_MemCopy(dst_elem, pos_cursor.ref, rv->width);
     }
 
-    return pos_cursor.ele;
+    return pos_cursor.ref;
 }
 
 void Zeta_RadixVector_Read(void* rv_, void const* pos_cursor_, size_t cnt,
@@ -525,7 +491,7 @@ void Zeta_RadixVector_Read(void* rv_, void const* pos_cursor_, size_t cnt,
     Zeta_RadixVector* rv = rv_;
     Zeta_RadixVector_Cursor const* pos_cursor = pos_cursor_;
 
-    Zeta_RadixVector_Cursor_Check(rv, pos_cursor);
+    CheckRVCursor_(rv, pos_cursor);
 
     ZETA_DebugAssert(pos_cursor->idx <= rv->size);
     ZETA_DebugAssert(cnt <= rv->size - pos_cursor->idx);
@@ -538,7 +504,7 @@ void Zeta_RadixVector_Read(void* rv_, void const* pos_cursor_, size_t cnt,
             dst_cursor->idx = pos_cursor->idx;
             dst_cursor->seg = pos_cursor->seg;
             dst_cursor->seg_idx = pos_cursor->seg_idx;
-            dst_cursor->ele = pos_cursor->ele;
+            dst_cursor->ref = pos_cursor->ref;
         }
 
         return;
@@ -608,7 +574,7 @@ void Zeta_RadixVector_Write(void* rv_, void* pos_cursor_, size_t cnt,
     Zeta_RadixVector* rv = rv_;
     Zeta_RadixVector_Cursor const* pos_cursor = pos_cursor_;
 
-    Zeta_RadixVector_Cursor_Check(rv, pos_cursor);
+    CheckRVCursor_(rv, pos_cursor);
 
     ZETA_DebugAssert(pos_cursor->idx <= rv->size);
     ZETA_DebugAssert(cnt <= rv->size - pos_cursor->idx);
@@ -621,7 +587,7 @@ void Zeta_RadixVector_Write(void* rv_, void* pos_cursor_, size_t cnt,
             dst_cursor->idx = pos_cursor->idx;
             dst_cursor->seg = pos_cursor->seg;
             dst_cursor->seg_idx = pos_cursor->seg_idx;
-            dst_cursor->ele = pos_cursor->ele;
+            dst_cursor->ref = pos_cursor->ref;
         }
 
         return;
@@ -716,10 +682,10 @@ void* Zeta_RadixVector_PushR(void* rv_, void* dst_cursor_, size_t cnt) {
         dst_cursor->idx = pos_cursor.idx;
         dst_cursor->seg = pos_cursor.seg;
         dst_cursor->seg_idx = pos_cursor.seg_idx;
-        dst_cursor->ele = pos_cursor.ele;
+        dst_cursor->ref = pos_cursor.ref;
     }
 
-    return pos_cursor.ele;
+    return pos_cursor.ref;
 }
 
 void Zeta_RadixVector_PopR(void* rv_, size_t cnt) {
@@ -758,25 +724,65 @@ void Zeta_RadixVector_EraseAll(void* rv_) {
         unsigned redundant_cnt = rv->roots_cnt[order_i] - roots_cnt;
 
         for (unsigned root_i = 0; root_i < roots_cnt; ++root_i) {
-            EraseTree_(rv, rv->roots[order][root_i], order_i);
+            EraseTree_(rv, rv->roots[order_i][root_i], order_i);
         }
 
         for (unsigned root_i = 0; root_i < redundant_cnt; ++root_i) {
-            EraseTree_(rv, rv->redundant_roots[order][root_i], order_i);
+            EraseTree_(rv, rv->redundant_roots[order_i][root_i], order_i);
         }
     }
 
     rv->size = 0;
 }
 
-static void AddPtrSize_(Zeta_DebugHashMap* dst_hm, void const* ptr,
-                        size_t size) {
-    Zeta_DebugHashMap_KeyValPair kvp =
-        Zeta_DebugHashMap_Insert(dst_hm, ZETA_PtrToAddr(ptr));
+void Zeta_RadixVector_Check(void* rv_) {
+    Zeta_RadixVector* rv = rv_;
+    ZETA_DebugAssert(rv != NULL);
 
-    ZETA_DebugAssert(kvp.b);
+    size_t width = rv->width;
+    size_t stride = rv->stride;
+    size_t seg_capacity = rv->seg_capacity;
+    size_t branch_num = rv->branch_num;
+    unsigned order = rv->order;
 
-    *kvp.val = size;
+    ZETA_DebugAssert(0 < width);
+    ZETA_DebugAssert(width <= stride);
+
+    ZETA_DebugAssert(0 < seg_capacity);
+    ZETA_DebugAssert(seg_capacity <= ZETA_RadixVector_max_seg_capacity);
+
+    ZETA_DebugAssert(ZETA_RadixVector_min_branch_num <= branch_num);
+    ZETA_DebugAssert(branch_num <= ZETA_RadixVector_max_branch_num);
+
+    ZETA_DebugAssert(order <= ZETA_RadixVector_max_order);
+
+    size_t size = rv->size;
+
+    size_t capacity =
+        CalcCapacity_(rv->seg_capacity, rv->branch_num, rv->order);
+
+    ZETA_DebugAssert(size <= capacity);
+
+    ZETA_DebugAssert(rv->node_allocator != NULL);
+    ZETA_DebugAssert(rv->node_allocator->Allocate != NULL);
+    ZETA_DebugAssert(rv->node_allocator->Deallocate != NULL);
+
+    ZETA_DebugAssert(rv->seg_allocator != NULL);
+    ZETA_DebugAssert(rv->seg_allocator->Allocate != NULL);
+    ZETA_DebugAssert(rv->seg_allocator->Deallocate != NULL);
+
+    size_t tree_size = seg_capacity;
+
+    size_t size_acc = 0;
+
+    for (unsigned order_i = 0; order_i <= order;
+         ++order_i, tree_size *= branch_num) {
+        size_acc += tree_size * rv->roots_cnt[order_i];
+    }
+
+    size_t last_seg_r_vacant = ZETA_ModAddInv(size, seg_capacity);
+
+    ZETA_DebugAssert(size_acc == size + last_seg_r_vacant);
 }
 
 static void CheckTree_(Zeta_RadixVector* rv, Zeta_DebugHashMap* dst_node_hm,
@@ -785,11 +791,11 @@ static void CheckTree_(Zeta_RadixVector* rv, Zeta_DebugHashMap* dst_node_hm,
     ZETA_DebugAssert(n != NULL);
 
     if (order_i == 0) {
-        AddPtrSize_(dst_seg_hm, n, rv->stride * rv->seg_capacity);
+        Zeta_MemCheck_AddPtrSize(dst_seg_hm, n, rv->stride * rv->seg_capacity);
         return;
     }
 
-    AddPtrSize_(dst_node_hm, n, sizeof(void*) * rv->branch_num);
+    Zeta_MemCheck_AddPtrSize(dst_node_hm, n, sizeof(void*) * rv->branch_num);
 
     for (unsigned child_i = 0; child_i < rv->branch_num; ++child_i) {
         CheckTree_(rv, dst_node_hm, dst_seg_hm, ((void**)n)[child_i],
@@ -797,8 +803,8 @@ static void CheckTree_(Zeta_RadixVector* rv, Zeta_DebugHashMap* dst_node_hm,
     }
 }
 
-void Zeta_RadixVector_Check(void* rv_, Zeta_DebugHashMap* dst_node_hm,
-                            Zeta_DebugHashMap* dst_seg_hm) {
+void Zeta_RadixVector_Sanitize(void* rv_, Zeta_DebugHashMap* dst_node_hm,
+                               Zeta_DebugHashMap* dst_seg_hm) {
     Zeta_RadixVector* rv = rv_;
     CheckRV_(rv);
 
@@ -812,10 +818,10 @@ void Zeta_RadixVector_Check(void* rv_, Zeta_DebugHashMap* dst_node_hm,
         ZETA_DebugAssert(rv->roots[order_i] != NULL);
         ZETA_DebugAssert(rv->redundant_roots[order_i] != NULL);
 
-        AddPtrSize_(dst_node_hm, rv->roots[order_i],
-                    sizeof(void*) * branch_num);
-        AddPtrSize_(dst_node_hm, rv->redundant_roots[order_i],
-                    sizeof(void*) * branch_num);
+        Zeta_MemCheck_AddPtrSize(dst_node_hm, rv->roots[order_i],
+                                 sizeof(void*) * branch_num);
+        Zeta_MemCheck_AddPtrSize(dst_node_hm, rv->redundant_roots[order_i],
+                                 sizeof(void*) * branch_num);
     }
 
     for (unsigned order_i = 0; order_i <= order; ++order_i) {
@@ -841,8 +847,8 @@ bool_t Zeta_RadixVector_Cursor_IsEqual(void* rv_, void const* cursor_a_,
     Zeta_RadixVector_Cursor const* cursor_a = cursor_a_;
     Zeta_RadixVector_Cursor const* cursor_b = cursor_b_;
 
-    Zeta_RadixVector_Cursor_Check(rv, cursor_a);
-    Zeta_RadixVector_Cursor_Check(rv, cursor_b);
+    CheckRVCursor_(rv, cursor_a);
+    CheckRVCursor_(rv, cursor_b);
 
     return cursor_a->idx == cursor_b->idx;
 }
@@ -854,8 +860,8 @@ int Zeta_RadixVector_Cursor_Compare(void* rv_, void const* cursor_a_,
     Zeta_RadixVector_Cursor const* cursor_a = cursor_a_;
     Zeta_RadixVector_Cursor const* cursor_b = cursor_b_;
 
-    Zeta_RadixVector_Cursor_Check(rv, cursor_a);
-    Zeta_RadixVector_Cursor_Check(rv, cursor_b);
+    CheckRVCursor_(rv, cursor_a);
+    CheckRVCursor_(rv, cursor_b);
 
     size_t ka = cursor_a->idx + 1;
     size_t kb = cursor_b->idx + 1;
@@ -872,8 +878,8 @@ size_t Zeta_RadixVector_Cursor_GetDist(void* rv_, void const* cursor_a_,
     Zeta_RadixVector_Cursor const* cursor_a = cursor_a_;
     Zeta_RadixVector_Cursor const* cursor_b = cursor_b_;
 
-    Zeta_RadixVector_Cursor_Check(rv, cursor_a);
-    Zeta_RadixVector_Cursor_Check(rv, cursor_b);
+    CheckRVCursor_(rv, cursor_a);
+    CheckRVCursor_(rv, cursor_b);
 
     return cursor_a->idx - cursor_b->idx;
 }
@@ -881,7 +887,8 @@ size_t Zeta_RadixVector_Cursor_GetDist(void* rv_, void const* cursor_a_,
 size_t Zeta_RadixVector_Cursor_GetIdx(void* rv_, void const* cursor_) {
     Zeta_RadixVector* rv = rv_;
     Zeta_RadixVector_Cursor const* cursor = cursor_;
-    Zeta_RadixVector_Cursor_Check(rv, cursor);
+
+    CheckRVCursor_(rv, cursor);
 
     return cursor->idx;
 }
@@ -897,7 +904,8 @@ void Zeta_RadixVector_Cursor_StepR(void* rv, void* cursor) {
 void Zeta_RadixVector_Cursor_AdvanceL(void* rv_, void* cursor_, size_t step) {
     Zeta_RadixVector* rv = rv_;
     Zeta_RadixVector_Cursor* cursor = cursor_;
-    Zeta_RadixVector_Cursor_Check(rv, cursor);
+
+    CheckRVCursor_(rv, cursor);
 
     if (step == 0) { return; }
 
@@ -909,7 +917,8 @@ void Zeta_RadixVector_Cursor_AdvanceL(void* rv_, void* cursor_, size_t step) {
 void Zeta_RadixVector_Cursor_AdvanceR(void* rv_, void* cursor_, size_t step) {
     Zeta_RadixVector* rv = rv_;
     Zeta_RadixVector_Cursor* cursor = cursor_;
-    Zeta_RadixVector_Cursor_Check(rv, cursor);
+
+    CheckRVCursor_(rv, cursor);
 
     if (step == 0) { return; }
 
@@ -932,7 +941,7 @@ void Zeta_RadixVector_Cursor_Check(void* rv_, void const* cursor_) {
     ZETA_DebugAssert(re_cursor.idx == cursor->idx);
     ZETA_DebugAssert(re_cursor.seg == cursor->seg);
     ZETA_DebugAssert(re_cursor.seg_idx == cursor->seg_idx);
-    ZETA_DebugAssert(re_cursor.ele == cursor->ele);
+    ZETA_DebugAssert(re_cursor.ref == cursor->ref);
 }
 
 void Zeta_RadixVector_DeploySeqContainer(void* rv_,

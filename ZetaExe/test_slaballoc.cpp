@@ -21,8 +21,8 @@ void Check() {
     Zeta_DebugHashMap used_records;
     Zeta_DebugHashMap released_records;
 
-    Zeta_DebugHashMap_Create(&used_records);
-    Zeta_DebugHashMap_Create(&released_records);
+    Zeta_DebugHashMap_Init(&used_records);
+    Zeta_DebugHashMap_Init(&released_records);
 
     Zeta_SlabAllocator_Check(&allocator_, &used_records, &released_records);
 

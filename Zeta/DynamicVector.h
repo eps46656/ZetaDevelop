@@ -1,7 +1,7 @@
 #pragma once
 
 #include "Allocator.h"
-#include "DebugHashMap.h"
+#include "AssocContainer.h"
 #include "SeqContainer.h"
 
 ZETA_ExternC_Beg;
@@ -38,7 +38,7 @@ struct Zeta_DynamicVector {
 struct Zeta_DynamicVector_Cursor {
     void* dv;
     size_t idx;
-    void* ele;
+    void* ref;
 };
 
 // -----------------------------------------------------------------------------
@@ -61,13 +61,13 @@ void Zeta_DynamicVector_GetLBCursor(void* dv, void* dst_cursor);
 
 void Zeta_DynamicVector_GetRBCursor(void* dv, void* dst_cursor);
 
-void* Zeta_DynamicVector_PeekL(void* dv, void* dst_cursor, void* dst_ele);
+void* Zeta_DynamicVector_PeekL(void* dv, void* dst_cursor, void* dst_elem);
 
-void* Zeta_DynamicVector_PeekR(void* dv, void* dst_cursor, void* dst_ele);
+void* Zeta_DynamicVector_PeekR(void* dv, void* dst_cursor, void* dst_elem);
 
 void* Zeta_DynamicVector_Refer(void* dv, void const* pos_cursor);
 
-void* Zeta_DynamicVector_Access(void* dv, void* dst_cursor, void* dst_ele,
+void* Zeta_DynamicVector_Access(void* dv, void* dst_cursor, void* dst_elem,
                                 size_t idx);
 
 void Zeta_DynamicVector_Read(void* dv, void const* pos_cursor, size_t cnt,
@@ -86,8 +86,10 @@ void Zeta_DynamicVector_PopR(void* dv, size_t cnt);
 
 void Zeta_DynamicVector_EraseAll(void* dv);
 
-void Zeta_DynamicVector_Check(void* dv, Zeta_DebugHashMap* dst_data_hm,
-                              Zeta_DebugHashMap* dst_seg_hm);
+void Zeta_DynamicVector_Check(void* dv);
+
+void Zeta_DynamicVector_Sanitize(void* dv, Zeta_AssocContainer* dst_data_assoc,
+                                 Zeta_AssocContainer* dst_seg_assoc);
 
 bool_t Zeta_DynamicVector_Cursor_IsEqual(void* dv, void const* cursor_a,
                                          void const* cursor_b);

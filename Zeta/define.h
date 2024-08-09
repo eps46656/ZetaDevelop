@@ -3,6 +3,7 @@
 #include <stdalign.h>
 #include <stddef.h>
 #include <stdint.h>
+#include <stdio.h>
 #include <stdlib.h>
 
 #define TRUE ((bool_t)(0 == 0))
@@ -357,49 +358,49 @@ ZETA_StaticAssert(255 <= ZETA_RangeMaxOf(byte_t));
            (func));                                                      \
     ZETA_StaticAssert(TRUE)
 
-#define ZETA_PrintCurPos                         \
-    ZETA_PrintPos(__FILE__, __LINE__, __func__); \
-    printf("\n");                                \
-    if (ZETA_ImmPrint) { fflush(stdout); }       \
+#define ZETA_PrintCurPos                                    \
+    ZETA_PrintPos(__FILE__, __LINE__, __PRETTY_FUNCTION__); \
+    printf("\n");                                           \
+    if (ZETA_ImmPrint) { fflush(stdout); }                  \
     ZETA_StaticAssert(TRUE)
 
-#define ZETA_PrintVar(var)                           \
-    {                                                \
-        ZETA_PrintPos(__FILE__, __LINE__, __func__); \
-                                                     \
-        printf("\t%24s = ", ZETA_ToStr(var));        \
-                                                     \
-        printf(_Generic((var),                       \
-               bool_t: "%c\n",                       \
-                                                     \
-               char: "%c\n",                         \
-               unsigned char: "%X\n",                \
-               signed char: "%c\n",                  \
-                                                     \
-               short: "%i\n",                        \
-               unsigned short: "%u\n",               \
-                                                     \
-               int: "%i\n",                          \
-               unsigned: "%u\n",                     \
-                                                     \
-               long: "%li\n",                        \
-               unsigned long: "%llu\n",              \
-                                                     \
-               long long: "%lli\n",                  \
-               unsigned long long: "%llu\n",         \
-                                                     \
-               float: "%g\n",                        \
-                                                     \
-               double: "%g\n",                       \
-               long double: "%g\n",                  \
-                                                     \
-               void*: "%p\n",                        \
-               const void*: "%p\n",                  \
-                                                     \
-               char*: "%s\n",                        \
-               const char*: "%s\n"),                 \
-               (var));                               \
-                                                     \
-        if (ZETA_ImmPrint) { fflush(stdout); }       \
-    }                                                \
+#define ZETA_PrintVar(var)                                      \
+    {                                                           \
+        ZETA_PrintPos(__FILE__, __LINE__, __PRETTY_FUNCTION__); \
+                                                                \
+        printf("\t%24s = ", ZETA_ToStr(var));                   \
+                                                                \
+        printf(_Generic((var),                                  \
+               bool_t: "%c\n",                                  \
+                                                                \
+               char: "%c\n",                                    \
+               unsigned char: "%X\n",                           \
+               signed char: "%c\n",                             \
+                                                                \
+               short: "%i\n",                                   \
+               unsigned short: "%u\n",                          \
+                                                                \
+               int: "%i\n",                                     \
+               unsigned: "%u\n",                                \
+                                                                \
+               long: "%li\n",                                   \
+               unsigned long: "%lu\n",                          \
+                                                                \
+               long long: "%lli\n",                             \
+               unsigned long long: "%llu\n",                    \
+                                                                \
+               float: "%g\n",                                   \
+                                                                \
+               double: "%g\n",                                  \
+               long double: "%g\n",                             \
+                                                                \
+               void*: "%p\n",                                   \
+               const void*: "%p\n",                             \
+                                                                \
+               char*: "%s\n",                                   \
+               const char*: "%s\n"),                            \
+               (var));                                          \
+                                                                \
+        if (ZETA_ImmPrint) { fflush(stdout); }                  \
+    }                                                           \
     ZETA_StaticAssert(TRUE)

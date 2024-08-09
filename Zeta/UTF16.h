@@ -4,48 +4,49 @@
 
 ZETA_ExternC_Beg;
 
-ZETA_DeclareStruct(UTF16_EncodeRet);
-ZETA_DeclareStruct(UTF16_DecodeRet);
+ZETA_DeclareStruct(Zeta_UTF16_EncodeRet);
+ZETA_DeclareStruct(Zeta_UTF16_DecodeRet);
+
+#define ZETA_UTF16_RetCode_success (0)
+#define ZETA_UTF16_RetCode_failed (1)
+#define ZETA_UTF16_RetCode_insufficient_dst (2)
+#define ZETA_UTF16_RetCode_insufficient_src (3)
 
 /**
  * @brief Indicate the encode result.
  */
-struct UTF16_EncodeRet {
+struct Zeta_UTF16_EncodeRet {
     /** If the encoding is succes and no error. */
-    bool_t success;
+    int ret_code;
 
-    byte_t* nxt_dst;
-    unichar_t const* nxt_data;
+    unsigned char* nxt_dst;
+    unichar_t const* nxt_src;
 };
 
 /**
  * @brief Indicate the decode result.
  */
-struct UTF16_DecodeRet {
+struct Zeta_UTF16_DecodeRet {
     /** If the decoding is succes and no error. */
-    bool_t success;
+    int ret_code;
 
     unichar_t* nxt_dst;
-    byte_t const* nxt_data;
+    unsigned char const* nxt_src;
 };
 
 /**
  * @brief Get the size(unicode character) of data decoded from data. The tailing
  * incomplete bytes in data will be ignored.
  *
- * @param data The source data.
- * @param data_end The end of source data.
- *
- * @return The size(bytes) of encoded data.
+ * @param src_size The length of src.
+ * @param src The source data.
  */
-size_t Zeta_UTF16_GetEncodeSize(unichar_t const* data,
-                                unichar_t const* data_end,
+size_t Zeta_UTF16_GetEncodeSize(size_t src_size, unichar_t const* src,
                                 bool_t little_endian);
 
-UTF16_EncodeRet Zeta_UTF16_Encode(byte_t* dst, byte_t* dst_end,
-                                  unichar_t const* data,
-                                  unichar_t const* data_end,
-                                  bool_t little_endian);
+Zeta_UTF16_EncodeRet Zeta_UTF16_Encode(size_t dst_size, unsigned char* dst,
+                                       size_t src_size, unichar_t const* src,
+                                       bool_t little_endian);
 
 /**
  * @brief Get the size(unicode character) of data decoded from data. The tailing
@@ -54,11 +55,12 @@ UTF16_EncodeRet Zeta_UTF16_Encode(byte_t* dst, byte_t* dst_end,
  * @param data The source data.
  * @param data_end The end of source data.
  */
-size_t Zeta_UTF16_GetDecodeSize(byte_t const* data, byte_t const* data_end,
+size_t Zeta_UTF16_GetDecodeSize(size_t src_size, unsigned char const* src,
                                 bool_t little_endian);
 
-UTF16_DecodeRet Zeta_UTF16_Decode(unichar_t* dst, unichar_t* dst_end,
-                                  byte_t const* data, byte_t const* data_end,
-                                  bool_t little_endian);
+Zeta_UTF16_DecodeRet Zeta_UTF16_Decode(size_t dst_size, unichar_t* dst,
+                                       size_t src_size,
+                                       unsigned char const* src,
+                                       bool_t little_endian);
 
 ZETA_ExternC_End;

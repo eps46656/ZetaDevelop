@@ -81,7 +81,7 @@ void CheckAllocator(bool_t print_state) {
     ZETA_Unused(print_state);
 
     Zeta_DebugHashMap ptr_size_tm_;
-    Zeta_DebugHashMap_Create(&ptr_size_tm_);
+    Zeta_DebugHashMap_Init(&ptr_size_tm_);
 
     std::map<size_t, size_t>& ptr_size_tm =
         *static_cast<std::map<size_t, size_t>*>(ptr_size_tm_.tree_map);

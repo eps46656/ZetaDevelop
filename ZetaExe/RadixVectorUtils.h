@@ -64,7 +64,17 @@ Zeta_SeqContainer* CreateRadixVector(size_t seg_capacity, size_t branch_num,
     return seq_cntr;
 }
 
-void CheckRadixVector(Zeta_SeqContainer const* seq_cntr) {
+void DestroyRadixVector(Zeta_SeqContainer* seq_cntr) {
+    if (seq_cntr == NULL || seq_cntr->GetSize != Zeta_RadixVector_GetSize) {
+        return;
+    }
+
+    Zeta_RadixVector_Deinit(seq_cntr->context);
+
+    delete seq_cntr;
+}
+
+void SanitizeRadixVector(Zeta_SeqContainer const* seq_cntr) {
     if (seq_cntr->GetSize != Zeta_RadixVector_GetSize) { return; }
 
     RadixVectorPack* pack{ ZETA_MemberToStruct(RadixVectorPack, radix_vector,
@@ -73,10 +83,10 @@ void CheckRadixVector(Zeta_SeqContainer const* seq_cntr) {
     Zeta_DebugHashMap node_hm;
     Zeta_DebugHashMap seg_hm;
 
-    Zeta_DebugHashMap_Create(&node_hm);
-    Zeta_DebugHashMap_Create(&seg_hm);
+    Zeta_DebugHashMap_Init(&node_hm);
+    Zeta_DebugHashMap_Init(&seg_hm);
 
-    Zeta_RadixVector_Check(
+    Zeta_RadixVector_Sanitize(
         const_cast<void*>(static_cast<void const*>(&pack->radix_vector)),
         &node_hm, &seg_hm);
 

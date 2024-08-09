@@ -24,7 +24,6 @@ void Zeta_SegVector_Init(void* sv_) {
     ZETA_DebugAssert(sv->seg_allocator->Deallocate != NULL);
 
     Zeta_BinTreeNodeOperator btn_opr;
-    Zeta_BinTree_InitOpr(&btn_opr);
     Zeta_OrdCntRBTreeNode_DeployBinTreeNodeOperator(NULL, &btn_opr);
 
     void* lb_ = sv->node_allocator->Allocate(sv->node_allocator->context,
@@ -108,14 +107,13 @@ void Zeta_SegVector_GetRBCursor(void* sv_, void* dst_cursor_) {
     dst_cursor->ele = NULL;
 }
 
-void* Zeta_SegVector_PeekL(void* sv_, void* dst_cursor_, void* dst_ele) {
+void* Zeta_SegVector_PeekL(void* sv_, void* dst_cursor_, void* dst_elem) {
     Zeta_SegVector* sv = sv_;
     ZETA_DebugAssert(sv != NULL);
 
     Zeta_SegVector_Cursor* dst_cursor = dst_cursor_;
 
     Zeta_BinTreeNodeOperator btn_opr;
-    Zeta_BinTree_InitOpr(&btn_opr);
     Zeta_OrdCntRBTreeNode_DeployBinTreeNodeOperator(NULL, &btn_opr);
 
     size_t width = sv->width;
@@ -156,19 +154,18 @@ void* Zeta_SegVector_PeekL(void* sv_, void* dst_cursor_, void* dst_ele) {
         dst_cursor->ele = ele;
     }
 
-    if (dst_ele != NULL) { Zeta_MemCopy(dst_ele, ele, width); }
+    if (dst_elem != NULL) { Zeta_MemCopy(dst_elem, ele, width); }
 
     return ele;
 }
 
-void* Zeta_SegVector_PeekR(void* sv_, void* dst_cursor_, void* dst_ele) {
+void* Zeta_SegVector_PeekR(void* sv_, void* dst_cursor_, void* dst_elem) {
     Zeta_SegVector* sv = sv_;
     ZETA_DebugAssert(sv != NULL);
 
     Zeta_SegVector_Cursor* dst_cursor = dst_cursor_;
 
     Zeta_BinTreeNodeOperator btn_opr;
-    Zeta_BinTree_InitOpr(&btn_opr);
     Zeta_OrdCntRBTreeNode_DeployBinTreeNodeOperator(NULL, &btn_opr);
 
     size_t width = sv->width;
@@ -209,12 +206,12 @@ void* Zeta_SegVector_PeekR(void* sv_, void* dst_cursor_, void* dst_ele) {
         dst_cursor->ele = ele;
     }
 
-    if (dst_ele != NULL) { Zeta_MemCopy(dst_ele, ele, width); }
+    if (dst_elem != NULL) { Zeta_MemCopy(dst_elem, ele, width); }
 
     return ele;
 }
 
-void* Zeta_SegVector_Access(void* sv_, void* dst_cursor_, void* dst_ele,
+void* Zeta_SegVector_Access(void* sv_, void* dst_cursor_, void* dst_elem,
                             size_t idx) {
     Zeta_SegVector* sv = sv_;
     ZETA_DebugAssert(sv != NULL);
@@ -222,7 +219,6 @@ void* Zeta_SegVector_Access(void* sv_, void* dst_cursor_, void* dst_ele,
     Zeta_SegVector_Cursor* dst_cursor = dst_cursor_;
 
     Zeta_BinTreeNodeOperator btn_opr;
-    Zeta_BinTree_InitOpr(&btn_opr);
     Zeta_OrdCntRBTreeNode_DeployBinTreeNodeOperator(NULL, &btn_opr);
 
     size_t width = sv->width;
@@ -264,12 +260,12 @@ void* Zeta_SegVector_Access(void* sv_, void* dst_cursor_, void* dst_ele,
         dst_cursor->ele = ele;
     }
 
-    if (dst_ele != NULL && ele != NULL) { Zeta_MemCopy(dst_ele, ele, width); }
+    if (dst_elem != NULL && ele != NULL) { Zeta_MemCopy(dst_elem, ele, width); }
 
     return ele;
 }
 
-void* Zeta_SegVector_FindFirst(void* sv_, void* dst_cursor_, void* dst_ele,
+void* Zeta_SegVector_FindFirst(void* sv_, void* dst_cursor_, void* dst_elem,
                                void* context,
                                bool_t (*Compare)(void* context, void* ele)) {
     Zeta_SegVector* sv = sv_;
@@ -280,7 +276,6 @@ void* Zeta_SegVector_FindFirst(void* sv_, void* dst_cursor_, void* dst_ele,
     ZETA_DebugAssert(Compare != NULL);
 
     Zeta_BinTreeNodeOperator btn_opr;
-    Zeta_BinTree_InitOpr(&btn_opr);
     Zeta_OrdCntRBTreeNode_DeployBinTreeNodeOperator(NULL, &btn_opr);
 
     size_t width = sv->width;
@@ -379,8 +374,8 @@ void* Zeta_SegVector_FindFirst(void* sv_, void* dst_cursor_, void* dst_ele,
         dst_cursor->ele = ret_ele;
     }
 
-    if (dst_ele != NULL && ret_ele != NULL) {
-        Zeta_MemCopy(dst_ele, ret_ele, width);
+    if (dst_elem != NULL && ret_ele != NULL) {
+        Zeta_MemCopy(dst_elem, ret_ele, width);
     }
 
     return ret_ele;
@@ -419,7 +414,6 @@ void Zeta_SegVector_Read(void* sv_, void* pos_cursor_, size_t cnt, void* dst_,
     }
 
     Zeta_BinTreeNodeOperator btn_opr;
-    Zeta_BinTree_InitOpr(&btn_opr);
     Zeta_OrdCntRBTreeNode_DeployBinTreeNodeOperator(NULL, &btn_opr);
 
     size_t width = sv->width;
@@ -511,7 +505,6 @@ void Zeta_SegVector_Write(void* sv_, void* pos_cursor_, size_t cnt,
     }
 
     Zeta_BinTreeNodeOperator btn_opr;
-    Zeta_BinTree_InitOpr(&btn_opr);
     Zeta_OrdCntRBTreeNode_DeployBinTreeNodeOperator(NULL, &btn_opr);
 
     size_t width = sv->width;
@@ -774,7 +767,6 @@ void* Zeta_SegVector_Insert(void* sv_, void* pos_cursor_, size_t cnt) {
     if (cnt == 0) { return pos_cursor->ele; }
 
     Zeta_BinTreeNodeOperator btn_opr;
-    Zeta_BinTree_InitOpr(&btn_opr);
     Zeta_OrdCntRBTreeNode_DeployBinTreeNodeOperator(NULL, &btn_opr);
 
     size_t width = sv->width;
@@ -1157,7 +1149,6 @@ void Zeta_SegVector_Erase(void* sv_, void* pos_cursor_, size_t cnt) {
     if (cnt == 0) { return; }
 
     Zeta_BinTreeNodeOperator btn_opr;
-    Zeta_BinTree_InitOpr(&btn_opr);
     Zeta_OrdCntRBTreeNode_DeployBinTreeNodeOperator(NULL, &btn_opr);
 
     size_t width = sv->width;
@@ -1495,7 +1486,6 @@ void Zeta_SegVector_EraseAll(void* sv_) {
     ZETA_DebugAssert(sv != NULL);
 
     Zeta_BinTreeNodeOperator btn_opr;
-    Zeta_BinTree_InitOpr(&btn_opr);
     Zeta_OrdCntRBTreeNode_DeployBinTreeNodeOperator(NULL, &btn_opr);
 
     Zeta_CircularArray ca;
@@ -1569,7 +1559,6 @@ void Zeta_SegVector_Check(void* sv_, Zeta_DebugHashMap* dst_node_hm,
     ZETA_DebugAssert(sv != NULL);
 
     Zeta_BinTreeNodeOperator btn_opr;
-    Zeta_BinTree_InitOpr(&btn_opr);
     Zeta_OrdCntRBTreeNode_DeployBinTreeNodeOperator(NULL, &btn_opr);
 
     Check_(sv, dst_node_hm, dst_seg_hm, &btn_opr, sv->root);
@@ -1581,7 +1570,6 @@ bool_t Zeta_SegVector_Cursor_IsEqual(void* sv_, void const* cursor_a_,
     ZETA_DebugAssert(sv != NULL);
 
     Zeta_BinTreeNodeOperator btn_opr;
-    Zeta_BinTree_InitOpr(&btn_opr);
     Zeta_OrdCntRBTreeNode_DeployBinTreeNodeOperator(NULL, &btn_opr);
 
     Zeta_SegVector_Cursor const* cursor_a = cursor_a_;
@@ -1599,7 +1587,6 @@ int Zeta_SegVector_Cursor_Compare(void* sv_, void const* cursor_a_,
     ZETA_DebugAssert(sv != NULL);
 
     Zeta_BinTreeNodeOperator btn_opr;
-    Zeta_BinTree_InitOpr(&btn_opr);
     Zeta_OrdCntRBTreeNode_DeployBinTreeNodeOperator(NULL, &btn_opr);
 
     Zeta_SegVector_Cursor const* cursor_a = cursor_a_;
@@ -1622,7 +1609,6 @@ size_t Zeta_SegVector_Cursor_GetDist(void* sv_, void const* cursor_a_,
     ZETA_DebugAssert(sv != NULL);
 
     Zeta_BinTreeNodeOperator btn_opr;
-    Zeta_BinTree_InitOpr(&btn_opr);
     Zeta_OrdCntRBTreeNode_DeployBinTreeNodeOperator(NULL, &btn_opr);
 
     Zeta_SegVector_Cursor const* cursor_a = cursor_a_;
@@ -1639,7 +1625,6 @@ size_t Zeta_SegVector_Cursor_GetIdx(void* sv_, void const* cursor_) {
     ZETA_DebugAssert(sv != NULL);
 
     Zeta_BinTreeNodeOperator btn_opr;
-    Zeta_BinTree_InitOpr(&btn_opr);
     Zeta_OrdCntRBTreeNode_DeployBinTreeNodeOperator(NULL, &btn_opr);
 
     Zeta_SegVector_Cursor const* cursor = cursor_;
@@ -1666,7 +1651,6 @@ void Zeta_SegVector_Cursor_AdvanceL(void* sv_, void* cursor_, size_t step) {
     if (step == 0) { return; }
 
     Zeta_BinTreeNodeOperator btn_opr;
-    Zeta_BinTree_InitOpr(&btn_opr);
     Zeta_OrdCntRBTreeNode_DeployBinTreeNodeOperator(NULL, &btn_opr);
 
     size_t size = Zeta_SegVector_GetSize(sv);
@@ -1724,7 +1708,6 @@ void Zeta_SegVector_Cursor_AdvanceR(void* sv_, void* cursor_, size_t step) {
     if (step == 0) { return; }
 
     Zeta_BinTreeNodeOperator btn_opr;
-    Zeta_BinTree_InitOpr(&btn_opr);
     Zeta_OrdCntRBTreeNode_DeployBinTreeNodeOperator(NULL, &btn_opr);
 
     size_t size = Zeta_SegVector_GetSize(sv);

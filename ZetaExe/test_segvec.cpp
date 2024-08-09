@@ -123,8 +123,8 @@ void main1() {
     DD_Init();
     SV_Init();
 
-    Zeta_DebugHashMap_Create(&node_hm);
-    Zeta_DebugHashMap_Create(&seg_hm);
+    Zeta_DebugHashMap_Init(&node_hm);
+    Zeta_DebugHashMap_Init(&seg_hm);
 
     Check();
 

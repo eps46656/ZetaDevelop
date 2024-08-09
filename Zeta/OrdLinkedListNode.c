@@ -1,5 +1,7 @@
 #include "OrdLinkedListNode.h"
 
+#include "Debugger.h"
+
 void Zeta_OrdLinkedListNode_Init(void* n_) {
     Zeta_OrdLinkedListNode* n = n_;
     ZETA_DebugAssert(n != NULL);
@@ -131,35 +133,3 @@ void Zeta_OrdLinkedListNode_Extract(void* n_) {
     n->l = n;
     n->r = n;
 }
-
-/*
-// -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
-
-void* Zeta_OrdLinkedList_InsertL(void* head, void* n, void* m) {
-    if (head == NULL) {
-        ZETA_DebugAssert(n == NULL);
-        return m;
-    }
-
-    ZETA_DebugAssert(n != NULL);
-
-    Zeta_OrdLinkedListNode_InsertL(n, m);
-
-    return head == n ? m : head;
-}
-
-void* Zeta_OrdLinkedList_InsertR(void* head, void* n, void* m) {
-    if (head == NULL) {
-        ZETA_DebugAssert(n == NULL);
-        return m;
-    }
-
-    ZETA_DebugAssert(n != NULL);
-
-    // Zeta_OrdLinkedListNode_InsertR(n, m);
-}
-
-void* Zeta_OrdLinkedList_Extract(void* head, void* n);
-*/

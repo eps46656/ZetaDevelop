@@ -42,16 +42,26 @@ void InitRadixDeque(Zeta_SeqContainer* seq_cntr, size_t seg_capacity,
     radix_deque_pack->radix_deque.seg_allocator =
         &radix_deque_pack->seg_allocator;
 
-    ZETA_PrintCurPos;
-
     Zeta_RadixDeque_Init(&radix_deque_pack->radix_deque);
-
-    ZETA_PrintCurPos;
 
     Zeta_RadixDeque_DeploySeqContainer(&radix_deque_pack->radix_deque,
                                        seq_cntr);
+}
 
-    ZETA_PrintCurPos;
+void DeinitRadixDeque(Zeta_SeqContainer* seq_cntr) {
+    if (seq_cntr == NULL || seq_cntr->GetSize != Zeta_RadixDeque_GetSize) {
+        return;
+    }
+
+    RadixDequePack* radix_deque_pack{ ZETA_MemberToStruct(
+        RadixDequePack, radix_deque, seq_cntr->context) };
+
+    Zeta_RadixDeque_Deinit(seq_cntr->context);
+
+    radix_deque_pack->node_allocator_.~StdAllocator();
+    radix_deque_pack->seg_allocator_.~StdAllocator();
+
+    std::free(radix_deque_pack);
 }
 
 template <typename Val>
@@ -64,6 +74,16 @@ Zeta_SeqContainer* CreateRadixDeque(size_t seg_capacity, size_t branch_num,
     return seq_cntr;
 }
 
+void DestroyRadixDeque(Zeta_SeqContainer* seq_cntr) {
+    if (seq_cntr == NULL || seq_cntr->GetSize != Zeta_RadixDeque_GetSize) {
+        return;
+    }
+
+    DeinitRadixDeque(seq_cntr);
+
+    delete seq_cntr;
+}
+
 void CheckRadixDeque(Zeta_SeqContainer const* seq_cntr) {
     if (seq_cntr->GetSize != Zeta_RadixDeque_GetSize) { return; }
 
@@ -73,10 +93,10 @@ void CheckRadixDeque(Zeta_SeqContainer const* seq_cntr) {
     Zeta_DebugHashMap node_hm;
     Zeta_DebugHashMap seg_hm;
 
-    Zeta_DebugHashMap_Create(&node_hm);
-    Zeta_DebugHashMap_Create(&seg_hm);
+    Zeta_DebugHashMap_Init(&node_hm);
+    Zeta_DebugHashMap_Init(&seg_hm);
 
-    Zeta_RadixDeque_Check(
+    Zeta_RadixDeque_Sanitize(
         const_cast<void*>(static_cast<void const*>(&pack->radix_deque)),
         &node_hm, &seg_hm);
 

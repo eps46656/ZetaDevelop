@@ -6,13 +6,13 @@
 #include "FileSys.h"
 #include "SegVector.h"
 
-ZETA_DeclareStruct(Zeta_FileSysFAT32_Header);
-ZETA_DeclareStruct(Zeta_FileSysFAT32_DirEntry);
-ZETA_DeclareStruct(Zeta_FileSysFAT32_Dir);
-ZETA_DeclareStruct(Zeta_FileSysFAT32_Manager);
-ZETA_DeclareStruct(Zeta_FileSysFAT32_SNode);
+ZETA_DeclareStruct(Zeta_FAT32_Header);
+ZETA_DeclareStruct(Zeta_FAT32_DirEntry);
+ZETA_DeclareStruct(Zeta_FAT32_Dir);
+ZETA_DeclareStruct(Zeta_FAT32_Manager);
+ZETA_DeclareStruct(Zeta_FAT32_SNode);
 
-struct Zeta_FileSysFAT32_Header {
+struct Zeta_FAT32_Header {
     u64_t base_blk_num;
 
     byte_t jmp_boot[3];
@@ -58,7 +58,7 @@ struct Zeta_FileSysFAT32_Header {
     byte_t fs_type[8];
 };
 
-struct Zeta_FileSysFAT32_DirEntry {
+struct Zeta_FAT32_DirEntry {
     Zeta_SegVector name;
 
     u8_t attr;
@@ -70,18 +70,24 @@ struct Zeta_FileSysFAT32_DirEntry {
     Zeta_DateTime wrt_datetime;
 };
 
-struct Zeta_FileSysFAT32_Dir {
+struct Zeta_FAT32_Dir {
     Zeta_SegVector entries;
 };
 
-struct Zeta_FileSysFAT32_SNode {
+struct Zeta_Fat32_NodeInfo {
+    bool_t is_file;
+
+    //
+};
+
+struct Zeta_FAT32_SNode {
     void* cm_sd;
 
     void* buffer;
 };
 
-struct Zeta_FileSysFAT32_Manager {
-    Zeta_FileSysFAT32_Header header;
+struct Zeta_FAT32_Manager {
+    Zeta_FAT32_Header header;
 
     Zeta_CacheManager* cm;
 };
@@ -90,18 +96,20 @@ struct Zeta_FileSysFAT32_Manager {
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 
-void* Zeta_FileSysFAT32_Manager_OpenSession(void* fs_fat32_manager);
+void* Zeta_FAT32_Manager_OpenSession(void* fat32_manager);
 
-void Zeta_FileSysFAT32_Manager_CloseSession(void* fs_fat32_manager,
-                                            void* snode);
+void Zeta_FAT32_Manager_CloseSession(void* fat32_manager, void* session);
 
-void Zeta_FileSysFAT32_Manager_GetInfo(void* fs_fat32_manager, void* snode,
-                                       size_t li, Zeta_FileSys_NodeInfo* dst);
+void Zeta_FAT32_Manager_GetInfo(void* fat32_manager, void* session, size_t li,
+                                Zeta_FileSys_NodeInfo* dst);
 
-void Zeta_FileSysFAT32_Manager_Open(void* fs_fat32_manager, void* snode,
-                                    size_t li);
+void Zeta_FAT32_Manager_Open(void* fat32_manager, void* session, size_t li);
 
-void Zeta_FileSysFAT32_Manager_Close(void* fs_fat32_manager, void* snode);
+void Zeta_FAT32_Manager_Close(void* fat32_manager, void* session);
+
+void Zeta_FAT32_Manager_Check(void* fat32_manager);
+
+void Zeta_FAT32_Manager_Check_Session(void* fat32_manager, void* session);
 
 // --
 

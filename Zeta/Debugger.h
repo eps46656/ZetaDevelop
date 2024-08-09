@@ -1,3 +1,4 @@
+#include <sanitizer/common_interface_defs.h>
 #include <stdio.h>
 
 #include "Logger.h"
@@ -20,42 +21,44 @@ extern bool_t zeta_assert_stage;
     if (ZETA_Debug_ImmPrint) { ZETA_PrintVar(var); } \
     ZETA_LogVar(debug_pipe, var)
 
-#define ZETA_Pause                                   \
-    {                                                \
-        ZETA_PrintPos(__FILE__, __LINE__, __func__); \
-                                                     \
-        printf("\tpause...");                        \
-                                                     \
-        if (TRUE) {                                  \
-            fflush(stdout);                          \
-            char tmp;                                \
-            scanf_s("%c", &tmp);                     \
-        } else {                                     \
-            printf("\n");                            \
-            if (ZETA_ImmPrint) { fflush(stdout); }   \
-        }                                            \
-    }                                                \
+#define ZETA_Pause                                              \
+    {                                                           \
+        ZETA_PrintPos(__FILE__, __LINE__, __PRETTY_FUNCTION__); \
+                                                                \
+        printf("\tpause...");                                   \
+                                                                \
+        if (TRUE) {                                             \
+            fflush(stdout);                                     \
+            char tmp;                                           \
+            scanf_s("%c", &tmp);                                \
+        } else {                                                \
+            printf("\n");                                       \
+            if (ZETA_ImmPrint) { fflush(stdout); }              \
+        }                                                       \
+    }                                                           \
     ZETA_StaticAssert(TRUE)
 
-#define ZETA_AssertVerbose(pipe, cond, callback, callback_context)  \
-    if (cond) {                                                     \
-    } else {                                                        \
-        if (!zeta_assert_stage) {                                   \
-            zeta_assert_stage = TRUE;                               \
-                                                                    \
-            ZETA_LogPos(pipe, __FILE__, __LINE__, __func__, FALSE); \
-                                                                    \
-            printf("\tassert\t%s\n", ZETA_ToStr(cond));             \
-                                                                    \
-            if (ZETA_ImmPrint) { fflush(stdout); }                  \
-                                                                    \
-            callback(callback_context);                             \
-                                                                    \
-            printf("\a");                                           \
-        }                                                           \
-                                                                    \
-        exit(0);                                                    \
-    }                                                               \
+#define ZETA_AssertVerbose(pipe, cond, callback, callback_context)             \
+    if (cond) {                                                                \
+    } else {                                                                   \
+        if (!zeta_assert_stage) {                                              \
+            zeta_assert_stage = TRUE;                                          \
+                                                                               \
+            ZETA_LogPos(pipe, __FILE__, __LINE__, __PRETTY_FUNCTION__, FALSE); \
+                                                                               \
+            printf("\tassert\t%s\n", ZETA_ToStr(cond));                        \
+                                                                               \
+            if (ZETA_ImmPrint) { fflush(stdout); }                             \
+                                                                               \
+            callback(callback_context);                                        \
+                                                                               \
+            printf("\a");                                                      \
+        }                                                                      \
+                                                                               \
+        __sanitizer_print_stack_trace();                                       \
+                                                                               \
+        exit(1);                                                               \
+    }                                                                          \
     ZETA_StaticAssert(TRUE)
 
 #if ZETA_IsDebug
@@ -80,7 +83,9 @@ extern bool_t zeta_assert_stage;
                 fflush(stdout);                                 \
             }                                                   \
                                                                 \
-            exit(0);                                            \
+            __sanitizer_print_stack_trace();                    \
+                                                                \
+            exit(1);                                            \
         }                                                       \
     }                                                           \
     ZETA_StaticAssert(TRUE)

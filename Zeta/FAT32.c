@@ -1,10 +1,58 @@
-#include "FileSysFAT32.h"
+#include "FAT32.h"
 
+#include "Debugger.h"
 #include "Disk.h"
 #include "DummyVector.h"
+#include "DynamicVector.h"
 #include "MultiLevelTable.h"
 #include "StageVector.h"
 #include "utils.h"
+
+/*
+
+FAT32Manager
+
+maintain current opened nodes (file/dir) as sturct Node
+
+struct Node offers basic read and write function.
+    Read: Read a
+
+A:
+
+maintain
+
+
+file:
+    seg num vector
+
+    stage vector
+
+    write stage vector's data back
+
+dir
+    seg num vector
+
+    map of children nodes
+
+    write children nodes back
+
+*/
+
+#if ZETA_IsDebug
+
+#define CheckNodeVector_(nv) NodeVector_Check(nv)
+#define CheckNodeVectorCursor_(nv, cursor) NodeVector_Cursor_Check(nv, cursor)
+
+#define CheckManager_(manager) Zeta_FAT32_Manager_Check(manager)
+
+#else
+
+#define CheckNodeVector_(nv)
+#define CheckNodeVectorCursor_(nv, cursor)
+
+#define CheckManager_(manager)
+
+#endif
 
 ZETA_DeclareStruct(NodeVector);
 ZETA_DeclareStruct(DirRawEntry);
@@ -39,16 +87,18 @@ ZETA_DeclareStruct(DirEntry);
         0x0FFFFFF8 <= tmp&& tmp <= 0x0FFFFFFF; \
     })
 
-static size_t GetClusOffset_(Zeta_FileSysFAT32_Header* header,
-                             size_t clus_num) {
+static size_t GetClusOffset_(Zeta_FAT32_Header* header, size_t clus_num) {
     ZETA_DebugAssert(header != NULL);
 
     //
 }
 
-static void Read_(Zeta_FileSysFAT32_Manager* manager,
-                  Zeta_FileSysFAT32_SNode* snode, void* dst_, size_t beg,
-                  size_t cnt) {
+/*
+ * Read cnt bytes begining from beg (begining block number).
+ * Use snode's cache session
+ */
+static void Read_(Zeta_FAT32_Manager* manager, Zeta_FAT32_SNode* snode,
+                  void* dst_, size_t beg, size_t cnt) {
     Zeta_CacheManager* cm = manager->cm;
 
     if (cnt == 0) { return; }
@@ -79,9 +129,8 @@ static void Read_(Zeta_FileSysFAT32_Manager* manager,
     }
 }
 
-static void Write_(Zeta_FileSysFAT32_Manager* manager,
-                   Zeta_FileSysFAT32_SNode* snode, void* src_, size_t beg,
-                   size_t cnt) {
+static void Write_(Zeta_FAT32_Manager* manager, Zeta_FAT32_SNode* snode,
+                   void* src_, size_t beg, size_t cnt) {
     Zeta_CacheManager* cm = manager->cm;
 
     if (cnt == 0) { return; }
@@ -131,13 +180,13 @@ static void Write_(Zeta_FileSysFAT32_Manager* manager,
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 
-static size_t GetSecOffsetOfDataRegion_(Zeta_FileSysFAT32_Header* header) {
+static size_t GetSecOffsetOfDataRegion_(Zeta_FAT32_Header* header) {
     return header->reserved_sec_cnt + header->fat_size * header->fat_cnt;
 }
 
 #define SecOffsetOfDataRegion_(header_)                                \
     ({                                                                 \
-        Zeta_FileSysFAT32_Header* header = (header_);                  \
+        Zeta_FAT32_Header* header = (header_);                         \
         header->reserved_sec_cnt + header->fat_size * header->fat_cnt; \
     })
 
@@ -148,7 +197,7 @@ static size_t GetSecOffsetOfDataRegion_(Zeta_FileSysFAT32_Header* header) {
 ZETA_DeclareStruct(Node);
 
 struct Node {
-    Zeta_FileSysFAT32_Manager* manager;
+    Zeta_FAT32_Manager* manager;
     void* cache_manager_sd;
 
     size_t origin_size;
@@ -164,99 +213,85 @@ struct Node {
 };
 
 struct NodeVector {
-    Zeta_FileSysFAT32_Manager* manager;
-    Zeta_FileSysFAT32_SNode* snode;
+    Zeta_FAT32_Manager* manager;
 
-    size_t size;
+    size_t size;  // The number of bytes in the node.
 
-    Zeta_MultiLevelTable mlt;
+    Zeta_DynamicVector seg_nums;  // The segment numbers of the node.
 };
 
-static size_t Node_OriginVec_GetWidth(void* node_) {
-    Node* node = node_;
-    ZETA_DebugAssert(node != NULL);
-    return 1;
-}
+// -----------------------------------------------------------------------------
 
-static size_t Node_OriginVec_GetStride(void* node_) {
-    Node* node = node_;
-    ZETA_DebugAssert(node != NULL);
-    return 1;
-}
+static size_t NodeVector_GetWidth(void* nv);
 
-static size_t Node_OriginVec_GetSize(void* node_) {
-    Node* node = node_;
-    ZETA_DebugAssert(node != NULL);
+static size_t NodeVector_GetStride(void* nv);
 
-    return node->origin_size;
-}
+static size_t NodeVector_GetSize(void* nv);
 
-static void* Node_OriginVec_Access(void* node_, void* dst_cursor, void* dst_ele,
-                                   size_t idx) {
-    Node* node = node_;
-    ZETA_DebugAssert(node != NULL);
+static size_t NodeVector_GetCapacity(void* nv);
 
-    ZETA_DebugAssert(idx + 1 < node->origin_size + 2);
+static size_t NodeVector_GetCapacity(void* nv);
 
-    if (dst_cursor != NULL) { *(size_t*)dst_cursor = idx; }
+static void NodeVector_GetLBCursor(void* nv, void* dst_cursor);
 
-    if (dst_ele != NULL) {
-        Zeta_FileSysFAT32_Header* header = &node->manager->header;
+static void NodeVector_GetRBCursor(void* nv, void* dst_cursor);
 
-        size_t clus_size = header->bytes_per_sec * header->secs_per_clus;
+static void* NodeVector_PeekL(void* nv, void* dst_cursor, void* dst_elem);
 
-        size_t clus_idx = idx / clus_size;
-        size_t clus_offset = idx % clus_size;
+static void* NodeVector_PeekR(void* nv, void* dst_cursor, void* dst_elem);
 
-        size_t clus_num = *(size_t*)Zeta_StageVector_Access(
-            &node->clus_num_vec, NULL, NULL, clus_idx);
+static void* NodeVector_Access(void* nv, void* dst_cursor, void* ele,
+                               size_t idx);
 
-        size_t beg =
-            header->bytes_per_sec * (SecOffsetOfDataRegion_(header) +
-                                     header->secs_per_clus * (clus_num - 2)) +
-            clus_offset;
+static void* NodeVector_Refer(void* nv, void* pos_cursor);
 
-        Read_(node->manager, node->cache_manager_sd, dst_ele, beg, 1);
-    }
+static void NodeVector_Read(void* nv, void* pos_cursor, size_t cnt, void* dst,
+                            void* dst_cursor);
 
-    return NULL;
-}
+static void NodeVector_Write(void* nv, void* pos_cursor, size_t cnt,
+                             void const* src, void* dst_cursor);
 
-static void* Node_OriginVec_Read(void* node_, void* pos_cursor_, size_t cnt,
-                                 void* dst, void* dst_cursor_) {
-    Node* node = node_;
-    ZETA_DebugAssert(node != NULL);
-}
+static void NodeVector_Check(void* nv);
 
-static void NodeVector_Check_(void* nv_) {
-    NodeVector* nv = nv_;
-    ZETA_DebugAssert(nv != NULL);
-}
+static bool_t NodeVector_Cursor_IsEqual(void* nv, void const* cursor_a,
+                                        void const* cursor_b);
+
+static int NodeVector_Cursor_Compare(void* nv, void const* cursor_a,
+                                     void const* cursor_b);
+
+static size_t NodeVector_Cursor_GetDist(void* nv, void const* cursor_a,
+                                        void const* cursor_b);
+
+static size_t NodeVector_Cursor_GetIdx(void* nv, void const* cursor);
+
+void NodeVector_Cursor_Check(void* nv, void const* cursor);
+
+// -----------------------------------------------------------------------------
 
 static size_t NodeVector_GetWidth(void* nv_) {
     NodeVector* nv = nv_;
-    NodeVector_Check_(nv);
+    CheckNodeVector_(nv);
 
     return 1;
 }
 
 static size_t NodeVector_GetStride(void* nv_) {
     NodeVector* nv = nv_;
-    NodeVector_Check_(nv);
+    CheckNodeVector_(nv);
 
     return 1;
 }
 
 static size_t NodeVector_GetSize(void* nv_) {
     NodeVector* nv = nv_;
-    NodeVector_Check_(nv);
+    CheckNodeVector_(nv);
 
     return nv->size;
 }
 
 static void NodeVector_GetLBCursor(void* nv_, void* dst_cursor_) {
     NodeVector* nv = nv_;
-    NodeVector_Check_(nv);
+    CheckNodeVector_(nv);
 
     size_t* dst_cursor = dst_cursor_;
     ZETA_DebugAssert(dst_cursor != NULL);
@@ -266,7 +301,7 @@ static void NodeVector_GetLBCursor(void* nv_, void* dst_cursor_) {
 
 static void NodeVector_GetRBCursor(void* nv_, void* dst_cursor_) {
     NodeVector* nv = nv_;
-    NodeVector_Check_(nv);
+    CheckNodeVector_(nv);
 
     size_t* dst_cursor = dst_cursor_;
     ZETA_DebugAssert(dst_cursor != NULL);
@@ -276,7 +311,7 @@ static void NodeVector_GetRBCursor(void* nv_, void* dst_cursor_) {
 
 static void* NodeVector_PeekL(void* nv_, void* dst_cursor_) {
     NodeVector* nv = nv_;
-    NodeVector_Check_(nv);
+    CheckNodeVector_(nv);
 
     size_t* dst_cursor = dst_cursor_;
 
@@ -287,7 +322,7 @@ static void* NodeVector_PeekL(void* nv_, void* dst_cursor_) {
 
 static void* NodeVector_PeekR(void* nv_, void* dst_cursor_) {
     NodeVector* nv = nv_;
-    NodeVector_Check_(nv);
+    CheckNodeVector_(nv);
 
     size_t* dst_cursor = dst_cursor_;
 
@@ -296,10 +331,10 @@ static void* NodeVector_PeekR(void* nv_, void* dst_cursor_) {
     return NULL;
 }
 
-void* NodeVector_Access(void* nv_, void* dst_cursor_, void* dst_ele,
+void* NodeVector_Access(void* nv_, void* dst_cursor_, void* dst_elem,
                         size_t idx) {
     NodeVector* nv = nv_;
-    NodeVector_Check_(nv);
+    CheckNodeVector_(nv);
 
     size_t* dst_cursor = dst_cursor_;
 
@@ -308,22 +343,15 @@ void* NodeVector_Access(void* nv_, void* dst_cursor_, void* dst_ele,
 
     if (dst_cursor != NULL) { *dst_cursor = idx; }
 
-    if (dst_ele != NULL) {
+    if (dst_elem != NULL) {
         // TODO Read
 
         size_t idxes[ZETA_MultiLevelTable_max_level];
 
         // size_t byte_beg = *Zeta_MultiLevelTable_Access(&nv->mlt, )
 
-        // Read_(nv->manager, nv->snode, dst_ele, )
+        // Read_(nv->manager, nv->snode, dst_elem, )
     }
-
-    return NULL;
-}
-
-static void* NodeVector_Refer(void* nv_) {
-    NodeVector* nv = nv_;
-    NodeVector_Check_(nv);
 
     return NULL;
 }
@@ -331,17 +359,21 @@ static void* NodeVector_Refer(void* nv_) {
 static void NodeVector_Read(void* nv_, void* pos_cursor, size_t cnt, void* dst,
                             void* dst_cursor) {
     NodeVector* nv = nv_;
-    NodeVector_Check_(nv);
+    CheckNodeVector_(nv);
 
     return NULL;
 }
 
-void NodeVector_Cursor_Check(void* nv_, void const* cursor_) {
+static void NodeVector_Check(void* nv_) {
     NodeVector* nv = nv_;
-    NodeVector_Check_(nv);
+    ZETA_DebugAssert(nv != NULL);
 
-    size_t const* cursor = cursor_;
-    ZETA_DebugAssert(*cursor + 1 < nv->size + 2);
+    Zeta_FAT32_Manager* manager = nv->manager;
+    Zeta_FAT32_Manager_Check(manager);
+
+    size_t seg_cnt = Zeta_DynamicVector_GetSize(&nv->seg_nums);
+
+    ZETA_DebugAssert(seg_cnt == ZETA_CeilInvDiv(nv->size, nv->manager))
 }
 
 bool_t NodeVector_Cursor_IsEqual(void* nv_, void const* cursor_a_,
@@ -351,8 +383,8 @@ bool_t NodeVector_Cursor_IsEqual(void* nv_, void const* cursor_a_,
     size_t* cursor_a = cursor_a_;
     size_t* cursor_b = cursor_b_;
 
-    NodeVector_Cursor_Check(nv, cursor_a);
-    NodeVector_Cursor_Check(nv, cursor_a);
+    CheckNodeVectorCursor_(nv, cursor_a);
+    CheckNodeVectorCursor_(nv, cursor_a);
 
     return *cursor_a == *cursor_b;
 }
@@ -364,8 +396,8 @@ int NodeVector_Cursor_Compare(void* nv_, void const* cursor_a_,
     size_t* cursor_a = cursor_a_;
     size_t* cursor_b = cursor_b_;
 
-    NodeVector_Cursor_Check(nv, cursor_a);
-    NodeVector_Cursor_Check(nv, cursor_a);
+    CheckNodeVectorCursor_(nv, cursor_a);
+    CheckNodeVectorCursor_(nv, cursor_a);
 
     if (*cursor_a < *cursor_b) { return -1; }
     if (*cursor_b < *cursor_a) { return 1; }
@@ -379,17 +411,17 @@ size_t NodeVector_Cursor_GetDist(void* nv_, void const* cursor_a_,
     size_t* cursor_a = cursor_a_;
     size_t* cursor_b = cursor_b_;
 
-    NodeVector_Cursor_Check(nv, cursor_a);
-    NodeVector_Cursor_Check(nv, cursor_a);
+    CheckNodeVectorCursor_(nv, cursor_a);
+    CheckNodeVectorCursor_(nv, cursor_a);
 
     return *cursor_b - *cursor_a;
 }
 
-bool_t NodeVector_Cursor_GetIdx(void* nv_, void const* cursor_) {
+size_t NodeVector_Cursor_GetIdx(void* nv_, void const* cursor_) {
     NodeVector* nv = nv_;
-
     size_t* cursor = cursor_;
-    NodeVector_Cursor_Check(nv, cursor);
+
+    CheckNodeVectorCursor_(nv, cursor);
 
     return *cursor;
 }
@@ -404,9 +436,9 @@ void NodeVector_Cursor_StepR(void* sv, void* cursor) {
 
 void NodeVector_Cursor_AdvanceL(void* nv_, void* cursor_, size_t step) {
     NodeVector* nv = nv_;
-
     size_t* cursor = cursor_;
-    NodeVector_Cursor_Check(nv, cursor);
+
+    CheckNodeVectorCursor_(nv, cursor);
 
     ZETA_DebugAssert(step <= *cursor + 1);
 
@@ -415,51 +447,63 @@ void NodeVector_Cursor_AdvanceL(void* nv_, void* cursor_, size_t step) {
 
 void NodeVector_Cursor_AdvanceR(void* nv_, void* cursor_, size_t step) {
     NodeVector* nv = nv_;
-
     size_t* cursor = cursor_;
-    NodeVector_Cursor_Check(nv, cursor);
+
+    CheckNodeVectorCursor_(nv, cursor);
 
     ZETA_DebugAssert(step <= nv->size - *cursor);
 
     *cursor += step;
 }
 
-static void NodeVector_DeploySeqContainer(void* nv_, Zeta_SeqContainer* dst) {
+void NodeVector_Cursor_Check(void* nv_, void const* cursor_) {
     NodeVector* nv = nv_;
+    CheckNodeVector_(nv);
 
-    dst->context = nv;
+    size_t const* cursor = cursor_;
+    ZETA_DebugAssert(*cursor + 1 < nv->size + 2);
+}
 
-    dst->GetWidth = NodeVector_GetWidth;
+static void NodeVector_DeploySeqContainer(void* nv_,
+                                          Zeta_SeqContainer* seq_cntr) {
+    NodeVector* nv = nv_;
+    ZETA_DebugAssert(nv != NULL);
 
-    dst->GetStride = NodeVector_GetStride;
+    Zeta_SeqContainer_Init(seq_cntr);
 
-    dst->GetSize = NodeVector_GetSize;
+    seq_cntr->context = nv;
 
-    dst->GetLBCursor = NodeVector_GetLBCursor;
+    seq_cntr->GetWidth = NodeVector_GetWidth;
 
-    dst->GetRBCursor = NodeVector_GetRBCursor;
+    seq_cntr->GetStride = NodeVector_GetStride;
 
-    dst->PeekL = NodeVector_PeekL;
+    seq_cntr->GetSize = NodeVector_GetSize;
 
-    dst->Refer = NodeVector_Refer;
+    seq_cntr->GetLBCursor = NodeVector_GetLBCursor;
 
-    dst->Read = NodeVector_Read;
+    seq_cntr->GetRBCursor = NodeVector_GetRBCursor;
 
-    dst->Cursor_IsEqual = NodeVector_Cursor_IsEqual;
+    seq_cntr->PeekL = NodeVector_PeekL;
 
-    dst->Cursor_Compare = NodeVector_Cursor_Compare;
+    seq_cntr->Refer = NodeVector_Refer;
 
-    dst->Cursor_GetDist = NodeVector_Cursor_GetDist;
+    seq_cntr->Read = NodeVector_Read;
 
-    dst->Cursor_GetIdx = NodeVector_Cursor_GetIdx;
+    seq_cntr->Cursor_IsEqual = NodeVector_Cursor_IsEqual;
 
-    dst->Cursor_StepL = NodeVector_Cursor_StepL;
+    seq_cntr->Cursor_Compare = NodeVector_Cursor_Compare;
 
-    dst->Cursor_StepR = NodeVector_Cursor_StepR;
+    seq_cntr->Cursor_GetDist = NodeVector_Cursor_GetDist;
 
-    dst->Cursor_AdvanceL = NodeVector_Cursor_AdvanceL;
+    seq_cntr->Cursor_GetIdx = NodeVector_Cursor_GetIdx;
 
-    dst->Cursor_AdvanceR = NodeVector_Cursor_AdvanceR;
+    seq_cntr->Cursor_StepL = NodeVector_Cursor_StepL;
+
+    seq_cntr->Cursor_StepR = NodeVector_Cursor_StepR;
+
+    seq_cntr->Cursor_AdvanceL = NodeVector_Cursor_AdvanceL;
+
+    seq_cntr->Cursor_AdvanceR = NodeVector_Cursor_AdvanceR;
 }
 
 // -----------------------------------------------------------------------------
@@ -532,7 +576,7 @@ struct DirEntry {
     void* name_rb;
 };
 
-bool_t ReadHeader_(Zeta_FileSysFAT32_Header* dst, byte_t const* data) {
+bool_t ReadHeader_(Zeta_FAT32_Header* dst, byte_t const* data) {
     ZETA_DebugAssert(dst != NULL);
     ZETA_DebugAssert(data != NULL);
 
@@ -655,8 +699,8 @@ ERR_RET:
     return NULL;
 }
 
-static u64_t GetFATEntryOffset_(Zeta_FileSysFAT32_Header* header,
-                                size_t fat_idx, u32_t clus_num) {
+static u64_t GetFATEntryOffset_(Zeta_FAT32_Header* header, size_t fat_idx,
+                                u32_t clus_num) {
     ZETA_DebugAssert(header != NULL);
 
     ZETA_DebugAssert(fat_idx < header->fat_cnt);
@@ -672,7 +716,7 @@ static u64_t GetFATEntryOffset_(Zeta_FileSysFAT32_Header* header,
     return ret;
 }
 
-static size_t GetFATEntry_(Zeta_FileSysFAT32_Header* header, size_t fat_idx,
+static size_t GetFATEntry_(Zeta_FAT32_Header* header, size_t fat_idx,
                            u32_t clus_num, Zeta_Disk* disk) {
     ZETA_DebugAssert(header != NULL);
     ZETA_DebugAssert(disk != NULL);

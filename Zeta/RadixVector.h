@@ -65,11 +65,11 @@ void Zeta_RadixVector_GetLBCursor(void* rv, void* dst_cursor);
 
 void Zeta_RadixVector_GetRBCursor(void* rv, void* dst_cursor);
 
-void* Zeta_RadixVector_PeekL(void* rv, void* dst_cursor, void* dst_ele);
+void* Zeta_RadixVector_PeekL(void* rv, void* dst_cursor, void* dst_elem);
 
-void* Zeta_RadixVector_PeekR(void* rv, void* dst_cursor, void* dst_ele);
+void* Zeta_RadixVector_PeekR(void* rv, void* dst_cursor, void* dst_elem);
 
-void* Zeta_RadixVector_Access(void* rv, void* dst_cursor, void* dst_ele,
+void* Zeta_RadixVector_Access(void* rv, void* dst_cursor, void* dst_elem,
                               size_t idx);
 
 void Zeta_RadixVector_Read(void* rv, void const* pos_cursor, size_t cnt,
@@ -84,8 +84,10 @@ void Zeta_RadixVector_PopR(void* rv, size_t cnt);
 
 void Zeta_RadixVector_EraseAll(void* rv);
 
-void Zeta_RadixVector_Check(void* rv, Zeta_DebugHashMap* dst_node_hm,
-                            Zeta_DebugHashMap* dst_seg_hm);
+void Zeta_RadixVector_Check(void* rv);
+
+void Zeta_RadixVector_Sanitize(void* rv, Zeta_DebugHashMap* dst_node_hm,
+                               Zeta_DebugHashMap* dst_seg_hm);
 
 bool_t Zeta_RadixVector_Cursor_IsEqual(void* rv, void const* cursor_a,
                                        void const* cursor_b);

@@ -57,25 +57,25 @@ void Zeta_DummyVector_GetRBCursor(void* dsc, void* dst_cursor) {
     *(size_t*)dst_cursor = 0;
 }
 
-void* Zeta_DummyVector_PeekL(void* dsc, void* dst_cursor, void* dst_ele) {
-    ZETA_Unused(dst_ele);
+void* Zeta_DummyVector_PeekL(void* dsc, void* dst_cursor, void* dst_elem) {
+    ZETA_Unused(dst_elem);
 
     CheckDSC_(dsc);
     if (dst_cursor != NULL) { *(size_t*)dst_cursor = 0; }
     return NULL;
 }
 
-void* Zeta_DummyVector_PeekR(void* dsc, void* dst_cursor, void* dst_ele) {
-    ZETA_Unused(dst_ele);
+void* Zeta_DummyVector_PeekR(void* dsc, void* dst_cursor, void* dst_elem) {
+    ZETA_Unused(dst_elem);
 
     CheckDSC_(dsc);
     if (dst_cursor != NULL) { *(size_t*)dst_cursor = -1; }
     return NULL;
 }
 
-void* Zeta_DummyVector_Access(void* dsc, void* dst_cursor, void* dst_ele,
+void* Zeta_DummyVector_Access(void* dsc, void* dst_cursor, void* dst_elem,
                               size_t idx) {
-    ZETA_Unused(dst_ele);
+    ZETA_Unused(dst_elem);
 
     CheckDSC_(dsc);
     ZETA_DebugAssert(idx == (size_t)(-1) || idx == 0);

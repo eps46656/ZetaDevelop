@@ -30,7 +30,7 @@ void* StdAllocator_Allocate(void* sa_, size_t size) {
 
     if (size == 0) { return NULL; }
 
-    void* ptr = malloc(size);
+    void* ptr = std::malloc(size);
 
 #if ZETA_IsDebug
     bool_t b{ sa->records.insert({ ZETA_PtrToAddr(ptr), size }).second };
@@ -54,7 +54,7 @@ void StdAllocator_Deallocate(void* sa_, void* ptr) {
     sa->records.erase(iter);
 #endif
 
-    free(ptr);
+    std::free(ptr);
 }
 
 void StdAllocator_DeployAllocator(void* sa_, Zeta_Allocator* dst) {

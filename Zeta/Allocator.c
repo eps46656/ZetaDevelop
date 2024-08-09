@@ -13,4 +13,11 @@ void Zeta_Allocator_Init(void* allocator_) {
     allocator->Allocate = NULL;
 
     allocator->Deallocate = NULL;
+
+    allocator->GetRecords = NULL;
+}
+
+void Zeta_Allocator_MatchRecords(Zeta_DebugHashMap* src_records,
+                                 Zeta_DebugHashMap* dst_records) {
+    //
 }
