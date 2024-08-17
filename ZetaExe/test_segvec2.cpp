@@ -142,11 +142,11 @@ void Check() {
 
     using record_t = std::unordered_map<unsigned long long, unsigned long long>;
 
-    Zeta_DebugHashMap node_hm;
-    Zeta_DebugHashMap seg_hm;
+    Zeta_DebugHashTable node_hm;
+    Zeta_DebugHashTable seg_hm;
 
-    Zeta_DebugHashMap_Init(&node_hm);
-    Zeta_DebugHashMap_Init(&seg_hm);
+    Zeta_DebugHashTable_Init(&node_hm);
+    Zeta_DebugHashTable_Init(&seg_hm);
 
     Zeta_SegVector_Check(&sv, &node_hm, &seg_hm);
 

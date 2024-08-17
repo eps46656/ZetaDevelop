@@ -3,6 +3,7 @@
 #include <map>
 #include <vector>
 
+#include "../Zeta/Debugger.h"
 #include "../Zeta/MultiLevelTable.h"
 #include "../Zeta/OrdLinkedListNode.h"
 #include "ZetaPoolAllocator.h"

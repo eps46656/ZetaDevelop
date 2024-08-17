@@ -439,8 +439,6 @@ void Zeta_DebugDeque_DeploySeqContainer(void* dd_,
 
     seq_cntr->context = dd;
 
-    seq_cntr->cursor_align = alignof(size_t);
-
     seq_cntr->cursor_size = sizeof(size_t);
 
     seq_cntr->GetWidth = Zeta_DebugDeque_GetWidth;

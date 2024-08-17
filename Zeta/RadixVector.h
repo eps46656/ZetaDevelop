@@ -1,7 +1,7 @@
 #pragma once
 
 #include "Allocator.h"
-#include "DebugHashMap.h"
+#include "MemCheck.h"
 #include "SeqContainer.h"
 
 ZETA_ExternC_Beg;
@@ -42,7 +42,7 @@ struct Zeta_RadixVector_Cursor {
     size_t idx;
     void* seg;
     size_t seg_idx;
-    void* ele;
+    void* ref;
 };
 
 // -----------------------------------------------------------------------------
@@ -86,8 +86,8 @@ void Zeta_RadixVector_EraseAll(void* rv);
 
 void Zeta_RadixVector_Check(void* rv);
 
-void Zeta_RadixVector_Sanitize(void* rv, Zeta_DebugHashMap* dst_node_hm,
-                               Zeta_DebugHashMap* dst_seg_hm);
+void Zeta_RadixVector_Sanitize(void* rv, Zeta_MemRecorder* dst_node,
+                               Zeta_MemRecorder* dst_seg);
 
 bool_t Zeta_RadixVector_Cursor_IsEqual(void* rv, void const* cursor_a,
                                        void const* cursor_b);

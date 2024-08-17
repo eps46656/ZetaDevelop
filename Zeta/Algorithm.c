@@ -2,15 +2,19 @@
 
 #include "Debugger.h"
 
+#define INSERTION_TH (16)
+
 static void Insertion_(unsigned char* data, size_t width, size_t stride,
-                       void* cmper_context,
-                       int (*cmper)(void* context, void const* x,
-                                    void const* y)) {
+                       void* cmp_context,
+                       int (*Compare)(void* context, void const* x,
+                                      void const* y)) {
     unsigned char* pre_data = data - stride;
 
-    if (cmper(cmper_context, pre_data, data) <= 0) { return; }
+    if (Compare(cmp_context, pre_data, data) <= 0) { return; }
 
-    void* tmp = __builtin_alloca(width);
+    void* tmp =
+        __builtin_alloca_with_align(width, CHAR_BIT * alignof(max_align_t));
+
     Zeta_MemCopy(tmp, data, width);
 
     do {
@@ -18,154 +22,240 @@ static void Insertion_(unsigned char* data, size_t width, size_t stride,
 
         data = pre_data;
         pre_data -= stride;
-    } while (0 < cmper(cmper_context, pre_data, data));
+    } while (Compare(cmp_context, tmp, pre_data) < 0);
 
     Zeta_MemCopy(data, tmp, width);
 }
 
 static void InsertionSort_(unsigned char* data, size_t width, size_t stride,
-                           size_t size, void* cmper_context,
-                           int (*cmper)(void* context, void const* x,
-                                        void const* y)) {
+                           size_t size, void* cmp_context,
+                           int (*Compare)(void* context, void const* x,
+                                          void const* y)) {
     if (size <= 1) { return; }
+
+    unsigned char* end = data + stride * size;
 
     unsigned char* min = data;
 
-    for (size_t i = 1; i < size; ++i) {
-        if (cmper(cmper_context, data + stride * i, data) < 0) {
-            min = data + stride * i;
-        }
+    for (unsigned char* i = data + stride; i < end; i += stride) {
+        if (Compare(cmp_context, i, min) < 0) { min = i; }
     }
 
     Zeta_MemSwap(data, min, width);
 
-    for (size_t i = 2; i < size; ++i) {
-        Insertion_(data + stride * i, width, stride, cmper_context, cmper);
+    for (unsigned char* i = data + stride * 2; i < end; i += stride) {
+        Insertion_(i, width, stride, cmp_context, Compare);
     }
 }
 
-static size_t const InsertionSort_Threshold = 32;
-
+/*
 static unsigned char* Partition_(unsigned char* data, size_t width,
                                  size_t stride, size_t size,
-                                 void* cmper_context,
-                                 int (*cmper)(void* cmper_context,
+                                 void* cmp_context,
+                                 int (*Compare)(void* cmp_context,
                                               void const* x, void const* y)) {
-    unsigned char* i = data + stride;
+    unsigned char* i = data;
     unsigned char* j = data + stride * size;
 
-    for (;;) {
-        while (cmper(cmper_context, i, data) < 0) { i += stride; }
+#define STEP_I i_cmp = Compare(cmp_context, i += stride, data)
+#define STEP_J j_cmp = Compare(cmp_context, j -= stride, data)
 
-        do { j -= stride; } while (cmper(cmper_context, data, j) < 0);
+    int i_cmp;
+    int j_cmp;
+
+    do { STEP_I; } while (i_cmp < 0);
+
+    do { STEP_J; } while (0 < j_cmp);
+
+    if (j <= i) {
+        Zeta_MemSwap(data, j, width);
+
+        return j;
+    }
+
+    if (i_cmp != 0 || j_cmp != 0) { Zeta_MemSwap(i, j, width); }
+
+    STEP_I;
+    STEP_J;
+
+    for (;;) {
+        while (i_cmp < 0) { STEP_I; }
+
+        while (0 < j_cmp) { STEP_J; }
 
         if (j <= i) { break; }
 
-        Zeta_MemSwap(i, j, width);
+        if (0 < i_cmp && j_cmp < 0) {
+            Zeta_MemSwap(i, j, width);
+            STEP_I;
+            STEP_J;
+            continue;
+        }
 
-        i += stride;
+        if (i_cmp == 0) { STEP_I; }
+
+        if (j_cmp == 0) { STEP_J; }
     }
 
-    i -= stride;
+    Zeta_MemSwap(data, j, width);
 
-    Zeta_MemSwap(data, i, width);
+    return j;
+}
+*/
 
-    return i;
+static unsigned char* Partition_(unsigned char* data, size_t width,
+                                 size_t stride, size_t size, void* cmp_context,
+                                 int (*Compare)(void* cmp_context,
+                                                void const* x, void const* y)) {
+    unsigned char* i = data;
+    unsigned char* j = data + stride * size;
+
+#define STEP_I i_cmp = Compare(cmp_context, i += stride, data)
+#define STEP_J j_cmp = Compare(cmp_context, j -= stride, data)
+
+    int i_cmp = -1;
+    int j_cmp = 1;
+
+    for (;;) {
+        while (i_cmp < 0) { STEP_I; }
+
+        while (0 < j_cmp) { STEP_J; }
+
+        if (j <= i) { break; }
+
+        if (i_cmp != 0 || j_cmp != 0) { Zeta_MemSwap(i, j, width); }
+
+        STEP_I;
+        STEP_J;
+    }
+
+    Zeta_MemSwap(data, j, width);
+
+    return j;
 }
 
 static unsigned char* SimplePartition_(
     unsigned char* data, size_t width, size_t stride, size_t size,
-    void* cmper_context,
-    int (*cmper)(void* cmper_context, void const* x, void const* y)) {
-    if (size <= InsertionSort_Threshold) {
-        InsertionSort_(data, width, stride, size, cmper_context, cmper);
+    void* cmp_context,
+    int (*Compare)(void* cmp_context, void const* x, void const* y)) {
+    if (size <= INSERTION_TH) {
+        InsertionSort_(data, width, stride, size, cmp_context, Compare);
         return data + stride * (size / 2);
     }
 
-    void* a = data;
-    void* b = data + stride;
-    void* c = data + stride * (size - 1);
+    unsigned char* a = data + stride * (size * 1 / 4);
+    unsigned char* b = data + stride * (size * 2 / 4);
+    unsigned char* c = data + stride * (size * 3 / 4);
 
-    if (0 < cmper(cmper_context, a, b)) { ZETA_Swap(a, b); }
+    if (Compare(cmp_context, b, a) < 0) { ZETA_Swap(a, b); }
 
-    if (0 < cmper(cmper_context, b, c)) {
+    if (Compare(cmp_context, c, b) < 0) {
         ZETA_Swap(b, c);
-        if (0 < cmper(cmper_context, a, b)) { ZETA_Swap(a, b); }
+        if (Compare(cmp_context, b, a) < 0) { ZETA_Swap(a, b); }
     }
 
-    Zeta_MemSwap(data, a, width);
+    Zeta_MemSwap(data, b, width);
 
-    return Partition_(data, width, stride, size, cmper_context, cmper);
+    return Partition_(data, width, stride, size, cmp_context, Compare);
 }
 
-static void KthElement_(unsigned char* data, size_t width, size_t stride,
-                        size_t mid, size_t size, void* cmper_context,
-                        int (*cmper)(void* cmper_context, void const* x,
-                                     void const* y));
+static void PrettyKthElement_(unsigned char* data, size_t width, size_t stride,
+                              size_t mid, size_t size, void* cmp_context,
+                              int (*Compare)(void* cmp_context, void const* x,
+                                             void const* y));
 
 static unsigned char* PrettyPartition_(
     unsigned char* data, size_t width, size_t stride, size_t size,
-    void* cmper_context,
-    int (*cmper)(void* cmper_context, void const* x, void const* y)) {
-    if (size <= InsertionSort_Threshold) {
-        InsertionSort_(data, width, stride, size, cmper_context, cmper);
+    void* cmp_context,
+    int (*Compare)(void* cmp_context, void const* x, void const* y)) {
+    if (size <= INSERTION_TH) {
+        InsertionSort_(data, width, stride, size, cmp_context, Compare);
         return data + stride * (size / 2);
     }
 
-    size_t const group_size = 5;
+#define GROUP_SIZE 7
 
-    size_t group_cnt = size / group_size;
+    size_t group_cnt = size / GROUP_SIZE;
 
     for (size_t i = 0; i < group_cnt; ++i) {
-        unsigned char* g_beg = data + stride * i;
-
-        InsertionSort_(g_beg, width, stride * group_cnt, group_size,
-                       cmper_context, cmper);
+        InsertionSort_(data + stride * i, width, stride * group_cnt, GROUP_SIZE,
+                       cmp_context, Compare);
     }
 
-    KthElement_(data, width, stride, group_cnt / 2, group_cnt, cmper_context,
-                cmper);
+    unsigned char* mid = data + stride * group_cnt * (GROUP_SIZE / 2);
 
-    Zeta_MemSwap(data, data + stride * (group_cnt / 2), width);
+    PrettyKthElement_(mid, width, stride, group_cnt / 2, group_cnt, cmp_context,
+                      Compare);
 
-    return Partition_(data, width, stride, size, cmper_context, cmper);
+    Zeta_MemSwap(data, mid + stride * (group_cnt / 2), width);
+
+    return Partition_(data, width, stride, size, cmp_context, Compare);
 }
 
-static void KthElement_(unsigned char* data, size_t width, size_t stride,
-                        size_t mid, size_t size, void* cmper_context,
-                        int (*cmper)(void* cmper_context, void const* x,
-                                     void const* y)) {
-    size_t chance = size * 4;
-
+static void PrettyKthElement_(unsigned char* data, size_t width, size_t stride,
+                              size_t mid, size_t size, void* cmp_context,
+                              int (*Compare)(void* cmp_context, void const* x,
+                                             void const* y)) {
     for (;;) {
-        if (size <= InsertionSort_Threshold) {
-            InsertionSort_(data, width, stride, size, cmper_context, cmper);
+        if (size <= INSERTION_TH) {
+            InsertionSort_(data, width, stride, size, cmp_context, Compare);
             return;
         }
 
-        size_t pivot;
+        unsigned char* pivot =
+            PrettyPartition_(data, width, stride, size, cmp_context, Compare);
 
-        if (0 < chance) {
-            pivot = (SimplePartition_(data, width, stride, size, cmper_context,
-                                      cmper) -
-                     data) /
-                    stride;
-            chance -= size;
-        } else {
-            pivot = (PrettyPartition_(data, width, stride, size, cmper_context,
-                                      cmper) -
-                     data) /
-                    stride;
-        }
+        size_t pivot_idx = (pivot - data) / stride;
 
-        if (pivot < mid) {
-            data = data + stride * (pivot + 1);
-            mid -= pivot + 1;
+        if (pivot_idx < mid) {
+            data = pivot + stride;
+            mid -= pivot_idx + 1;
+            size -= pivot_idx + 1;
             continue;
         }
 
-        if (mid < pivot) {
-            size = pivot;
+        if (mid < pivot_idx) {
+            size = pivot_idx;
+            continue;
+        }
+
+        return;
+    }
+}
+
+static void KthElement_(unsigned char* data, size_t width, size_t stride,
+                        size_t mid, size_t size, void* cmp_context,
+                        int (*Compare)(void* cmp_context, void const* x,
+                                       void const* y)) {
+    size_t chance = size * 4;
+
+    for (;;) {
+        if (size <= INSERTION_TH) {
+            InsertionSort_(data, width, stride, size, cmp_context, Compare);
+            return;
+        }
+
+        unsigned char* pivot;
+
+        if (0 < chance) {
+            pivot = SimplePartition_(data, width, stride, size, cmp_context,
+                                     Compare);
+            chance -= size;
+        } else {
+            pivot = PrettyPartition_(data, width, stride, size, cmp_context,
+                                     Compare);
+        }
+
+        size_t pivot_idx = (pivot - data) / stride;
+
+        if (pivot_idx < mid) {
+            data = pivot + stride;
+            mid -= pivot_idx + 1;
+            continue;
+        }
+
+        if (mid < pivot_idx) {
+            size = pivot_idx;
             continue;
         }
 
@@ -174,69 +264,65 @@ static void KthElement_(unsigned char* data, size_t width, size_t stride,
 }
 
 void Zeta_KthElement(void* data, size_t width, size_t stride, size_t mid,
-                     size_t size, void* cmper_context,
-                     int (*cmper)(void* cmper_context, void const* x,
-                                  void const* y)) {
+                     size_t size, void* cmp_context,
+                     int (*Compare)(void* cmp_context, void const* x,
+                                    void const* y)) {
     ZETA_DebugAssert(data != NULL);
     ZETA_DebugAssert(0 < width);
     ZETA_DebugAssert(width <= stride);
 
     ZETA_DebugAssert(mid <= size);
 
-    ZETA_DebugAssert(cmper != NULL);
+    ZETA_DebugAssert(Compare != NULL);
 
     if (mid != size) {
-        KthElement_(data, width, stride, mid, size, cmper_context, cmper);
+        KthElement_(data, width, stride, mid, size, cmp_context, Compare);
     }
 }
 
 void Sort_(size_t chance, unsigned char* data, size_t width, size_t stride,
-           size_t size, void* cmper_context,
-           int (*cmper)(void* cmper_context, void const* x, void const* y)) {
+           size_t size, void* cmp_context,
+           int (*Compare)(void* cmp_context, void const* x, void const* y)) {
     for (;;) {
-        if (size <= InsertionSort_Threshold) {
-            InsertionSort_(data, width, stride, size, cmper_context, cmper);
+        if (size <= INSERTION_TH) {
+            InsertionSort_(data, width, stride, size, cmp_context, Compare);
             return;
         }
 
-        size_t pivot;
+        unsigned char* pivot;
 
         if (0 < chance) {
-            pivot = (SimplePartition_(data, width, stride, size, cmper_context,
-                                      cmper) -
-                     data) /
-                    stride;
+            pivot = SimplePartition_(data, width, stride, size, cmp_context,
+                                     Compare);
             chance = chance / 2;
         } else {
-            pivot = (PrettyPartition_(data, width, stride, size, cmper_context,
-                                      cmper) -
-                     data) /
-                    stride;
+            pivot = PrettyPartition_(data, width, stride, size, cmp_context,
+                                     Compare);
         }
 
-        unsigned char* r_data = data + stride * (pivot + 1);
+        unsigned char* r_data = pivot + stride;
 
-        size_t l_size = pivot;
-        size_t r_size = size - 1 - pivot;
+        size_t l_size = (pivot - data) / stride;
+        size_t r_size = size - 1 - l_size;
 
-        if (l_size <= r_size) {
-            Sort_(chance, data, width, stride, l_size, cmper_context, cmper);
+        if (l_size < r_size) {
+            Sort_(chance, data, width, stride, l_size, cmp_context, Compare);
             data = r_data;
             size = r_size;
         } else {
-            Sort_(chance, r_data, width, stride, r_size, cmper_context, cmper);
+            Sort_(chance, r_data, width, stride, r_size, cmp_context, Compare);
             size = l_size;
         }
     }
 }
 
 void Zeta_Sort(void* data, size_t width, size_t stride, size_t size,
-               void* cmper_context,
-               int (*cmper)(void* cmper_context, void const* x,
-                            void const* y)) {
+               void* cmp_context,
+               int (*Compare)(void* cmp_context, void const* x,
+                              void const* y)) {
     ZETA_DebugAssert(data != NULL);
     ZETA_DebugAssert(0 < width);
     ZETA_DebugAssert(width <= stride);
 
-    Sort_(size * 4, data, width, stride, size, cmper_context, cmper);
+    Sort_(size * 2, data, width, stride, size, cmp_context, Compare);
 }

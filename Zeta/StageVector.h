@@ -1,7 +1,7 @@
 #pragma once
 
 #include "Allocator.h"
-#include "DebugHashMap.h"
+#include "MemCheck.h"
 #include "OrdCnt3RBTreeNode.h"
 #include "SeqContainer.h"
 
@@ -123,8 +123,8 @@ void Zeta_StageVector_Reset(void* sv);
 
 void Zeta_StageVector_Check(void* sv);
 
-void Zeta_StageVector_Sanitize(void* sv, Zeta_AssocContainer* dst_seg,
-                               Zeta_AssocContainer* dst_data);
+void Zeta_StageVector_Sanitize(void* sv, Zeta_MemRecorder* dst_seg,
+                               Zeta_MemRecorder* dst_data);
 
 void Zeta_StageVector_PrintState(void* sv);
 

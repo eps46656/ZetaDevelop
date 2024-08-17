@@ -27,9 +27,9 @@ struct Zeta_AssocContainer {
 
     void (*GetRBCursor)(void* context, void* dst_cursor);
 
-    void (*PeekL)(void* context, void* dst_cursor);
+    void* (*PeekL)(void* context, void* dst_cursor);
 
-    void (*PeekR)(void* context, void* dst_cursor);
+    void* (*PeekR)(void* context, void* dst_cursor);
 
     void* (*Refer)(void* context, void const* pos_cursor);
 
@@ -41,8 +41,8 @@ struct Zeta_AssocContainer {
 
     void (*EraseAll)(void* context);
 
-    void (*Cursor_IsEqual)(void* context, void const* cursor_a,
-                           void const* cursor_b);
+    bool_t (*Cursor_IsEqual)(void* context, void const* cursor_a,
+                             void const* cursor_b);
 
     int (*Cursor_Compare)(void* context, void const* cursor_a,
                           void const* cursor_b);
@@ -67,31 +67,14 @@ struct Zeta_AssocContainer {
 
 void Zeta_AssocContainer_Init(Zeta_AssocContainer* assoc_cntr);
 
+#define ZETA_AssocContainer_AllocaCursor_(assoc_cntr_tmp, assoc_cntr) \
+    ({                                                                \
+        Zeta_AssocContainer const* assoc_cntr_tmp = (assoc_cntr);     \
+        __builtin_alloca_with_align(assoc_cntr_tmp->cursor_size,      \
+                                    CHAR_BIT * alignof(max_align_t)); \
+    })
+
+#define ZETA_AssocContainer_AllocaCursor(assoc_cntr) \
+    ZETA_AssocContainer_AllocaCursor_(ZETA_TmpeName, (assoc_cntr))
+
 ZETA_ExternC_End;
-
-/*
-
-Element:
-    key part
-    val part [may be void]
-
-Find:
-    only provide key, to search the element whose key is key.
-
-Insert:
-
-
-For Tree set
-    Compare(elem, key) -> -1, 0, 1
-
-    Require element's key is comparable.
-
-For Hash Table
-    functions are provieded by user:
-        IsEqual(elem, key) -> TRUE, FALSE
-        HashEle(elem) -> ull
-        HashKey(key) -> ull
-
-    Require element's key is hashable and differable.
-
-*/

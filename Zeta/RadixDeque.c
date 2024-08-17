@@ -1084,31 +1084,34 @@ void Zeta_RadixDeque_Check(void* rd_) {
     ZETA_DebugAssert(size_acc == size + first_seg_l_vacant + last_seg_r_vacant);
 }
 
-static void CheckTree_(Zeta_RadixDeque* rd, Zeta_DebugHashMap* dst_node_hm,
-                       Zeta_DebugHashMap* dst_seg_hm, void* n,
-                       unsigned order_i) {
+static void CheckTree_(Zeta_RadixDeque* rd, Zeta_MemRecorder* dst_node,
+                       Zeta_MemRecorder* dst_seg, void* n, unsigned order_i) {
     ZETA_DebugAssert(n != NULL);
 
     if (order_i == 0) {
-        Zeta_MemCheck_AddPtrSize(dst_seg_hm, n, rd->stride * rd->seg_capacity);
+        if (dst_seg != NULL) {
+            Zeta_MemRecorder_Record(dst_seg, n, rd->stride * rd->seg_capacity);
+        }
+
         return;
     }
 
-    Zeta_MemCheck_AddPtrSize(dst_node_hm, n, sizeof(void*) * rd->branch_num);
+    if (dst_node != NULL) {
+        Zeta_MemRecorder_Record(dst_node, n, sizeof(void*) * rd->branch_num);
+    }
 
     for (unsigned child_i = 0; child_i < rd->branch_num; ++child_i) {
-        CheckTree_(rd, dst_node_hm, dst_seg_hm, ((void**)n)[child_i],
-                   order_i - 1);
+        CheckTree_(rd, dst_node, dst_seg, ((void**)n)[child_i], order_i - 1);
     }
 }
 
-void Zeta_RadixDeque_Sanitize(void* rd_, Zeta_DebugHashMap* dst_node_hm,
-                              Zeta_DebugHashMap* dst_seg_hm) {
+void Zeta_RadixDeque_Sanitize(void* rd_, Zeta_MemRecorder* dst_node,
+                              Zeta_MemRecorder* dst_seg) {
     Zeta_RadixDeque* rd = rd_;
     CheckRD_(rd);
 
-    ZETA_DebugAssert(dst_node_hm != NULL);
-    ZETA_DebugAssert(dst_seg_hm != NULL);
+    ZETA_DebugAssert(dst_node != NULL);
+    ZETA_DebugAssert(dst_seg != NULL);
 
     size_t branch_num = rd->branch_num;
     unsigned order = rd->order;
@@ -1119,14 +1122,16 @@ void Zeta_RadixDeque_Sanitize(void* rd_, Zeta_DebugHashMap* dst_node_hm,
         ZETA_DebugAssert(rd->redundant_roots_lw[order_i] != NULL);
         ZETA_DebugAssert(rd->redundant_roots_rw[order_i] != NULL);
 
-        Zeta_MemCheck_AddPtrSize(dst_node_hm, rd->roots_lw[order_i],
-                                 sizeof(void*) * branch_num);
-        Zeta_MemCheck_AddPtrSize(dst_node_hm, rd->roots_rw[order_i],
-                                 sizeof(void*) * branch_num);
-        Zeta_MemCheck_AddPtrSize(dst_node_hm, rd->redundant_roots_lw[order_i],
-                                 sizeof(void*) * branch_num);
-        Zeta_MemCheck_AddPtrSize(dst_node_hm, rd->redundant_roots_rw[order_i],
-                                 sizeof(void*) * branch_num);
+        if (dst_node != NULL) {
+            Zeta_MemRecorder_Record(dst_node, rd->roots_lw[order_i],
+                                    sizeof(void*) * branch_num);
+            Zeta_MemRecorder_Record(dst_node, rd->roots_rw[order_i],
+                                    sizeof(void*) * branch_num);
+            Zeta_MemRecorder_Record(dst_node, rd->redundant_roots_lw[order_i],
+                                    sizeof(void*) * branch_num);
+            Zeta_MemRecorder_Record(dst_node, rd->redundant_roots_rw[order_i],
+                                    sizeof(void*) * branch_num);
+        }
     }
 
     for (unsigned order_i = 0; order_i <= order; ++order_i) {
@@ -1134,12 +1139,12 @@ void Zeta_RadixDeque_Sanitize(void* rd_, Zeta_DebugHashMap* dst_node_hm,
         unsigned cnt_b = rd->roots_cnt_lw[order_i] - cnt_a;
 
         for (unsigned root_i = 0; root_i < cnt_a; ++root_i) {
-            CheckTree_(rd, dst_node_hm, dst_seg_hm,
-                       rd->roots_lw[order_i][root_i], order_i);
+            CheckTree_(rd, dst_node, dst_seg, rd->roots_lw[order_i][root_i],
+                       order_i);
         }
 
         for (unsigned root_i = 0; root_i < cnt_b; ++root_i) {
-            CheckTree_(rd, dst_node_hm, dst_seg_hm,
+            CheckTree_(rd, dst_node, dst_seg,
                        rd->redundant_roots_lw[order_i][root_i], order_i);
         }
     }
@@ -1149,12 +1154,12 @@ void Zeta_RadixDeque_Sanitize(void* rd_, Zeta_DebugHashMap* dst_node_hm,
         unsigned cnt_b = rd->roots_cnt_rw[order_i] - cnt_a;
 
         for (unsigned root_i = 0; root_i < cnt_a; ++root_i) {
-            CheckTree_(rd, dst_node_hm, dst_seg_hm,
-                       rd->roots_rw[order_i][root_i], order_i);
+            CheckTree_(rd, dst_node, dst_seg, rd->roots_rw[order_i][root_i],
+                       order_i);
         }
 
         for (unsigned root_i = 0; root_i < cnt_b; ++root_i) {
-            CheckTree_(rd, dst_node_hm, dst_seg_hm,
+            CheckTree_(rd, dst_node, dst_seg,
                        rd->redundant_roots_rw[order_i][root_i], order_i);
         }
     }

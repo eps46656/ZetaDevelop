@@ -1,7 +1,7 @@
 #pragma once
 
 #include "Allocator.h"
-#include "AssocContainer.h"
+#include "MemCheck.h"
 #include "SeqContainer.h"
 
 ZETA_ExternC_Beg;
@@ -88,8 +88,8 @@ void Zeta_DynamicVector_EraseAll(void* dv);
 
 void Zeta_DynamicVector_Check(void* dv);
 
-void Zeta_DynamicVector_Sanitize(void* dv, Zeta_AssocContainer* dst_data_assoc,
-                                 Zeta_AssocContainer* dst_seg_assoc);
+void Zeta_DynamicVector_Sanitize(void* dv, Zeta_MemRecorder* dst_data,
+                                 Zeta_MemRecorder* dst_seg);
 
 bool_t Zeta_DynamicVector_Cursor_IsEqual(void* dv, void const* cursor_a,
                                          void const* cursor_b);

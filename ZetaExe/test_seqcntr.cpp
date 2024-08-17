@@ -334,11 +334,11 @@ void SC_CheckIterator(Zeta_SeqContainer* seq_cntr, size_t idx_a, size_t idx_b) {
 void SV_Check(Zeta_SeqContainer* seq_cntr) {
     if (seq_cntr->GetSize != Zeta_SegVector_GetSize) { return; }
 
-    Zeta_DebugHashMap node_hm;
-    Zeta_DebugHashMap seg_hm;
+    Zeta_DebugHashTable node_hm;
+    Zeta_DebugHashTable seg_hm;
 
-    Zeta_DebugHashMap_Init(&node_hm);
-    Zeta_DebugHashMap_Init(&seg_hm);
+    Zeta_DebugHashTable_Init(&node_hm);
+    Zeta_DebugHashTable_Init(&seg_hm);
 
     Zeta_SegVector_Check(&sv, &node_hm, &seg_hm);
 

@@ -25,9 +25,9 @@ void Zeta_MemMove(void* dst, void const* src, size_t size);
 /**
  * @brief Swap byte array between dst and src
  *
- * @param dst The pointer points to destination byte array.
- * @param src The pointer points to source byte array.
- * @param size The number of bytes the byte arrays pointed by dst and src.
+ * @param x The pointer points to the first byte array.
+ * @param y The pointer points to the second byte array.
+ * @param size The number of bytes the byte arrays pointed by x and y.
  */
 void Zeta_MemSwap(void* x, void* y, size_t size);
 

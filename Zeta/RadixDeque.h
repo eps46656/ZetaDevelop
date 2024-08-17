@@ -1,7 +1,7 @@
 #pragma once
 
 #include "Allocator.h"
-#include "DebugHashMap.h"
+#include "MemCheck.h"
 #include "SeqContainer.h"
 
 ZETA_ExternC_Beg;
@@ -98,8 +98,8 @@ void Zeta_RadixDeque_EraseAll(void* rd);
 
 void Zeta_RadixDeque_Check(void* rd);
 
-void Zeta_RadixDeque_Sanitize(void* rd, Zeta_DebugHashMap* dst_node_hm,
-                              Zeta_DebugHashMap* dst_seg_hm);
+void Zeta_RadixDeque_Sanitize(void* rd, Zeta_MemRecorder* dst_node,
+                              Zeta_MemRecorder* dst_seg);
 
 bool_t Zeta_RadixDeque_Cursor_IsEqual(void* rd, void const* cursor_a,
                                       void const* cursor_b);

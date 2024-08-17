@@ -481,6 +481,7 @@ POP_SEG_END:;
 
 void Zeta_DynamicVector_Init(void* dv_) {
     Zeta_DynamicVector* dv = dv_;
+    ZETA_DebugAssert(dv != NULL);
 
     size_t width = dv->width;
     size_t stride = dv->stride;
@@ -919,19 +920,21 @@ void Zeta_DynamicVector_Check(void* dv_) {
     ZETA_DebugAssert(dv->seg_allocator->Deallocate != NULL);
 }
 
-void Zeta_DynamicVector_Sanitize(void* dv_, Zeta_AssocContainer* dst_data_assoc,
-                                 Zeta_AssocContainer* dst_seg_assoc) {
+void Zeta_DynamicVector_Sanitize(void* dv_, Zeta_MemRecorder* dst_data,
+                                 Zeta_MemRecorder* dst_seg) {
     Zeta_DynamicVector* dv = dv_;
     CheckDV_(dv);
 
-    if (dv->cur_data != NULL) {
-        Zeta_MemCheck_AddPtrSize(dst_data_assoc, dv->cur_data,
-                                 sizeof(void*) * dv->cur_capacity);
-    }
+    if (dst_data != NULL) {
+        if (dv->cur_data != NULL) {
+            Zeta_MemRecorder_Record(dst_data, dv->cur_data,
+                                    sizeof(void*) * dv->cur_capacity);
+        }
 
-    if (dv->nxt_data != NULL) {
-        Zeta_MemCheck_AddPtrSize(dst_data_assoc, dv->nxt_data,
-                                 sizeof(void*) * dv->nxt_capacity);
+        if (dv->nxt_data != NULL) {
+            Zeta_MemRecorder_Record(dst_data, dv->nxt_data,
+                                    sizeof(void*) * dv->nxt_capacity);
+        }
     }
 
     size_t stride = dv->stride;
@@ -953,26 +956,27 @@ void Zeta_DynamicVector_Sanitize(void* dv_, Zeta_AssocContainer* dst_data_assoc,
     nxt_ca.size = dv->size_a + dv->size_b + dv->size_c;
     nxt_ca.capacity = dv->nxt_capacity;
 
+    if (dst_seg == NULL) { return; }
+
     if (nxt_ca.data != NULL) {
         for (size_t i = 0; i < dv->size_a; ++i) {
-            Zeta_MemCheck_AddPtrSize(
-                dst_seg_assoc,
+            Zeta_MemRecorder_Record(
+                dst_seg,
                 *(void**)Zeta_CircularArray_Access(&nxt_ca, NULL, NULL, i),
                 stride * seg_capacity);
         }
     }
 
     for (size_t i = 0; i < dv->size_b; ++i) {
-        Zeta_MemCheck_AddPtrSize(
-            dst_seg_assoc,
-            *(void**)Zeta_CircularArray_Access(&cur_ca, NULL, NULL, i),
+        Zeta_MemRecorder_Record(
+            dst_seg, *(void**)Zeta_CircularArray_Access(&cur_ca, NULL, NULL, i),
             stride * seg_capacity);
     }
 
     if (nxt_ca.data != NULL) {
         for (size_t i = 0; i < dv->size_c; ++i) {
-            Zeta_MemCheck_AddPtrSize(
-                dst_seg_assoc,
+            Zeta_MemRecorder_Record(
+                dst_seg,
                 *(void**)Zeta_CircularArray_Access(&nxt_ca, NULL, NULL,
                                                    dv->size_a + dv->size_b + i),
                 stride * seg_capacity);

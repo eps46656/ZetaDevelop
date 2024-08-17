@@ -1,7 +1,7 @@
 #pragma once
 
 #include "Allocator.h"
-#include "DebugHashMap.h"
+#include "DebugHashTable.h"
 #include "OrdLinkedListNode.h"
 #include "SeqContainer.h"
 
@@ -75,8 +75,8 @@ void Zeta_SegList_PopR(void* sl);
 
 void* Zeta_SegList_Erase(void* sl, void* dst_cursor, size_t idx);
 
-void Zeta_SegList_Check(void* sl, Zeta_DebugHashMap* dst_node_records,
-                        Zeta_DebugHashMap* dst_seg_records);
+void Zeta_SegList_Check(void* sl, Zeta_DebugHashTable* dst_node_records,
+                        Zeta_DebugHashTable* dst_seg_records);
 
 void Zeta_SegList_DeploySeqContainer(void* sl, Zeta_SeqContainer* dst);
 

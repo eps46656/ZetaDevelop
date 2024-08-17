@@ -2,6 +2,7 @@
 
 #include <cstdlib>
 
+#include "../Zeta/MemCheck.h"
 #include "../Zeta/RadixDeque.h"
 #include "MemAllocatorCheck.h"
 #include "StdAllocator.h"
@@ -90,19 +91,16 @@ void CheckRadixDeque(Zeta_SeqContainer const* seq_cntr) {
     RadixDequePack* pack{ ZETA_MemberToStruct(RadixDequePack, radix_deque,
                                               seq_cntr->context) };
 
-    Zeta_DebugHashMap node_hm;
-    Zeta_DebugHashMap seg_hm;
-
-    Zeta_DebugHashMap_Init(&node_hm);
-    Zeta_DebugHashMap_Init(&seg_hm);
+    Zeta_MemRecorder* node = Zeta_MemRecorder_Create();
+    Zeta_MemRecorder* seg = Zeta_MemRecorder_Create();
 
     Zeta_RadixDeque_Sanitize(
-        const_cast<void*>(static_cast<void const*>(&pack->radix_deque)),
-        &node_hm, &seg_hm);
+        const_cast<void*>(static_cast<void const*>(&pack->radix_deque)), node,
+        seg);
 
-    using record_t = std::unordered_map<unsigned long long, unsigned long long>;
+    Zeta_MemCheck_MatchRecords(pack->node_allocator_.mem_recorder, node);
+    Zeta_MemCheck_MatchRecords(pack->seg_allocator_.mem_recorder, seg);
 
-    CheckRecords(pack->node_allocator_.records, *(record_t*)node_hm.hash_map);
-
-    CheckRecords(pack->seg_allocator_.records, *(record_t*)seg_hm.hash_map);
+    Zeta_MemRecorder_Destroy(node);
+    Zeta_MemRecorder_Destroy(seg);
 }

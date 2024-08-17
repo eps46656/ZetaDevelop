@@ -267,7 +267,7 @@ typedef unsigned unichar_t;
 
 #define ZETA_CeilLog2(x) ZETA_CeilLog2_(ZETA_TmpName, x)
 
-#define ZETA_PtrToAddr(x) ((uintptr_t)(void*)(x))
+#define ZETA_PtrToAddr(x) ((uintptr_t)(void const*)(x))
 #define ZETA_AddrToPtr(x) ((void*)(uintptr_t)(x))
 
 #define ZETA_MemberToStruct(struct_type, member_name, member_ptr) \
@@ -278,7 +278,7 @@ typedef unsigned unichar_t;
     ({                                     \
         ZETA_AutoVar(x_tmp, x);            \
         ZETA_AutoVar(y_tmp, y);            \
-        x_tmp < y_tmp ? x_tmp : y_tmp;     \
+        x_tmp <= y_tmp ? x_tmp : y_tmp;    \
     })
 
 #define ZETA_GetMinOf(x, y) ZETA_GetMinOf_(ZETA_TmpName, ZETA_TmpName, (x), (y))
@@ -292,15 +292,18 @@ typedef unsigned unichar_t;
 
 #define ZETA_GetMaxOf(x, y) ZETA_GetMaxOf_(ZETA_TmpName, ZETA_TmpName, (x), (y))
 
-#define ZETA_Swap_(x, y, tmp) \
-    {                         \
-        ZETA_AutoVar(tmp, x); \
-        (x) = (y);            \
-        (y) = tmp;            \
-    }                         \
+#define ZETA_Swap_(x_tmp, y_tmp, x, y, tmp) \
+    {                                       \
+        ZETA_AutoVar(x_tmp, &(x));          \
+        ZETA_AutoVar(y_tmp, &(y));          \
+        ZETA_AutoVar(tmp, *x_tmp);          \
+        *x_tmp = *y_tmp;                    \
+        *y_tmp = tmp;                       \
+    }                                       \
     ZETA_StaticAssert(TRUE)
 
-#define ZETA_Swap(x, y) ZETA_Swap_((x), (y), ZETA_TmpName)
+#define ZETA_Swap(x, y) \
+    ZETA_Swap_(ZETA_TmpName, ZETA_TmpName, (x), (y), ZETA_TmpName)
 
 #define ZETA_GetMaxMod(type) (ZETA_RangeMaxOf(type) / 2 + 1)
 

@@ -4,20 +4,26 @@
 
 ZETA_ExternC_Beg;
 
-ZETA_DeclareStruct(Zeta_PtrSize);
+ZETA_DeclareStruct(Zeta_MemRecorder);
 
-struct Zeta_PtrSize {
-    void const* ptr;
-    size_t size;
-};
+struct Zeta_MemRecorder;
 
-unsigned long long Zeta_PtrSize_HashPtr(void const* ptr_size);
+Zeta_MemRecorder* Zeta_MemRecorder_Create();
 
-unsigned long long Zeta_PtrSize_HashPtrSize(void const* ptr_size);
+void Zeta_MemRecorder_Destroy(Zeta_MemRecorder* mem_recorder);
 
-void Zeta_MemCheck_AddPtrSize(Zeta_AssocContainer* dst_assoc, void const* ptr,
-                              size_t size);
+size_t Zeta_MemRecorder_GetSize(Zeta_MemRecorder* mem_recorder);
 
-void Zeta_MemCheck_CheckOverlapping(Zeta_AssocContainer* dst_assoc);
+size_t Zeta_MemRecorder_GetRecordSize(Zeta_MemRecorder* mem_recorder,
+                                      void const* ptr);
+
+void Zeta_MemRecorder_Record(Zeta_MemRecorder* mem_recorder, void const* ptr,
+                             size_t size);
+
+bool_t Zeta_MemRecorder_Unrecord(Zeta_MemRecorder* mem_recorder,
+                                 void const* ptr);
+
+void Zeta_MemCheck_MatchRecords(Zeta_MemRecorder const* src_mem_recorder,
+                                Zeta_MemRecorder const* dst_mem_recorder);
 
 ZETA_ExternC_End;

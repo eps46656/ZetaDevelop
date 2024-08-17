@@ -82,21 +82,16 @@ void CheckStageVector(Zeta_SeqContainer const* seq_cntr) {
     StageVectorPack* pack{ ZETA_MemberToStruct(StageVectorPack, stage_vector,
                                                seq_cntr->context) };
 
-    Zeta_DebugHashMap seg_hm;
-    Zeta_DebugHashMap data_hm;
-
-    Zeta_DebugHashMap_Init(&seg_hm);
-    Zeta_DebugHashMap_Init(&data_hm);
+    Zeta_MemRecorder* seg = Zeta_MemRecorder_Create();
+    Zeta_MemRecorder* data = Zeta_MemRecorder_Create();
 
     Zeta_StageVector_Sanitize(
-        const_cast<void*>(static_cast<void const*>(&pack->stage_vector)),
-        &seg_hm, &data_hm);
+        const_cast<void*>(static_cast<void const*>(&pack->stage_vector)), seg,
+        data);
 
-    using record_t = std::unordered_map<unsigned long long, unsigned long long>;
+    Zeta_MemCheck_MatchRecords(pack->seg_allocator_.mem_recorder, seg);
+    Zeta_MemCheck_MatchRecords(pack->data_allocator_.mem_recorder, data);
 
-    CheckRecords(pack->seg_allocator_.records, *(record_t*)seg_hm.hash_map);
-    CheckRecords(pack->data_allocator_.records, *(record_t*)data_hm.hash_map);
-
-    Zeta_DebugHashMap_Deinit(&seg_hm);
-    Zeta_DebugHashMap_Deinit(&data_hm);
+    Zeta_MemRecorder_Destroy(seg);
+    Zeta_MemRecorder_Destroy(data);
 }

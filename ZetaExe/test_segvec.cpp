@@ -39,8 +39,8 @@ Zeta_Allocator seg_allocator;
 std::deque<val_t> dd;
 Zeta_SegVector sv;
 
-Zeta_DebugHashMap node_hm;
-Zeta_DebugHashMap seg_hm;
+Zeta_DebugHashTable node_hm;
+Zeta_DebugHashTable seg_hm;
 
 void DD_Init() {}
 
@@ -123,8 +123,8 @@ void main1() {
     DD_Init();
     SV_Init();
 
-    Zeta_DebugHashMap_Init(&node_hm);
-    Zeta_DebugHashMap_Init(&seg_hm);
+    Zeta_DebugHashTable_Init(&node_hm);
+    Zeta_DebugHashTable_Init(&seg_hm);
 
     Check();
 

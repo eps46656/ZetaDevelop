@@ -1,7 +1,7 @@
 #pragma once
 
 #include "Allocator.h"
-#include "DebugHashMap.h"
+#include "DebugHashTable.h"
 
 ZETA_ExternC_Beg;
 
@@ -130,6 +130,6 @@ void Zeta_MultiLevelTable_Erase(void* mlt, size_t* idxes);
  */
 void Zeta_MultiLevelTable_EraseAll(void* mlt);
 
-void Zeta_MultiLevelTable_Check(void* mlt, Zeta_DebugHashMap* dst_node);
+void Zeta_MultiLevelTable_Check(void* mlt, Zeta_DebugHashTable* dst_node);
 
 ZETA_ExternC_End;

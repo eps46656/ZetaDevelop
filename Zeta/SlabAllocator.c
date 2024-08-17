@@ -279,8 +279,8 @@ void Zeta_SlabAllocator_DeployAllocator(void* sa_, Zeta_Allocator* dst) {
     dst->Deallocate = Zeta_SlabAllocator_Deallocate;
 }
 
-void Zeta_SlabAllocator_Check(void* sa_, Zeta_DebugHashMap* dst_used_records,
-                              Zeta_DebugHashMap* dst_released_records) {
+void Zeta_SlabAllocator_Check(void* sa_, Zeta_MemRecorder* dst_used_records,
+                              Zeta_MemRecorder* dst_released_records) {
     Zeta_SlabAllocator* sa = sa_;
     ZETA_DebugAssert(sa != NULL);
 
@@ -291,19 +291,14 @@ void Zeta_SlabAllocator_Check(void* sa_, Zeta_DebugHashMap* dst_used_records,
     size_t stride = width + sizeof(unsigned char);
     size_t units_per_slab = sa->units_per_slab;
 
-    Zeta_DebugHashMap vacant_unit_mt;
-    Zeta_DebugHashMap_Init(&vacant_unit_mt);
-
-    Zeta_DebugHashMap occupied_unit_mt;
-    Zeta_DebugHashMap_Init(&occupied_unit_mt);
+    Zeta_MemRecorder* vacant_unit = Zeta_MemRecorder_Create();
+    Zeta_MemRecorder* occupied_unit = Zeta_MemRecorder_Create();
 
     if (sa->hot_unit_head != NULL) {
         Zeta_OrdLinkedListNode* hot_unit = sa->hot_unit_head;
 
         for (;;) {
-            ZETA_DebugAssert(Zeta_DebugHashMap_Insert(&vacant_unit_mt,
-                                                      ZETA_PtrToAddr(hot_unit))
-                                 .b);
+            Zeta_MemRecorder_Record(vacant_unit, hot_unit, 0);
 
             hot_unit = Zeta_OrdLinkedListNode_GetR(hot_unit);
             if (hot_unit == sa->hot_unit_head) { break; }
@@ -332,19 +327,13 @@ void Zeta_SlabAllocator_Check(void* sa_, Zeta_DebugHashMap* dst_used_records,
             for (size_t i = 0; i < units_per_slab; ++i, chunk += stride) {
                 ZETA_DebugAssert(i == *(chunk + width));
 
-                if (Zeta_DebugHashMap_Find(&vacant_unit_mt,
-                                           ZETA_PtrToAddr(chunk))
-                        .b) {
-                    ++check_slab_vacant_units_cnt;
-                } else {
-                    Zeta_DebugHashMap_KeyValPair p = Zeta_DebugHashMap_Insert(
-                        &occupied_unit_mt, ZETA_PtrToAddr(chunk));
-
-                    ZETA_DebugAssert(p.b);
-
-                    *p.val = width;
-
+                if (Zeta_MemRecorder_GetRecordSize(vacant_unit, chunk) ==
+                    ZETA_RangeMaxOf(size_t)) {
+                    Zeta_MemRecorder_Record(occupied_unit, chunk, width);
+                    Zeta_MemRecorder_Record(dst_released_records, chunk, width);
                     ++check_occupied_units_cnt;
+                } else {
+                    ++check_slab_vacant_units_cnt;
                 }
             }
 
@@ -353,16 +342,10 @@ void Zeta_SlabAllocator_Check(void* sa_, Zeta_DebugHashMap* dst_used_records,
 
             check_vacant_units_cnt += check_slab_vacant_units_cnt;
 
-            size_t slab_size = ZETA_PtrToAddr(chunk) +
-                               sizeof(Zeta_SlabAllocator_SlabHead) -
-                               ZETA_PtrToAddr(occupied_slab);
-
-            Zeta_DebugHashMap_KeyValPair p = Zeta_DebugHashMap_Insert(
-                dst_used_records, ZETA_PtrToAddr(occupied_slab_head));
-
-            ZETA_DebugAssert(p.b);
-
-            *p.val = slab_size;
+            Zeta_MemRecorder_Record(dst_used_records, occupied_slab_head,
+                                    ZETA_PtrToAddr(chunk) +
+                                        sizeof(Zeta_SlabAllocator_SlabHead) -
+                                        ZETA_PtrToAddr(occupied_slab));
 
             occupied_slab_n = Zeta_OrdLinkedListNode_GetR(occupied_slab_n);
             if (occupied_slab_n == sa->occupied_slab_n_head) { break; }
@@ -384,23 +367,17 @@ void Zeta_SlabAllocator_Check(void* sa_, Zeta_DebugHashMap* dst_used_records,
 
             for (size_t i = 0; i < units_per_slab; ++i, chunk += stride) {
                 ZETA_DebugAssert(i == *(chunk + width));
-                ZETA_DebugAssert(Zeta_DebugHashMap_Find(&vacant_unit_mt,
-                                                        ZETA_PtrToAddr(chunk))
-                                     .b);
+                ZETA_DebugAssert(
+                    Zeta_MemRecorder_GetRecordSize(vacant_unit, chunk) !=
+                    ZETA_RangeMaxOf(size_t));
             }
 
             check_vacant_units_cnt += units_per_slab;
 
-            size_t slab_size = ZETA_PtrToAddr(chunk) +
-                               sizeof(Zeta_SlabAllocator_SlabHead) -
-                               ZETA_PtrToAddr(vacant_slab);
-
-            Zeta_DebugHashMap_KeyValPair p = Zeta_DebugHashMap_Insert(
-                dst_used_records, ZETA_PtrToAddr(vacant_slab_head));
-
-            ZETA_DebugAssert(p.b);
-
-            *p.val = slab_size;
+            Zeta_MemRecorder_Record(dst_used_records, vacant_slab_head,
+                                    ZETA_PtrToAddr(chunk) +
+                                        sizeof(Zeta_SlabAllocator_SlabHead) -
+                                        ZETA_PtrToAddr(vacant_slab));
 
             vacant_slab_n = Zeta_OrdLinkedListNode_GetR(vacant_slab_n);
             if (vacant_slab_n == sa->vacant_slab_n_head) { break; }
@@ -410,8 +387,6 @@ void Zeta_SlabAllocator_Check(void* sa_, Zeta_DebugHashMap* dst_used_records,
     ZETA_DebugAssert(check_vacant_units_cnt == sa->vacant_units_cnt);
     ZETA_DebugAssert(check_occupied_units_cnt == sa->occupied_units_cnt);
 
-    Zeta_DebugHashMap_Move(dst_released_records, &occupied_unit_mt);
-
-    Zeta_DebugHashMap_Deinit(&vacant_unit_mt);
-    Zeta_DebugHashMap_Deinit(&occupied_unit_mt);
+    Zeta_MemRecorder_Destroy(vacant_unit);
+    Zeta_MemRecorder_Destroy(occupied_unit);
 }

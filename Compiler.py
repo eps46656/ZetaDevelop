@@ -2,6 +2,7 @@ from config import *
 from utils import *
 
 import os
+import subprocess
 
 def GetClangTriple(target):
     arch_table = {
@@ -49,6 +50,10 @@ def GetLLCArch(target):
 
     return arch
 
+def ShowCommand(cmd):
+    cmd = f" ".join(cmd)
+    HighLightPrint(f"cmd = {cmd}")
+
 class Compiler:
     def __init__(self, config):
         self.mode = config.__dict__.get("mode", mode_enum.debug)
@@ -57,6 +62,9 @@ class Compiler:
         self.verbose = config.verbose
 
         self.build_dir = config.build_dir
+
+        self.working_dirs = set(NotNoneFilter(
+            config.__dict__.get("working_dirs", [])))
 
         self.target = EmptyClass
         self.target.arch = config.target.arch
@@ -68,26 +76,25 @@ class Compiler:
         self.cpp_to_obj_command = None
         self.link_lls_command = None
         self.opt_ll_command = None
-        self.ll_to_obj_command = None
-        self.ll_to_exe_command = None
+        self.to_exe_command = None
 
         if os.name == "nt":
             self.c_to_obj_command = "clang"
             self.cpp_to_obj_command = "clang"
             self.link_lls_command = "llvm-link"
             self.opt_ll_command = "opt"
-            self.ll_to_obj_command = "llc"
-            self.ll_to_exe_command = "clang"
+            self.to_exe_command = "clang"
         else:
             self.c_to_obj_command = "clang-18"
             self.cpp_to_obj_command = "clang-18"
             self.link_lls_command = "llvm-link-18"
             self.opt_ll_command = "opt-18"
-            self.ll_to_obj_command = "llc-18"
-            self.ll_to_exe_command = "clang-18"
+            self.to_exe_command = "clang-18"
 
         self.c_include_dirs = config.__dict__.get("c_include_dirs", [])
         self.cpp_include_dirs = config.__dict__.get("cpp_include_dirs", [])
+
+        self.include_dirs = {}
 
         clang_triple = GetClangTriple(self.target)
 
@@ -165,7 +172,7 @@ class Compiler:
             f"-march={GetLLCArch(self.target)}",
         ]
 
-        self.ll_to_exe_args = [
+        self.to_exe_args = [
             "--verbose" if self.verbose else "",
 
             "-m64",
@@ -175,7 +182,7 @@ class Compiler:
         ]
 
         if self.mode == mode_enum.debug:
-            self.ll_to_exe_args += [
+            self.to_exe_args += [
                 "-O1",
                 "-g",
                 "-D DEBUG",
@@ -189,156 +196,106 @@ class Compiler:
             ]
 
         if self.mode == mode_enum.release:
-            self.ll_to_exe_args += [
+            self.to_exe_args += [
                 "-O3",
+                "-flto",
             ]
+
+    def GetIncludes(self, src):
+        includes =  subprocess.run(
+            ToListCommand(
+                "clang++",
+                "--trace-includes",
+                "-fshow-skipped-includes",
+                "-fsyntax-only",
+                [["--include-directory", include_dir]
+                for include_dir in self.include_dirs],
+                src,
+            ),
+            check=True,
+            stdin=None,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+        ).stderr.decode("utf-8").replace("\r", "").split("\n")
+
+        ret = []
+
+        for include in includes:
+            if not include or not include.startswith(". "):
+                continue
+
+            include = GetNormPath(include[2:])
+
+            if any(include.startswith(working_dir)
+                   for working_dir in self.working_dirs):
+                ret.append(include)
+
+        return ret
 
     def c_to_obj(self, dst, src):
         os.makedirs(os.path.dirname(dst), exist_ok=True)
 
-        cmd = " ".join([
+        cmd = ToListCommand(
             self.c_to_obj_command,
-            f"--compile",
-            f"-o {ToPath(dst)}",
-            *self.c_to_obj_args,
-            ToPath(src),
-        ])
+            "--compile",
+            "-o", dst,
+            self.c_to_obj_args,
+            src,
+        )
 
-        HighLightPrint(f"cmd = {cmd}")
+        ShowCommand(cmd)
 
-        rc = os.system(cmd)
-
-        return rc
+        subprocess.run(cmd, check=True)
 
     def cpp_to_obj(self, dst, src):
         os.makedirs(os.path.dirname(dst), exist_ok=True)
 
-        cmd = " ".join([
+        cmd = ToListCommand(
             self.cpp_to_obj_command,
-            f"--compile",
-            f"-o {ToPath(dst)}",
-            *self.cpp_to_obj_args,
-            ToPath(src),
-        ])
+            "--compile",
+            "-o", dst,
+            self.cpp_to_obj_args,
+            src,
+        )
 
-        HighLightPrint(f"cmd = {cmd}")
+        ShowCommand(cmd)
 
-        rc = os.system(cmd)
-
-        return rc
+        subprocess.run(cmd, check=True)
 
     def ll_to_asm(self, dst, src):
-        cmd = " ".join([
+        cmd = ToListCommand([
             self.ll_to_obj_command,
-            f"-o {ToPath(dst)}",
+            "-o", dst,
             "-filetype=asm",
-            *self.ll_to_asm_args,
-            ToPath(src),
+            self.ll_to_asm_args,
+            src,
         ])
 
-        HighLightPrint(f"cmd = {cmd}")
+        ShowCommand(cmd)
 
-        rc = os.system(cmd)
-
-        return rc
+        subprocess.run(cmd, check=True)
 
     def ll_to_obj(self, dst, src):
-        cmd = " ".join([
+        cmd = ToListCommand(
             self.ll_to_obj_command,
-            f"-o {ToPath(dst)}",
+            "-o", dst,
             "-filetype=obj",
-            *self.ll_to_obj_args,
-            ToPath(src),
-        ])
+            self.ll_to_obj_args,
+            src,
+        )
 
-        HighLightPrint(f"cmd = {cmd}")
+        ShowCommand(cmd)
 
-        rc = os.system(cmd)
-
-        return rc
-
-    def lls_to_exe(self, dst, srcs):
-        linked_tmp_file = f"{self.build_dir}/tmp.ll"
-        opted_tmp_file = f"{self.build_dir}/tmp.opt.ll"
-        rc = self.lls_to_exe_(dst, srcs, linked_tmp_file, opted_tmp_file)
-        # os.remove(linked_tmp_file)
-        # os.remove(opted_tmp_file)
-        return rc
-
-    def lls_to_exe_(self, dst, srcs, linked_tmp_file, opted_tmp_file):
-        os.makedirs(os.path.dirname(dst), exist_ok=True)
-        os.makedirs(os.path.dirname(linked_tmp_file), exist_ok=True)
-        os.makedirs(os.path.dirname(opted_tmp_file), exist_ok=True)
-
-        '''
-        cmd = " ".join([
-            self.ll_to_exe_command,
-            f"-o {ToPath(dst)}",
-            *self.ll_to_exe_args,
-            *[ToPath(src) for src in FilterNotNone(srcs)],
-        ])
-
-        HighLightPrint(f"cmd = {cmd}")
-
-        rc = os.system(cmd)
-
-        return rc
-        '''
-
-        cmd = " ".join([
-            self.link_lls_command,
-            f"-S",
-            f"-o {ToPath(linked_tmp_file)}",
-            f"-v" if self.verbose else "",
-            *[ToPath(src) for src in FilterNotNone(srcs)],
-        ])
-
-        HighLightPrint(f"cmd = {cmd}")
-
-        rc = os.system(cmd)
-
-        if rc != 0:
-            return rc
-
-        '''
-        cmd = " ".join([
-            self.opt_ll_command,
-            f"-S",
-            f"-o {ToPath(opted_tmp_file)}",
-            ToPath(linked_tmp_file),
-        ])
-
-        HighLightPrint(f"cmd = {cmd}")
-
-        rc = os.system(cmd)
-
-        if rc != 0:
-            return rc
-        '''
-
-        cmd = " ".join([
-            self.ll_to_exe_command,
-            f"-o {ToPath(dst)}",
-            *self.ll_to_exe_args,
-            ToPath(linked_tmp_file),
-        ])
-
-        HighLightPrint(f"cmd = {cmd}")
-
-        rc = os.system(cmd)
-
-        return rc
+        subprocess.run(cmd, check=True)
 
     def to_exe(self, dst, srcs):
-        cmd = " ".join([
-            self.ll_to_exe_command,
-            f"-o {ToPath(dst)}",
-            *self.ll_to_exe_args,
-            *[ToPath(src) for src in FilterNotNone(srcs)],
-        ])
+        cmd = ToListCommand(
+            self.to_exe_command,
+            "-o", dst,
+            self.to_exe_args,
+            [src for src in FilterNotNone(srcs)],
+        )
 
-        HighLightPrint(f"cmd = {cmd}")
+        ShowCommand(cmd)
 
-        rc = os.system(cmd)
-
-        return rc
+        subprocess.run(cmd, check=True)

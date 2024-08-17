@@ -82,6 +82,16 @@ struct Zeta_SeqContainer {
 
 void Zeta_SeqContainer_Init(Zeta_SeqContainer* seq_cntr);
 
+#define ZETA_SeqContainer_AllocaCursor_(seq_cntr_tmp, seq_cntr)       \
+    ({                                                                \
+        Zeta_SeqContainer const* seq_cntr_tmp = (seq_cntr);           \
+        __builtin_alloca_with_align(seq_cntr_tmp->cursor_size,        \
+                                    CHAR_BIT * alignof(max_align_t)); \
+    })
+
+#define ZETA_SeqContainer_AllocaCursor(seq_cntr) \
+    ZETA_SeqContainer_AllocaCursor_(ZETA_TmpeName, (seq_cntr))
+
 #define ZETA_SeqContainer_GetWidth_(seq_cntr_tmp, seq_cntr) \
     ({                                                      \
         Zeta_SeqContainer const* seq_cntr_tmp = (seq_cntr); \

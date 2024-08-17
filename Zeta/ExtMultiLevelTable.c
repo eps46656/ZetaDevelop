@@ -482,14 +482,14 @@ void Zeta_ExtMultiLevelTable_EraseAll(void* mlt_) {
     mlt->root = NULL;
 }
 
-static size_t Check_(Zeta_DebugHashMap* dst_node, int level,
+static size_t Check_(Zeta_DebugHashTable* dst_node, int level,
                      size_t const* branch_nums,
                      Zeta_ExtMultiLevelTable_Node* node) {
     ZETA_DebugAssert(node->hot != 0);
 
     size_t branch_num = branch_nums[0];
 
-    *Zeta_DebugHashMap_Insert(dst_node, ZETA_PtrToAddr(node)).val =
+    *Zeta_DebugHashTable_Insert(dst_node, ZETA_PtrToAddr(node)).val =
         offsetof(Zeta_ExtMultiLevelTable_Node, ptrs[branch_num]);
 
     if (level == 1) {
@@ -514,7 +514,7 @@ static size_t Check_(Zeta_DebugHashMap* dst_node, int level,
     return size;
 }
 
-void Zeta_ExtMultiLevelTable_Check(void* mlt_, Zeta_DebugHashMap* dst_node) {
+void Zeta_ExtMultiLevelTable_Check(void* mlt_, Zeta_DebugHashTable* dst_node) {
     Zeta_ExtMultiLevelTable* mlt = mlt_;
     ZETA_DebugAssert(mlt != NULL);
 

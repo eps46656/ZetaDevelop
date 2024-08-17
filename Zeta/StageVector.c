@@ -58,27 +58,15 @@ static void InitTree_(Zeta_StageVector* sv, Zeta_BinTreeNodeOperator* btn_opr) {
 }
 
 static void* AllocateData_(Zeta_StageVector* sv) {
-    ZETA_DebugAssert(sv->data_allocator != NULL);
-    ZETA_DebugAssert(sv->data_allocator->Allocate != NULL);
-
-    void* data = sv->data_allocator->Allocate(
-        sv->data_allocator->context,
+    return ZETA_Allocator_SafeAllocate(
+        sv->data_allocator, 1,
         Zeta_StageVector_GetStride(sv) * sv->seg_capacity);
-
-    ZETA_DebugAssert(data != NULL);
-
-    return data;
 }
 
-static Zeta_StageVector_Seg* AllocateNode_(Zeta_StageVector* sv) {
-    ZETA_DebugAssert(sv->seg_allocator != NULL);
-    ZETA_DebugAssert(sv->seg_allocator->Allocate != NULL);
-
-    Zeta_StageVector_Seg* seg = sv->seg_allocator->Allocate(
-        sv->seg_allocator->context, sizeof(Zeta_StageVector_Seg));
-
-    ZETA_DebugAssert(seg != NULL);
-    ZETA_DebugAssert(__builtin_is_aligned(seg, alignof(Zeta_StageVector_Seg)));
+static void* AllocateSeg_(Zeta_StageVector* sv) {
+    Zeta_StageVector_Seg* seg = ZETA_Allocator_SafeAllocate(
+        sv->seg_allocator, alignof(Zeta_StageVector_Seg),
+        sizeof(Zeta_StageVector_Seg));
 
     Zeta_OrdCnt3RBTreeNode_Init(NULL, &seg->n);
 
@@ -86,7 +74,7 @@ static Zeta_StageVector_Seg* AllocateNode_(Zeta_StageVector* sv) {
 }
 
 static Zeta_StageVector_Seg* AllocateRefSeg_(Zeta_StageVector* sv) {
-    Zeta_StageVector_Seg* seg = AllocateNode_(sv);
+    Zeta_StageVector_Seg* seg = AllocateSeg_(sv);
 
     Zeta_OrdCnt3RBTreeNode_Init(NULL, &seg->n);
     Zeta_OrdCnt3RBTreeNode_SetAccSize(NULL, &seg->n, 0);
@@ -100,7 +88,7 @@ static Zeta_StageVector_Seg* AllocateRefSeg_(Zeta_StageVector* sv) {
 }
 
 static Zeta_StageVector_Seg* AllocateDatSeg_(Zeta_StageVector* sv) {
-    Zeta_StageVector_Seg* seg = AllocateNode_(sv);
+    Zeta_StageVector_Seg* seg = AllocateSeg_(sv);
 
     Zeta_OrdCnt3RBTreeNode_Init(NULL, &seg->n);
     Zeta_OrdCnt3RBTreeNode_SetAccSize(NULL, &seg->n, 0);
@@ -491,19 +479,13 @@ void Zeta_StageVector_Init(void* sv_) {
     Zeta_StageVector* sv = sv_;
     CheckSV_(sv);
 
-    Zeta_OrdCnt3RBTreeNode* lb = sv->seg_allocator->Allocate(
-        sv->seg_allocator->context, sizeof(Zeta_OrdCnt3RBTreeNode));
-    Zeta_OrdCnt3RBTreeNode* rb = sv->seg_allocator->Allocate(
-        sv->seg_allocator->context, sizeof(Zeta_OrdCnt3RBTreeNode));
+    sv->lb = ZETA_Allocator_SafeAllocate(sv->seg_allocator,
+                                         alignof(Zeta_OrdCnt3RBTreeNode),
+                                         sizeof(Zeta_OrdCnt3RBTreeNode));
 
-    ZETA_DebugAssert(lb != NULL);
-    ZETA_DebugAssert(rb != NULL);
-
-    ZETA_DebugAssert(__builtin_is_aligned(lb, alignof(Zeta_OrdCnt3RBTreeNode)));
-    ZETA_DebugAssert(__builtin_is_aligned(rb, alignof(Zeta_OrdCnt3RBTreeNode)));
-
-    sv->lb = lb;
-    sv->rb = rb;
+    sv->rb = ZETA_Allocator_SafeAllocate(sv->seg_allocator,
+                                         alignof(Zeta_OrdCnt3RBTreeNode),
+                                         sizeof(Zeta_OrdCnt3RBTreeNode));
 
     Zeta_BinTreeNodeOperator btn_opr;
     Zeta_OrdCnt3RBTreeNode_DeployBinTreeNodeOperator(NULL, &btn_opr);
@@ -2337,8 +2319,12 @@ void Zeta_StageVector_Check(void* sv_) {
     ZETA_DebugAssert(sv->seg_capacity <= ZETA_RangeMaxOf(unsigned short));
 
     ZETA_DebugAssert(sv->seg_allocator != NULL);
+    ZETA_DebugAssert(sv->seg_allocator->GetAlign != NULL);
     ZETA_DebugAssert(sv->seg_allocator->Allocate != NULL);
     ZETA_DebugAssert(sv->seg_allocator->Deallocate != NULL);
+    ZETA_DebugAssert(sv->seg_allocator->GetAlign(sv->seg_allocator->context) %
+                         alignof(Zeta_StageVector_Seg) ==
+                     0);
 
     ZETA_DebugAssert(sv->data_allocator != NULL);
     ZETA_DebugAssert(sv->data_allocator->Allocate != NULL);
@@ -2353,8 +2339,8 @@ struct SanitizeRet {
     size_t ref_end;
 };
 
-static SanitizeRet Sanitize_(Zeta_StageVector* sv, Zeta_AssocContainer* dst_seg,
-                             Zeta_AssocContainer* dst_data,
+static SanitizeRet Sanitize_(Zeta_StageVector* sv, Zeta_MemRecorder* dst_seg,
+                             Zeta_MemRecorder* dst_data,
                              Zeta_BinTreeNodeOperator* btn_opr, void* n) {
     size_t stride = Zeta_StageVector_GetStride(sv);
     size_t origin_size = sv->origin->GetSize(sv->origin->context);
@@ -2368,16 +2354,20 @@ static SanitizeRet Sanitize_(Zeta_StageVector* sv, Zeta_AssocContainer* dst_seg,
 
         ZETA_DebugAssert(Zeta_BinTree_GetSize(btn_opr, n) == 1);
 
-        Zeta_MemCheck_AddPtrSize(dst_seg, sv->lb,
-                                 sizeof(Zeta_OrdCnt3RBTreeNode));
+        if (dst_seg != NULL) {
+            Zeta_MemRecorder_Record(dst_seg, sv->lb,
+                                    sizeof(Zeta_OrdCnt3RBTreeNode));
+        }
     } else if (sv->rb == n) {
         ZETA_DebugAssert(l_n != NULL);
         ZETA_DebugAssert(r_n == NULL);
 
         ZETA_DebugAssert(Zeta_BinTree_GetSize(btn_opr, n) == 1);
 
-        Zeta_MemCheck_AddPtrSize(dst_seg, sv->rb,
-                                 sizeof(Zeta_OrdCnt3RBTreeNode));
+        if (dst_seg != NULL) {
+            Zeta_MemRecorder_Record(dst_seg, sv->rb,
+                                    sizeof(Zeta_OrdCnt3RBTreeNode));
+        }
     } else if (GetNColor_(n) == ref_color) {
         ZETA_DebugAssert(l_n != NULL);
         ZETA_DebugAssert(r_n != NULL);
@@ -2385,9 +2375,11 @@ static SanitizeRet Sanitize_(Zeta_StageVector* sv, Zeta_AssocContainer* dst_seg,
         Zeta_StageVector_Seg* seg =
             ZETA_MemberToStruct(Zeta_StageVector_Seg, n, n);
 
-        Zeta_MemCheck_AddPtrSize(dst_seg, seg, sizeof(Zeta_StageVector_Seg))
+        if (dst_seg != NULL) {
+            Zeta_MemRecorder_Record(dst_seg, seg, sizeof(Zeta_StageVector_Seg));
+        }
 
-            ZETA_DebugAssert(0 < seg->ref.size);
+        ZETA_DebugAssert(0 < seg->ref.size);
 
         ZETA_DebugAssert(seg->ref.beg < origin_size);
         ZETA_DebugAssert(seg->ref.beg + seg->ref.size <= origin_size);
@@ -2423,7 +2415,9 @@ static SanitizeRet Sanitize_(Zeta_StageVector* sv, Zeta_AssocContainer* dst_seg,
         Zeta_StageVector_Seg* seg =
             ZETA_MemberToStruct(Zeta_StageVector_Seg, n, n);
 
-        Zeta_MemCheck_AddPtrSize(dst_seg, seg, sizeof(Zeta_StageVector_Seg));
+        if (dst_seg != NULL) {
+            Zeta_MemRecorder_Record(dst_seg, seg, sizeof(Zeta_StageVector_Seg));
+        }
 
         size_t size = seg->dat.size;
 
@@ -2433,8 +2427,10 @@ static SanitizeRet Sanitize_(Zeta_StageVector* sv, Zeta_AssocContainer* dst_seg,
         ZETA_DebugAssert(size <= sv->seg_capacity);
         ZETA_DebugAssert(seg->dat.offset < sv->seg_capacity);
 
-        Zeta_MemCheck_AddPtrSize(dst_data, seg->dat.data,
-                                 stride * sv->seg_capacity);
+        if (dst_data != NULL) {
+            Zeta_MemRecorder_Record(dst_data, seg->dat.data,
+                                    stride * sv->seg_capacity);
+        }
 
         size_t l_vacant;
         size_t r_vacant;
@@ -2519,8 +2515,8 @@ static SanitizeRet Sanitize_(Zeta_StageVector* sv, Zeta_AssocContainer* dst_seg,
     return ret;
 }
 
-void Zeta_StageVector_Sanitize(void* sv_, Zeta_DebugHashMap* dst_seg,
-                               Zeta_DebugHashMap* dst_data) {
+void Zeta_StageVector_Sanitize(void* sv_, Zeta_MemRecorder* dst_seg,
+                               Zeta_MemRecorder* dst_data) {
     Zeta_StageVector* sv = sv_;
     CheckSV_(sv);
 

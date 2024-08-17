@@ -3,16 +3,26 @@
 #include <unordered_map>
 
 #include "../Zeta/Allocator.h"
-#include "../Zeta/DebugHashMap.h"
+#include "../Zeta/DebugHashTable.h"
+#include "../Zeta/Debugger.h"
+#include "../Zeta/MemCheck.h"
 
 struct StdAllocator {
-    std::unordered_map<unsigned long long, unsigned long long> records;
+    Zeta_MemRecorder* mem_recorder;
+
     size_t usage;
 
     size_t buffered_size_{ 0 };
     size_t max_buffered_ptrs_num_{ 0 };
     std::vector<void*> buffered_ptrs_;
+
+    StdAllocator();
+    ~StdAllocator();
 };
+
+StdAllocator::StdAllocator() { this->mem_recorder = Zeta_MemRecorder_Create(); }
+
+StdAllocator::~StdAllocator() { Zeta_MemRecorder_Destroy(this->mem_recorder); }
 
 size_t StdAllocator_GetAlign(void* sa_) {
     ZETA_Unused(sa_);
@@ -33,8 +43,7 @@ void* StdAllocator_Allocate(void* sa_, size_t size) {
     void* ptr = std::malloc(size);
 
 #if ZETA_IsDebug
-    bool_t b{ sa->records.insert({ ZETA_PtrToAddr(ptr), size }).second };
-    ZETA_DebugAssert(b);
+    Zeta_MemRecorder_Record(sa->mem_recorder, ptr, size);
     sa->usage += size;
 #endif
 
@@ -48,10 +57,7 @@ void StdAllocator_Deallocate(void* sa_, void* ptr) {
     if (ptr == NULL) { return; }
 
 #if ZETA_IsDebug
-    auto iter{ sa->records.find(ZETA_PtrToAddr(ptr)) };
-    ZETA_DebugAssert(iter != sa->records.end());
-    sa->usage -= iter->second;
-    sa->records.erase(iter);
+    Zeta_MemRecorder_Unrecord(sa->mem_recorder, ptr);
 #endif
 
     std::free(ptr);

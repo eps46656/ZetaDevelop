@@ -1,31 +1,22 @@
 #pragma once
 
-#include "BinTree.h"
+#include "define.h"
 
 ZETA_ExternC_Beg;
 
-ZETA_DeclareStruct(Zeta_BinHeap);
+void Zeta_BinHeap_Construct(void* data, size_t width, size_t stride,
+                            size_t size, void* cmp_context,
+                            int (*Compare)(void* cmp_context, void const* x,
+                                           void const* y));
 
-struct Zeta_BinHeap {
-    size_t size;
+void Zeta_BinHeap_Push(void* data, size_t width, size_t stride, size_t size,
+                       void const* src_ele, void* cmp_context,
+                       int (*Compare)(void* cmp_context, void const* x,
+                                      void const* y));
 
-    void* root;
-
-    Zeta_BinTreeNodeOperator* btn_opr;
-};
-
-void Zeta_BinHeap_Init(void* bh);
-
-size_t Zeta_BinHeap_GetSize(void* bh);
-
-void* Zeta_BinHeap_Access(void* bh, size_t idx);
-
-void Zeta_BinHeap_Insert(void* bh, void* n);
-
-void* Zeta_BinHeap_Extract(void* bh, void* n);
-
-void Zeta_BinHeap_UpdateRoot(void* bh);
-
-void Zeta_BinHeap_Check(void* bh);
+void Zeta_BinHeap_Pop(void* data, size_t width, size_t stride, size_t size,
+                      void* dst_ele, void* cmp_context,
+                      int (*Compare)(void* cmp_context, void const* x,
+                                     void const* y));
 
 ZETA_ExternC_End;

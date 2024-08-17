@@ -2,7 +2,7 @@
 #include <map>
 #include <random>
 
-#include "../Zeta/DebugHashMap.h"
+#include "../Zeta/DebugHashTable.h"
 #include "../Zeta/Debugger.h"
 #include "../Zeta/TreeAllocator.h"
 #include "MemAllocatorCheck.h"
@@ -87,8 +87,8 @@ void MyFree(void* ptr) {
 }
 
 void CheckAllocator(bool_t print_state) {
-    Zeta_DebugHashMap records;
-    Zeta_DebugHashMap_Init(&records);
+    Zeta_DebugHashTable records;
+    Zeta_DebugHashTable_Init(&records);
 
     std::unordered_map<unsigned long long, unsigned long long>&
         records_hash_map = *static_cast<
@@ -172,7 +172,7 @@ void main1() {
 
     // Zeta_TreeAllocator_Check(&allocator, 1, ptr_size_hm);
 
-    // DebugHashMap_Print(ptr_size_hm);
+    // _Print(ptr_size_hm);
 }
 
 int main() {

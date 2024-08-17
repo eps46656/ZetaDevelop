@@ -172,11 +172,10 @@ class Builder:
             callback = self.callbacks[unit]
 
             if callback is not None:
-                rc = callback()
-                assert rc == 0, f"error happened when building {unit}"
+                callback()
 
             assert os.path.exists(unit), \
-                   f"unit {unit} does not exist after built"
+                f"unit {unit} does not exist after built"
 
             built.append(unit)
 

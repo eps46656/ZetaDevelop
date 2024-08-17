@@ -164,11 +164,11 @@ void Check() {
         ZETA_DebugAssert(MLV_GetVal(i) == x);
     }
 
-    Zeta_DebugHashMap node_records;
-    Zeta_DebugHashMap table_records;
+    Zeta_DebugHashTable node_records;
+    Zeta_DebugHashTable table_records;
 
-    Zeta_DebugHashMap_Init(&node_records);
-    Zeta_DebugHashMap_Init(&table_records);
+    Zeta_DebugHashTable_Init(&node_records);
+    Zeta_DebugHashTable_Init(&table_records);
 
     Zeta_MultiLevelTable_Check(&mlv, &node_records);
 
@@ -179,8 +179,8 @@ void Check() {
     // StdAllocator_CheckRecords(&mlv_node_allocator_, &node_records);
     // StdAllocator_CheckRecords(&mlv_table_allocator_, &table_records);
 
-    Zeta_DebugHashMap_Deinit(&node_records);
-    Zeta_DebugHashMap_Deinit(&table_records);
+    Zeta_DebugHashTable_Deinit(&node_records);
+    Zeta_DebugHashTable_Deinit(&table_records);
 }
 
 void main1() {

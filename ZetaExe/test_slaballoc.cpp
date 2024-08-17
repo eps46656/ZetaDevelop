@@ -2,7 +2,7 @@
 #include <map>
 #include <random>
 
-#include "../Zeta/DebugHashMap.h"
+#include "../Zeta/DebugHashTable.h"
 #include "../Zeta/SlabAllocator.h"
 #include "MemAllocatorCheck.h"
 #include "StdAllocator.h"
@@ -18,22 +18,22 @@ Zeta_Allocator allocator;
 std::vector<void*> ptrs;
 
 void Check() {
-    Zeta_DebugHashMap used_records;
-    Zeta_DebugHashMap released_records;
+    Zeta_DebugHashTable used_records;
+    Zeta_DebugHashTable released_records;
 
-    Zeta_DebugHashMap_Init(&used_records);
-    Zeta_DebugHashMap_Init(&released_records);
+    Zeta_DebugHashTable_Init(&used_records);
+    Zeta_DebugHashTable_Init(&released_records);
 
     Zeta_SlabAllocator_Check(&allocator_, &used_records, &released_records);
 
     for (auto iter{ ptrs.begin() }, end{ ptrs.end() }; iter != end; ++iter) {
         bool_t b =
-            Zeta_DebugHashMap_Erase(&released_records, ZETA_PtrToAddr(*iter));
+            Zeta_DebugHashTable_Erase(&released_records, ZETA_PtrToAddr(*iter));
 
         ZETA_DebugAssert(b);
     }
 
-    ZETA_DebugAssert(Zeta_DebugHashMap_GetSize(&released_records) == 0);
+    ZETA_DebugAssert(Zeta_DebugHashTable_GetSize(&released_records) == 0);
 
     CheckFullContains(std_allocator_.records,
                       *(std::map<size_t, size_t>*)used_records.tree_map);

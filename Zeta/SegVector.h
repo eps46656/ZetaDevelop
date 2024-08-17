@@ -1,7 +1,7 @@
 #pragma once
 
 #include "Allocator.h"
-#include "DebugHashMap.h"
+#include "DebugHashTable.h"
 #include "OrdCntRBTreeNode.h"
 #include "SeqContainer.h"
 
@@ -100,8 +100,8 @@ void Zeta_SegVector_Erase(void* sv, void* pos_cursor, size_t cnt);
 
 void Zeta_SegVector_EraseAll(void* sv);
 
-void Zeta_SegVector_Check(void* sv, Zeta_DebugHashMap* dst_node_hm,
-                          Zeta_DebugHashMap* dst_seg_hm);
+void Zeta_SegVector_Check(void* sv, Zeta_DebugHashTable* dst_node_hm,
+                          Zeta_DebugHashTable* dst_seg_hm);
 
 bool_t Zeta_SegVector_Cursor_IsEqual(void* sv, void const* cursor_a,
                                      void const* cursor_b);

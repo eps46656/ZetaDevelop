@@ -825,8 +825,6 @@ void Zeta_CircularArray_DeploySeqContainer(void* ca_,
 
     seq_cntr->context = ca;
 
-    seq_cntr->cursor_align = alignof(Zeta_CircularArray_Cursor);
-
     seq_cntr->cursor_size = sizeof(Zeta_CircularArray_Cursor);
 
     seq_cntr->GetStride = Zeta_CircularArray_GetStride;

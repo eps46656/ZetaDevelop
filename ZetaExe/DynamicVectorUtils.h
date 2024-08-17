@@ -3,6 +3,7 @@
 #include <cstdlib>
 
 #include "../Zeta/DynamicVector.h"
+#include "../Zeta/MemCheck.h"
 #include "MemAllocatorCheck.h"
 #include "StdAllocator.h"
 
@@ -83,21 +84,20 @@ void SanitizeDynamicVector(Zeta_SeqContainer const* seq_cntr) {
     DynamicVectorPack* pack{ ZETA_MemberToStruct(DynamicVectorPack, dynamic_vec,
                                                  seq_cntr->context) };
 
-    Zeta_DebugHashMap data_hm;
-    Zeta_DebugHashMap seg_hm;
-
-    Zeta_DebugHashMap_Init(&data_hm);
-    Zeta_DebugHashMap_Init(&seg_hm);
+    Zeta_MemRecorder* data = Zeta_MemRecorder_Create();
+    Zeta_MemRecorder* seg = Zeta_MemRecorder_Create();
 
     Zeta_DynamicVector_Sanitize(
-        const_cast<void*>(static_cast<void const*>(&pack->dynamic_vec)),
-        &data_hm, &seg_hm);
+        const_cast<void*>(static_cast<void const*>(&pack->dynamic_vec)), data,
+        seg);
 
-    using record_t = std::unordered_map<unsigned long long, unsigned long long>;
+    // CheckRecords(pack->data_allocator_.records,
+    // *(record_t*)data_hm.hash_map); CheckRecords(pack->seg_allocator_.records,
+    // *(record_t*)seg_hm.hash_map);
 
-    CheckRecords(pack->data_allocator_.records, *(record_t*)data_hm.hash_map);
-    CheckRecords(pack->seg_allocator_.records, *(record_t*)seg_hm.hash_map);
+    Zeta_MemCheck_MatchRecords(pack->data_allocator_.mem_recorder, data);
+    Zeta_MemCheck_MatchRecords(pack->seg_allocator_.mem_recorder, seg);
 
-    Zeta_DebugHashMap_Deinit(&data_hm);
-    Zeta_DebugHashMap_Deinit(&seg_hm);
+    Zeta_MemRecorder_Destroy(data);
+    Zeta_MemRecorder_Destroy(seg);
 }

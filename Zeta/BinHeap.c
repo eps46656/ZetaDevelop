@@ -1,139 +1,122 @@
 #include "BinHeap.h"
 
+#include "Debugger.h"
 #include "utils.h"
 
-void Zeta_BinHeap_Init(void* bh_) {
-    Zeta_BinHeap* bh = bh_;
-    ZETA_DebugAssert(bh != NULL);
+void Zeta_BinHeap_Construct(void* data_, size_t width, size_t stride,
+                            size_t size, void* cmp_context,
+                            int (*Compare)(void* cmp_context, void const* x,
+                                           void const* y)) {
+    unsigned char* data = data_;
+    ZETA_DebugAssert(data != NULL);
 
-    bh->size = 0;
-    bh->root = NULL;
+    ZETA_DebugAssert(0 < width);
+    ZETA_DebugAssert(width <= stride);
 
-    ZETA_DebugAssert(bh->btn_opr);
-}
+    for (size_t i = size; 0 <= --i;) {
+        size_t n_i = i;
 
-size_t Zeta_BinHeap_GetSize(void* bh_) {
-    Zeta_BinHeap* bh = bh_;
-    ZETA_DebugAssert(bh != NULL);
+        for (;;) {
+            size_t l_i = n_i * 2 + 1;
 
-    return bh->size;
-}
+            if (size <= l_i) { break; }
 
-void* Zeta_BinHeap_Access(void* bh_, size_t idx) {
-    Zeta_BinHeap* bh = bh_;
-    ZETA_DebugAssert(bh != NULL);
+            void* n_ref = data + stride * n_i;
 
-    ZETA_DebugAssert(idx < bh->size);
+            void* min = n_ref;
 
-    void* context = bh->btn_opr->context;
-    void* (*GetL)(void* context, void* n) = bh->btn_opr->GetL;
-    void* (*GetR)(void* context, void* n) = bh->btn_opr->GetR;
+            void* l_ref = data + stride * l_i;
 
-    void* n = bh->root;
+            if (Compare(cmp_context, l_ref, min) < 0) { min = l_ref; }
 
-    for (size_t k = idx + 1; 1 < k; k /= 2) {
-        ZETA_DebugAssert(n != NULL);
+            size_t r_i = n_i * 2 + 2;
 
-        if (k % 2 == 0) {
-            n = GetL(context, n);
-        } else {
-            n = GetR(context, n);
+            if (size <= r_i) { break; }
+
+            void* r_ref = data + stride * r_i;
+
+            if (Compare(cmp_context, r_ref, min) < 0) { min = r_ref; }
+
+            if (n_ref == min) { break; }
+
+            Zeta_MemSwap(n_ref, min, width);
+
+            n_i = min == l_ref ? l_i : r_i;
         }
     }
-
-    ZETA_DebugAssert(n != NULL);
-
-    return n;
 }
 
-void Zeta_BinHeap_Insert(void* bh_, void* n) {
-    Zeta_BinHeap* bh = bh_;
-    ZETA_DebugAssert(bh != NULL);
+void Zeta_BinHeap_Push(void* data_, size_t width, size_t stride, size_t size,
+                       void const* src_ele, void* cmp_context,
+                       int (*Compare)(void* cmp_context, void const* x,
+                                      void const* y)) {
+    unsigned char* data = data_;
+    ZETA_DebugAssert(data != NULL);
 
-    ZETA_DebugAssert(n != NULL);
+    ZETA_DebugAssert(0 < width);
+    ZETA_DebugAssert(width <= stride);
 
-    if (bh->size == 0) {
-        bh->size = 1;
-        bh->root = n;
+    if (size == 0) {
+        Zeta_MemCopy(data, src_ele, width);
         return;
     }
 
-    void* context = bh->btn_opr->context;
-    void* (*GetL)(void* context, void* n) = bh->btn_opr->GetL;
-    void* (*GetR)(void* context, void* n) = bh->btn_opr->GetR;
+    size_t n_i = size;
 
-    void* pos = bh->root;
+    while (0 < n_i) {
+        size_t p_i = (n_i - 1) / 2;
 
-    size_t k = bh->size + 1;
+        void* p_ref = data + stride * p_i;
 
-    for (; 4 <= k; k = k / 2) {
-        ZETA_DebugAssert(pos != NULL);
+        if (Compare(cmp_context, p_ref, src_ele) <= 0) { break; }
 
-        if (k % 2 == 0) {
-            pos = GetL(context, pos);
-        } else {
-            pos = GetR(context, pos);
-        }
+        Zeta_MemCopy(data + stride * n_i, p_ref, width);
+
+        n_i = p_i;
     }
 
-    ZETA_DebugAssert(pos != NULL);
+    Zeta_MemCopy(data + stride * n_i, src_ele, width);
+}
 
-    ++bh->size;
+void Zeta_BinHeap_Pop(void* data_, size_t width, size_t stride, size_t size,
+                      void* dst_ele, void* cmp_context,
+                      int (*Compare)(void* cmp_context, void const* x,
+                                     void const* y)) {
+    unsigned char* data = data_;
+    ZETA_DebugAssert(data != NULL);
 
-    if (k == 2) {
-        Zeta_BinTree_AttatchL(bh->btn_opr, pos, n);
-    } else {
-        Zeta_BinTree_AttatchR(bh->btn_opr, pos, n);
+    ZETA_DebugAssert(0 < width);
+    ZETA_DebugAssert(width <= stride);
+
+    if (size <= 1) { return; }
+
+    if (dst_ele != NULL) { Zeta_MemCopy(dst_ele, data, width); }
+
+    void* last_ref = data + stride * (size - 1);
+
+    size_t n_i = 0;
+
+    for (;;) {
+        size_t l_i = n_i * 2 + 1;
+
+        if (size <= l_i) { break; }
+
+        void* l_ref = data + stride * l_i;
+
+        size_t r_i = n_i * 2 + 2;
+
+        void* r_ref = data + stride * r_i;
+
+        void* min = r_i < size && Compare(cmp_context, r_ref, l_ref) <= 0
+                        ? r_ref
+                        : l_ref;
+
+        if (Compare(cmp_context, last_ref, min) <= 0) { break; }
+
+        Zeta_MemSwap(data + stride * n_i, min, width);
+
+        n_i = min == l_ref ? l_i : r_i;
     }
-}
 
-void* Zeta_BinHeap_Extract(void* bh_, void* n) {
-    Zeta_BinHeap* bh = bh_;
-    ZETA_DebugAssert(bh != NULL);
-
-    ZETA_DebugAssert(n != NULL);
-
-    ZETA_DebugAssert(bh->root == Zeta_GetMostLink(bh->btn_opr->context,
-                                                  bh->btn_opr->GetP, n));
-
-    void* m = Zeta_BinHeap_Access(bh, bh->size - 1);
-
-    --bh->size;
-
-    if (n != m) { Zeta_BinTree_Swap(bh->btn_opr, n, m); }
-
-    Zeta_BinTree_Detach(bh->btn_opr, n);
-
-    if (n == m) { m = NULL; }
-    if (bh->root == n) { bh->root = m; }
-
-    return m;
-}
-
-void Zeta_BinHeap_UpdateRoot(void* bh_) {
-    Zeta_BinHeap* bh = bh_;
-    ZETA_DebugAssert(bh != NULL);
-
-    bh->root =
-        Zeta_GetMostLink(bh->btn_opr->context, bh->btn_opr->GetP, bh->root);
-}
-
-static void Check_(size_t size, void* n, Zeta_BinTreeNodeOperator* btn_opr) {
-    ZETA_DebugAssert((size == 0) == (n == NULL));
-
-    if (size == 0) { return; }
-
-    void* context = btn_opr->context;
-    void* (*GetL)(void* context, void* n) = btn_opr->GetL;
-    void* (*GetR)(void* context, void* n) = btn_opr->GetR;
-
-    Check_(size / 2, GetL(context, n), btn_opr);
-    Check_((size - 1) / 2, GetR(context, n), btn_opr);
-}
-
-void Zeta_BinHeap_Check(void* bh_) {
-    Zeta_BinHeap* bh = bh_;
-    ZETA_DebugAssert(bh != NULL);
-
-    Check_(bh->size, bh->root, bh->btn_opr);
+    Zeta_MemSwap(data + stride * n_i, last_ref, width);
 }

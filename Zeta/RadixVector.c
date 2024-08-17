@@ -785,31 +785,34 @@ void Zeta_RadixVector_Check(void* rv_) {
     ZETA_DebugAssert(size_acc == size + last_seg_r_vacant);
 }
 
-static void CheckTree_(Zeta_RadixVector* rv, Zeta_DebugHashMap* dst_node_hm,
-                       Zeta_DebugHashMap* dst_seg_hm, void* n,
-                       unsigned order_i) {
+static void CheckTree_(Zeta_RadixVector* rv, Zeta_MemRecorder* dst_node,
+                       Zeta_MemRecorder* dst_seg, void* n, unsigned order_i) {
     ZETA_DebugAssert(n != NULL);
 
     if (order_i == 0) {
-        Zeta_MemCheck_AddPtrSize(dst_seg_hm, n, rv->stride * rv->seg_capacity);
+        if (dst_seg != NULL) {
+            Zeta_MemRecorder_Record(dst_seg, n, rv->stride * rv->seg_capacity);
+        }
+
         return;
     }
 
-    Zeta_MemCheck_AddPtrSize(dst_node_hm, n, sizeof(void*) * rv->branch_num);
+    if (dst_node != NULL) {
+        Zeta_MemRecorder_Record(dst_node, n, sizeof(void*) * rv->branch_num);
+    }
 
     for (unsigned child_i = 0; child_i < rv->branch_num; ++child_i) {
-        CheckTree_(rv, dst_node_hm, dst_seg_hm, ((void**)n)[child_i],
-                   order_i - 1);
+        CheckTree_(rv, dst_node, dst_seg, ((void**)n)[child_i], order_i - 1);
     }
 }
 
-void Zeta_RadixVector_Sanitize(void* rv_, Zeta_DebugHashMap* dst_node_hm,
-                               Zeta_DebugHashMap* dst_seg_hm) {
+void Zeta_RadixVector_Sanitize(void* rv_, Zeta_MemRecorder* dst_node,
+                               Zeta_MemRecorder* dst_seg) {
     Zeta_RadixVector* rv = rv_;
     CheckRV_(rv);
 
-    ZETA_DebugAssert(dst_node_hm != NULL);
-    ZETA_DebugAssert(dst_seg_hm != NULL);
+    ZETA_DebugAssert(dst_node != NULL);
+    ZETA_DebugAssert(dst_seg != NULL);
 
     size_t branch_num = rv->branch_num;
     unsigned order = rv->order;
@@ -818,10 +821,12 @@ void Zeta_RadixVector_Sanitize(void* rv_, Zeta_DebugHashMap* dst_node_hm,
         ZETA_DebugAssert(rv->roots[order_i] != NULL);
         ZETA_DebugAssert(rv->redundant_roots[order_i] != NULL);
 
-        Zeta_MemCheck_AddPtrSize(dst_node_hm, rv->roots[order_i],
-                                 sizeof(void*) * branch_num);
-        Zeta_MemCheck_AddPtrSize(dst_node_hm, rv->redundant_roots[order_i],
-                                 sizeof(void*) * branch_num);
+        if (dst_node != NULL) {
+            Zeta_MemRecorder_Record(dst_node, rv->roots[order_i],
+                                    sizeof(void*) * branch_num);
+            Zeta_MemRecorder_Record(dst_node, rv->redundant_roots[order_i],
+                                    sizeof(void*) * branch_num);
+        }
     }
 
     for (unsigned order_i = 0; order_i <= order; ++order_i) {
@@ -829,12 +834,12 @@ void Zeta_RadixVector_Sanitize(void* rv_, Zeta_DebugHashMap* dst_node_hm,
         unsigned cnt_b = rv->roots_cnt[order_i] - cnt_a;
 
         for (unsigned root_i = 0; root_i < cnt_a; ++root_i) {
-            CheckTree_(rv, dst_node_hm, dst_seg_hm, rv->roots[order_i][root_i],
+            CheckTree_(rv, dst_node, dst_seg, rv->roots[order_i][root_i],
                        order_i);
         }
 
         for (unsigned root_i = 0; root_i < cnt_b; ++root_i) {
-            CheckTree_(rv, dst_node_hm, dst_seg_hm,
+            CheckTree_(rv, dst_node, dst_seg,
                        rv->redundant_roots[order_i][root_i], order_i);
         }
     }
@@ -954,8 +959,6 @@ void Zeta_RadixVector_DeploySeqContainer(void* rv_,
     Zeta_SeqContainer_Init(seq_cntr);
 
     seq_cntr->context = rv;
-
-    seq_cntr->cursor_align = alignof(Zeta_RadixVector_Cursor);
 
     seq_cntr->cursor_size = sizeof(Zeta_RadixVector_Cursor);
 
