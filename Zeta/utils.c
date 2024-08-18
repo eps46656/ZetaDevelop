@@ -2,6 +2,8 @@
 
 #include "Debugger.h"
 
+void Zeta_HelloWorld() { printf("Hello World.\n"); }
+
 void Zeta_MemCopy(void* dst, void const* src, size_t size) {
     if (dst == src) { return; }
 

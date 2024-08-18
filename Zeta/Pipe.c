@@ -1,5 +1,7 @@
 #include "Pipe.h"
 
+#include "Debugger.h"
+
 void Zeta_PipeTransfer(Zeta_Pipe* dst, Zeta_Pipe* src) {
     ZETA_DebugAssert(dst != NULL);
     ZETA_DebugAssert(src != NULL);
@@ -7,8 +9,8 @@ void Zeta_PipeTransfer(Zeta_Pipe* dst, Zeta_Pipe* src) {
     void* src_context = src->context;
 
     bool_t (*SrcIsEmpty)(void* context) = src->IsEmpty;
-    void const* (*SrcPeek)(void* context) = src->Peek;
-    void (*SrcRead)(void* context) = src->Read;
+    void (*SrcPeek)(void* context, size_t cnt, void* dst) = src->Peek;
+    void (*SrcRead)(void* context, size_t cnt, void* dst) = src->Read;
 
     ZETA_DebugAssert(SrcIsEmpty != NULL);
     ZETA_DebugAssert(SrcPeek != NULL);

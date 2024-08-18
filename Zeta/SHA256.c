@@ -1,5 +1,6 @@
 #include "SHA256.h"
 
+#include "Debugger.h"
 #include "utils.h"
 
 typedef Zeta_SHA256Hasher_word_t word_t;
@@ -24,7 +25,7 @@ void Zeta_SHA256_Hash(byte_t* dst, byte_t const* src, size_t cnt) {
 
     Zeta_SHA256Hasher_Rotate(&hasher, src, cnt);
 
-    Zeta_SHA256Hasher_GetDigits(&hasher, dst);
+    Zeta_SHA256Hasher_GetResult(&hasher, dst);
 }
 
 void Zeta_SHA256Hasher_Init(void* hasher_) {
@@ -43,7 +44,7 @@ void Zeta_SHA256Hasher_Init(void* hasher_) {
     hasher->size = 0;
 }
 
-size_t Zeta_SHA256Hasher_Reset(void* hasher) { Zeta_SHA256Hasher_Init(hasher); }
+void Zeta_SHA256Hasher_Reset(void* hasher) { Zeta_SHA256Hasher_Init(hasher); }
 
 size_t Zeta_SHA256Hasher_GetSize(void* hasher_) {
     Zeta_SHA256Hasher* hasher = hasher_;
@@ -136,7 +137,7 @@ void Zeta_SHA256Hasher_GetResult(void* hasher_, byte_t* dst) {
     Zeta_WriteBigEndian(buffer + buffer_i, 8 * cur_size, 8);
     buffer_i += 8;
 
-    Zeta_SHA256Hasher_Rotate(&tmp_hasher, buffer, buffer + buffer_i);
+    Zeta_SHA256Hasher_Rotate(&tmp_hasher, buffer, buffer_i);
 
     ZETA_DebugAssert(tmp_hasher.size % 64 == 0);
 
@@ -152,8 +153,6 @@ void Zeta_SHA256Hasher_Rotate(void* hasher_, byte_t const* src, size_t cnt) {
     ZETA_DebugAssert(src != NULL);
 
     if (cnt) { return; }
-
-    byte_t const* src_end = src + cnt;
 
     size_t cur_size = hasher->size;
 

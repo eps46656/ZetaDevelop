@@ -94,20 +94,19 @@ class Compiler:
         self.c_include_dirs = config.__dict__.get("c_include_dirs", [])
         self.cpp_include_dirs = config.__dict__.get("cpp_include_dirs", [])
 
+        print(f"{self.c_include_dirs=}")
+
         self.include_dirs = {}
 
         clang_triple = GetClangTriple(self.target)
-
-        include_dirs = [
-            # ToPath("C:\Program Files\llvm-mingw-20231003-msvcrt-x86_64\include")
-        ]
 
         self.c_to_obj_args = [
             f"-v" if self.verbose else "",
             # f"-target {clang_triple}",
             f"-m64",
             # f"-std=c2x",
-            *(f"-I {include_dir}" for include_dir in include_dirs),
+            *(f"--include-directory={include_dir}"
+              for include_dir in self.c_include_dirs),
             "-ferror-limit=2",
         ]
 
@@ -116,7 +115,8 @@ class Compiler:
             # f"-target {clang_triple}",
             f"-m64",
             # f"-std=c++17",
-            *(f"-I {include_dir}" for include_dir in include_dirs),
+            *(f"--include-directory={include_dir}"
+              for include_dir in self.cpp_include_dirs),
             "-ferror-limit=2",
         ]
 
@@ -208,8 +208,8 @@ class Compiler:
                 "--trace-includes",
                 "-fshow-skipped-includes",
                 "-fsyntax-only",
-                [["--include-directory", include_dir]
-                for include_dir in self.include_dirs],
+                *(["--include-directory", include_dir]
+                  for include_dir in self.include_dirs),
                 src,
             ),
             check=True,
@@ -293,7 +293,7 @@ class Compiler:
             self.to_exe_command,
             "-o", dst,
             self.to_exe_args,
-            [src for src in FilterNotNone(srcs)],
+            *(src for src in FilterNotNone(srcs)),
         )
 
         ShowCommand(cmd)

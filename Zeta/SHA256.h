@@ -79,7 +79,6 @@ void Zeta_SHA256Hasher_GetResult(void* hasher, byte_t* dst);
  * @param data The target data.
  * @param data_end The end of the target data.
  */
-void Zeta_SHA256Hasher_Rotate(void* hasher, byte_t const* data,
-                              byte_t const* data_end);
+void Zeta_SHA256Hasher_Rotate(void* hasher, byte_t const* data, size_t cnt);
 
 ZETA_ExternC_End;

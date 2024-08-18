@@ -1,5 +1,6 @@
 #include "DummyBlockVector.h"
 
+#include "Debugger.h"
 #include "utils.h"
 
 void Zeta_DummyBlockVector_Init(void* dbv_) {

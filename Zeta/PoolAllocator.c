@@ -1,5 +1,7 @@
 #include "PoolAllocator.h"
 
+#include "Debugger.h"
+
 void Zeta_PoolAllocator_Init(void* pa_) {
     Zeta_PoolAllocator* pa = pa_;
     ZETA_DebugAssert(pa_ != NULL);

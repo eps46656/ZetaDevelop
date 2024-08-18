@@ -1,5 +1,7 @@
 #include "SegList.h"
 
+#include "Debugger.h"
+
 void Zeta_SegList_Init(void* sl_) {
     Zeta_SegList* sl = (Zeta_SegList*)sl_;
     ZETA_DebugAssert(sl != NULL);

@@ -57,7 +57,7 @@ void StdAllocator_Deallocate(void* sa_, void* ptr) {
     if (ptr == NULL) { return; }
 
 #if ZETA_IsDebug
-    Zeta_MemRecorder_Unrecord(sa->mem_recorder, ptr);
+    ZETA_DebugAssert(Zeta_MemRecorder_Unrecord(sa->mem_recorder, ptr));
 #endif
 
     std::free(ptr);

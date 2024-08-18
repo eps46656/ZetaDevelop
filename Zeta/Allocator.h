@@ -1,6 +1,6 @@
 #pragma once
 
-#include "DebugHashTable.h"
+#include "MemCheck.h"
 
 ZETA_ExternC_Beg;
 
@@ -17,13 +17,10 @@ struct Zeta_Allocator {
 
     void (*Deallocate)(void* context, void* ptr);
 
-    Zeta_DebugHashTable* (*GetRecords)(void* context);
+    Zeta_MemRecorder* (*GetRecords)(void* context);
 };
 
 void Zeta_Allocator_Init(void* allocator);
-
-void Zeta_Allocator_MatchRecords(Zeta_DebugHashTable* src_records,
-                                 Zeta_DebugHashTable* dst_records);
 
 #define ZETA_Allocator_SafeAllocate_(tmp_ret, tmp_allocator, tmp_align,    \
                                      tmp_size, allocator, align, size)     \

@@ -1,12 +1,13 @@
 #include "DummyCacheManager.h"
 
+#include "Debugger.h"
+
 void Zeta_DummyCacheManager_Init(void* dcm_) {
     Zeta_DummyCacheManager* dcm = dcm_;
     ZETA_DebugAssert(dcm != NULL);
 
     ZETA_DebugAssert(dcm->blk_vec != NULL);
     ZETA_DebugAssert(dcm->blk_vec->GetBlockSize != NULL);
-    ZETA_DebugAssert(dcm->blk_vec->GetBlockNum != NULL);
     ZETA_DebugAssert(dcm->blk_vec->ReadBlock != NULL);
     ZETA_DebugAssert(dcm->blk_vec->WriteBlock != NULL);
 
@@ -74,6 +75,7 @@ void Zeta_DummyCacheManager_FlushBlock(void* dcm_, size_t blk_num) {
     ZETA_DebugAssert(dcm != NULL);
 
     ZETA_Unused(dcm);
+    ZETA_Unused(blk_num);
 
     ZETA_DebugAssert(dcm->blk_vec != NULL);
 }

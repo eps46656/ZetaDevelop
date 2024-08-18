@@ -6,8 +6,8 @@ void Zeta_BlockVector_Init(void* bv_) {
     bv->context = NULL;
 
     bv->GetBlockSize = NULL;
-    bv->GetBlockNum = NULL;
 
     bv->ReadBlock = NULL;
+
     bv->WriteBlock = NULL;
 }

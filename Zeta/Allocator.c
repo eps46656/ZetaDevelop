@@ -1,5 +1,7 @@
 #include "Allocator.h"
 
+#include "Debugger.h"
+
 void Zeta_Allocator_Init(void* allocator_) {
     Zeta_Allocator* allocator = allocator_;
     ZETA_DebugAssert(allocator != NULL);
@@ -15,9 +17,4 @@ void Zeta_Allocator_Init(void* allocator_) {
     allocator->Deallocate = NULL;
 
     allocator->GetRecords = NULL;
-}
-
-void Zeta_Allocator_MatchRecords(Zeta_DebugHashTable* src_records,
-                                 Zeta_DebugHashTable* dst_records) {
-    //
 }

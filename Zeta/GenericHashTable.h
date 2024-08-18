@@ -1,7 +1,7 @@
 #pragma once
 
 #include "Allocator.h"
-#include "DebugHashTable.h"
+#include "MemCheck.h"
 #include "OrdRBTreeNode.h"
 
 ZETA_ExternC_Beg;
@@ -59,8 +59,8 @@ void Zeta_GenericHashTable_EraseAll(void* ght);
 
 void Zeta_GenericHashTable_Check(void* ght);
 
-void Zeta_GenericHashTable_Sanitize(void* ght, Zeta_AssocContainer* dst_table,
-                                    Zeta_AssocContainer* dst_node);
+void Zeta_GenericHashTable_Sanitize(void* ght, Zeta_MemRecorder* dst_table,
+                                    Zeta_MemRecorder* dst_node);
 
 void Zeta_GenericHashTable_CheckNode(void* ght, void* node);
 

@@ -4,6 +4,8 @@
 
 ZETA_ExternC_Beg;
 
+void Zeta_HelloWorld();
+
 /**
  * @brief Copy byte array from dst to src
  *

@@ -1,24 +1,22 @@
 #include "DynamicHashTable.h"
 
 #include "Debugger.h"
+#include "utils.h"
 
 #if ZETA_IsDebug
 
-#define CheckDHT_(dht) Zeta_DynamicHashTable_Check
+#define CheckDHT_(dht) Zeta_DynamicHashTable_Check(dht)
 
-#define CheckDHTCursor_(dht) Zeta_DynamicHashTable_Cursor_Check
+#define CheckDHTCursor_(dht, cursor) \
+    Zeta_DynamicHashTable_Cursor_Check(dht, cursor)
 
 #else
 
 #define CheckDHT_(dht)
 
-#define CheckDHTCursor_(dht)
+#define CheckDHTCursor_(dht, cursor)
 
 #endif
-
-static void* AllocateNode_(Zeta_DynamicHashTable_Node* dht) {
-    //
-}
 
 static int GHTNodeCompare_(void const* dht_, void const* htn_a,
                            void const* htn_b) {
@@ -60,8 +58,11 @@ void Zeta_DynamicHashTable_Init(void* dht_) {
                            alignof(Zeta_DynamicHashTable_Node) *
                            alignof(Zeta_DynamicHashTable_Node);
 
-    ZETA_DebugAssert(dht->HashKey != NULL);
-    ZETA_DebugAssert(dht->HashElem != NULL);
+    ZETA_DebugAssert(dht->KeyHash != NULL);
+    ZETA_DebugAssert(dht->ElemHash != NULL);
+
+    ZETA_DebugAssert(dht->ElemCompare != NULL);
+    ZETA_DebugAssert(dht->ElemKeyCompare != NULL);
 
     ZETA_DebugAssert(dht->node_allocator != NULL);
     ZETA_DebugAssert(dht->node_allocator->GetAlign != NULL);
@@ -75,6 +76,8 @@ void Zeta_DynamicHashTable_Init(void* dht_) {
     dht->lln = ZETA_Allocator_SafeAllocate(dht->node_allocator,
                                            alignof(Zeta_OrdLinkedListNode),
                                            sizeof(Zeta_OrdLinkedListNode));
+
+    Zeta_OrdLinkedListNode_Init(dht->lln);
 
     dht->ght.node_cmp_context = dht;
     dht->ght.NodeCompare = GHTNodeCompare_;
@@ -96,7 +99,7 @@ void Zeta_DynamicHashTable_Deinit(void* dht_) {
         if (nxt_lln == dht->lln) { break; }
 
         Zeta_DynamicHashTable_Node* nxt_node =
-            ZETA_MemberToStruct(Zeta_DynamicHashTable, lln, nxt_lln);
+            ZETA_MemberToStruct(Zeta_DynamicHashTable_Node, lln, nxt_lln);
 
         Zeta_OrdLinkedListNode_Extract(nxt_lln);
 
@@ -240,7 +243,7 @@ void* Zeta_DynamicHashTable_Find(void* dht_, void* dst_cursor_,
         ZETA_MemberToStruct(Zeta_DynamicHashTable_Node, htn, htn);
 
     if (dst_cursor != NULL) {
-        dst_cursor->dht;
+        dst_cursor->dht = dht;
         dst_cursor->lln = &node->lln;
     }
 
@@ -248,21 +251,27 @@ void* Zeta_DynamicHashTable_Find(void* dht_, void* dst_cursor_,
 }
 
 void* Zeta_DynamicHashTable_Insert(void* dht_, void* dst_cursor_,
-                                   void const* key) {
+                                   void const* elem) {
     Zeta_DynamicHashTable* dht = dht_;
     CheckDHT_(dht);
 
     Zeta_DynamicHashTable_Cursor* dst_cursor = dst_cursor_;
 
-    ZETA_DebugAssert(key != NULL);
-
-    unsigned long long hash_code = dht->KeyHash(dht->key_hash_context, key);
+    ZETA_DebugAssert(elem != NULL);
 
     Zeta_DynamicHashTable_Node* node =
-        (unsigned char*)ZETA_Allocator_SafeAllocoate(
-            dht->node_allocator, alignof(Zeta_DynamicHashTable_Node*),
-            dht->stride + sizeof(Zeta_DynamicHashTable_Node)) +
-        dht->stride;
+        (void*)((unsigned char*)ZETA_Allocator_SafeAllocate(
+                    dht->node_allocator, alignof(Zeta_DynamicHashTable_Node*),
+                    dht->stride + sizeof(Zeta_DynamicHashTable_Node)) +
+                dht->stride);
+
+    Zeta_OrdLinkedListNode_Init(&node->lln);
+
+    Zeta_OrdRBTreeNode_Init(NULL, &node->htn.n);
+
+    node->htn.hash_code = dht->ElemHash(dht->elem_hash_context, elem);
+
+    Zeta_MemCopy((unsigned char*)node - dht->stride, elem, dht->width);
 
     Zeta_GenericHashTable_Insert(&dht->ght, &node->htn);
 
@@ -284,12 +293,14 @@ void Zeta_DynamicHashTable_Erase(void* dht_, void* pos_cursor_) {
 
     ZETA_DebugAssert(dht->lln != pos_cursor->lln);
 
-    Zeta_DynamicHashTable_Node* lln = pos_cursor->lln;
+    Zeta_OrdLinkedListNode* lln = pos_cursor->lln;
 
     pos_cursor->lln = Zeta_OrdLinkedListNode_GetR(pos_cursor->lln);
 
     Zeta_DynamicHashTable_Node* node =
-        ZETA_MemberToStruct(Zeta_DynamicHashTable, lln, lln);
+        ZETA_MemberToStruct(Zeta_DynamicHashTable_Node, lln, lln);
+
+    Zeta_OrdLinkedListNode_Extract(&node->lln);
 
     Zeta_GenericHashTable_Erase(&dht->ght, &node->htn);
 
@@ -306,7 +317,7 @@ void Zeta_DynamicHashTable_EraseAll(void* dht_) {
         if (nxt_lln == dht->lln) { break; }
 
         Zeta_DynamicHashTable_Node* nxt_node =
-            ZETA_MemberToStruct(Zeta_DynamicHashTable, lln, nxt_lln);
+            ZETA_MemberToStruct(Zeta_DynamicHashTable_Node, lln, nxt_lln);
 
         Zeta_GenericHashTable_Erase(&dht->ght, &nxt_node->htn);
         Zeta_OrdLinkedListNode_Extract(nxt_lln);
@@ -328,8 +339,11 @@ void Zeta_DynamicHashTable_Check(void* dht_) {
 
     ZETA_DebugAssert(stride % alignof(Zeta_DynamicHashTable_Node) == 0);
 
-    ZETA_DebugAssert(dht->HashKey != NULL);
-    ZETA_DebugAssert(dht->HashElem != NULL);
+    ZETA_DebugAssert(dht->KeyHash != NULL);
+    ZETA_DebugAssert(dht->ElemHash != NULL);
+
+    ZETA_DebugAssert(dht->ElemCompare != NULL);
+    ZETA_DebugAssert(dht->ElemKeyCompare != NULL);
 
     ZETA_DebugAssert(dht->node_allocator != NULL);
     ZETA_DebugAssert(dht->node_allocator->GetAlign != NULL);
@@ -348,45 +362,58 @@ void Zeta_DynamicHashTable_Sanitize(void* dht_, Zeta_MemRecorder* dst_table,
     Zeta_DynamicHashTable* dht = dht_;
     CheckDHT_(dht);
 
-    //
+    Zeta_MemRecorder* htn_records = Zeta_MemRecorder_Create();
+
+    Zeta_GenericHashTable_Sanitize(&dht->ght, dst_table, htn_records);
+
+    for (Zeta_OrdLinkedListNode* lln = dht->lln;;) {
+        lln = Zeta_OrdLinkedListNode_GetR(lln);
+        if (lln == dht->lln) { break; }
+
+        Zeta_DynamicHashTable_Node* node =
+            ZETA_MemberToStruct(Zeta_DynamicHashTable_Node, lln, lln);
+
+        Zeta_MemRecorder_Record(
+            dst_node, (unsigned char*)node - dht->stride,
+            dht->stride + sizeof(Zeta_DynamicHashTable_Node));
+
+        ZETA_DebugAssert(Zeta_MemRecorder_Unrecord(htn_records, &node->htn));
+    }
+
+    ZETA_DebugAssert(Zeta_MemRecorder_GetSize(htn_records) == 0);
+
+    Zeta_MemRecorder_Destroy(htn_records);
 }
 
-void Zeta_DynamicHashTable_Cursor_IsEqual(void* dht_, void const* cursor_a_,
-                                          void const* cursor_b_) {
+bool_t Zeta_DynamicHashTable_Cursor_IsEqual(void* dht_, void const* cursor_a_,
+                                            void const* cursor_b_) {
     Zeta_DynamicHashTable* dht = dht_;
 
-    Zeta_DynamicHashTable_Cursor* cursor_a = cursor_a_;
-    Zeta_DynamicHashTable_Cursor* cursor_b = cursor_b_;
+    Zeta_DynamicHashTable_Cursor const* cursor_a = cursor_a_;
+    Zeta_DynamicHashTable_Cursor const* cursor_b = cursor_b_;
 
     CheckDHTCursor_(dht, cursor_a);
     CheckDHTCursor_(dht, cursor_b);
+
+    return cursor_a->lln == cursor_b->lln;
 }
 
-void Zeta_DynamicHashTable_Cursor_StepL(void* dht_, void const* cursor_) {
+void Zeta_DynamicHashTable_Cursor_StepL(void* dht_, void* cursor_) {
     Zeta_DynamicHashTable* dht = dht_;
     Zeta_DynamicHashTable_Cursor* cursor = cursor_;
 
     CheckDHTCursor_(dht, cursor);
 
-    cursor->lln = Zeta_OrdLinkedList_GetL(cursor->lln);
+    cursor->lln = Zeta_OrdLinkedListNode_GetL(cursor->lln);
 }
 
-void Zeta_DynamicHashTable_Cursor_StepR(void* dht_, void const* cursor_) {
+void Zeta_DynamicHashTable_Cursor_StepR(void* dht_, void* cursor_) {
     Zeta_DynamicHashTable* dht = dht_;
     Zeta_DynamicHashTable_Cursor* cursor = cursor_;
 
     CheckDHTCursor_(dht, cursor);
 
-    cursor->lln = Zeta_OrdLinkedList_GetR(cursor->lln);
-}
-
-void Zeta_DynamicHashTable_Cursor_Check(void* dht_, void const* cursor_) {
-    Zeta_DynamicHashTable* dht = dht_;
-    CheckDHT_(dht);
-
-    Zeta_DynamicHashTable_Cursor* cursor = cursor_;
-
-    ZETA_DebugAssert(cursor->dht == dht);
+    cursor->lln = Zeta_OrdLinkedListNode_GetR(cursor->lln);
 }
 
 void Zeta_DynamicHashTable_Cursor_Check(void* dht_, void const* cursor_) {
@@ -398,12 +425,12 @@ void Zeta_DynamicHashTable_Cursor_Check(void* dht_, void const* cursor_) {
 
     ZETA_DebugAssert(cursor->dht == dht);
 
-    if (dht->lln != cursor->lln) {
-        Zeta_GenericHashTable_CheckNode(
-            &dht->ght,
-            &ZETA_MemberToStruct(Zeta_DynamicHashTable_Node, lln, cursor->lln)
-                 ->htn);
-    }
+    if (dht->lln == cursor->lln) { return; }
+
+    Zeta_GenericHashTable_CheckNode(
+        &dht->ght,
+        &ZETA_MemberToStruct(Zeta_DynamicHashTable_Node, lln, cursor->lln)
+             ->htn);
 }
 
 ZETA_ExternC_End;

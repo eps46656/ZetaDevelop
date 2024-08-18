@@ -6,10 +6,6 @@ ZETA_ExternC_Beg;
 
 ZETA_DeclareStruct(Zeta_BinTreeNodeOperator);
 
-// -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
-
 struct Zeta_BinTreeNodeOperator {
     void* context;
 
@@ -27,10 +23,6 @@ struct Zeta_BinTreeNodeOperator {
     size_t (*GetAccSize)(void* context, void* n);
     void (*SetAccSize)(void* context, void* n, size_t acc_size);
 };
-
-// -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
 
 void Zeta_BinTree_InitOpr(Zeta_BinTreeNodeOperator* btn_opr);
 

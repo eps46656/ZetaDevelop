@@ -2,7 +2,6 @@
 
 #include "CircularArray.h"
 #include "Debugger.h"
-#include "MemCheck.h"
 #include "utils.h"
 
 #if ZETA_IsDebug

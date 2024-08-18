@@ -1,11 +1,7 @@
 #include <stdio.h>
+#include <utils.h>
 
 int main() {
-    char str[] = "一二三";
-
-    printf("%d\n", str[0]);
-    printf("%d\n", str[1]);
-    printf("%d\n", str[2]);
-
+    Zeta_HelloWorld();
     return 0;
 }

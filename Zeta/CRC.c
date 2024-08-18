@@ -1,5 +1,7 @@
 #include "CRC.h"
 
+#include "Debugger.h"
+
 void Zeta_CRCHasher_Init(void* hasher_, unsigned _BitInt(64) div,
                          unsigned _BitInt(64) reg) {
     Zeta_CRCHasher* hasher = hasher_;

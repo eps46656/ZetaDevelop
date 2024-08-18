@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Allocator.h"
 #include "AssocContainer.h"
 #include "GenericHashTable.h"
 #include "MemCheck.h"
@@ -17,7 +18,7 @@ struct Zeta_DynamicHashTable {
     size_t width;
     size_t stride;
 
-    Zeta_DynamicHashTable_Node* lln;
+    Zeta_OrdLinkedListNode* lln;
 
     void* key_hash_context;
 
@@ -49,7 +50,7 @@ struct Zeta_DynamicHashTable_Node {
 
 struct Zeta_DynamicHashTable_Cursor {
     Zeta_DynamicHashTable* dht;
-    Zeta_DynamicHashTable_Node* lln;
+    Zeta_OrdLinkedListNode* lln;
 };
 
 void Zeta_DynamicHashTable_Init(void* dht);
@@ -77,7 +78,7 @@ void* Zeta_DynamicHashTable_Refer(void* dht, void* pos_cursor);
 void* Zeta_DynamicHashTable_Find(void* dht, void* dst_cursor, void const* key);
 
 void* Zeta_DynamicHashTable_Insert(void* dht, void* dst_cursor,
-                                   void const* key);
+                                   void const* elem);
 
 void Zeta_DynamicHashTable_Erase(void* dht, void* pos_cursor);
 
@@ -88,12 +89,12 @@ void Zeta_DynamicHashTable_Check(void* dht);
 void Zeta_DynamicHashTable_Sanitize(void* dht, Zeta_MemRecorder* dst_table,
                                     Zeta_MemRecorder* dst_node);
 
-void Zeta_DynamicHashTable_Cursor_IsEqual(void* dht, void const* cursor_a,
-                                          void const* cursor_b);
+bool_t Zeta_DynamicHashTable_Cursor_IsEqual(void* dht, void const* cursor_a,
+                                            void const* cursor_b);
 
-void Zeta_DynamicHashTable_Cursor_StepL(void* dht, void const* cursor);
+void Zeta_DynamicHashTable_Cursor_StepL(void* dht, void* cursor);
 
-void Zeta_DynamicHashTable_Cursor_StepR(void* dht, void const* cursor);
+void Zeta_DynamicHashTable_Cursor_StepR(void* dht, void* cursor);
 
 void Zeta_DynamicHashTable_Cursor_Check(void* dht, void const* cursor);
 

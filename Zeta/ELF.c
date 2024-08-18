@@ -1,5 +1,6 @@
 #include "ELF.h"
 
+#include "Debugger.h"
 #include "utils.h"
 
 #define ASSERT_RET(cond)           \
