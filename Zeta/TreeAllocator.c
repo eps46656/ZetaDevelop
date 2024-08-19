@@ -1,6 +1,5 @@
 #include "TreeAllocator.h"
 
-#include "DebugHashTable.h"
 #include "Debugger.h"
 #include "RBTree.h"
 #include "utils.h"
@@ -31,7 +30,7 @@ void Zeta_TreeAllocator_Init(void* ta_) {
     size_t align = ta->align;
     ZETA_DebugAssert(0 < align);
 
-    ta->align = align = Zeta_GetLCM(head_align, align);
+    ta->align = align = Zeta_LCM(head_align, align);
 
     ZETA_DebugAssert(ta->mem != NULL);
 

@@ -258,7 +258,7 @@ unsigned long long Zeta_SimpleHash(unsigned long long x) {
     return x;
 }
 
-unsigned long long Zeta_GetGCD(unsigned long long x, unsigned long long y) {
+unsigned long long Zeta_GCD(unsigned long long x, unsigned long long y) {
     if (x == 0 && y == 0) { return 1; }
 
     for (;;) {
@@ -269,12 +269,11 @@ unsigned long long Zeta_GetGCD(unsigned long long x, unsigned long long y) {
     }
 }
 
-unsigned long long Zeta_GetLCM(unsigned long long x, unsigned long long y) {
-    return x / Zeta_GetGCD(x, y) * y;
+unsigned long long Zeta_LCM(unsigned long long x, unsigned long long y) {
+    return x / Zeta_GCD(x, y) * y;
 }
 
-unsigned long long Zeta_GetPower(unsigned long long base,
-                                 unsigned long long exp) {
+unsigned long long Zeta_Power(unsigned long long base, unsigned long long exp) {
     ZETA_DebugAssert(base != 0 || exp != 0);
 
     unsigned long long ret = 1;
@@ -311,9 +310,9 @@ unsigned long long Zeta_GetMulMod(unsigned long long x, unsigned long long y,
     return ret;
 }
 
-unsigned long long Zeta_GetPowerMod(unsigned long long base,
-                                    unsigned long long exp,
-                                    unsigned long long mod) {
+unsigned long long Zeta_PowerMod(unsigned long long base,
+                                 unsigned long long exp,
+                                 unsigned long long mod) {
     ZETA_DebugAssert(0 < mod);
     ZETA_DebugAssert(mod <= ZETA_GetMaxMod(unsigned long long));
 
@@ -334,7 +333,7 @@ unsigned long long Zeta_GetPowerMod(unsigned long long base,
 }
 
 /*
-unsigned Zeta_GetFloorLog(unsigned long long val, unsigned long long base) {
+unsigned Zeta_FloorLog(unsigned long long val, unsigned long long base) {
     ZETA_DebugAssert(0 < val);
     ZETA_DebugAssert(1 < base);
 
@@ -401,22 +400,22 @@ L1:;
                                                                        \
     return ret;
 
-unsigned Zeta_GetFloorLog(unsigned long long val, unsigned long long base) {
+unsigned Zeta_FloorLog(unsigned long long val, unsigned long long base) {
     IntLog_(FALSE);
 }
 
-unsigned Zeta_GetCeilLog(unsigned long long val, unsigned long long base) {
+unsigned Zeta_CeilLog(unsigned long long val, unsigned long long base) {
     IntLog_(TRUE);
 }
 
 #undef base_exp_length
 
-int Zeta_GetFloorLog2(unsigned long long val) {
+int Zeta_FloorLog2(unsigned long long val) {
     return val == 0 ? -1
                     : (ZETA_WidthOf(unsigned long long) - __builtin_clzll(val));
 }
 
-int Zeta_GetCeilLog2(unsigned long long val) {
+int Zeta_CeilLog2(unsigned long long val) {
     return val == 0 ? -1
                     : (ZETA_WidthOf(unsigned long long) - __builtin_clzll(val) -
                        (__builtin_popcountll(val) == 1));
@@ -440,11 +439,146 @@ int Zeta_GetCeilLog2(unsigned long long val) {
         if (1 < a) { x *= 2; }
     } */
 
-unsigned long long Zeta_GetFloorSqrt(unsigned long long val) {
+long long Zeta_FastFixedPoint2Power(long long val) {
+    bool_t is_neg = val < 0;
+
+    if (is_neg) { val = -val; }
+
+    long long base = ZETA_2Power(ZETA_FixedPoint_BaseOrder);
+
+    long long k = ZETA_2Power(val / base);
+
+    val %= base;
+
+    long long cs[] = { 16777338, 11625457, 4055226, 866826, 229454 };
+
+    long long y = cs[4];
+    y = ZETA_RoundIntDiv(y * val, base) + cs[3];
+    y = ZETA_RoundIntDiv(y * val, base) + cs[2];
+    y = ZETA_RoundIntDiv(y * val, base) + cs[1];
+    y = ZETA_RoundIntDiv(y * val, base) + cs[0];
+
+    y *= k;
+
+    return is_neg ? base * base / y : y;
+}
+
+unsigned long long Zeta_FixedPoint2Power(long long val_) {
+    const unsigned long long c_base_order = 30;
+
+    const unsigned long long c_base = ZETA_2Power(c_base_order);
+
+    const unsigned long long cs[] = {
+        1518500250, 1276901417, 1170923762, 1121280436, 1097253708, 1085434106,
+        1079572136, 1076653033, 1075196443, 1074468888, 1074105294, 1073923544,
+        1073832680, 1073787251, 1073764537, 1073753181, 1073747502, 1073744663,
+        1073743244, 1073742534, 1073742179, 1073742001, 1073741913, 1073741868
+    };
+
+    ZETA_StaticAssert(c_base_order * 2 <= ZETA_WidthOf(unsigned long long));
+
+    ZETA_StaticAssert(ZETA_FixedPoint_BaseOrder <= c_base_order);
+
+    const unsigned long long base = ZETA_FixedPoint_Base;
+
+    bool_t is_neg = val_ < 0;
+
+    unsigned long long val = is_neg ? -val_ : val_;
+
+    unsigned long long k = val / base;
+
+    unsigned long long y = c_base;
+
+    val = val % base * (c_base / base);
+
+    for (int i = 0; i < ZETA_FixedPoint_BaseOrder; ++i) {
+        if (c_base <= (val *= 2)) {
+            val -= c_base;
+            y = ZETA_RoundIntDiv(y * cs[i], c_base);
+        }
+    }
+
+    if (is_neg) {
+        long long l = c_base_order + ZETA_FixedPoint_BaseOrder - k;
+        return l < 0 ? 0 : ZETA_2Power(l) / y;
+    }
+
+    long long l = k - c_base_order + ZETA_FixedPoint_BaseOrder;
+    return l < 0 ? y / ZETA_2Power(-l) : y * ZETA_2Power(l);
+}
+
+long long Zeta_FastFixedPointLog2(long long val) {
+    ZETA_DebugAssert(1 <= val);
+
+    long long base = ZETA_2Power(ZETA_FixedPoint_BaseOrder);
+
+    long long k = ZETA_FloorLog2(val);
+
+    long long mantissa = k <= ZETA_FixedPoint_BaseOrder
+                             ? val * ZETA_2Power(ZETA_FixedPoint_BaseOrder - k)
+                             : val / ZETA_2Power(k - ZETA_FixedPoint_BaseOrder);
+
+    long long c[] = { -41888778, 67584553, -34914109, 10549669, -1327908 };
+
+    long long y = c[4];
+    y = ZETA_RoundIntDiv(y * mantissa, base) + c[3];
+    y = ZETA_RoundIntDiv(y * mantissa, base) + c[2];
+    y = ZETA_RoundIntDiv(y * mantissa, base) + c[1];
+    y = ZETA_RoundIntDiv(y * mantissa, base) + c[0];
+
+    return (k - ZETA_FixedPoint_BaseOrder) * base + y;
+}
+
+unsigned long long Zeta_FixedPointLog2(unsigned long long val) {
+    ZETA_DebugAssert(0 < val);
+
+    const unsigned long long c_base_order = 30;
+
+    const unsigned long long c_base = ZETA_2Power(c_base_order);
+
+    const unsigned long long cs[] = {
+        1518500250, 1276901417, 1170923762, 1121280436, 1097253708, 1085434106,
+        1079572136, 1076653033, 1075196443, 1074468888, 1074105294, 1073923544,
+        1073832680, 1073787251, 1073764537, 1073753181, 1073747502, 1073744663,
+        1073743244, 1073742534, 1073742179, 1073742001, 1073741913, 1073741868
+    };
+
+    ZETA_StaticAssert(c_base_order * 2 <= ZETA_WidthOf(unsigned long long));
+
+    ZETA_StaticAssert(ZETA_FixedPoint_BaseOrder <= c_base_order);
+
+    unsigned long long k = ZETA_FloorLog2(val);
+
+    unsigned long long mantissa =
+        k <= c_base_order
+            ? val * ZETA_2Power(c_base_order - k)
+            : ZETA_RoundIntDiv(val, ZETA_2Power(k - c_base_order));
+
+    unsigned long long y = 0;
+
+    unsigned long long l = c_base;
+
+    for (int i = 0; i < ZETA_FixedPoint_BaseOrder; ++i) {
+        unsigned long long nxt_l = ZETA_RoundIntDiv(l * cs[i], c_base);
+
+        y *= 2;
+
+        if (nxt_l <= mantissa) {
+            ++y;
+            l = nxt_l;
+        }
+    }
+
+    return ((long long)k - ZETA_FixedPoint_BaseOrder) *
+               ZETA_2Power(ZETA_FixedPoint_BaseOrder) +
+           y;
+}
+
+unsigned long long Zeta_FloorSqrt(unsigned long long val) {
     if (val <= 1) { return val; }
 
     unsigned long long x = (unsigned long long)1
-                           << (Zeta_GetFloorLog2(val) / 2 + 1);
+                           << (Zeta_FloorLog2(val) / 2 + 1);
 
     unsigned long long y = (val / x + x) / 2;
 
@@ -457,7 +591,7 @@ unsigned long long Zeta_GetFloorSqrt(unsigned long long val) {
 }
 
 /*
-unsigned long long Zeta_GetFloorSqrt(unsigned long long val) {
+unsigned long long Zeta_FloorSqrt(unsigned long long val) {
     if (val <= 16) {  //  0 1 2 3 4
         if (val <= 4) { return val <= 1 ? val : 2; }
     }

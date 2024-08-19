@@ -1,10 +1,8 @@
 #pragma once
 
-#include <cstdlib>
+#include <DebugDeque.h>
 
-#include "../Zeta/DebugDeque.h"
-#include "MemAllocatorCheck.h"
-#include "StdAllocator.h"
+#include <cstdlib>
 
 struct DebugDequePack {
     Zeta_DebugDeque debug_deque;

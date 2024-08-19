@@ -4,7 +4,6 @@
 
 #include "../Zeta/SegVector.h"
 #include "../Zeta/utils.h"
-#include "MemAllocatorCheck.h"
 #include "StdAllocator.h"
 
 typedef unsigned val_t;

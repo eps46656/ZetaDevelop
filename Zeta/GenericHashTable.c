@@ -1,5 +1,6 @@
 #include "GenericHashTable.h"
 
+#include "BinTree.h"
 #include "Debugger.h"
 #include "MemCheck.h"
 #include "RBTree.h"
@@ -59,39 +60,39 @@ static size_t GetBucketIdx_(unsigned long long hash_code,
 
 static void InsertNode_(Zeta_GenericHashTable* ght,
                         Zeta_BinTreeNodeOperator* btn_opr, void** root,
-                        void* m_) {
-    void* n = *root;
-
-    Zeta_GenericHashTable_Node* m =
-        ZETA_MemberToStruct(Zeta_GenericHashTable_Node, n, m_);
+                        Zeta_GenericHashTable_Node* m) {
+    Zeta_GenericHashTable_Node* n = *root;
 
     Zeta_GenericHashTable_Node* le_n = NULL;
     Zeta_GenericHashTable_Node* gt_n = NULL;
 
-    while (n != NULL) {
-        Zeta_GenericHashTable_Node* cur_n =
-            ZETA_MemberToStruct(Zeta_GenericHashTable_Node, n, n);
+    // le: the last less than or equal to
 
+    while (n != NULL) {
         int cmp;
 
-        if (cur_n->hash_code < m->hash_code) {
+        if (n->hash_code < m->hash_code) {
             cmp = -1;
-        } else if (m->hash_code < cur_n->hash_code) {
+        } else if (m->hash_code < n->hash_code) {
             cmp = 1;
         } else {
-            cmp = ght->NodeCompare(ght->node_cmp_context, cur_n, m);
+            cmp = ght->NodeCompare(ght->node_cmp_context, n, m);
         }
 
         if (cmp <= 0) {
-            le_n = cur_n;
-            n = Zeta_OrdRBTreeNode_GetR(NULL, n);
+            le_n = n;
+            n = ZETA_MemberToStruct(Zeta_GenericHashTable_Node, n,
+                                    Zeta_OrdRBTreeNode_GetR(NULL, n));
         } else {
-            gt_n = cur_n;
-            n = Zeta_OrdRBTreeNode_GetL(NULL, n);
+            gt_n = n;
+            n = ZETA_MemberToStruct(Zeta_GenericHashTable_Node, n,
+                                    Zeta_OrdRBTreeNode_GetL(NULL, n));
         }
     }
 
-    *root = Zeta_RBTree_Insert(btn_opr, le_n, gt_n, &m->n);
+    *root = ZETA_MemberToStruct(
+        Zeta_GenericHashTable_Node, n,
+        Zeta_RBTree_Insert(btn_opr, &le_n->n, &gt_n->n, &m->n));
 }
 
 void Zeta_GenericHashTable_Init(void* ght_) {
@@ -112,9 +113,7 @@ void Zeta_GenericHashTable_Init(void* ght_) {
     ZETA_DebugAssert(ght->table_allocator->Allocate != NULL);
     ZETA_DebugAssert(ght->table_allocator->Deallocate != NULL);
     ZETA_DebugAssert(
-        ght->table_allocator->GetAlign(ght->table_allocator->context) %
-            alignof(void*) ==
-        0);
+        ZETA_Allocator_GetAlign(ght->table_allocator) % alignof(void*) == 0);
 
     ZETA_DebugAssert(ght->NodeCompare != NULL);
 
@@ -129,13 +128,11 @@ void Zeta_GenericHashTable_Deinit(void* ght_) {
     void** nxt_table = GetNxtTable_(ght);
 
     if (cur_table != &ght->cur_table) {
-        ght->table_allocator->Deallocate(ght->table_allocator->context,
-                                         cur_table - 1);
+        ZETA_Allocator_Deallocate(ght->table_allocator, cur_table - 1);
     }
 
     if (nxt_table != NULL) {
-        ght->table_allocator->Deallocate(ght->table_allocator->context,
-                                         nxt_table - 1);
+        ZETA_Allocator_Deallocate(ght->table_allocator, nxt_table - 1);
     }
 }
 
@@ -147,16 +144,13 @@ void Zeta_GenericHashTable_Deinit(void* ght_) {
         for (; i < j; ++i) { nxt_table[i] = NULL; }                           \
                                                                               \
         if (j < nxt_table_capacity) {                                         \
-            nxt_table[0] = nxt_table + j;                                     \
+            nxt_table[-1] = nxt_table + j;                                    \
         } else {                                                              \
             state = nxt_state;                                                \
-            nxt_table[0] = NULL;                                              \
+            cur_table[-1] = cur_table;                                        \
         }                                                                     \
     } else if (state == nxt_state) {                                          \
         void** p = cur_table[-1];                                             \
-                                                                              \
-        ZETA_CheckAssert(cur_table <= p &&                                    \
-                         p < cur_table + cur_table_capacity);                 \
                                                                               \
         size_t op_cnt = 16 * 4;                                               \
                                                                               \
@@ -169,7 +163,9 @@ void Zeta_GenericHashTable_Deinit(void* ght_) {
                                                                               \
             Zeta_GenericHashTable_Node* trans_node = *p;                      \
                                                                               \
-            *p = Zeta_RBTree_Extract(&btn_opr, &trans_node->n);               \
+            *p = ZETA_MemberToStruct(                                         \
+                Zeta_GenericHashTable_Node, n,                                \
+                Zeta_RBTree_Extract(&btn_opr, &trans_node->n));               \
                                                                               \
             --cur_table_cnt;                                                  \
                                                                               \
@@ -177,39 +173,28 @@ void Zeta_GenericHashTable_Deinit(void* ght_) {
                 ght, &btn_opr,                                                \
                 nxt_table + GetBucketIdx_(trans_node->hash_code,              \
                                           ght->nxt_salt, nxt_table_capacity), \
-                &trans_node->n);                                              \
+                trans_node);                                                  \
                                                                               \
             ++nxt_table_cnt;                                                  \
                                                                               \
             op_cnt = ZETA_GetMaxOf(15, op_cnt) - 15;                          \
         }                                                                     \
                                                                               \
-        if (p == cur_table + cur_table_capacity) {                            \
-            ght->table_allocator->Deallocate(ght->table_allocator->context,   \
-                                             cur_table - 1);                  \
+        if (p < cur_table + cur_table_capacity) {                             \
+            cur_table[-1] = p;                                                \
+        } else {                                                              \
+            ZETA_Allocator_Deallocate(ght->table_allocator, cur_table - 1);   \
                                                                               \
             cur_table = nxt_table;                                            \
             cur_table_cnt = nxt_table_cnt;                                    \
             cur_table_capacity = nxt_table_capacity;                          \
+            ght->cur_salt = ght->nxt_salt;                                    \
                                                                               \
             nxt_table = NULL;                                                 \
             nxt_table_cnt = 0;                                                \
             nxt_table_capacity = 0;                                           \
                                                                               \
             state = cur_state;                                                \
-        } else {                                                              \
-            if (p != cur_table) {                                             \
-                ZETA_CheckAssert(cur_table[0] == NULL);                       \
-                cur_table[0] = p;                                             \
-            }                                                                 \
-                                                                              \
-            InsertNode_(                                                      \
-                ght, &btn_opr,                                                \
-                nxt_table + GetBucketIdx_(node->hash_code, ght->nxt_salt,     \
-                                          nxt_table_capacity),                \
-                &node->n);                                                    \
-                                                                              \
-            ++nxt_table_cnt;                                                  \
         }                                                                     \
     }                                                                         \
     ZETA_StaticAssert(TRUE)
@@ -244,25 +229,25 @@ void* Zeta_GenericHashTable_Find(void* ght_, void const* key,
 
     Zeta_GenericHashTable_Node* cur_target_n = NULL;
 
-    for (void* n = cur_table[cur_bucket_idx]; n != NULL;) {
-        Zeta_GenericHashTable_Node* cur_n =
-            ZETA_MemberToStruct(Zeta_GenericHashTable_Node, n, n);
-
+    for (Zeta_GenericHashTable_Node* n = cur_table[cur_bucket_idx];
+         n != NULL;) {
         int cmp;
 
-        if (cur_n->hash_code < hash_code) {
+        if (n->hash_code < hash_code) {
             cmp = -1;
-        } else if (hash_code < cur_n->hash_code) {
+        } else if (hash_code < n->hash_code) {
             cmp = 1;
         } else {
-            cmp = ght->NodeKeyCompare(ght->node_key_cmp_context, cur_n, key);
-            if (cmp == 0) { cur_target_n = cur_n; }
+            cmp = ght->NodeKeyCompare(ght->node_key_cmp_context, n, key);
+            if (cmp == 0) { cur_target_n = n; }
         }
 
         if (cmp <= 0) {
-            n = Zeta_OrdRBTreeNode_GetR(NULL, n);
+            n = ZETA_MemberToStruct(Zeta_GenericHashTable_Node, n,
+                                    Zeta_OrdRBTreeNode_GetR(NULL, n));
         } else {
-            n = Zeta_OrdRBTreeNode_GetL(NULL, n);
+            n = ZETA_MemberToStruct(Zeta_GenericHashTable_Node, n,
+                                    Zeta_OrdRBTreeNode_GetL(NULL, n));
         }
     }
 
@@ -273,25 +258,25 @@ void* Zeta_GenericHashTable_Find(void* ght_, void const* key,
 
     Zeta_GenericHashTable_Node* nxt_target_n = NULL;
 
-    for (void* n = nxt_table[nxt_bucket_idx]; n != NULL;) {
-        Zeta_GenericHashTable_Node* nxt_n =
-            ZETA_MemberToStruct(Zeta_GenericHashTable_Node, n, n);
-
+    for (Zeta_GenericHashTable_Node* n = nxt_table[nxt_bucket_idx];
+         n != NULL;) {
         int cmp;
 
-        if (nxt_n->hash_code < hash_code) {
+        if (n->hash_code < hash_code) {
             cmp = -1;
-        } else if (hash_code < nxt_n->hash_code) {
+        } else if (hash_code < n->hash_code) {
             cmp = 1;
         } else {
-            cmp = ght->NodeKeyCompare(ght->node_key_cmp_context, nxt_n, key);
-            if (cmp == 0) { cur_target_n = nxt_n; }
+            cmp = ght->NodeKeyCompare(ght->node_key_cmp_context, n, key);
+            if (cmp == 0) { nxt_target_n = n; }
         }
 
         if (cmp <= 0) {
-            n = Zeta_OrdRBTreeNode_GetR(NULL, n);
+            n = ZETA_MemberToStruct(Zeta_GenericHashTable_Node, n,
+                                    Zeta_OrdRBTreeNode_GetR(NULL, n));
         } else {
-            n = Zeta_OrdRBTreeNode_GetL(NULL, n);
+            n = ZETA_MemberToStruct(Zeta_GenericHashTable_Node, n,
+                                    Zeta_OrdRBTreeNode_GetL(NULL, n));
         }
     }
 
@@ -339,14 +324,14 @@ void Zeta_GenericHashTable_Insert(void* ght_, void* node_) {
         InsertNode_(ght, &btn_opr,
                     nxt_table + GetBucketIdx_(node->hash_code, ght->nxt_salt,
                                               nxt_table_capacity),
-                    &node->n);
+                    node);
 
         ++nxt_table_cnt;
     } else {
         InsertNode_(ght, &btn_opr,
                     cur_table + GetBucketIdx_(node->hash_code, ght->cur_salt,
                                               cur_table_capacity),
-                    &node->n);
+                    node);
 
         ++cur_table_cnt;
 
@@ -432,6 +417,75 @@ RET:;
     ght->nxt_table_capacity = nxt_table_capacity;
 }
 
+unsigned long long Zeta_GenericHashTable_GetEffFactor(void* ght_) {
+    Zeta_GenericHashTable* ght = ght_;
+    CheckGHT_(ght);
+
+    int state = GetState_(ght);
+
+    void** cur_table = GetCurTable_(ght);
+    void** nxt_table = GetNxtTable_(ght);
+
+    size_t cur_table_cnt = ght->cur_table_cnt;
+    size_t nxt_table_cnt = ght->nxt_table_cnt;
+
+    size_t cur_table_capacity = ght->cur_table_capacity;
+    size_t nxt_table_capacity = ght->nxt_table_capacity;
+
+    Zeta_BinTreeNodeOperator btn_opr;
+    Zeta_OrdRBTreeNode_DeployBinTreeNodeOperator(NULL, &btn_opr);
+
+    if (state == null_state) { return 0; }
+
+    unsigned long long total_height = 0;
+
+    {
+        size_t mid = 0;
+
+        if (state == nxt_state) {
+            void** p = cur_table[-1];
+
+            ZETA_DebugAssert(cur_table <= p &&
+                             p < cur_table + cur_table_capacity);
+
+            mid = p - cur_table;
+
+            for (size_t i = 1; i < mid; ++i) {
+                ZETA_DebugAssert(cur_table[i] == NULL);
+            }
+        }
+
+        for (size_t i = mid; i < cur_table_capacity; ++i) {
+            size_t tree_size = Zeta_BinTree_Count(&btn_opr, cur_table[i]);
+
+            total_height +=
+                tree_size == 0
+                    ? 0
+                    : tree_size * ZETA_RoundIntDiv(
+                                      Zeta_FixedPointLog2(tree_size *
+                                                          ZETA_FixedPoint_Base),
+                                      ZETA_FixedPoint_Base);
+        }
+    }
+
+    if (state == nxt_state) {
+        for (size_t i = 0; i < nxt_table_capacity; ++i) {
+            size_t tree_size = Zeta_BinTree_Count(&btn_opr, nxt_table[i]);
+
+            total_height +=
+                tree_size == 0
+                    ? 0
+                    : tree_size * ZETA_RoundIntDiv(
+                                      Zeta_FixedPointLog2(tree_size *
+                                                          ZETA_FixedPoint_Base),
+                                      ZETA_FixedPoint_Base);
+        }
+    }
+
+    return total_height * ZETA_FixedPoint_Base /
+           (cur_table_cnt + nxt_table_cnt);
+}
+
 void Zeta_GenericHashTable_Check(void* ght_) {
     Zeta_GenericHashTable* ght = ght_;
     ZETA_DebugAssert(ght != NULL);
@@ -477,9 +531,7 @@ void Zeta_GenericHashTable_Check(void* ght_) {
     ZETA_DebugAssert(ght->table_allocator->Allocate != NULL);
     ZETA_DebugAssert(ght->table_allocator->Deallocate != NULL);
     ZETA_DebugAssert(
-        ght->table_allocator->GetAlign(ght->table_allocator->context) %
-            alignof(void*) ==
-        0);
+        ZETA_Allocator_GetAlign(ght->table_allocator) % alignof(void*) == 0);
 }
 
 ZETA_DeclareStruct(SanitizeTreeRet);
@@ -601,7 +653,7 @@ void Zeta_GenericHashTable_Sanitize(void* ght_, Zeta_MemRecorder* dst_table,
 
             mid = p - cur_table;
 
-            for (size_t i = 1; i < mid; ++i) {
+            for (size_t i = 0; i < mid; ++i) {
                 ZETA_DebugAssert(cur_table[i] == NULL);
             }
         }
@@ -627,7 +679,7 @@ void Zeta_GenericHashTable_Sanitize(void* ght_, Zeta_MemRecorder* dst_table,
 
         size_t end = p - nxt_table;
 
-        for (size_t i = 1; i < end; ++i) {
+        for (size_t i = 0; i < end; ++i) {
             ZETA_DebugAssert(nxt_table[i] == NULL);
         }
 
@@ -663,7 +715,9 @@ void Zeta_GenericHashTable_CheckNode(void* ght_, void* node_) {
 
     ZETA_DebugAssert(state != null_state);
 
-    void* root = Zeta_GetMostLink(NULL, Zeta_OrdRBTreeNode_GetP, &node->n);
+    void* root = ZETA_MemberToStruct(
+        Zeta_GenericHashTable_Node, n,
+        Zeta_GetMostLink(NULL, Zeta_OrdRBTreeNode_GetP, &node->n));
 
     size_t cur_bucket_idx =
         GetBucketIdx_(node->hash_code, ght->cur_salt, cur_table_capacity);

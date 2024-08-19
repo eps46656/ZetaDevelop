@@ -6,22 +6,10 @@
 
 ZETA_ExternC_Beg;
 
-/*
-
-To allocate small size memory unit efficiently.
-
-Single SlabAllocator only provides single width of unit.
-
-*/
-
 ZETA_DeclareStruct(Zeta_SlabAllocator);
 ZETA_DeclareStruct(Zeta_SlabAllocator_SlabHead);
 
 #define ZETA_SlabAllocator_max_units_per_slab ZETA_RangeMaxOf(unsigned char)
-
-// -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
 
 struct Zeta_SlabAllocator {
     size_t align;
@@ -45,10 +33,6 @@ struct Zeta_SlabAllocator_SlabHead {
     Zeta_OrdLinkedListNode n;
     unsigned char vacant_units_cnt;
 };
-
-// -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
 
 void Zeta_SlabAllocator_Init(void* sa);
 

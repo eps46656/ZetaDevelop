@@ -1,8 +1,8 @@
 #pragma once
 
-#include <cstdlib>
+#include <CircularArray.h>
 
-#include "../Zeta/CircularArray.h"
+#include <cstdlib>
 
 template <typename Val>
 void InitCircularArray(Zeta_SeqContainer* seq_cntr, size_t capacity) {

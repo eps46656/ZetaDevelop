@@ -55,7 +55,7 @@ def BFS(adj_list, sources):
             n = ret[i]
             i += 1
 
-            assert n in adj_list, f"unknown vertex: {n}"
+            assert n in adj_list, f"source: {source}, unknown vertex: {n}"
 
             for adj in adj_list[n]:
                 if adj not in discovered:

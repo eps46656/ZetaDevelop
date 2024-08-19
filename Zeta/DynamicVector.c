@@ -19,31 +19,6 @@
 
 #endif
 
-static void* AllocateData_(Zeta_DynamicVector* dv, size_t capacity) {
-    ZETA_DebugAssert(dv->data_allocator != NULL);
-    ZETA_DebugAssert(dv->data_allocator->Allocate != NULL);
-
-    void* data = dv->data_allocator->Allocate(dv->data_allocator->context,
-                                              sizeof(void*) * capacity);
-
-    ZETA_DebugAssert(data != NULL);
-    ZETA_DebugAssert(__builtin_is_aligned(data, alignof(void*)));
-
-    return data;
-}
-
-static void* AllocateSeg_(Zeta_DynamicVector* dv) {
-    ZETA_DebugAssert(dv->data_allocator != NULL);
-    ZETA_DebugAssert(dv->data_allocator->Allocate != NULL);
-
-    void* seg = dv->seg_allocator->Allocate(dv->seg_allocator->context,
-                                            dv->stride * dv->seg_capacity);
-
-    ZETA_DebugAssert(seg != NULL);
-
-    return seg;
-}
-
 static size_t GetNxtCapacity_(size_t cur_capacity) {
     return ZETA_CeilIntDiv(ZETA_GetMaxOf(8, cur_capacity) * 3, 2);
 }
@@ -79,8 +54,7 @@ static void TryMigrate_(Zeta_DynamicVector* dv, Zeta_CircularArray* cur_ca,
         dv->size_b = nxt_ca->size;
         dv->size_c = 0;
 
-        dv->data_allocator->Deallocate(dv->data_allocator->context,
-                                       cur_ca->data);
+        ZETA_Allocator_Deallocate(dv->data_allocator, cur_ca->data);
 
         cur_ca->data = nxt_ca->data;
         cur_ca->offset = nxt_ca->offset;
@@ -157,6 +131,7 @@ static void* Push_(void* dv_, void* dst_cursor_, size_t cnt, int dir) {
                         : Zeta_DynamicVector_PeekR(dv, dst_cursor, NULL);
     }
 
+    size_t stride = dv->stride;
     size_t offset = dv->offset;
     size_t seg_capacity = dv->seg_capacity;
     size_t size = dv->size;
@@ -190,7 +165,8 @@ static void* Push_(void* dv_, void* dst_cursor_, size_t cnt, int dir) {
 
     if (nxt_ca.data == NULL) {
         if (cur_ca.data == NULL) {
-            cur_ca.data = AllocateData_(dv, new_capacity);
+            cur_ca.data = ZETA_Allocator_SafeAllocate(
+                dv->data_allocator, 1, sizeof(void*) * new_capacity);
             cur_ca.capacity = new_capacity;
         }
 
@@ -200,7 +176,8 @@ static void* Push_(void* dv_, void* dst_cursor_, size_t cnt, int dir) {
 
                 for (size_t i = 0; i < seg_cnt; ++i) {
                     *(void**)Zeta_CircularArray_Access(&cur_ca, NULL, NULL, i) =
-                        AllocateSeg_(dv);
+                        ZETA_Allocator_SafeAllocate(dv->seg_allocator, 1,
+                                                    stride * seg_capacity);
                 }
             } else {
                 Zeta_CircularArray_PushR(&cur_ca, NULL, seg_cnt);
@@ -208,7 +185,8 @@ static void* Push_(void* dv_, void* dst_cursor_, size_t cnt, int dir) {
                 for (size_t i = 0; i < seg_cnt; ++i) {
                     *(void**)Zeta_CircularArray_Access(&cur_ca, NULL, NULL,
                                                        cur_ca.size - 1 - i) =
-                        AllocateSeg_(dv);
+                        ZETA_Allocator_SafeAllocate(dv->seg_allocator, 1,
+                                                    stride * seg_capacity);
                 }
             }
 
@@ -221,7 +199,8 @@ static void* Push_(void* dv_, void* dst_cursor_, size_t cnt, int dir) {
             goto PUSH_SEG_END;
         }
 
-        nxt_ca.data = AllocateData_(dv, new_capacity);
+        nxt_ca.data = ZETA_Allocator_SafeAllocate(dv->data_allocator, 1,
+                                                  sizeof(void*) * new_capacity);
         nxt_ca.offset = 0;
         nxt_ca.size = dv->size_b;
         nxt_ca.capacity = new_capacity;
@@ -230,15 +209,15 @@ static void* Push_(void* dv_, void* dst_cursor_, size_t cnt, int dir) {
     if (nxt_ca.capacity < need_capacity) {
         Zeta_CircularArray_Assign(&nxt_ca, &cur_ca, dv->size_a, 0, dv->size_b);
 
-        dv->data_allocator->Deallocate(dv->data_allocator->context,
-                                       cur_ca.data);
+        ZETA_Allocator_Deallocate(dv->data_allocator, cur_ca.data);
 
         cur_ca.data = nxt_ca.data;
         cur_ca.offset = nxt_ca.offset;
         cur_ca.size = nxt_ca.size;
         cur_ca.capacity = nxt_ca.capacity;
 
-        nxt_ca.data = AllocateData_(dv, new_capacity);
+        nxt_ca.data = ZETA_Allocator_SafeAllocate(dv->data_allocator, 1,
+                                                  sizeof(void*) * new_capacity);
         nxt_ca.offset = 0;
         nxt_ca.capacity = new_capacity;
 
@@ -252,7 +231,8 @@ static void* Push_(void* dv_, void* dst_cursor_, size_t cnt, int dir) {
 
         for (size_t i = 0; i < seg_cnt; ++i) {
             *(void**)Zeta_CircularArray_Access(&nxt_ca, NULL, NULL, i) =
-                AllocateSeg_(dv);
+                ZETA_Allocator_SafeAllocate(dv->seg_allocator, 1,
+                                            stride * seg_capacity);
         }
 
         dv->size_a += seg_cnt;
@@ -260,8 +240,10 @@ static void* Push_(void* dv_, void* dst_cursor_, size_t cnt, int dir) {
         Zeta_CircularArray_PushR(&nxt_ca, NULL, seg_cnt);
 
         for (size_t i = 0; i < seg_cnt; ++i) {
-            *(void**)Zeta_CircularArray_Access(
-                &nxt_ca, NULL, NULL, nxt_ca.size - 1 - i) = AllocateSeg_(dv);
+            *(void**)Zeta_CircularArray_Access(&nxt_ca, NULL, NULL,
+                                               nxt_ca.size - 1 - i) =
+                ZETA_Allocator_SafeAllocate(dv->seg_allocator, 1,
+                                            stride * seg_capacity);
         }
 
         dv->size_c += seg_cnt;
@@ -348,8 +330,8 @@ static void Pop_(void* dv_, int dir, size_t cnt) {
             dv->size_a -= cur_cnt;
 
             for (size_t i = 0; i < cur_cnt; ++i) {
-                dv->seg_allocator->Deallocate(
-                    dv->seg_allocator->context,
+                ZETA_Allocator_Deallocate(
+                    dv->seg_allocator,
                     *(void**)Zeta_CircularArray_Access(&nxt_ca, NULL, NULL, i));
             }
 
@@ -361,8 +343,8 @@ static void Pop_(void* dv_, int dir, size_t cnt) {
             dv->size_c -= cur_seg_cnt;
 
             for (size_t i = 0; i < cur_seg_cnt; ++i) {
-                dv->seg_allocator->Deallocate(
-                    dv->seg_allocator->context,
+                ZETA_Allocator_Deallocate(
+                    dv->seg_allocator,
                     *(void**)Zeta_CircularArray_Access(&nxt_ca, NULL, NULL,
                                                        nxt_ca.size - 1 - i));
             }
@@ -379,8 +361,8 @@ static void Pop_(void* dv_, int dir, size_t cnt) {
 
         if (dir == 0) {
             for (size_t i = 0; i < cur_seg_cnt; ++i) {
-                dv->seg_allocator->Deallocate(
-                    dv->seg_allocator->context,
+                ZETA_Allocator_Deallocate(
+                    dv->seg_allocator,
                     *(void**)Zeta_CircularArray_Access(&cur_ca, NULL, NULL, i));
             }
 
@@ -391,8 +373,8 @@ static void Pop_(void* dv_, int dir, size_t cnt) {
             }
         } else {
             for (size_t i = 0; i < cur_seg_cnt; ++i) {
-                dv->seg_allocator->Deallocate(
-                    dv->seg_allocator->context,
+                ZETA_Allocator_Deallocate(
+                    dv->seg_allocator,
                     *(void**)Zeta_CircularArray_Access(&cur_ca, NULL, NULL,
                                                        cur_ca.size - 1 - i));
             }
@@ -410,8 +392,8 @@ static void Pop_(void* dv_, int dir, size_t cnt) {
             dv->size_a -= seg_cnt;
 
             for (size_t i = 0; i < seg_cnt; ++i) {
-                dv->seg_allocator->Deallocate(
-                    dv->seg_allocator->context,
+                ZETA_Allocator_Deallocate(
+                    dv->seg_allocator,
                     *(void**)Zeta_CircularArray_Access(&nxt_ca, NULL, NULL, i));
             }
 
@@ -420,8 +402,8 @@ static void Pop_(void* dv_, int dir, size_t cnt) {
             dv->size_c -= seg_cnt;
 
             for (size_t i = 0; i < seg_cnt; ++i) {
-                dv->seg_allocator->Deallocate(
-                    dv->seg_allocator->context,
+                ZETA_Allocator_Deallocate(
+                    dv->seg_allocator,
                     *(void**)Zeta_CircularArray_Access(&nxt_ca, NULL, NULL,
                                                        nxt_ca.size - 1 - i));
             }
@@ -456,8 +438,7 @@ static void Pop_(void* dv_, int dir, size_t cnt) {
         dv->size_a = 0;
         dv->size_c = 0;
 
-        dv->data_allocator->Deallocate(dv->data_allocator->context,
-                                       cur_ca.data);
+        ZETA_Allocator_Deallocate(dv->data_allocator, cur_ca.data);
 
         dv->cur_data = nxt_ca.data;
         dv->cur_offset = nxt_ca.offset;
@@ -494,9 +475,8 @@ void Zeta_DynamicVector_Init(void* dv_) {
     ZETA_DebugAssert(dv->data_allocator->GetAlign != NULL);
     ZETA_DebugAssert(dv->data_allocator->Allocate != NULL);
     ZETA_DebugAssert(dv->data_allocator->Deallocate != NULL);
-    ZETA_DebugAssert(dv->data_allocator->GetAlign(dv->data_allocator->context) %
-                         alignof(void*) ==
-                     0);
+    ZETA_DebugAssert(
+        ZETA_Allocator_GetAlign(dv->data_allocator) % alignof(void*) == 0);
 
     ZETA_DebugAssert(dv->seg_allocator != NULL);
     ZETA_DebugAssert(dv->seg_allocator->GetAlign != NULL);
@@ -541,35 +521,33 @@ void Zeta_DynamicVector_Deinit(void* dv_) {
 
     if (nxt_ca.data != NULL) {
         for (size_t i = 0; i < dv->size_a; ++i) {
-            dv->seg_allocator->Deallocate(
-                dv->seg_allocator->context,
+            ZETA_Allocator_Deallocate(
+                dv->seg_allocator,
                 *(void**)Zeta_CircularArray_Access(&nxt_ca, NULL, NULL, i));
         }
     }
 
     for (size_t i = 0; i < dv->size_b; ++i) {
-        dv->seg_allocator->Deallocate(
-            dv->seg_allocator->context,
+        ZETA_Allocator_Deallocate(
+            dv->seg_allocator,
             *(void**)Zeta_CircularArray_Access(&cur_ca, NULL, NULL, i));
     }
 
     if (nxt_ca.data != NULL) {
         for (size_t i = 0; i < dv->size_c; ++i) {
-            dv->seg_allocator->Deallocate(
-                dv->seg_allocator->context,
+            ZETA_Allocator_Deallocate(
+                dv->seg_allocator,
                 *(void**)Zeta_CircularArray_Access(
                     &cur_ca, NULL, NULL, dv->size_a + dv->size_b + i));
         }
     }
 
     if (dv->cur_data != NULL) {
-        dv->data_allocator->Deallocate(dv->data_allocator->context,
-                                       dv->cur_data);
+        ZETA_Allocator_Deallocate(dv->data_allocator, dv->cur_data);
     }
 
     if (dv->nxt_data != NULL) {
-        dv->data_allocator->Deallocate(dv->data_allocator->context,
-                                       dv->nxt_data);
+        ZETA_Allocator_Deallocate(dv->data_allocator, dv->nxt_data);
     }
 }
 

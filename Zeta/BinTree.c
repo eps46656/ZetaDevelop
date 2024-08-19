@@ -21,6 +21,30 @@ void Zeta_BinTree_InitOpr(Zeta_BinTreeNodeOperator* btn_opr) {
     btn_opr->SetAccSize = NULL;
 }
 
+static size_t Count_(Zeta_BinTreeNodeOperator const* btn_opr, void* n) {
+    void* context = btn_opr->context;
+
+    size_t ret = 1;
+
+    void* nl = btn_opr->GetL(context, n);
+    void* nr = btn_opr->GetR(context, n);
+
+    if (nl != NULL) { ret += Count_(btn_opr, nl); }
+    if (nr != NULL) { ret += Count_(btn_opr, nr); }
+
+    return ret;
+}
+
+size_t Zeta_BinTree_Count(Zeta_BinTreeNodeOperator const* btn_opr, void* n) {
+    if (n == NULL) { return 0; }
+
+    ZETA_DebugAssert(btn_opr != NULL);
+    ZETA_DebugAssert(btn_opr->GetL != NULL);
+    ZETA_DebugAssert(btn_opr->GetR != NULL);
+
+    return Count_(btn_opr, n);
+}
+
 static void AddDiffSize_(Zeta_BinTreeNodeOperator const* btn_opr, void* n,
                          size_t diff_size) {
     if (diff_size == 0) { return; }

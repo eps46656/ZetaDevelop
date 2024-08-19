@@ -1,8 +1,10 @@
 #include <DebugDeque.h>
 #include <Debugger.h>
-#include <DynamicHashTable.h>
 #include <MemCheck.h>
 
+#include <memory>
+
+#include "DynamicHashTableUtils.h"
 #include "StdAllocator.h"
 #include "Timer.h"
 #include "Value.h"
@@ -39,129 +41,102 @@ int Zeta_PairKeyCompare(void* context, void const* pair, void const* key) {
                       *(unsigned long long const*)key);
 }
 
-struct DynamicHashTablePack {
-    StdAllocator node_allocator_;
-    StdAllocator table_allocator_;
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
 
-    Zeta_Allocator node_allocator;
-    Zeta_Allocator table_allocator;
-
-    Zeta_DynamicHashTable dht;
-};
-
-Zeta_DynamicHashTable* DynamicHashTable_Create() {
-    DynamicHashTablePack* pack{ new DynamicHashTablePack{} };
-
-    StdAllocator_DeployAllocator(&pack->node_allocator_, &pack->node_allocator);
-    StdAllocator_DeployAllocator(&pack->table_allocator_,
-                                 &pack->table_allocator);
-
-    pack->dht.width = sizeof(Pair);
-    pack->dht.stride = sizeof(Pair);
-
-    pack->dht.key_hash_context = NULL;
-    pack->dht.KeyHash = Zeta_PairHash;
-
-    pack->dht.elem_hash_context = NULL;
-    pack->dht.ElemHash = Zeta_PairHash;
-
-    pack->dht.elem_cmp_context = NULL;
-    pack->dht.ElemCompare = Zeta_PairCompare;
-
-    pack->dht.elem_key_cmp_context = NULL;
-    pack->dht.ElemKeyCompare = Zeta_PairKeyCompare;
-
-    pack->dht.node_allocator = &pack->node_allocator;
-
-    pack->dht.ght.table_allocator = &pack->table_allocator;
-
-    Zeta_DynamicHashTable_Init(&pack->dht);
-
-    return &pack->dht;
+template <typename Key>
+std::shared_ptr<unsigned char> AC_Find(Zeta_AssocContainer* assoc_cntr,
+                                       const Key& key) {
+    void* cursor{ ZETA_AssocContainer_AllocaCursor(assoc_cntr) };
+    assoc_cntr->Find(assoc_cntr->context, cursor, &key);
+    return cursor;
 }
 
-void DynamicHashTable_Destroy(Zeta_DynamicHashTable* dht) {
-    DynamicHashTablePack* pack{ ZETA_MemberToStruct(DynamicHashTablePack, dht,
-                                                    dht) };
-
-    Zeta_DynamicHashTable_Deinit(&pack->dht);
-
-    delete pack;
+template <typename Elem>
+std::shared_ptr<unsigned char> AC_Insert(Zeta_AssocContainer* assoc_cntr,
+                                         const Elem& elem) {
+    void* cursor{ std::malloc(assoc_cntr->cursor_size) };
+    ZETA_AssocContainer_Insert(assoc_cntr, cursor, &elem);
+    return std::shared_ptr<unsigned char>{ (unsigned char*)cursor };
 }
 
-void DynamicHashTable_Sanitize(Zeta_DynamicHashTable* dht) {
-    Zeta_MemRecorder* table_recorder = Zeta_MemRecorder_Create();
-    Zeta_MemRecorder* node_recorder = Zeta_MemRecorder_Create();
-
-    Zeta_DynamicHashTable_Sanitize(dht, table_recorder, node_recorder);
-
-    Zeta_MemRecorder_Destroy(table_recorder);
-    Zeta_MemRecorder_Destroy(node_recorder);
-}
-
-Pair* DynamicHashTable_Find(Zeta_DynamicHashTable* dht,
-                            unsigned long long key) {
-    DynamicHashTable_Sanitize(dht);
-    return (Pair*)(Zeta_DynamicHashTable_Find(dht, NULL, &key));
-}
-
-Pair* DynamicHashTable_Insert(Zeta_DynamicHashTable* dht,
-                              unsigned long long key, unsigned long long val) {
-    DynamicHashTable_Sanitize(dht);
-
-    Pair pair{ key, val };
-    return (Pair*)Zeta_DynamicHashTable_Insert(dht, NULL, &pair);
-}
-
-bool_t DynamicHashTable_Erase(Zeta_DynamicHashTable* dht,
-                              unsigned long long key) {
-    DynamicHashTable_Sanitize(dht);
-
-    void* cursor =
-        __builtin_alloca_with_align(sizeof(Zeta_DynamicHashTable_Cursor),
-                                    CHAR_BIT * alignof(Zeta_DynamicHashTable));
-
-    Pair* pair = (Pair*)Zeta_DynamicHashTable_Find(dht, cursor, &key);
-
-    if (pair == NULL) { return FALSE; }
-
-    Zeta_DynamicHashTable_Erase(dht, cursor);
-    return TRUE;
+template <typename Elem>
+void AC_Erase(Zeta_AssocContainer* assoc_cntr,
+              const std::shared_ptr<unsigned char>& cursor) {
+    void* cursor{ ZETA_AssocContainer_AllocaCursor(assoc_cntr) };
+    ZETA_AssocContainer_Erase(assoc_cntr, cursor.get());
+    return cursor;
 }
 
 void main1() {
-    Zeta_DynamicHashTable* dht = DynamicHashTable_Create();
+    Zeta_AssocContainer* dht = CreateDynamicHashTable<Pair>(
+        NULL, Zeta_PairHash, NULL, Zeta_KeyHash, NULL, Zeta_PairCompare, NULL,
+        Zeta_PairKeyCompare);
 
+    std::shared_ptr<unsigned char> cursor;
     Pair* pair;
 
-    for (unsigned long long i{ 0 }; i < 1000; ++i) {
-        pair = DynamicHashTable_Insert(dht, i, 1000 + i);
+    for (unsigned long long i{ 0 }; i < 1024 * 4; ++i) {
+        cursor = AC_Insert(dht, Pair{ i, 1024 + i });
+        Pair* pair = (Pair*)ZETA_AssocContainer_Refer(dht, cursor.get());
 
         ZETA_DebugAssert(pair != NULL);
         ZETA_DebugAssert(pair->key == i);
-        ZETA_DebugAssert(pair->val == 1000 + i);
+        ZETA_DebugAssert(pair->val == 1024 + i);
+
+        SanitizeDynamicHashTable(dht);
+
+        if (i % 1024 == 0) { ZETA_PrintVar(i); }
+
+        /*
+        printf("eff factor = %e\n",
+               (double)Zeta_DynamicHashTable_GetEffFactor(dht->context) /
+                   ZETA_FixedPoint_Base);
+        */
     }
 
+    printf("eff factor = %e\n",
+           (double)Zeta_DynamicHashTable_GetEffFactor(dht->context) /
+               ZETA_FixedPoint_Base);
+
+    unsigned long long sum = 0;
+
+    SanitizeDynamicHashTable(dht);
+
     {
-        void* iter = __builtin_alloca_with_align(
-            sizeof(Zeta_DynamicHashTable_Cursor),
-            CHAR_BIT * alignof(Zeta_DynamicHashTable));
+        void* iter = ZETA_AssocContainer_AllocaCursor(dht);
+        void* end = ZETA_AssocContainer_AllocaCursor(dht);
 
-        void* end = __builtin_alloca_with_align(
-            sizeof(Zeta_DynamicHashTable_Cursor),
-            CHAR_BIT * alignof(Zeta_DynamicHashTable));
+        ZETA_AssocContainer_PeekL(dht, iter);
+        ZETA_AssocContainer_GetRBCursor(dht, end);
 
-        Zeta_DynamicHashTable_PeekL(dht, iter);
-        Zeta_DynamicHashTable_GetRBCursor(dht, end);
-
-        for (; !Zeta_DynamicHashTable_Cursor_IsEqual(dht, iter, end);
-             Zeta_DynamicHashTable_Cursor_StepR(dht, iter)) {
-            pair = (Pair*)Zeta_DynamicHashTable_Refer(dht, iter);
-            ZETA_PrintVar(pair->key);
+        for (; !ZETA_AssocContainer_Cursor_IsEqual(dht, iter, end);
+             ZETA_AssocContainer_Cursor_StepR(dht, iter)) {
+            pair = (Pair*)ZETA_AssocContainer_Refer(dht, iter);
+            sum += pair->key;
+            // ZETA_PrintVar(pair->key);
         }
     }
 
-    DynamicHashTable_Destroy(dht);
+    {
+        void* iter = ZETA_AssocContainer_AllocaCursor(dht);
+        void* end = ZETA_AssocContainer_AllocaCursor(dht);
+
+        ZETA_AssocContainer_PeekR(dht, iter);
+        ZETA_AssocContainer_GetLBCursor(dht, end);
+
+        for (; !ZETA_AssocContainer_Cursor_IsEqual(dht, iter, end);
+             ZETA_AssocContainer_Cursor_StepL(dht, iter)) {
+            pair = (Pair*)ZETA_AssocContainer_Refer(dht, iter);
+            sum += pair->key;
+            // ZETA_PrintVar(pair->key);
+        }
+    }
+
+    ZETA_PrintVar(sum);
+
+    DestroyDynamicHashTable(dht);
 }
 
 int main() {

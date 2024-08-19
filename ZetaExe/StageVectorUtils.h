@@ -3,7 +3,6 @@
 #include <cstdlib>
 
 #include "../Zeta/StageVector.h"
-#include "MemAllocatorCheck.h"
 #include "StdAllocator.h"
 
 struct StageVectorPack {

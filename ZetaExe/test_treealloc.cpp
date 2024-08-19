@@ -1,11 +1,10 @@
+#include <DebugHashTable.h>
+#include <Debugger.h>
+#include <TreeAllocator.h>
+
 #include <iostream>
 #include <map>
 #include <random>
-
-#include "../Zeta/DebugHashTable.h"
-#include "../Zeta/Debugger.h"
-#include "../Zeta/TreeAllocator.h"
-#include "MemAllocatorCheck.h"
 
 typedef long long unsigned llu;
 

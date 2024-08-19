@@ -106,8 +106,6 @@ def AddDeps(builder, ZetaBuildDir, ZetaExeBuildDir, verbose, mode):
         {
             f"{File}",
             f"{ZetaDir}/CircularArray.h",
-            f"{ZetaExeDir}/MemAllocatorCheck.h",
-            f"{ZetaExeDir}/StdAllocator.h",
         },
         None
     )
@@ -117,7 +115,15 @@ def AddDeps(builder, ZetaBuildDir, ZetaExeBuildDir, verbose, mode):
         {
             f"{File}",
             f"{ZetaDir}/DebugDeque.h",
-            f"{ZetaExeDir}/MemAllocatorCheck.h",
+        },
+        None
+    )
+
+    builder.Add(
+        f"{ZetaExeDir}/DynamicHashTableUtils.h",
+        {
+            f"{File}",
+            f"{ZetaDir}/DynamicHashTable.h",
             f"{ZetaExeDir}/StdAllocator.h",
         },
         None
@@ -128,7 +134,7 @@ def AddDeps(builder, ZetaBuildDir, ZetaExeBuildDir, verbose, mode):
         {
             f"{File}",
             f"{ZetaDir}/DynamicVector.h",
-            f"{ZetaExeDir}/MemAllocatorCheck.h",
+            f"{ZetaDir}/MemCheck.h",
             f"{ZetaExeDir}/StdAllocator.h",
         },
         None
@@ -157,7 +163,6 @@ def AddDeps(builder, ZetaBuildDir, ZetaExeBuildDir, verbose, mode):
         {
             f"{File}",
             f"{ZetaDir}/RadixDeque.h",
-            f"{ZetaExeDir}/MemAllocatorCheck.h",
             f"{ZetaExeDir}/StdAllocator.h",
         },
         None
@@ -167,8 +172,8 @@ def AddDeps(builder, ZetaBuildDir, ZetaExeBuildDir, verbose, mode):
         f"{ZetaExeDir}/RadixVectorUtils.h",
         {
             f"{File}",
+            f"{ZetaDir}/MemCheck.h",
             f"{ZetaDir}/RadixVector.h",
-            f"{ZetaExeDir}/MemAllocatorCheck.h",
             f"{ZetaExeDir}/StdAllocator.h",
         },
         None
@@ -301,14 +306,6 @@ def AddDeps(builder, ZetaBuildDir, ZetaExeBuildDir, verbose, mode):
     )
 
     builder.Add(
-        f"{ZetaExeDir}/MemAllocatorCheck.h",
-        {
-            f"{File}",
-        },
-        None
-    )
-
-    builder.Add(
         f"{ZetaExeDir}/NaiveStdRBTScheduler.h",
         {
             f"{File}",
@@ -363,6 +360,30 @@ def AddDeps(builder, ZetaBuildDir, ZetaExeBuildDir, verbose, mode):
         lambda : compiler.c_to_obj(
             f"{ZetaExeBuildDir}/test_2.o",
             f"{ZetaExeDir}/test_2.c",
+        )
+    )
+
+    builder.Add(
+        f"{ZetaExeBuildDir}/test_2.exe",
+        {
+            f"{File}",
+            f"{ZetaBuildDir}/DebugStrPipe.o",
+            f"{ZetaBuildDir}/Debugger.o",
+            f"{ZetaBuildDir}/Logger.o",
+            f"{ZetaBuildDir}/io.o",
+            f"{ZetaBuildDir}/utils.o",
+            f"{ZetaExeBuildDir}/test_2.o"
+        },
+        lambda : compiler.to_exe(
+            f"{ZetaExeBuildDir}/test_2.exe",
+            {
+                f"{ZetaBuildDir}/DebugStrPipe.o",
+                f"{ZetaBuildDir}/Debugger.o",
+                f"{ZetaBuildDir}/Logger.o",
+                f"{ZetaBuildDir}/io.o",
+                f"{ZetaBuildDir}/utils.o",
+                f"{ZetaExeBuildDir}/test_2.o",
+            }
         )
     )
 
@@ -490,8 +511,8 @@ def AddDeps(builder, ZetaBuildDir, ZetaExeBuildDir, verbose, mode):
 
             f"{ZetaDir}/DebugDeque.h",
             f"{ZetaDir}/Debugger.h",
-            f"{ZetaDir}/DynamicHashTable.h",
-            f"{ZetaDir}/Logger.h",
+            f"{ZetaDir}/MemCheck.h",
+            f"{ZetaExeDir}/DynamicHashTableUtils.h",
             f"{ZetaExeDir}/StdAllocator.h",
             f"{ZetaExeDir}/Timer.h",
             f"{ZetaExeDir}/Value.h",
@@ -515,6 +536,7 @@ def AddDeps(builder, ZetaBuildDir, ZetaExeBuildDir, verbose, mode):
         f"{ZetaExeBuildDir}/test_dht.exe",
         {
             f"{File}",
+            f"{ZetaBuildDir}/AssocContainer.o",
             f"{ZetaBuildDir}/BinTree.o",
             f"{ZetaBuildDir}/Debugger.o",
             f"{ZetaBuildDir}/DebugPipe.o",
@@ -536,6 +558,7 @@ def AddDeps(builder, ZetaBuildDir, ZetaExeBuildDir, verbose, mode):
             f"{ZetaExeBuildDir}/test_dht.exe",
 
             {
+                f"{ZetaBuildDir}/AssocContainer.o",
                 f"{ZetaBuildDir}/BinTree.o",
                 f"{ZetaBuildDir}/Debugger.o",
                 f"{ZetaBuildDir}/DebugPipe.o",
@@ -592,8 +615,8 @@ def AddDeps(builder, ZetaBuildDir, ZetaExeBuildDir, verbose, mode):
         {
             f"{File}",
             f"{ZetaDir}/DebugHashTable.h",
+            f"{ZetaDir}/Debugger.h",
             f"{ZetaDir}/TreeAllocator.h",
-            f"{ZetaExeDir}/MemAllocatorCheck.h",
         },
         None
     )
@@ -1068,14 +1091,12 @@ def AddDeps(builder, ZetaBuildDir, ZetaExeBuildDir, verbose, mode):
         f"{ZetaExeDir}/test_stagevec.cpp",
         {
             f"{File}",
-
             f"{ZetaDir}/DebugDeque.h",
             f"{ZetaDir}/Debugger.h",
             f"{ZetaDir}/Logger.h",
             f"{ZetaExeDir}/CircularArrayUtils.h",
             f"{ZetaExeDir}/DebugDequeUtils.h",
             f"{ZetaExeDir}/DynamicVectorUtils.h",
-            f"{ZetaExeDir}/MemAllocatorCheck.h",
             f"{ZetaExeDir}/RadixDequeUtils.h",
             f"{ZetaExeDir}/RadixVectorUtils.h",
             f"{ZetaExeDir}/StageVectorUtils.h",
@@ -1184,7 +1205,7 @@ def AddDeps(builder, ZetaBuildDir, ZetaExeBuildDir, verbose, mode):
             f"{ZetaDir}/Logger.h",
             f"{ZetaDir}/SegVector.h",
             f"{ZetaDir}/StageVector.h",
-            f"{ZetaExeDir}/MemAllocatorCheck.h",
+            f"{ZetaExeDir}/.h",
             f"{ZetaExeDir}/StdAllocator.h",
         },
         None

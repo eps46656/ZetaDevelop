@@ -1,10 +1,10 @@
 #pragma once
 
+#include <DynamicVector.h>
+#include <MemCheck.h>
+
 #include <cstdlib>
 
-#include "../Zeta/DynamicVector.h"
-#include "../Zeta/MemCheck.h"
-#include "MemAllocatorCheck.h"
 #include "StdAllocator.h"
 
 struct DynamicVectorPack {

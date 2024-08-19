@@ -110,7 +110,7 @@ static void ReadSeg_(Zeta_RadixDeque* rd, void* n, unsigned order_i, size_t idx,
         return;
     }
 
-    size_t subtree_size = seg_capacity * Zeta_GetPower(branch_num, order_i - 1);
+    size_t subtree_size = seg_capacity * Zeta_Power(branch_num, order_i - 1);
 
     size_t child_i = idx / subtree_size;
     size_t child_idx = idx % subtree_size;
@@ -142,7 +142,7 @@ static void WriteSeg_(Zeta_RadixDeque* rd, void* n, unsigned order_i,
         return;
     }
 
-    size_t subtree_size = seg_capacity * Zeta_GetPower(branch_num, order_i - 1);
+    size_t subtree_size = seg_capacity * Zeta_Power(branch_num, order_i - 1);
 
     size_t child_i = idx / subtree_size;
     size_t child_idx = idx % subtree_size;
@@ -475,7 +475,7 @@ void Zeta_RadixDeque_Init(void* rd_) {
 
     unsigned order = rd->order = ZETA_GetMinOf(
         rd->order,
-        Zeta_GetFloorLog(ZETA_RangeMaxOf(size_t) / seg_capacity, branch_num));
+        Zeta_FloorLog(ZETA_RangeMaxOf(size_t) / seg_capacity, branch_num));
 
     ZETA_DebugAssert(0 <= order);
     ZETA_DebugAssert(order <= ZETA_RadixDeque_max_order);

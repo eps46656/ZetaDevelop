@@ -22,6 +22,12 @@ struct Zeta_Allocator {
 
 void Zeta_Allocator_Init(void* allocator);
 
+#define ZETA_Allocator_GetAlign(allocator) \
+    ZETA_CallMemberFunc(((Zeta_Allocator*)(void*)(allocator)), GetAlign)
+
+#define ZETA_Allocator_Query(allocator, size) \
+    ZETA_CallMemberFunc(((Zeta_Allocator*)(void*)(allocator)), Query, (size))
+
 #define ZETA_Allocator_SafeAllocate_(tmp_ret, tmp_allocator, tmp_align,    \
                                      tmp_size, allocator, align, size)     \
     ({                                                                     \
@@ -51,5 +57,14 @@ void Zeta_Allocator_Init(void* allocator);
 #define ZETA_Allocator_SafeAllocate(allocator, align, size)                \
     ZETA_Allocator_SafeAllocate_(ZETA_TmpName, ZETA_TmpName, ZETA_TmpName, \
                                  ZETA_TmpName, allocator, align, size)
+
+#define ZETA_Allocator_Deallocate(allocator, ptr)                          \
+    ZETA_CallMemberFunc(((Zeta_Allocator*)(void*)(allocator)), Deallocate, \
+                        (ptr));                                            \
+    ZETA_StaticAssert(TRUE)
+
+#define ZETA_Allocator_GetRecords(allocator)                               \
+    ZETA_CallMemberFunc(((Zeta_Allocator*)(void*)(allocator)), GetRecords, \
+                        (ptr))
 
 ZETA_ExternC_End;

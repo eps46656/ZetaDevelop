@@ -92,6 +92,16 @@ typedef unsigned unichar_t;
 #define ZETA_ExternC_End ZETA_StaticAssert(TRUE)
 #endif
 
+#if defined(__cplusplus)
+
+#define ZETA_ToVoidPtr(ptr) (const_cast<void*>((void const*)(ptr)))
+
+#else
+
+#define ZETA_ToVoidPtr(ptr) ((void*)(ptr))
+
+#endif
+
 #define ZETA_IsSigned(type)        \
     _Generic((type)0,              \
         char: ((char)(-1) < 0),    \
@@ -244,7 +254,9 @@ typedef unsigned unichar_t;
                                                                              \
         u128_t: (128))
 
-#define ZETA_IsPowerOf2(x) (__builtin_popcountll(x) == 1)
+#define ZETA_2Power(x) ((unsigned _BitInt(64))(1) << (x))
+
+#define ZETA_Is2Power(x) (__builtin_popcountll(x) == 1)
 
 #define ZETA_FloorLog2_(x_tmp, x)                                 \
     ({                                                            \
@@ -338,6 +350,10 @@ ZETA_StaticAssert(255 <= ZETA_RangeMaxOf(byte_t));
 #define ZETA_RoundIntDiv(x, y) \
     ZETA_RoundIntDiv_(ZETA_TmpName, ZETA_TmpName, (x), (y))
 
+#define ZETA_FixedPoint_BaseOrder (24)
+
+#define ZETA_FixedPoint_Base ZETA_2Power(ZETA_FixedPoint_BaseOrder)
+
 #define ZETA_AreOverlapped_(a_beg_tmp, a_end_tmp, b_beg_tmp, b_end_tmp, a_beg, \
                             a_size, b_beg, b_size)                             \
     ({                                                                         \
@@ -407,3 +423,17 @@ ZETA_StaticAssert(255 <= ZETA_RangeMaxOf(byte_t));
         if (ZETA_ImmPrint) { fflush(stdout); }                  \
     }                                                           \
     ZETA_StaticAssert(TRUE)
+
+#define ZETA_CallMemberFunc__(tmp_obj, member_func, args...) \
+    ZETA_DebugAssert(tmp_obj != NULL);                       \
+    ZETA_DebugAssert(tmp_obj->member_func != NULL);          \
+    tmp_obj->member_func(args);
+
+#define ZETA_CallMemberFunc_(tmp_obj, obj, member_func, args...)            \
+    ({                                                                      \
+        ZETA_AutoVar(tmp_obj, (obj));                                       \
+        ZETA_CallMemberFunc__(tmp_obj, member_func, tmp_obj->context, args) \
+    })
+
+#define ZETA_CallMemberFunc(obj, member_func, args...) \
+    ZETA_CallMemberFunc_(ZETA_TmpName, obj, member_func, args)

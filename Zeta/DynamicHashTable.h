@@ -44,8 +44,11 @@ struct Zeta_DynamicHashTable {
 };
 
 struct Zeta_DynamicHashTable_Node {
+    unsigned char ZETA_TmpName[31];
     Zeta_OrdLinkedListNode lln;
+    unsigned char ZETA_TmpName[31];
     Zeta_GenericHashTable_Node htn;
+    unsigned char ZETA_TmpName[31];
 };
 
 struct Zeta_DynamicHashTable_Cursor {
@@ -73,7 +76,7 @@ void* Zeta_DynamicHashTable_PeekL(void* dht, void* dst_cursor);
 
 void* Zeta_DynamicHashTable_PeekR(void* dht, void* dst_cursor);
 
-void* Zeta_DynamicHashTable_Refer(void* dht, void* pos_cursor);
+void* Zeta_DynamicHashTable_Refer(void* dht, void const* pos_cursor);
 
 void* Zeta_DynamicHashTable_Find(void* dht, void* dst_cursor, void const* key);
 
@@ -83,6 +86,8 @@ void* Zeta_DynamicHashTable_Insert(void* dht, void* dst_cursor,
 void Zeta_DynamicHashTable_Erase(void* dht, void* pos_cursor);
 
 void Zeta_DynamicHashTable_EraseAll(void* dht);
+
+unsigned long long Zeta_DynamicHashTable_GetEffFactor(void* dht);
 
 void Zeta_DynamicHashTable_Check(void* dht);
 
@@ -97,5 +102,8 @@ void Zeta_DynamicHashTable_Cursor_StepL(void* dht, void* cursor);
 void Zeta_DynamicHashTable_Cursor_StepR(void* dht, void* cursor);
 
 void Zeta_DynamicHashTable_Cursor_Check(void* dht, void const* cursor);
+
+void Zeta_DynamicHashTable_DeployAssocContainer(
+    void* dht, Zeta_AssocContainer* assoc_cntr);
 
 ZETA_ExternC_End;

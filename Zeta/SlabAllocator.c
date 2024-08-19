@@ -87,7 +87,7 @@ static bool_t ReleaseLastSlab_(Zeta_SlabAllocator* sa) {
     ZETA_DebugAssert(sa->allocator != NULL);
     ZETA_DebugAssert(sa->allocator->Deallocate != NULL);
 
-    sa->allocator->Deallocate(sa->allocator->context, vacant_slab);
+    ZETA_Allocator_Deallocate(sa->allocator, vacant_slab);
 
     return TRUE;
 }
@@ -99,7 +99,7 @@ void Zeta_SlabAllocator_Init(void* sa_) {
     size_t align = sa->align;
     ZETA_DebugAssert(0 < align);
 
-    sa->align = align = Zeta_GetLCM(align, alignof(uintptr_t));
+    sa->align = align = Zeta_LCM(align, alignof(uintptr_t));
 
     size_t width = sa->width;
     ZETA_DebugAssert(0 < width);
@@ -115,17 +115,17 @@ void Zeta_SlabAllocator_Init(void* sa_) {
     Zeta_Allocator* allocator = sa->allocator;
     ZETA_DebugAssert(allocator != NULL);
     ZETA_DebugAssert(allocator->GetAlign != NULL);
-    ZETA_DebugAssert(allocator->GetAlign(allocator->context) % align == 0);
     ZETA_DebugAssert(allocator->Query != NULL);
     ZETA_DebugAssert(allocator->Allocate != NULL);
     ZETA_DebugAssert(allocator->Deallocate != NULL);
+    ZETA_DebugAssert(ZETA_Allocator_GetAlign(allocator) % align == 0);
 
     size_t units_per_slab = sa->units_per_slab;
     ZETA_DebugAssert(0 < sa->units_per_slab);
     ZETA_DebugAssert(sa->units_per_slab <=
                      ZETA_SlabAllocator_max_units_per_slab);
 
-    size_t real_slab_size = allocator->Query(allocator->context, ZETA_SlabSize);
+    size_t real_slab_size = ZETA_Allocator_Query(allocator, ZETA_SlabSize);
 
     sa->units_per_slab = units_per_slab = ZETA_GetMinOf(
         ZETA_SlabAllocator_max_units_per_slab,
@@ -190,12 +190,8 @@ void* Zeta_SlabAllocator_Allocate(void* sa_, size_t size) {
         return LinkedListPopL_(&sa->hot_unit_head);
     }
 
-    ZETA_DebugAssert(sa->allocator != NULL);
-    ZETA_DebugAssert(sa->allocator->Allocate != NULL);
-
-    void* slab = sa->allocator->Allocate(sa->allocator->context, ZETA_SlabSize);
-    ZETA_DebugAssert(slab != NULL);
-    ZETA_DebugAssert(__builtin_is_aligned(slab, sa->align));
+    void* slab =
+        ZETA_Allocator_SafeAllocate(sa->allocator, sa->align, ZETA_SlabSize);
 
     Zeta_SlabAllocator_SlabHead* slab_head =
         (void*)((unsigned char*)slab + stride * units_per_slab);

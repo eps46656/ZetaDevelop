@@ -94,8 +94,6 @@ class Compiler:
         self.c_include_dirs = config.__dict__.get("c_include_dirs", [])
         self.cpp_include_dirs = config.__dict__.get("cpp_include_dirs", [])
 
-        print(f"{self.c_include_dirs=}")
-
         self.include_dirs = {}
 
         clang_triple = GetClangTriple(self.target)

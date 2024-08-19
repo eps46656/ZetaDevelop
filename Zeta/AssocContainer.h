@@ -31,7 +31,7 @@ struct Zeta_AssocContainer {
 
     void* (*Find)(void* context, void* dst_cursor, void const* key);
 
-    void* (*Insert)(void* context, void* dst_cursor, void const* key);
+    void* (*Insert)(void* context, void* dst_cursor, void const* elem);
 
     void (*Erase)(void* context, void* pos_cursor);
 
@@ -59,14 +59,83 @@ struct Zeta_AssocContainer {
 
 void Zeta_AssocContainer_Init(Zeta_AssocContainer* assoc_cntr);
 
-#define ZETA_AssocContainer_AllocaCursor_(assoc_cntr_tmp, assoc_cntr) \
-    ({                                                                \
-        Zeta_AssocContainer const* assoc_cntr_tmp = (assoc_cntr);     \
-        __builtin_alloca_with_align(assoc_cntr_tmp->cursor_size,      \
-                                    CHAR_BIT * alignof(max_align_t)); \
-    })
+#define ZETA_AssocContainer_AllocaCursor(assoc_cntr)                     \
+    __builtin_alloca_with_align(                                         \
+        ((Zeta_AssocContainer*)ZETA_ToVoidPtr(assoc_cntr))->cursor_size, \
+        CHAR_BIT * alignof(max_align_t))
 
-#define ZETA_AssocContainer_AllocaCursor(assoc_cntr) \
-    ZETA_AssocContainer_AllocaCursor_(ZETA_TmpeName, (assoc_cntr))
+#define ZETA_AssocContainer_Call_(assoc_cntr, member_func, args...)       \
+    ZETA_CallMemberFunc((Zeta_AssocContainer*)ZETA_ToVoidPtr(assoc_cntr), \
+                        member_func, args)
+
+#define ZETA_AssocContainer_GetWidth(assoc_cntr) \
+    ZETA_AssocContainer_Call_((assoc_cntr), GetWidth)
+
+#define ZETA_AssocContainer_GetStride(assoc_cntr) \
+    ZETA_AssocContainer_Call_((assoc_cntr), GetStride)
+
+#define ZETA_AssocContainer_GetSize(assoc_cntr) \
+    ZETA_AssocContainer_Call_((assoc_cntr), GetSize)
+
+#define ZETA_AssocContainer_GetCapacity(assoc_cntr) \
+    ZETA_AssocContainer_Call_((assoc_cntr), GetCapacity)
+
+#define ZETA_AssocContainer_GetLBCursor(assoc_cntr, dst_cursor)         \
+    ZETA_AssocContainer_Call_((assoc_cntr), GetLBCursor, (dst_cursor)); \
+    ZETA_StaticAssert(TRUE)
+
+#define ZETA_AssocContainer_GetRBCursor(assoc_cntr, dst_cursor)         \
+    ZETA_AssocContainer_Call_((assoc_cntr), GetRBCursor, (dst_cursor)); \
+    ZETA_StaticAssert(TRUE)
+
+#define ZETA_AssocContainer_PeekL(assoc_cntr, dst_cursor) \
+    ZETA_AssocContainer_Call_((assoc_cntr), PeekL, (dst_cursor))
+
+#define ZETA_AssocContainer_PeekR(assoc_cntr, dst_cursor) \
+    ZETA_AssocContainer_Call_((assoc_cntr), PeekR, (dst_cursor))
+
+#define ZETA_AssocContainer_Refer(assoc_cntr, pos_cursor) \
+    ZETA_AssocContainer_Call_((assoc_cntr), Refer, (pos_cursor))
+
+#define ZETA_AssocContainer_Find(assoc_cntr, dst_cursor, key) \
+    ZETA_AssocContainer_Call_((assoc_cntr), Refer, (dst_cursor), (key))
+
+#define ZETA_AssocContainer_Insert(assoc_cntr, dst_cursor, elem) \
+    ZETA_AssocContainer_Call_((assoc_cntr), Insert, (dst_cursor), (elem))
+
+#define ZETA_AssocContainer_Erase(assoc_cntr, pos_cursor)         \
+    ZETA_AssocContainer_Call_((assoc_cntr), Erase, (pos_cursor)); \
+    ZETA_StaticAssert(TRUE)
+
+#define ZETA_AssocContainer_EraseAll(assoc_cntr)       \
+    ZETA_AssocContainer_Call_((assoc_cntr), EraseAll); \
+    ZETA_StaticAssert(TRUE)
+
+#define ZETA_AssocContainer_Cursor_IsEqual(assoc_cntr, cursor_a, cursor_b) \
+    ZETA_AssocContainer_Call_((assoc_cntr), Cursor_IsEqual, (cursor_a),    \
+                              (cursor_b))
+
+#define ZETA_AssocContainer_Cursor_Compare(assoc_cntr, cursor_a, cursor_b) \
+    ZETA_AssocContainer_Call_((assoc_cntr), Cursor_Compare, (cursor_a),    \
+                              (cursor_b))
+
+#define ZETA_AssocContainer_Cursor_GetDist(assoc_cntr, cursor_a, cursor_b) \
+    ZETA_AssocContainer_Call_((assoc_cntr), Cursor_GetDist, (cursor_a),    \
+                              (cursor_b))
+
+#define ZETA_AssocContainer_Cursor_GetIdx(assoc_cntr, cursor) \
+    ZETA_AssocContainer_Call_((assoc_cntr), Cursor_GetIdx, (cursor))
+
+#define ZETA_AssocContainer_Cursor_StepL(assoc_cntr, cursor) \
+    ZETA_AssocContainer_Call_((assoc_cntr), Cursor_StepL, (cursor))
+
+#define ZETA_AssocContainer_Cursor_StepR(assoc_cntr, cursor) \
+    ZETA_AssocContainer_Call_((assoc_cntr), Cursor_StepR, (cursor))
+
+#define ZETA_AssocContainer_Cursor_AdvanceL(assoc_cntr, cursor, idx) \
+    ZETA_AssocContainer_Call_((assoc_cntr), Cursor_AdvanceL, (cursor), (idx))
+
+#define ZETA_AssocContainer_Cursor_AdvanceR(assoc_cntr, cursor, idx) \
+    ZETA_AssocContainer_Call_((assoc_cntr), Cursor_AdvanceR, (cursor), (idx))
 
 ZETA_ExternC_End;

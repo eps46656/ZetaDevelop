@@ -194,9 +194,9 @@ unsigned long long Zeta_SimpleRandomRotate(unsigned long long* x);
 
 unsigned long long Zeta_SimpleHash(unsigned long long x);
 
-unsigned long long Zeta_GetGCD(unsigned long long x, unsigned long long y);
+unsigned long long Zeta_GCD(unsigned long long x, unsigned long long y);
 
-unsigned long long Zeta_GetLCM(unsigned long long x, unsigned long long y);
+unsigned long long Zeta_LCM(unsigned long long x, unsigned long long y);
 
 /**
  * @brief Calculate base^exp.
@@ -206,8 +206,7 @@ unsigned long long Zeta_GetLCM(unsigned long long x, unsigned long long y);
  *
  * @return base^exp.
  */
-unsigned long long Zeta_GetPower(unsigned long long base,
-                                 unsigned long long exp);
+unsigned long long Zeta_Power(unsigned long long base, unsigned long long exp);
 
 /**
  * @brief Calculate base^exp % mod.
@@ -218,17 +217,21 @@ unsigned long long Zeta_GetPower(unsigned long long base,
  *
  * @return base^exp % mod.
  */
-unsigned long long Zeta_GetPowerMod(unsigned long long base,
-                                    unsigned long long exp,
-                                    unsigned long long mod);
+unsigned long long Zeta_PowerMod(unsigned long long base,
+                                 unsigned long long exp,
+                                 unsigned long long mod);
 
-unsigned Zeta_GetFloorLog(unsigned long long val, unsigned long long base);
+unsigned long long Zeta_FixedPoint2Power(long long val);
 
-unsigned Zeta_GetCeilLog(unsigned long long val, unsigned long long base);
+unsigned Zeta_FloorLog(unsigned long long val, unsigned long long base);
 
-unsigned long long Zeta_GetFloorSqrt(unsigned long long val);
+unsigned Zeta_CeilLog(unsigned long long val, unsigned long long base);
 
-unsigned long long Zeta_GetCeilSqrt(unsigned long long val);
+unsigned long long Zeta_FixedPointLog2(unsigned long long val);
+
+unsigned long long Zeta_FloorSqrt(unsigned long long val);
+
+unsigned long long Zeta_CeilSqrt(unsigned long long val);
 
 unsigned long long Zeta_FindNextConMod(unsigned long long beg,
                                        unsigned long long target,

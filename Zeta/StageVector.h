@@ -15,10 +15,6 @@ ZETA_DeclareStruct(Zeta_StageVector_Stats);
 #define ZETA_StageVector_ref_color (0)
 #define ZETA_StageVector_dat_color (1)
 
-// -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
-
 struct Zeta_StageVector {
     /** The maximum number of elements in a Stagement. */
     size_t seg_capacity;
@@ -65,10 +61,6 @@ struct Zeta_StageVector_Stats {
     size_t ref_size;
     size_t dat_size;
 };
-
-// -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
 
 void Zeta_StageVector_Init(void* sv);
 
@@ -154,19 +146,3 @@ void Zeta_StageVector_Cursor_Check(void* sv, void const* cursor);
 void Zeta_StageVector_DeploySeqContainer(void* sv, Zeta_SeqContainer* seq_cntr);
 
 ZETA_ExternC_End;
-
-/*
-
-i = 0 ~ N-1
-
-x[-1] = seg_capacity
-x[i] = [1, seg_capacity-1]
-x[N] = seg_capacity
-
-for i in [0, N-1]
-    seg_capacity < x[i-1] + x[i] or
-    seg_capacity < x[i] + x[i+1]
-
-minimize sum(x[i] for i in [0, N-1]) / seg_capacity * N
-
-*/
