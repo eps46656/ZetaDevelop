@@ -1,9 +1,10 @@
 #pragma once
 
+#include <MemCheck.h>
+#include <RadixVector.h>
+
 #include <cstdlib>
 
-#include "../Zeta/MemCheck.h"
-#include "../Zeta/RadixVector.h"
 #include "StdAllocator.h"
 
 struct RadixVectorPack {
@@ -17,8 +18,8 @@ struct RadixVectorPack {
 };
 
 template <typename Val>
-void InitRadixVector(Zeta_SeqContainer* seq_cntr, size_t seg_capacity,
-                     size_t branch_num, size_t order) {
+void RadixVector_Init(Zeta_SeqContainer* seq_cntr, size_t seg_capacity,
+                      size_t branch_num, size_t order) {
     RadixVectorPack* radix_vector_pack{ static_cast<RadixVectorPack*>(
         std::malloc(sizeof(RadixVectorPack))) };
 
@@ -42,29 +43,24 @@ void InitRadixVector(Zeta_SeqContainer* seq_cntr, size_t seg_capacity,
     radix_vector_pack->radix_vector.seg_allocator =
         &radix_vector_pack->seg_allocator;
 
-    ZETA_PrintCurPos;
-
     Zeta_RadixVector_Init(&radix_vector_pack->radix_vector);
-
-    ZETA_PrintCurPos;
 
     Zeta_RadixVector_DeploySeqContainer(&radix_vector_pack->radix_vector,
                                         seq_cntr);
 
-    ZETA_PrintCurPos;
+    SeqContainer_AddSanitizeFunc(Zeta_RadixVector_GetWidth,
+                                 RadixVector_Sanitize);
 }
 
 template <typename Val>
-Zeta_SeqContainer* CreateRadixVector(size_t seg_capacity, size_t branch_num,
-                                     size_t order) {
+Zeta_SeqContainer* RadixVector_Create(size_t seg_capacity, size_t branch_num,
+                                      size_t order) {
     Zeta_SeqContainer* seq_cntr{ new Zeta_SeqContainer{} };
-
-    InitRadixVector<Val>(seq_cntr, seg_capacity, branch_num, order);
-
+    RadixVector_Init<Val>(seq_cntr, seg_capacity, branch_num, order);
     return seq_cntr;
 }
 
-void DestroyRadixVector(Zeta_SeqContainer* seq_cntr) {
+void RadixVector_Destroy(Zeta_SeqContainer* seq_cntr) {
     if (seq_cntr == NULL || seq_cntr->GetSize != Zeta_RadixVector_GetSize) {
         return;
     }
@@ -74,7 +70,7 @@ void DestroyRadixVector(Zeta_SeqContainer* seq_cntr) {
     delete seq_cntr;
 }
 
-void SanitizeRadixVector(Zeta_SeqContainer const* seq_cntr) {
+void RadixVector_Sanitize(Zeta_SeqContainer const* seq_cntr) {
     if (seq_cntr->GetSize != Zeta_RadixVector_GetSize) { return; }
 
     RadixVectorPack* pack{ ZETA_MemberToStruct(RadixVectorPack, radix_vector,

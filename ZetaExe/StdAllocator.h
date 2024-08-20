@@ -1,11 +1,11 @@
 #pragma once
 
-#include <unordered_map>
+#include <Allocator.h>
+#include <DebugHashTable.h>
+#include <Debugger.h>
+#include <MemCheck.h>
 
-#include "../Zeta/Allocator.h"
-#include "../Zeta/DebugHashTable.h"
-#include "../Zeta/Debugger.h"
-#include "../Zeta/MemCheck.h"
+#include <unordered_map>
 
 struct StdAllocator {
     Zeta_MemRecorder* mem_recorder;

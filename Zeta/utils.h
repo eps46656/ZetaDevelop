@@ -227,11 +227,13 @@ unsigned Zeta_FloorLog(unsigned long long val, unsigned long long base);
 
 unsigned Zeta_CeilLog(unsigned long long val, unsigned long long base);
 
-unsigned long long Zeta_FixedPointLog2(unsigned long long val);
+long long Zeta_FixedPointLog2(unsigned long long val);
 
 unsigned long long Zeta_FloorSqrt(unsigned long long val);
 
 unsigned long long Zeta_CeilSqrt(unsigned long long val);
+
+unsigned long long Zeta_FixedPointSqrt(unsigned long long val);
 
 unsigned long long Zeta_FindNextConMod(unsigned long long beg,
                                        unsigned long long target,

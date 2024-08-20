@@ -5,6 +5,7 @@
 #include <memory>
 
 #include "DynamicHashTableUtils.h"
+#include "Random.h"
 #include "StdAllocator.h"
 #include "Timer.h"
 #include "Value.h"
@@ -70,6 +71,8 @@ void AC_Erase(Zeta_AssocContainer* assoc_cntr,
 }
 
 void main1() {
+    RandomSetSeed();
+
     Zeta_AssocContainer* dht = CreateDynamicHashTable<Pair>(
         NULL, Zeta_PairHash, NULL, Zeta_KeyHash, NULL, Zeta_PairCompare, NULL,
         Zeta_PairKeyCompare);
@@ -78,22 +81,27 @@ void main1() {
     Pair* pair;
 
     for (unsigned long long i{ 0 }; i < 1024 * 4; ++i) {
-        cursor = AC_Insert(dht, Pair{ i, 1024 + i });
+        unsigned long long key{ static_cast<unsigned long long>(
+            GetRandomInt(0, 1024 * 1024)) };
+        unsigned long long val{ static_cast<unsigned long long>(
+            GetRandomInt(0, 1024 * 1024)) };
+
+        cursor = AC_Insert(dht, Pair{ key, val });
         Pair* pair = (Pair*)ZETA_AssocContainer_Refer(dht, cursor.get());
 
         ZETA_DebugAssert(pair != NULL);
-        ZETA_DebugAssert(pair->key == i);
-        ZETA_DebugAssert(pair->val == 1024 + i);
+        ZETA_DebugAssert(pair->key == key);
+        ZETA_DebugAssert(pair->val == val);
 
         SanitizeDynamicHashTable(dht);
 
-        if (i % 1024 == 0) { ZETA_PrintVar(i); }
+        if (i % 256 == 0) {
+            ZETA_PrintVar(i);
 
-        /*
-        printf("eff factor = %e\n",
-               (double)Zeta_DynamicHashTable_GetEffFactor(dht->context) /
-                   ZETA_FixedPoint_Base);
-        */
+            printf("eff factor = %e\n",
+                   (double)Zeta_DynamicHashTable_GetEffFactor(dht->context) /
+                       ZETA_FixedPoint_Base);
+        }
     }
 
     printf("eff factor = %e\n",

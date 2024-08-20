@@ -1,8 +1,9 @@
 #pragma once
 
+#include <StageVector.h>
+
 #include <cstdlib>
 
-#include "../Zeta/StageVector.h"
 #include "StdAllocator.h"
 
 struct StageVectorPack {
@@ -16,8 +17,8 @@ struct StageVectorPack {
 };
 
 template <typename Val>
-void InitStageVector(Zeta_SeqContainer* seq_cntr,
-                     Zeta_SeqContainer* origin_seq_cntr, size_t seg_capacity) {
+void StageVector_Init(Zeta_SeqContainer* seq_cntr,
+                      Zeta_SeqContainer* origin_seq_cntr, size_t seg_capacity) {
     StageVectorPack* stage_vector_pack{ static_cast<StageVectorPack*>(
         std::malloc(sizeof(StageVectorPack))) };
 
@@ -37,11 +38,15 @@ void InitStageVector(Zeta_SeqContainer* seq_cntr,
         &stage_vector_pack->data_allocator;
 
     Zeta_StageVector_Init(&stage_vector_pack->stage_vector);
+
     Zeta_StageVector_DeploySeqContainer(&stage_vector_pack->stage_vector,
                                         seq_cntr);
+
+    SeqContainer_AddSanitizeFunc(Zeta_StageVector_GetWidth,
+                                 StageVector_Sanitize);
 }
 
-void DeinitStageVector(Zeta_SeqContainer* seq_cntr) {
+void StageVector_Deinit(Zeta_SeqContainer* seq_cntr) {
     if (seq_cntr == NULL || seq_cntr->GetSize != Zeta_StageVector_GetSize) {
         return;
     }
@@ -58,24 +63,24 @@ void DeinitStageVector(Zeta_SeqContainer* seq_cntr) {
 }
 
 template <typename Val>
-Zeta_SeqContainer* CreateStageVector(Zeta_SeqContainer* origin_seq_cntr,
-                                     size_t seg_capacity) {
+Zeta_SeqContainer* StageVector_Create(Zeta_SeqContainer* origin_seq_cntr,
+                                      size_t seg_capacity) {
     Zeta_SeqContainer* seq_cntr{ new Zeta_SeqContainer{} };
-    InitStageVector<Val>(seq_cntr, origin_seq_cntr, seg_capacity);
+    StageVector_Init<Val>(seq_cntr, origin_seq_cntr, seg_capacity);
     return seq_cntr;
 }
 
-void DestroyStageVector(Zeta_SeqContainer* seq_cntr) {
+void StageVector_Destroy(Zeta_SeqContainer* seq_cntr) {
     if (seq_cntr == NULL || seq_cntr->GetSize != Zeta_StageVector_GetSize) {
         return;
     }
 
-    DeinitStageVector(seq_cntr);
+    StageVector_Deinit(seq_cntr);
 
     delete seq_cntr;
 }
 
-void CheckStageVector(Zeta_SeqContainer const* seq_cntr) {
+void StageVector_Sanitize(Zeta_SeqContainer const* seq_cntr) {
     if (seq_cntr->GetSize != Zeta_StageVector_GetSize) { return; }
 
     StageVectorPack* pack{ ZETA_MemberToStruct(StageVectorPack, stage_vector,

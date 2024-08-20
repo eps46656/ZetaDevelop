@@ -335,7 +335,7 @@ void Zeta_GenericHashTable_Insert(void* ght_, void* node_) {
 
         ++cur_table_cnt;
 
-        if (state == cur_state && cur_table_capacity * 2 <= cur_table_cnt) {
+        if (state == cur_state && cur_table_capacity * 8 <= cur_table_cnt) {
             state = trans_state;
 
             ght->nxt_salt = GetSalt_(ght);

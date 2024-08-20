@@ -12,6 +12,14 @@ struct Zeta_DebugHashTable {
 
     void* hash_table;
 
+    void* elem_hash_context;
+
+    unsigned long long (*ElemHash)(void* elem_hash_context, void const* elem);
+
+    void* key_hash_context;
+
+    unsigned long long (*KeyHash)(void* key_hash_context, void const* key);
+
     void* elem_cmp_context;
 
     int (*ElemCompare)(void* elem_cmp_context, void const* elem_a,
@@ -21,14 +29,6 @@ struct Zeta_DebugHashTable {
 
     int (*ElemKeyCompare)(void* elem_cmp_context, void const* elem,
                           void const* key);
-
-    void* elem_hash_context;
-
-    unsigned long long (*ElemHash)(void* elem_hash_context, void const* elem);
-
-    void* key_hash_context;
-
-    unsigned long long (*KeyHash)(void* key_hash_context, void const* key);
 };
 
 void Zeta_DebugHashTable_Init(void* debug_ht);
