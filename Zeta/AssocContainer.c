@@ -35,7 +35,7 @@ void Zeta_AssocContainer_Init(Zeta_AssocContainer* assoc_cntr) {
 
     assoc_cntr->EraseAll = NULL;
 
-    assoc_cntr->Cursor_IsEqual = NULL;
+    assoc_cntr->Cursor_AreEqual = NULL;
 
     assoc_cntr->Cursor_Compare = NULL;
 

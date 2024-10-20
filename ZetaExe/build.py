@@ -19,33 +19,29 @@ sys.path.append(os.path.dirname(ZetaDir))
 import Zeta.build
 
 def AddDeps(builder, ZetaBuildDir, ZetaExeBuildDir, verbose, mode):
-    compiler_config = EmptyClass
+    compiler = Compiler({
+        "verbose": verbose,
 
-    compiler_config.verbose = verbose
-    compiler_config.mode = mode
-    compiler_config.build_dir = ZetaExeBuildDir
+        "mode": mode,
 
-    compiler_config.working_dirs = {
-        ZetaDevDir,
-        ZetaDir,
-        ZetaExeDir,
-    }
+        "build_dir": ZetaExeBuildDir,
 
-    compiler_config.target = EmptyClass
-    compiler_config.target.arch = target.arch
-    compiler_config.target.vendor = target.vendor
-    compiler_config.target.sys = target.sys
-    compiler_config.target.env = target.env
+        "working_dirs": {
+            ZetaDevDir,
+            ZetaDir,
+            ZetaExeDir,
+        },
 
-    compiler_config.c_include_dirs = {
-        f"{ZetaDir}",
-    }
+        "target": target,
 
-    compiler_config.cpp_include_dirs = {
-        f"{ZetaDir}",
-    }
+        "c_include_dirs": {
+            f"{ZetaDir}",
+        },
 
-    compiler = Compiler(compiler_config)
+        "cpp_include_dirs": {
+            f"{ZetaDir}",
+        },
+    })
 
     '''
     if os.name == "nt":
@@ -63,6 +59,16 @@ def AddDeps(builder, ZetaBuildDir, ZetaExeBuildDir, verbose, mode):
         set(),
         None
     )'''
+
+    builder.Add(
+        f"{ZetaExeDir}/AssocContainerUtils.h",
+        {
+            f"{File}",
+            f"{ZetaDir}/AssocContainer.h",
+            f"{ZetaDir}/Debugger.h",
+        },
+        None
+    )
 
     builder.Add(
         f"{File}",
@@ -126,6 +132,8 @@ def AddDeps(builder, ZetaBuildDir, ZetaExeBuildDir, verbose, mode):
         {
             f"{File}",
             f"{ZetaDir}/DebugHashTable.h",
+            f"{ZetaDir}/Debugger.h",
+            f"{ZetaExeDir}/AssocContainerUtils.h",
         },
         None
     )
@@ -544,6 +552,7 @@ def AddDeps(builder, ZetaBuildDir, ZetaExeBuildDir, verbose, mode):
             f"{ZetaDir}/DebugDeque.h",
             f"{ZetaDir}/Debugger.h",
             f"{ZetaDir}/MemCheck.h",
+            f"{ZetaExeDir}/AssocContainerUtils.h",
             f"{ZetaExeDir}/DebugHashTableUtils.h",
             f"{ZetaExeDir}/DynamicHashTableUtils.h",
             f"{ZetaExeDir}/Random.h",
@@ -573,6 +582,7 @@ def AddDeps(builder, ZetaBuildDir, ZetaExeBuildDir, verbose, mode):
             f"{ZetaBuildDir}/AssocContainer.o",
             f"{ZetaBuildDir}/BinTree.o",
             f"{ZetaBuildDir}/Debugger.o",
+            f"{ZetaBuildDir}/DebugHashTable.o",
             f"{ZetaBuildDir}/DebugPipe.o",
             f"{ZetaBuildDir}/DebugStrPipe.o",
             f"{ZetaBuildDir}/DynamicHashTable.o",
@@ -585,7 +595,6 @@ def AddDeps(builder, ZetaBuildDir, ZetaExeBuildDir, verbose, mode):
             f"{ZetaBuildDir}/RBTree.o",
             f"{ZetaBuildDir}/utils.o",
             f"{ZetaExeBuildDir}/Timer.o",
-            f"{ZetaExeBuildDir}/Value.o",
             f"{ZetaExeBuildDir}/test_dht.o",
         },
         lambda : compiler.to_exe(
@@ -595,6 +604,7 @@ def AddDeps(builder, ZetaBuildDir, ZetaExeBuildDir, verbose, mode):
                 f"{ZetaBuildDir}/AssocContainer.o",
                 f"{ZetaBuildDir}/BinTree.o",
                 f"{ZetaBuildDir}/Debugger.o",
+                f"{ZetaBuildDir}/DebugHashTable.o",
                 f"{ZetaBuildDir}/DebugPipe.o",
                 f"{ZetaBuildDir}/DebugStrPipe.o",
                 f"{ZetaBuildDir}/DynamicHashTable.o",
@@ -607,7 +617,6 @@ def AddDeps(builder, ZetaBuildDir, ZetaExeBuildDir, verbose, mode):
                 f"{ZetaBuildDir}/RBTree.o",
                 f"{ZetaBuildDir}/utils.o",
                 f"{ZetaExeBuildDir}/Timer.o",
-                f"{ZetaExeBuildDir}/Value.o",
                 f"{ZetaExeBuildDir}/test_dht.o",
             }
         )
@@ -1168,7 +1177,6 @@ def AddDeps(builder, ZetaBuildDir, ZetaExeBuildDir, verbose, mode):
         f"{ZetaExeBuildDir}/test_stagevec.exe",
         {
             f"{File}",
-
             f"{ZetaBuildDir}/Algorithm.o",
             f"{ZetaBuildDir}/AssocContainer.o",
             f"{ZetaBuildDir}/BinTree.o",
@@ -1178,6 +1186,7 @@ def AddDeps(builder, ZetaBuildDir, ZetaExeBuildDir, verbose, mode):
             f"{ZetaBuildDir}/Debugger.o",
             f"{ZetaBuildDir}/DebugPipe.o",
             f"{ZetaBuildDir}/DebugStrPipe.o",
+            f"{ZetaBuildDir}/DummyVector.o",
             f"{ZetaBuildDir}/DynamicVector.o",
             f"{ZetaBuildDir}/io.o",
             f"{ZetaBuildDir}/MemCheck.o",
@@ -1191,9 +1200,7 @@ def AddDeps(builder, ZetaBuildDir, ZetaExeBuildDir, verbose, mode):
             f"{ZetaBuildDir}/SeqContainer.o",
             f"{ZetaBuildDir}/StageVector.o",
             f"{ZetaBuildDir}/utils.o",
-
             f"{ZetaExeBuildDir}/Timer.o",
-
             f"{ZetaExeBuildDir}/test_stagevec.o",
         },
         lambda : compiler.to_exe(
@@ -1209,6 +1216,7 @@ def AddDeps(builder, ZetaBuildDir, ZetaExeBuildDir, verbose, mode):
                 f"{ZetaBuildDir}/Debugger.o",
                 f"{ZetaBuildDir}/DebugPipe.o",
                 f"{ZetaBuildDir}/DebugStrPipe.o",
+                f"{ZetaBuildDir}/DummyVector.o",
                 f"{ZetaBuildDir}/DynamicVector.o",
                 f"{ZetaBuildDir}/io.o",
                 f"{ZetaBuildDir}/MemCheck.o",
@@ -1222,9 +1230,7 @@ def AddDeps(builder, ZetaBuildDir, ZetaExeBuildDir, verbose, mode):
                 f"{ZetaBuildDir}/SeqContainer.o",
                 f"{ZetaBuildDir}/StageVector.o",
                 f"{ZetaBuildDir}/utils.o",
-
                 f"{ZetaExeBuildDir}/Timer.o",
-
                 f"{ZetaExeBuildDir}/test_stagevec.o",
             }
         )
@@ -1837,6 +1843,52 @@ def AddDeps(builder, ZetaBuildDir, ZetaExeBuildDir, verbose, mode):
     )
 
     builder.Add(
+        f"{ZetaExeDir}/test_qsort.cpp",
+        {
+            f"{File}",
+            f"{ZetaDir}/Algorithm.h",
+        },
+        None
+    )
+
+    builder.Add(
+        f"{ZetaExeBuildDir}/test_qsort.o",
+        {
+            f"{File}",
+            f"{ZetaExeDir}/test_qsort.cpp",
+        },
+        lambda : compiler.cpp_to_obj(
+            f"{ZetaExeBuildDir}/test_qsort.o",
+            f"{ZetaExeDir}/test_qsort.cpp",
+        )
+    )
+
+    builder.Add(
+        f"{ZetaExeBuildDir}/test_qsort.exe",
+        {
+            f"{File}",
+            f"{ZetaBuildDir}/Algorithm.o",
+            f"{ZetaBuildDir}/Debugger.o",
+            f"{ZetaBuildDir}/DebugStrPipe.o",
+            f"{ZetaBuildDir}/io.o",
+            f"{ZetaBuildDir}/utils.o",
+            f"{ZetaExeBuildDir}/test_qsort.o",
+        },
+        lambda : compiler.to_exe(
+            f"{ZetaExeBuildDir}/test_qsort.exe",
+
+            {
+                f"{ZetaBuildDir}/Algorithm.o",
+                f"{ZetaBuildDir}/Debugger.o",
+                f"{ZetaBuildDir}/DebugStrPipe.o",
+                f"{ZetaBuildDir}/io.o",
+                f"{ZetaBuildDir}/utils.o",
+                f"{ZetaExeBuildDir}/test_qsort.o",
+            }
+        )
+    )
+
+    builder.Add(
         f"{ZetaExeDir}/test_scheduler.cpp",
         {
             f"{File}",
@@ -2101,19 +2153,16 @@ def main():
 
     HighLightPrint(f"args = {args}")
 
-    mode = {
-        "debug": mode_enum.debug,
-        "release": mode_enum.release,
-    }[args.mode]
+    mode = ModeEnum[args.mode.upper()]
 
     ZetaBuildDir = None
     ZetaExeBuildDir = None
 
-    if mode == mode_enum.debug:
+    if mode == ModeEnum.DEBUG:
         ZetaBuildDir = f"{ZetaDevDir}/ZetaDebugBuild"
         ZetaExeBuildDir = f"{ZetaDevDir}/ZetaExeDebugBuild"
 
-    if mode == mode_enum.release:
+    if mode == ModeEnum.RELEASE:
         ZetaBuildDir = f"{ZetaDevDir}/ZetaReleaseBuild"
         ZetaExeBuildDir = f"{ZetaDevDir}/ZetaExeReleaseBuild"
 

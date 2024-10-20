@@ -119,8 +119,8 @@ void* Zeta_DebugDeque_PeekR(void* dd_, void* dst_cursor_, void* dst_elem) {
     return elem;
 }
 
-void* Zeta_DebugDeque_Access(void* dd_, void* dst_cursor_, void* dst_elem,
-                             size_t idx) {
+void* Zeta_DebugDeque_Access(void* dd_, size_t idx, void* dst_cursor_,
+                             void* dst_elem) {
     Zeta_DebugDeque* dd = (Zeta_DebugDeque*)dd_;
     Zeta_DebugDeque_Check(dd);
 
@@ -204,7 +204,7 @@ void Zeta_DebugDeque_Write(void* dd_, void* pos_cursor_, size_t cnt,
     }
 }
 
-void* Zeta_DebugDeque_PushL(void* dd_, void* dst_cursor_, size_t cnt) {
+void* Zeta_DebugDeque_PushL(void* dd_, size_t cnt, void* dst_cursor_) {
     Zeta_DebugDeque* dd = (Zeta_DebugDeque*)dd_;
     Zeta_DebugDeque_Check(dd);
 
@@ -218,7 +218,7 @@ void* Zeta_DebugDeque_PushL(void* dd_, void* dst_cursor_, size_t cnt) {
     return deque->empty() ? NULL : deque->front();
 }
 
-void* Zeta_DebugDeque_PushR(void* dd_, void* dst_cursor_, size_t cnt) {
+void* Zeta_DebugDeque_PushR(void* dd_, size_t cnt, void* dst_cursor_) {
     Zeta_DebugDeque* dd = (Zeta_DebugDeque*)dd_;
     Zeta_DebugDeque_Check(dd);
 
@@ -325,8 +325,8 @@ void Zeta_DebugDeque_Check(void* dd_) {
     ZETA_DebugAssert(deque != NULL);
 }
 
-bool_t Zeta_DebugDeque_Cursor_IsEqual(void* dd_, void const* cursor_a_,
-                                      void const* cursor_b_) {
+bool_t Zeta_DebugDeque_Cursor_AreEqual(void* dd_, void const* cursor_a_,
+                                       void const* cursor_b_) {
     Zeta_DebugDeque* dd = (Zeta_DebugDeque*)dd_;
     size_t* cursor_a = (size_t*)cursor_a_;
     size_t* cursor_b = (size_t*)cursor_b_;
@@ -479,7 +479,7 @@ void Zeta_DebugDeque_DeploySeqContainer(void* dd_,
 
     seq_cntr->EraseAll = Zeta_DebugDeque_EraseAll;
 
-    seq_cntr->Cursor_IsEqual = Zeta_DebugDeque_Cursor_IsEqual;
+    seq_cntr->Cursor_AreEqual = Zeta_DebugDeque_Cursor_AreEqual;
 
     seq_cntr->Cursor_Compare = Zeta_DebugDeque_Cursor_Compare;
 

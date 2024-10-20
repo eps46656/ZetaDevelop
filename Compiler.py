@@ -4,29 +4,28 @@ from utils import *
 import os
 import subprocess
 
-def GetClangTriple(target):
+def GetClangTriple(target: Target):
     arch_table = {
-        arch_enum.x86_64: "x86_64",
-        arch_enum.arm: "arm",
-        arch_enum.arm32: "arm32",
-        arch_enum.arm64: "arm64",
-        arch_enum.riscv32: "riscv32",
-        arch_enum.riscv64: "riscv64",
+        ArchEnum.X86_64: "x86_64",
+        ArchEnum.ARM32: "arm32",
+        ArchEnum.ARM64: "arm64",
+        ArchEnum.RISCV32: "riscv32",
+        ArchEnum.RISCV64: "riscv64",
     }
 
     vendor_table = {
-        vendor_enum.pc: "pc",
+        VendorEnum.PC: "pc",
     }
 
     sys_table = {
-        sys_enum.linux: "linux",
-        sys_enum.windows: "windows",
+        SysEnum.LINUX: "linux",
+        SysEnum.WINDOWS: "windows",
     }
 
     env_table = {
-        env_enum.gnu: "gun",
-        env_enum.elf: "elf",
-        env_enum.msvc: "msvc",
+        EnvEnum.GNU: "gun",
+        EnvEnum.ELF: "elf",
+        EnvEnum.MSVC: "msvc",
     }
 
     arch = arch_table[target.arch]
@@ -38,12 +37,11 @@ def GetClangTriple(target):
 
 def GetLLCArch(target):
     arch_table = {
-        arch_enum.x86_64: "x86-64",
-        arch_enum.arm: "arm",
-        arch_enum.arm32: "arm32",
-        arch_enum.arm64: "arm64",
-        arch_enum.riscv32: "riscv32",
-        arch_enum.riscv64: "riscv64",
+        ArchEnum.X86_64: "x86-64",
+        ArchEnum.ARM32: "arm32",
+        ArchEnum.ARM64: "arm64",
+        ArchEnum.RISCV32: "riscv32",
+        ArchEnum.RISCV64: "riscv64"
     }
 
     arch = arch_table[target.arch]
@@ -56,21 +54,31 @@ def ShowCommand(cmd):
 
 class Compiler:
     def __init__(self, config):
-        self.mode = config.__dict__.get("mode", mode_enum.debug)
-        assert self.mode in mode_enum.__dict__.values()
+        '''
 
-        self.verbose = config.verbose
+        config = class {
+            mode = [ModeEnum.debug(default) | ModeEnum.release]
+            verbose = [True(default) | False]
+            build_dir = path to build dir
+            working_dirs = //
+            target = Target
+            c_include_dirs = {}
+            cpp_include_dirs = {}
+        }
 
-        self.build_dir = config.build_dir
+        '''
+
+        self.mode = config.get("mode", ModeEnum.DEBUG)
+        assert self.mode in ModeEnum
+
+        self.verbose = config.get("verbose", True)
+
+        self.build_dir = config["build_dir"]
 
         self.working_dirs = set(NotNoneFilter(
-            config.__dict__.get("working_dirs", [])))
+            config.get("working_dirs", [])))
 
-        self.target = EmptyClass
-        self.target.arch = config.target.arch
-        self.target.vendor = config.target.vendor
-        self.target.sys = config.target.sys
-        self.target.env = config.target.env
+        self.target = dataclasses.replace(config["target"])
 
         self.c_to_obj_command = None
         self.cpp_to_obj_command = None
@@ -91,10 +99,10 @@ class Compiler:
             self.opt_ll_command = "opt-18"
             self.to_exe_command = "clang-18"
 
-        self.c_include_dirs = config.__dict__.get("c_include_dirs", [])
-        self.cpp_include_dirs = config.__dict__.get("cpp_include_dirs", [])
+        self.c_include_dirs = config.get("c_include_dirs", [])
+        self.cpp_include_dirs = config.get("cpp_include_dirs", [])
 
-        self.include_dirs = {}
+        self.randomize_layout_seed = 13493037705
 
         clang_triple = GetClangTriple(self.target)
 
@@ -102,23 +110,25 @@ class Compiler:
             f"-v" if self.verbose else "",
             # f"-target {clang_triple}",
             f"-m64",
-            # f"-std=c2x",
+            f"-std=c2x",
             *(f"--include-directory={include_dir}"
               for include_dir in self.c_include_dirs),
             "-ferror-limit=2",
+            f"-frandomize-layout-seed={self.randomize_layout_seed}",
         ]
 
         self.cpp_to_obj_args = [
             f"-v" if self.verbose else "",
             # f"-target {clang_triple}",
             f"-m64",
-            # f"-std=c++17",
+            f"-std=c++17",
             *(f"--include-directory={include_dir}"
               for include_dir in self.cpp_include_dirs),
             "-ferror-limit=2",
+            f"-frandomize-layout-seed={self.randomize_layout_seed}",
         ]
 
-        if self.mode == mode_enum.debug:
+        if self.mode == ModeEnum.DEBUG:
             self.c_to_obj_args += [
                 "-O1",
                 "-g",
@@ -153,7 +163,7 @@ class Compiler:
                 # "-fsanitize=undefined",
             ]
 
-        if self.mode == mode_enum.release:
+        if self.mode == ModeEnum.RELEASE:
             self.c_to_obj_args += [
                 "-O3",
             ]
@@ -177,9 +187,11 @@ class Compiler:
 
             "-lstdc++",
             # "-lm",
+
+            f"-frandomize-layout-seed={self.randomize_layout_seed}",
         ]
 
-        if self.mode == mode_enum.debug:
+        if self.mode == ModeEnum.DEBUG:
             self.to_exe_args += [
                 "-O1",
                 "-g",
@@ -193,7 +205,7 @@ class Compiler:
                 # "-fsanitize=undefined",
             ]
 
-        if self.mode == mode_enum.release:
+        if self.mode == ModeEnum.RELEASE:
             self.to_exe_args += [
                 "-O3",
                 "-flto",
@@ -207,7 +219,7 @@ class Compiler:
                 "-fshow-skipped-includes",
                 "-fsyntax-only",
                 *(["--include-directory", include_dir]
-                  for include_dir in self.include_dirs),
+                  for include_dir in self.cpp_include_dirs),
                 src,
             ),
             check=True,

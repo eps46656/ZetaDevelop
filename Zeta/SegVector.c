@@ -1564,8 +1564,8 @@ void Zeta_SegVector_Check(void* sv_, Zeta_DebugHashTable* dst_node_hm,
     Check_(sv, dst_node_hm, dst_seg_hm, &btn_opr, sv->root);
 }
 
-bool_t Zeta_SegVector_Cursor_IsEqual(void* sv_, void const* cursor_a_,
-                                     void const* cursor_b_) {
+bool_t Zeta_SegVector_Cursor_AreEqual(void* sv_, void const* cursor_a_,
+                                      void const* cursor_b_) {
     Zeta_SegVector* sv = sv_;
     ZETA_DebugAssert(sv != NULL);
 
@@ -1808,7 +1808,7 @@ void Zeta_SegVector_DeploySeqContainer(void* sv_, Zeta_SeqContainer* seq_cntr) {
 
     seq_cntr->EraseAll = Zeta_SegVector_EraseAll;
 
-    seq_cntr->Cursor_IsEqual = Zeta_SegVector_Cursor_IsEqual;
+    seq_cntr->Cursor_AreEqual = Zeta_SegVector_Cursor_AreEqual;
 
     seq_cntr->Cursor_Compare = Zeta_SegVector_Cursor_Compare;
 

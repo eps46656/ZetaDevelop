@@ -2,12 +2,13 @@
 #include <utils.h>
 
 void main1() {
+    ZETA_PrintCurPos;
+
     double base = ZETA_2Power(ZETA_FixedPoint_BaseOrder);
 
-    double max_err = 0;
-    double max_rel_err = 0;
+    double max_k_err = 0;
 
-    for (double x = -10; x <= 10; x += 0.01) {
+    for (double x = -34; x <= 34; x += 0.01) {
         double zetay = Zeta_FixedPoint2Power(x * base) / base;
 
         double stdy = pow(2, x);
@@ -16,26 +17,27 @@ void main1() {
         double err = fabs(zetay - stdy);
         double rel_err = fabs(err / stdy);
 
-        max_err = max(max_err, err);
-        max_rel_err = max(max_rel_err, rel_err);
+        double k_err = min(err, rel_err);
 
-        if (1 / (1024.0 * 8) <= rel_err) {
+        max_k_err = max(max_k_err, k_err);
+
+        if (1e-4 <= max_k_err) {
             printf("x: %f\n", x);
-            printf("\t\trel err: %f\n", rel_err);
+            printf("\t\tk err: %f\n", k_err);
         }
     }
 
-    printf("max err: %e\n", max_err);
-    printf("max rel err: %e\n", max_rel_err);
+    printf("max k err: %e\n", max_k_err);
 }
 
 void main2() {
+    ZETA_PrintCurPos;
+
     double base = ZETA_2Power(ZETA_FixedPoint_BaseOrder);
 
-    double max_err = 0;
-    double max_rel_err = 0;
+    double max_k_err = 0;
 
-    for (double x = 0.0001; x <= 2; x += 0.00000001) {
+    for (double x = 0.0001; x <= 20; x += 0.0000001) {
         double zetay = Zeta_FixedPointLog2(x * base) / base;
 
         // double stdy = pow(2, x);
@@ -44,29 +46,27 @@ void main2() {
         double err = fabs(zetay - stdy);
         double rel_err = fabs(err / stdy);
 
-        max_err = max(max_err, err);
-        max_rel_err = max(max_rel_err, rel_err);
+        double k_err = min(err, rel_err);
 
-        /*
-        if (1 / (1024.0 * 8) <= rel_err) {
+        max_k_err = max(max_k_err, k_err);
+
+        if (1e-3 <= k_err) {
             printf("x: %e\n", x);
-            printf("err: %e\n", err);
-            printf("rel err: %e\n", rel_err);
+            printf("\t\t\t\tk err: %e\n", k_err);
         }
-        */
     }
 
-    printf("max err: %e\n", max_err);
-    printf("max rel err: %e\n", max_rel_err);
+    printf("max k err: %e\n", max_k_err);
 }
 
 void main3() {
+    ZETA_PrintCurPos;
+
     double base = ZETA_2Power(ZETA_FixedPoint_BaseOrder);
 
-    double max_err = 0;
-    double max_rel_err = 0;
+    double max_k_err = 0;
 
-    for (double x = 1024 * 1024; x <= 1024 * 1024 * 2; x += 0.01) {
+    for (double x = 0; x <= 1024; x += 0.0001) {
         double zetay = Zeta_FixedPointSqrt(x * base) / base;
 
         // double stdy = pow(2, x);
@@ -75,22 +75,22 @@ void main3() {
         double err = fabs(zetay - stdy);
         double rel_err = fabs(err / stdy);
 
-        max_err = max(max_err, err);
-        max_rel_err = max(max_rel_err, rel_err);
+        double k_err = min(err, rel_err);
 
-        if (1 / (1024.0 * 8) <= rel_err) {
+        max_k_err = max(max_k_err, k_err);
+
+        if (1e-3 <= k_err) {
             printf("x: %e\n", x);
-            printf("rel err: %e\n", rel_err);
+            printf("k err: %e\n", k_err);
         }
     }
 
-    printf("max err: %e\n", max_err);
-    printf("max rel err: %e\n", max_rel_err);
+    printf("max k err: %e\n", max_k_err);
 }
 
 int main() {
     printf("main start\n");
-    main2();
+    main1();
     printf("ok\n");
     return 0;
 }

@@ -47,7 +47,7 @@ void Zeta_SeqContainer_Init(Zeta_SeqContainer* seq_cntr) {
 
     seq_cntr->EraseAll = NULL;
 
-    seq_cntr->Cursor_IsEqual = NULL;
+    seq_cntr->Cursor_AreEqual = NULL;
 
     seq_cntr->Cursor_Compare = NULL;
 

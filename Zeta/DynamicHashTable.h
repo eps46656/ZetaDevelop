@@ -20,13 +20,15 @@ struct Zeta_DynamicHashTable {
 
     Zeta_OrdLinkedListNode* lln;
 
-    void* key_hash_context;
-
-    unsigned long long (*KeyHash)(void* hash_key_context, void const* key);
-
     void* elem_hash_context;
 
-    unsigned long long (*ElemHash)(void* hash_elem_context, void const* elem);
+    unsigned long long (*ElemHash)(void* hash_elem_context, void const* elem,
+                                   unsigned long long salt);
+
+    void* key_hash_context;
+
+    unsigned long long (*KeyHash)(void* hash_key_context, void const* key,
+                                  unsigned long long salt);
 
     void* elem_cmp_context;
 
@@ -44,11 +46,8 @@ struct Zeta_DynamicHashTable {
 };
 
 struct Zeta_DynamicHashTable_Node {
-    unsigned char ZETA_TmpName[31];
     Zeta_OrdLinkedListNode lln;
-    unsigned char ZETA_TmpName[31];
     Zeta_GenericHashTable_Node htn;
-    unsigned char ZETA_TmpName[31];
 };
 
 struct Zeta_DynamicHashTable_Cursor {
@@ -78,10 +77,10 @@ void* Zeta_DynamicHashTable_PeekR(void* dht, void* dst_cursor);
 
 void* Zeta_DynamicHashTable_Refer(void* dht, void const* pos_cursor);
 
-void* Zeta_DynamicHashTable_Find(void* dht, void* dst_cursor, void const* key);
+void* Zeta_DynamicHashTable_Find(void* dht, void const* key, void* dst_cursor);
 
-void* Zeta_DynamicHashTable_Insert(void* dht, void* dst_cursor,
-                                   void const* elem);
+void* Zeta_DynamicHashTable_Insert(void* dht, void const* elem,
+                                   void* dst_cursor);
 
 void Zeta_DynamicHashTable_Erase(void* dht, void* pos_cursor);
 
@@ -94,8 +93,8 @@ void Zeta_DynamicHashTable_Check(void* dht);
 void Zeta_DynamicHashTable_Sanitize(void* dht, Zeta_MemRecorder* dst_table,
                                     Zeta_MemRecorder* dst_node);
 
-bool_t Zeta_DynamicHashTable_Cursor_IsEqual(void* dht, void const* cursor_a,
-                                            void const* cursor_b);
+bool_t Zeta_DynamicHashTable_Cursor_AreEqual(void* dht, void const* cursor_a,
+                                             void const* cursor_b);
 
 void Zeta_DynamicHashTable_Cursor_StepL(void* dht, void* cursor);
 

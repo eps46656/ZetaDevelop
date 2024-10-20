@@ -63,8 +63,8 @@ void* Zeta_DynamicVector_PeekR(void* dv, void* dst_cursor, void* dst_elem);
 
 void* Zeta_DynamicVector_Refer(void* dv, void const* pos_cursor);
 
-void* Zeta_DynamicVector_Access(void* dv, void* dst_cursor, void* dst_elem,
-                                size_t idx);
+void* Zeta_DynamicVector_Access(void* dv, size_t idx, void* dst_cursor,
+                                void* dst_elem);
 
 void Zeta_DynamicVector_Read(void* dv, void const* pos_cursor, size_t cnt,
                              void* dst, void* dst_cursor);
@@ -72,9 +72,9 @@ void Zeta_DynamicVector_Read(void* dv, void const* pos_cursor, size_t cnt,
 void Zeta_DynamicVector_Write(void* dv, void* pos_cursor, size_t cnt,
                               void const* src, void* dst_cursor);
 
-void* Zeta_DynamicVector_PushL(void* dv, void* dst_cursor, size_t cnt);
+void* Zeta_DynamicVector_PushL(void* dv, size_t cnt, void* dst_cursor);
 
-void* Zeta_DynamicVector_PushR(void* dv, void* dst_cursor, size_t cnt);
+void* Zeta_DynamicVector_PushR(void* dv, size_t cnt, void* dst_cursor);
 
 void Zeta_DynamicVector_PopL(void* dv, size_t cnt);
 
@@ -87,8 +87,8 @@ void Zeta_DynamicVector_Check(void* dv);
 void Zeta_DynamicVector_Sanitize(void* dv, Zeta_MemRecorder* dst_data,
                                  Zeta_MemRecorder* dst_seg);
 
-bool_t Zeta_DynamicVector_Cursor_IsEqual(void* dv, void const* cursor_a,
-                                         void const* cursor_b);
+bool_t Zeta_DynamicVector_Cursor_AreEqual(void* dv, void const* cursor_a,
+                                          void const* cursor_b);
 
 int Zeta_DynamicVector_Cursor_Compare(void* dv, void const* cursor_a,
                                       void const* cursor_b);

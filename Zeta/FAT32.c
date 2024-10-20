@@ -253,8 +253,8 @@ static void NodeVector_Write(void* nv, void* pos_cursor, size_t cnt,
 
 static void NodeVector_Check(void* nv);
 
-static bool_t NodeVector_Cursor_IsEqual(void* nv, void const* cursor_a,
-                                        void const* cursor_b);
+static bool_t NodeVector_Cursor_AreEqual(void* nv, void const* cursor_a,
+                                         void const* cursor_b);
 
 static int NodeVector_Cursor_Compare(void* nv, void const* cursor_a,
                                      void const* cursor_b);
@@ -376,8 +376,8 @@ static void NodeVector_Check(void* nv_) {
     ZETA_DebugAssert(seg_cnt == ZETA_CeilInvDiv(nv->size, nv->manager))
 }
 
-bool_t NodeVector_Cursor_IsEqual(void* nv_, void const* cursor_a_,
-                                 void const* cursor_b_) {
+bool_t NodeVector_Cursor_AreEqual(void* nv_, void const* cursor_a_,
+                                  void const* cursor_b_) {
     NodeVector* nv = nv_;
 
     size_t* cursor_a = cursor_a_;
@@ -489,7 +489,7 @@ static void NodeVector_DeploySeqContainer(void* nv_,
 
     seq_cntr->Read = NodeVector_Read;
 
-    seq_cntr->Cursor_IsEqual = NodeVector_Cursor_IsEqual;
+    seq_cntr->Cursor_AreEqual = NodeVector_Cursor_AreEqual;
 
     seq_cntr->Cursor_Compare = NodeVector_Cursor_Compare;
 

@@ -77,8 +77,8 @@ void* Zeta_RadixDeque_PeekR(void* rd, void* dst_cursor, void* dst_elem);
 
 void* Zeta_RadixDeque_Refer(void* rd, void const* pos_cursor);
 
-void* Zeta_RadixDeque_Access(void* rd, void* dst_cursor, void* dst_elem,
-                             size_t idx);
+void* Zeta_RadixDeque_Access(void* rd, size_t idx, void* dst_cursor,
+                             void* dst_elem);
 
 void Zeta_RadixDeque_Read(void* rd, void const* pos_cursor, size_t cnt,
                           void* dst, void* dst_cursor);
@@ -86,9 +86,9 @@ void Zeta_RadixDeque_Read(void* rd, void const* pos_cursor, size_t cnt,
 void Zeta_RadixDeque_Write(void* rd, void* pos_cursor, size_t cnt,
                            void const* src, void* dst_cursor);
 
-void* Zeta_RadixDeque_PushL(void* rd, void* dst_cursor, size_t cnt);
+void* Zeta_RadixDeque_PushL(void* rd, size_t cnt, void* dst_cursor);
 
-void* Zeta_RadixDeque_PushR(void* rd, void* dst_cursor, size_t cnt);
+void* Zeta_RadixDeque_PushR(void* rd, size_t cnt, void* dst_cursor);
 
 void Zeta_RadixDeque_PopL(void* rd, size_t cnt);
 
@@ -101,8 +101,8 @@ void Zeta_RadixDeque_Check(void* rd);
 void Zeta_RadixDeque_Sanitize(void* rd, Zeta_MemRecorder* dst_node,
                               Zeta_MemRecorder* dst_seg);
 
-bool_t Zeta_RadixDeque_Cursor_IsEqual(void* rd, void const* cursor_a,
-                                      void const* cursor_b);
+bool_t Zeta_RadixDeque_Cursor_AreEqual(void* rd, void const* cursor_a,
+                                       void const* cursor_b);
 
 int Zeta_RadixDeque_Cursor_Compare(void* rd, void const* cursor_a,
                                    void const* cursor_b);

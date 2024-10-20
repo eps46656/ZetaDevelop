@@ -50,11 +50,13 @@ void* Zeta_MemRotate(void* beg, void* mid, void* end);
 
 void Zeta_MemReverse(void* data, size_t stride, size_t size);
 
-void Zeta_EleCopy(void* dst, void const* src, size_t stride, size_t width,
-                  size_t size);
+unsigned long long Zeta_MemHash(void* data, size_t size);
 
-void Zeta_EleMove(void* dst, void const* src, size_t stride, size_t width,
-                  size_t size);
+void Zeta_ElemCopy(void* dst, void const* src, size_t stride, size_t width,
+                   size_t size);
+
+void Zeta_ElemMove(void* dst, void const* src, size_t stride, size_t width,
+                   size_t size);
 
 #define ZETA_ReadLittleEndian4_(src_tmp, src)                      \
     ({                                                             \

@@ -69,8 +69,8 @@ void* Zeta_RadixVector_PeekL(void* rv, void* dst_cursor, void* dst_elem);
 
 void* Zeta_RadixVector_PeekR(void* rv, void* dst_cursor, void* dst_elem);
 
-void* Zeta_RadixVector_Access(void* rv, void* dst_cursor, void* dst_elem,
-                              size_t idx);
+void* Zeta_RadixVector_Access(void* rv, size_t idx, void* dst_cursor,
+                              void* dst_elem);
 
 void Zeta_RadixVector_Read(void* rv, void const* pos_cursor, size_t cnt,
                            void* dst, void* dst_cursor);
@@ -78,7 +78,7 @@ void Zeta_RadixVector_Read(void* rv, void const* pos_cursor, size_t cnt,
 void Zeta_RadixVector_Write(void* rv, void* pos_cursor, size_t cnt,
                             void const* src, void* dst_cursor);
 
-void* Zeta_RadixVector_PushR(void* rv, void* dst_cursor, size_t cnt);
+void* Zeta_RadixVector_PushR(void* rv, size_t cnt, void* dst_cursor);
 
 void Zeta_RadixVector_PopR(void* rv, size_t cnt);
 
@@ -89,8 +89,8 @@ void Zeta_RadixVector_Check(void* rv);
 void Zeta_RadixVector_Sanitize(void* rv, Zeta_MemRecorder* dst_node,
                                Zeta_MemRecorder* dst_seg);
 
-bool_t Zeta_RadixVector_Cursor_IsEqual(void* rv, void const* cursor_a,
-                                       void const* cursor_b);
+bool_t Zeta_RadixVector_Cursor_AreEqual(void* rv, void const* cursor_a,
+                                        void const* cursor_b);
 
 int Zeta_RadixVector_Cursor_Compare(void* rv, void const* cursor_a,
                                     void const* cursor_b);

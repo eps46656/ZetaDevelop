@@ -46,8 +46,8 @@ void* Zeta_CircularArray_PeekL(void* ca, void* dst_cursor, void* dst_elem);
 
 void* Zeta_CircularArray_PeekR(void* ca, void* dst_cursor, void* dst_elem);
 
-void* Zeta_CircularArray_Access(void* ca, void* dst_cursor, void* dst_elem,
-                                size_t idx);
+void* Zeta_CircularArray_Access(void* ca, size_t idx, void* dst_cursor,
+                                void* dst_elem);
 
 void* Zeta_CircularArray_Refer(void* ca, void const* pos_cursor);
 
@@ -57,9 +57,9 @@ void Zeta_CircularArray_Read(void* ca, void const* pos_cursor, size_t cnt,
 void Zeta_CircularArray_Write(void* ca, void* pos_cursor, size_t cnt,
                               void const* src, void* dst_cursor);
 
-void* Zeta_CircularArray_PushL(void* ca, void* dst_cursor, size_t cnt);
+void* Zeta_CircularArray_PushL(void* ca, size_t cnt, void* dst_cursor);
 
-void* Zeta_CircularArray_PushR(void* ca, void* dst_cursor, size_t cnt);
+void* Zeta_CircularArray_PushR(void* ca, size_t cnt, void* dst_cursor);
 
 void* Zeta_CircularArray_Insert(void* ca, void* pos_cursor, size_t cnt);
 
@@ -85,8 +85,8 @@ void Zeta_CircularArray_AssignFromSeqContainer(void* ca, void* ca_cursor,
 
 void Zeta_CircularArray_Check(void* ca);
 
-bool_t Zeta_CircularArray_Cursor_IsEqual(void* ca, void const* cursor_a,
-                                         void const* cursor_b);
+bool_t Zeta_CircularArray_Cursor_AreEqual(void* ca, void const* cursor_a,
+                                          void const* cursor_b);
 
 int Zeta_CircularArray_Cursor_Compare(void* ca, void const* cursor_a,
                                       void const* cursor_b);

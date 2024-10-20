@@ -15,24 +15,20 @@ ZetaDir = GetNormPath(os.path.dirname(File))
 ZetaDevDir = GetNormPath(f"{ZetaDir}/..")
 
 def AddDeps(builder, ZetaBuildDir, verbose, mode):
-    compiler_config = EmptyClass
+    compiler = Compiler({
+        "verbose": verbose,
 
-    compiler_config.verbose = verbose
-    compiler_config.mode = mode
-    compiler_config.build_dir = ZetaBuildDir
+        "mode": mode,
 
-    compiler_config.working_dirs = [
-        ZetaDevDir,
-        ZetaDir,
-    ]
+        "build_dir": ZetaBuildDir,
 
-    compiler_config.target = EmptyClass
-    compiler_config.target.arch = target.arch
-    compiler_config.target.vendor = target.vendor
-    compiler_config.target.sys = target.sys
-    compiler_config.target.env = target.env
+        "working_dirs": [
+            ZetaDevDir,
+            ZetaDir,
+        ],
 
-    compiler = Compiler(compiler_config)
+        "target": target,
+    })
 
     # --------------------------------------------------------------------------
 
@@ -2040,17 +2036,14 @@ def main():
 
     print(f"args = {args}")
 
-    mode = {
-        "debug": mode_enum.debug,
-        "release": mode_enum.release,
-    }[args.mode]
+    mode = ModeEnum[args.mode.upper]
 
     ZetaBuildDir = None
 
-    if mode == mode_enum.debug:
+    if mode == ModeEnum.DEBUG:
         ZetaBuildDir = f"{ZetaDevDir}/ZetaDebugBuild"
 
-    if mode == mode_enum.release:
+    if mode == ModeEnum.RELEASE:
         ZetaBuildDir = f"{ZetaDevDir}/ZetaReleaseBuild"
 
     builder = Builder()

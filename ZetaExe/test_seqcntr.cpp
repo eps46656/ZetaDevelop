@@ -273,7 +273,7 @@ void SC_EraseAll(Zeta_SeqContainer* seq_cntr) {
     seq_cntr->PeekL(seq_cntr->context, iter, NULL);
     seq_cntr->GetRBCursor(seq_cntr->context, iter);
 
-    for (; !seq_cntr->Cursor_IsEqual(seq_cntr->context, iter, end);
+    for (; !seq_cntr->Cursor_AreEqual(seq_cntr->context, iter, end);
          seq_cntr->Cursor_StepR(seq_cntr->context, iter)) {
         Val tmp;
         seq_cntr->Read(seq_cntr->context, iter, 1, &tmp);
@@ -303,7 +303,7 @@ void SC_CheckIterator(Zeta_SeqContainer* seq_cntr, size_t idx_a, size_t idx_b) {
                      idx_b);
 
     ZETA_DebugAssert(
-        seq_cntr->Cursor_IsEqual(seq_cntr->context, &cursor_a, &cursor_b));
+        seq_cntr->Cursor_AreEqual(seq_cntr->context, &cursor_a, &cursor_b));
 
     seq_cntr->Access(seq_cntr->context, &cursor_a, NULL, idx_a);
     seq_cntr->Access(seq_cntr->context, &cursor_b, NULL, idx_b);
@@ -319,7 +319,7 @@ void SC_CheckIterator(Zeta_SeqContainer* seq_cntr, size_t idx_a, size_t idx_b) {
                      idx_a);
 
     ZETA_DebugAssert(
-        seq_cntr->Cursor_IsEqual(seq_cntr->context, &cursor_a, &cursor_b));
+        seq_cntr->Cursor_AreEqual(seq_cntr->context, &cursor_a, &cursor_b));
 }
 
 // -----------------------------------------------------------------------------
@@ -477,10 +477,10 @@ void Compare(Zeta_SeqContainer* seq_cntr_a, Zeta_SeqContainer* seq_cntr_b) {
     seq_cntr_b->GetRBCursor(seq_cntr_b->context, &rb_b);
 
     ZETA_DebugAssert(
-        seq_cntr_a->Cursor_IsEqual(seq_cntr_a->context, &cursor_a, &rb_a));
+        seq_cntr_a->Cursor_AreEqual(seq_cntr_a->context, &cursor_a, &rb_a));
 
     ZETA_DebugAssert(
-        seq_cntr_b->Cursor_IsEqual(seq_cntr_b->context, &cursor_b, &rb_b));
+        seq_cntr_b->Cursor_AreEqual(seq_cntr_b->context, &cursor_b, &rb_b));
 }
 
 void CheckCursor(Zeta_SeqContainer* seq_cntr, size_t idx_a_, size_t idx_b_) {

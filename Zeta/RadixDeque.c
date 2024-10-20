@@ -565,28 +565,28 @@ void Zeta_RadixDeque_GetLBCursor(void* rd_, void* dst_cursor) {
     Zeta_RadixDeque* rd = rd_;
     CheckRD_(rd);
 
-    Zeta_RadixDeque_Access(rd, dst_cursor, NULL, -1);
+    Zeta_RadixDeque_Access(rd, -1, dst_cursor, NULL);
 }
 
 void Zeta_RadixDeque_GetRBCursor(void* rd_, void* dst_cursor) {
     Zeta_RadixDeque* rd = rd_;
     CheckRD_(rd);
 
-    Zeta_RadixDeque_Access(rd, dst_cursor, NULL, rd->size);
+    Zeta_RadixDeque_Access(rd, rd->size, dst_cursor, NULL);
 }
 
 void* Zeta_RadixDeque_PeekL(void* rd_, void* dst_cursor, void* dst_elem) {
     Zeta_RadixDeque* rd = rd_;
     CheckRD_(rd);
 
-    return Zeta_RadixDeque_Access(rd, dst_cursor, dst_elem, 0);
+    return Zeta_RadixDeque_Access(rd, 0, dst_cursor, dst_elem);
 }
 
 void* Zeta_RadixDeque_PeekR(void* rd_, void* dst_cursor, void* dst_elem) {
     Zeta_RadixDeque* rd = rd_;
     CheckRD_(rd);
 
-    return Zeta_RadixDeque_Access(rd, dst_cursor, dst_elem, rd->size - 1);
+    return Zeta_RadixDeque_Access(rd, rd->size - 1, dst_cursor, dst_elem);
 }
 
 void* Zeta_RadixDeque_Refer(void* rd_, void const* pos_cursor_) {
@@ -598,8 +598,8 @@ void* Zeta_RadixDeque_Refer(void* rd_, void const* pos_cursor_) {
     return pos_cursor->ref;
 }
 
-void* Zeta_RadixDeque_Access(void* rd_, void* dst_cursor_, void* dst_elem,
-                             size_t idx) {
+void* Zeta_RadixDeque_Access(void* rd_, size_t idx, void* dst_cursor_,
+                             void* dst_elem) {
     Zeta_RadixDeque* rd = rd_;
     CheckRD_(rd);
 
@@ -738,7 +738,7 @@ void Zeta_RadixDeque_Read(void* rd_, void const* pos_cursor_, size_t cnt,
     }
 
     if (dst_cursor != NULL) {
-        Zeta_RadixDeque_Access(rd, dst_cursor, NULL, ret_idx);
+        Zeta_RadixDeque_Access(rd, ret_idx, dst_cursor, NULL);
     }
 }
 
@@ -856,11 +856,11 @@ void Zeta_RadixDeque_Write(void* rd_, void* pos_cursor_, size_t cnt,
     }
 
     if (dst_cursor != NULL) {
-        Zeta_RadixDeque_Access(rd, dst_cursor, NULL, ret_idx);
+        Zeta_RadixDeque_Access(rd, ret_idx, dst_cursor, NULL);
     }
 }
 
-void* Zeta_RadixDeque_PushL(void* rd_, void* dst_cursor_, size_t cnt) {
+void* Zeta_RadixDeque_PushL(void* rd_, size_t cnt, void* dst_cursor_) {
     Zeta_RadixDeque* rd = rd_;
     CheckRD_(rd);
 
@@ -899,7 +899,7 @@ void* Zeta_RadixDeque_PushL(void* rd_, void* dst_cursor_, size_t cnt) {
     return pos_cursor.ref;
 }
 
-void* Zeta_RadixDeque_PushR(void* rd_, void* dst_cursor_, size_t cnt) {
+void* Zeta_RadixDeque_PushR(void* rd_, size_t cnt, void* dst_cursor_) {
     Zeta_RadixDeque* rd = rd_;
     CheckRD_(rd);
 
@@ -1165,8 +1165,8 @@ void Zeta_RadixDeque_Sanitize(void* rd_, Zeta_MemRecorder* dst_node,
     }
 }
 
-bool_t Zeta_RadixDeque_Cursor_IsEqual(void* rd_, void const* cursor_a_,
-                                      void const* cursor_b_) {
+bool_t Zeta_RadixDeque_Cursor_AreEqual(void* rd_, void const* cursor_a_,
+                                       void const* cursor_b_) {
     Zeta_RadixDeque* rd = rd_;
 
     Zeta_RadixDeque_Cursor const* cursor_a = cursor_a_;
@@ -1236,7 +1236,7 @@ void Zeta_RadixDeque_Cursor_AdvanceL(void* rd_, void* cursor_, size_t step) {
 
     ZETA_DebugAssert(step <= cursor->idx + 1);
 
-    Zeta_RadixDeque_Access(rd, cursor, NULL, cursor->idx - step);
+    Zeta_RadixDeque_Access(rd, cursor->idx - step, cursor, NULL);
 }
 
 void Zeta_RadixDeque_Cursor_AdvanceR(void* rd_, void* cursor_, size_t step) {
@@ -1249,7 +1249,7 @@ void Zeta_RadixDeque_Cursor_AdvanceR(void* rd_, void* cursor_, size_t step) {
 
     ZETA_DebugAssert(step <= rd->size - cursor->idx);
 
-    Zeta_RadixDeque_Access(rd, cursor, NULL, cursor->idx + step);
+    Zeta_RadixDeque_Access(rd, cursor->idx + step, cursor, NULL);
 }
 
 void Zeta_RadixDeque_Cursor_Check(void* rd_, void const* cursor_) {
@@ -1260,7 +1260,7 @@ void Zeta_RadixDeque_Cursor_Check(void* rd_, void const* cursor_) {
     ZETA_DebugAssert(cursor != NULL);
 
     Zeta_RadixDeque_Cursor re_cursor;
-    Zeta_RadixDeque_Access(rd, &re_cursor, NULL, cursor->idx);
+    Zeta_RadixDeque_Access(rd, cursor->idx, &re_cursor, NULL);
 
     ZETA_DebugAssert(re_cursor.rd == cursor->rd);
     ZETA_DebugAssert(re_cursor.idx == cursor->idx);
@@ -1314,7 +1314,7 @@ void Zeta_RadixDeque_DeploySeqContainer(void* rd_,
 
     seq_cntr->EraseAll = Zeta_RadixDeque_EraseAll;
 
-    seq_cntr->Cursor_IsEqual = Zeta_RadixDeque_Cursor_IsEqual;
+    seq_cntr->Cursor_AreEqual = Zeta_RadixDeque_Cursor_AreEqual;
 
     seq_cntr->Cursor_Compare = Zeta_RadixDeque_Cursor_Compare;
 

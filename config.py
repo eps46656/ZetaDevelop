@@ -1,48 +1,50 @@
+import enum
+import dataclasses
+
 class EmptyClass:
     pass
 
-counter = 0
+class AuthIntEnum(enum.IntEnum):
+    pass
 
-def GetEnumInt():
-    global counter
-    counter += 1
-    return counter
+class ModeEnum(enum.IntEnum):
+    DEBUG = enum.auto(),
+    RELEASE = enum.auto(),
 
-mode_enum = EmptyClass
-mode_enum.debug = GetEnumInt()
-mode_enum.release = GetEnumInt()
+class ArchEnum(enum.IntEnum):
+    X86_64 = enum.auto(),
+    ARM32 = enum.auto(),
+    ARM64 = enum.auto(),
+    RISCV32 = enum.auto(),
+    RISCV64 = enum.auto(),
 
-arch_enum = EmptyClass
-arch_enum.x86_64 = GetEnumInt()
-arch_enum.arm = GetEnumInt()
-arch_enum.arm32 = GetEnumInt()
-arch_enum.arm64 = GetEnumInt()
-arch_enum.riscv32 = GetEnumInt()
-arch_enum.riscv64 = GetEnumInt()
+class VendorEnum(enum.IntEnum):
+    PC = enum.auto(),
 
-vendor_enum = EmptyClass
-vendor_enum.pc = GetEnumInt()
+class SysEnum(enum.IntEnum):
+    LINUX = enum.auto(),
+    WINDOWS = enum.auto(),
 
-sys_enum = EmptyClass
-sys_enum.linux = GetEnumInt()
-sys_enum.windows = GetEnumInt()
-
-env_enum = EmptyClass
-env_enum.gnu = GetEnumInt()
-env_enum.elf = GetEnumInt()
-env_enum.msvc = GetEnumInt()
+class EnvEnum(enum.IntEnum):
+    GNU = enum.auto(),
+    ELF = enum.auto(),
+    MSVC = enum.auto(),
 
 # ------------------------------------------------------------------------------
 
-target = EmptyClass
+@dataclasses.dataclass
+class Target:
+    arch: ArchEnum
+    vendor: VendorEnum
+    sys: SysEnum
+    env: EnvEnum
 
-target.arch = arch_enum.x86_64
-# target.arch = arch_enum.riscv64
-
-target.vendor = vendor_enum.pc
-
-target.sys = sys_enum.linux
-# target.sys = sys_enum.windows
-
-target.env = env_enum.gnu
-# target.env = env_enum.msvc
+target = Target(
+    arch=ArchEnum.X86_64,
+    # arch=ArchEnum.RISCV64,
+    vendor=VendorEnum.PC,
+    sys=SysEnum.LINUX,
+    # sys=SysEnum.WINDOWS,
+    env=EnvEnum.GNU,
+    # env=EnvEnum.MSVC,
+)

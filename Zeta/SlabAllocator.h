@@ -21,10 +21,10 @@ struct Zeta_SlabAllocator {
     size_t vacant_units_cnt;
     size_t occupied_units_cnt;
 
-    Zeta_OrdLinkedListNode* hot_unit_head;
+    Zeta_OrdLinkedListNode* hot_slab_units_list;
 
-    Zeta_OrdLinkedListNode* vacant_slab_n_head;
-    Zeta_OrdLinkedListNode* occupied_slab_n_head;
+    Zeta_OrdLinkedListNode* vacant_slab_list;
+    Zeta_OrdLinkedListNode* occupied_slab_list;
 
     Zeta_Allocator* allocator;
 };
@@ -48,9 +48,9 @@ void Zeta_SlabAllocator_Deallocate(void* sa, void* ptr);
 
 bool_t Zeta_SlabAllocator_ReleaseBuffer(void* sa);
 
-void Zeta_SlabAllocator_DeployAllocator(void* sa, Zeta_Allocator* dst);
-
 void Zeta_SlabAllocator_Check(void* sa, Zeta_MemRecorder* dst_used_records,
                               Zeta_MemRecorder* dst_released_records);
+
+void Zeta_SlabAllocator_DeployAllocator(void* sa, Zeta_Allocator* dst);
 
 ZETA_ExternC_End;

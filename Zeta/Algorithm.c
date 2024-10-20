@@ -2,7 +2,7 @@
 
 #include "Debugger.h"
 
-#define INSERTION_TH (16)
+#define INSERTION_TH (8)
 
 static void Insertion_(unsigned char* data, size_t width, size_t stride,
                        void* cmp_context,
@@ -48,61 +48,6 @@ static void InsertionSort_(unsigned char* data, size_t width, size_t stride,
     }
 }
 
-/*
-static unsigned char* Partition_(unsigned char* data, size_t width,
-                                 size_t stride, size_t size,
-                                 void* cmp_context,
-                                 int (*Compare)(void* cmp_context,
-                                              void const* x, void const* y)) {
-    unsigned char* i = data;
-    unsigned char* j = data + stride * size;
-
-#define STEP_I i_cmp = Compare(cmp_context, i += stride, data)
-#define STEP_J j_cmp = Compare(cmp_context, j -= stride, data)
-
-    int i_cmp;
-    int j_cmp;
-
-    do { STEP_I; } while (i_cmp < 0);
-
-    do { STEP_J; } while (0 < j_cmp);
-
-    if (j <= i) {
-        Zeta_MemSwap(data, j, width);
-
-        return j;
-    }
-
-    if (i_cmp != 0 || j_cmp != 0) { Zeta_MemSwap(i, j, width); }
-
-    STEP_I;
-    STEP_J;
-
-    for (;;) {
-        while (i_cmp < 0) { STEP_I; }
-
-        while (0 < j_cmp) { STEP_J; }
-
-        if (j <= i) { break; }
-
-        if (0 < i_cmp && j_cmp < 0) {
-            Zeta_MemSwap(i, j, width);
-            STEP_I;
-            STEP_J;
-            continue;
-        }
-
-        if (i_cmp == 0) { STEP_I; }
-
-        if (j_cmp == 0) { STEP_J; }
-    }
-
-    Zeta_MemSwap(data, j, width);
-
-    return j;
-}
-*/
-
 static unsigned char* Partition_(unsigned char* data, size_t width,
                                  size_t stride, size_t size, void* cmp_context,
                                  int (*Compare)(void* cmp_context,
@@ -110,23 +55,19 @@ static unsigned char* Partition_(unsigned char* data, size_t width,
     unsigned char* i = data;
     unsigned char* j = data + stride * size;
 
-#define STEP_I i_cmp = Compare(cmp_context, i += stride, data)
-#define STEP_J j_cmp = Compare(cmp_context, j -= stride, data)
-
     int i_cmp = -1;
     int j_cmp = 1;
 
     for (;;) {
-        while (i_cmp < 0) { STEP_I; }
-
-        while (0 < j_cmp) { STEP_J; }
+        while (i_cmp < 0) { i_cmp = Compare(cmp_context, i += stride, data); }
+        while (0 < j_cmp) { j_cmp = Compare(cmp_context, j -= stride, data); }
 
         if (j <= i) { break; }
 
         if (i_cmp != 0 || j_cmp != 0) { Zeta_MemSwap(i, j, width); }
 
-        STEP_I;
-        STEP_J;
+        i_cmp = Compare(cmp_context, i += stride, data);
+        j_cmp = Compare(cmp_context, j -= stride, data);
     }
 
     Zeta_MemSwap(data, j, width);
@@ -138,11 +79,6 @@ static unsigned char* SimplePartition_(
     unsigned char* data, size_t width, size_t stride, size_t size,
     void* cmp_context,
     int (*Compare)(void* cmp_context, void const* x, void const* y)) {
-    if (size <= INSERTION_TH) {
-        InsertionSort_(data, width, stride, size, cmp_context, Compare);
-        return data + stride * (size / 2);
-    }
-
     unsigned char* a = data + stride * (size * 1 / 4);
     unsigned char* b = data + stride * (size * 2 / 4);
     unsigned char* c = data + stride * (size * 3 / 4);
@@ -153,6 +89,9 @@ static unsigned char* SimplePartition_(
         ZETA_Swap(b, c);
         if (Compare(cmp_context, b, a) < 0) { ZETA_Swap(a, b); }
     }
+
+    ZETA_DebugAssert(Compare(cmp_context, a, b) <= 0);
+    ZETA_DebugAssert(Compare(cmp_context, b, c) <= 0);
 
     Zeta_MemSwap(data, b, width);
 
@@ -280,7 +219,7 @@ void Zeta_KthElement(void* data, size_t width, size_t stride, size_t mid,
     }
 }
 
-void Sort_(size_t chance, unsigned char* data, size_t width, size_t stride,
+void Sort_(size_t credit, unsigned char* data, size_t width, size_t stride,
            size_t size, void* cmp_context,
            int (*Compare)(void* cmp_context, void const* x, void const* y)) {
     for (;;) {
@@ -291,10 +230,10 @@ void Sort_(size_t chance, unsigned char* data, size_t width, size_t stride,
 
         unsigned char* pivot;
 
-        if (0 < chance) {
+        if (0 < credit) {
             pivot = SimplePartition_(data, width, stride, size, cmp_context,
                                      Compare);
-            chance = chance / 2;
+            credit = credit / 2;
         } else {
             pivot = PrettyPartition_(data, width, stride, size, cmp_context,
                                      Compare);
@@ -306,11 +245,11 @@ void Sort_(size_t chance, unsigned char* data, size_t width, size_t stride,
         size_t r_size = size - 1 - l_size;
 
         if (l_size < r_size) {
-            Sort_(chance, data, width, stride, l_size, cmp_context, Compare);
+            Sort_(credit, data, width, stride, l_size, cmp_context, Compare);
             data = r_data;
             size = r_size;
         } else {
-            Sort_(chance, r_data, width, stride, r_size, cmp_context, Compare);
+            Sort_(credit, r_data, width, stride, r_size, cmp_context, Compare);
             size = l_size;
         }
     }
@@ -324,5 +263,5 @@ void Zeta_Sort(void* data, size_t width, size_t stride, size_t size,
     ZETA_DebugAssert(0 < width);
     ZETA_DebugAssert(width <= stride);
 
-    Sort_(size * 2, data, width, stride, size, cmp_context, Compare);
+    Sort_(size, data, width, stride, size, cmp_context, Compare);
 }

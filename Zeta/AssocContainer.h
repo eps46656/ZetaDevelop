@@ -29,16 +29,16 @@ struct Zeta_AssocContainer {
 
     void* (*Refer)(void* context, void const* pos_cursor);
 
-    void* (*Find)(void* context, void* dst_cursor, void const* key);
+    void* (*Find)(void* context, void const* key, void* dst_cursor);
 
-    void* (*Insert)(void* context, void* dst_cursor, void const* elem);
+    void* (*Insert)(void* context, void const* elem, void* dst_cursor);
 
     void (*Erase)(void* context, void* pos_cursor);
 
     void (*EraseAll)(void* context);
 
-    bool_t (*Cursor_IsEqual)(void* context, void const* cursor_a,
-                             void const* cursor_b);
+    bool_t (*Cursor_AreEqual)(void* context, void const* cursor_a,
+                              void const* cursor_b);
 
     int (*Cursor_Compare)(void* context, void const* cursor_a,
                           void const* cursor_b);
@@ -97,11 +97,11 @@ void Zeta_AssocContainer_Init(Zeta_AssocContainer* assoc_cntr);
 #define ZETA_AssocContainer_Refer(assoc_cntr, pos_cursor) \
     ZETA_AssocContainer_Call_((assoc_cntr), Refer, (pos_cursor))
 
-#define ZETA_AssocContainer_Find(assoc_cntr, dst_cursor, key) \
-    ZETA_AssocContainer_Call_((assoc_cntr), Refer, (dst_cursor), (key))
+#define ZETA_AssocContainer_Find(assoc_cntr, key, dst_cursor) \
+    ZETA_AssocContainer_Call_((assoc_cntr), Refer, (key), (dst_cursor))
 
-#define ZETA_AssocContainer_Insert(assoc_cntr, dst_cursor, elem) \
-    ZETA_AssocContainer_Call_((assoc_cntr), Insert, (dst_cursor), (elem))
+#define ZETA_AssocContainer_Insert(assoc_cntr, elem, dst_cursor) \
+    ZETA_AssocContainer_Call_((assoc_cntr), Insert, (elem), (dst_cursor))
 
 #define ZETA_AssocContainer_Erase(assoc_cntr, pos_cursor)         \
     ZETA_AssocContainer_Call_((assoc_cntr), Erase, (pos_cursor)); \
@@ -111,8 +111,8 @@ void Zeta_AssocContainer_Init(Zeta_AssocContainer* assoc_cntr);
     ZETA_AssocContainer_Call_((assoc_cntr), EraseAll); \
     ZETA_StaticAssert(TRUE)
 
-#define ZETA_AssocContainer_Cursor_IsEqual(assoc_cntr, cursor_a, cursor_b) \
-    ZETA_AssocContainer_Call_((assoc_cntr), Cursor_IsEqual, (cursor_a),    \
+#define ZETA_AssocContainer_Cursor_AreEqual(assoc_cntr, cursor_a, cursor_b) \
+    ZETA_AssocContainer_Call_((assoc_cntr), Cursor_AreEqual, (cursor_a),    \
                               (cursor_b))
 
 #define ZETA_AssocContainer_Cursor_Compare(assoc_cntr, cursor_a, cursor_b) \

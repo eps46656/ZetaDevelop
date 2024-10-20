@@ -73,8 +73,8 @@ void SegShoveR(Zeta_CircularArray* l_ca, Zeta_CircularArray* r_ca,
     Zeta_CircularArray_Assign(r_ca, l_ca, r_beg + cnt_c + cnt_b, l_beg + cnt_c,
                               cnt_a);
 
-    Zeta_CircularArray_Access(l_ca, &l_ca_cursor, NULL,
-                              l_ca->size - cnt_a - cnt_c);
+    Zeta_CircularArray_Access(l_ca, l_ca->size - cnt_a - cnt_c, &l_ca_cursor,
+                              NULL);
 
     Zeta_CircularArray_Erase(l_ca, &l_ca_cursor, cnt_a + cnt_c);
 

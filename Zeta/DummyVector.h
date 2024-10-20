@@ -11,50 +11,56 @@ struct Zeta_DummyVector {
     size_t stride;
 };
 
-size_t Zeta_DummyVector_GetWidth(void* dsc);
+size_t Zeta_DummyVector_GetWidth(void* dv);
 
-size_t Zeta_DummyVector_GetStride(void* dsc);
+size_t Zeta_DummyVector_GetStride(void* dv);
 
-size_t Zeta_DummyVector_GetSize(void* dsc);
+size_t Zeta_DummyVector_GetSize(void* dv);
 
-size_t Zeta_DummyVector_GetCapacity(void* dsc);
+size_t Zeta_DummyVector_GetCapacity(void* dv);
 
-void Zeta_DummyVector_GetLBCursor(void* dsc, void* dst_cursor);
+void Zeta_DummyVector_GetLBCursor(void* dv, void* dst_cursor);
 
-void Zeta_DummyVector_GetRBCursor(void* dsc, void* dst_cursor);
+void Zeta_DummyVector_GetRBCursor(void* dv, void* dst_cursor);
 
-void* Zeta_DummyVector_PeekL(void* dsc, void* dst_cursor, void* dst_elem);
+void* Zeta_DummyVector_PeekL(void* dv, void* dst_cursor, void* dst_elem);
 
-void* Zeta_DummyVector_PeekR(void* dsc, void* dst_cursor, void* dst_elem);
+void* Zeta_DummyVector_PeekR(void* dv, void* dst_cursor, void* dst_elem);
 
-void* Zeta_DummyVector_Access(void* dsc, void* dst_cursor, void* dst_elem,
-                              size_t idx);
+void* Zeta_DummyVector_Access(void* dv, size_t idx, void* dst_cursor,
+                              void* dst_elem);
 
-void* Zeta_DummyVector_Refer(void* dsc, void const* pos_cursor);
+void* Zeta_DummyVector_Refer(void* dv, void const* pos_cursor);
 
-void Zeta_DummyVector_Read(void* dsc, void const* pos_cursor, size_t cnt,
+void Zeta_DummyVector_Read(void* dv, void const* pos_cursor, size_t cnt,
                            void* dst, void* dst_cursor);
 
-bool_t Zeta_DummyVector_Cursor_IsEqual(void* dsc, void const* cursor_a,
-                                       void const* cursor_b);
+void Zeta_DummyVector_Write(void* dv, void const* pos_cursor, size_t cnt,
+                            void const* src, void* dst_cursor);
 
-int Zeta_DummyVector_Cursor_Compare(void* dsc, void const* cursor_a,
+void Zeta_DummyVector_Check(void* dv);
+
+bool_t Zeta_DummyVector_Cursor_AreEqual(void* dv, void const* cursor_a,
+                                        void const* cursor_b);
+
+int Zeta_DummyVector_Cursor_Compare(void* dv, void const* cursor_a,
                                     void const* cursor_b);
 
-size_t Zeta_DummyVector_Cursor_GetDist(void* dsc, void const* cursor_a,
+size_t Zeta_DummyVector_Cursor_GetDist(void* dv, void const* cursor_a,
                                        void const* cursor_b);
 
-size_t Zeta_DummyVector_Cursor_GetIdx(void* dsc, void const* cursor);
+size_t Zeta_DummyVector_Cursor_GetIdx(void* dv, void const* cursor);
 
-void Zeta_DummyVector_Cursor_StepL(void* dsc, void* cursor);
+void Zeta_DummyVector_Cursor_StepL(void* dv, void* cursor);
 
-void Zeta_DummyVector_Cursor_StepR(void* dsc, void* cursor);
+void Zeta_DummyVector_Cursor_StepR(void* dv, void* cursor);
 
-void Zeta_DummyVector_Cursor_AdvanceL(void* dsc, void* cursor, size_t step);
+void Zeta_DummyVector_Cursor_AdvanceL(void* dv, void* cursor, size_t step);
 
-void Zeta_DummyVector_Cursor_AdvanceR(void* dsc, void* cursor, size_t step);
+void Zeta_DummyVector_Cursor_AdvanceR(void* dv, void* cursor, size_t step);
 
-void Zeta_DummyVector_DeploySeqContainer(void* dsc,
-                                         Zeta_SeqContainer* seq_cntr);
+void Zeta_DummyVector_Cursor_Check(void* dv, void const* cursor);
+
+void Zeta_DummyVector_DeploySeqContainer(void* dv, Zeta_SeqContainer* seq_cntr);
 
 ZETA_ExternC_End;

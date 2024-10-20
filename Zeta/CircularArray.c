@@ -146,8 +146,8 @@ void* Zeta_CircularArray_PeekR(void* ca_, void* dst_cursor_, void* dst_elem) {
     return ref;
 }
 
-void* Zeta_CircularArray_Access(void* ca_, void* dst_cursor_, void* dst_elem,
-                                size_t idx) {
+void* Zeta_CircularArray_Access(void* ca_, size_t idx, void* dst_cursor_,
+                                void* dst_elem) {
     Zeta_CircularArray* ca = ca_;
     CheckCA_(ca);
 
@@ -215,8 +215,8 @@ void Zeta_CircularArray_Read(void* ca_, void const* pos_cursor_, size_t cnt,
             ZETA_GetMinOf(cnt, Zeta_CircularArray_GetLongestContSucr(ca, idx));
         cnt -= cur_cnt;
 
-        Zeta_EleCopy(dst, Refer_(data, stride, offset, idx, capacity), stride,
-                     width, cur_cnt);
+        Zeta_ElemCopy(dst, Refer_(data, stride, offset, idx, capacity), stride,
+                      width, cur_cnt);
 
         dst += stride * cur_cnt;
         idx += cur_cnt;
@@ -272,8 +272,8 @@ void Zeta_CircularArray_Write(void* ca_, void* pos_cursor_, size_t cnt,
         Zeta_MemCopy(Refer_(data, stride, offset, idx, capacity), src,
                      stride * cur_cnt);
 
-        Zeta_EleCopy(Refer_(data, stride, offset, idx, capacity), src, stride,
-                     width, cur_cnt);
+        Zeta_ElemCopy(Refer_(data, stride, offset, idx, capacity), src, stride,
+                      width, cur_cnt);
 
         idx += cur_cnt;
         src += stride * cur_cnt;
@@ -287,7 +287,7 @@ void Zeta_CircularArray_Write(void* ca_, void* pos_cursor_, size_t cnt,
     }
 }
 
-void* Zeta_CircularArray_PushL(void* ca_, void* dst_cursor_, size_t cnt) {
+void* Zeta_CircularArray_PushL(void* ca_, size_t cnt, void* dst_cursor_) {
     Zeta_CircularArray* ca = ca_;
     CheckCA_(ca);
 
@@ -312,7 +312,7 @@ void* Zeta_CircularArray_PushL(void* ca_, void* dst_cursor_, size_t cnt) {
     return ref;
 }
 
-void* Zeta_CircularArray_PushR(void* ca_, void* dst_cursor_, size_t cnt) {
+void* Zeta_CircularArray_PushR(void* ca_, size_t cnt, void* dst_cursor_) {
     Zeta_CircularArray* ca = ca_;
     CheckCA_(ca);
 
@@ -702,8 +702,8 @@ void Zeta_CircularArray_Check(void* ca_) {
     if (data == NULL) { ZETA_DebugAssert(capacity == 0); }
 }
 
-bool_t Zeta_CircularArray_Cursor_IsEqual(void* ca_, void const* cursor_a_,
-                                         void const* cursor_b_) {
+bool_t Zeta_CircularArray_Cursor_AreEqual(void* ca_, void const* cursor_a_,
+                                          void const* cursor_b_) {
     Zeta_CircularArray* ca = ca_;
     Zeta_CircularArray_Cursor const* cursor_a = cursor_a_;
     Zeta_CircularArray_Cursor const* cursor_b = cursor_b_;
@@ -865,7 +865,7 @@ void Zeta_CircularArray_DeploySeqContainer(void* ca_,
 
     seq_cntr->EraseAll = Zeta_CircularArray_EraseAll;
 
-    seq_cntr->Cursor_IsEqual = Zeta_CircularArray_Cursor_IsEqual;
+    seq_cntr->Cursor_AreEqual = Zeta_CircularArray_Cursor_AreEqual;
 
     seq_cntr->Cursor_Compare = Zeta_CircularArray_Cursor_Compare;
 

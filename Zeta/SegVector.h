@@ -103,8 +103,8 @@ void Zeta_SegVector_EraseAll(void* sv);
 void Zeta_SegVector_Check(void* sv, Zeta_DebugHashTable* dst_node_hm,
                           Zeta_DebugHashTable* dst_seg_hm);
 
-bool_t Zeta_SegVector_Cursor_IsEqual(void* sv, void const* cursor_a,
-                                     void const* cursor_b);
+bool_t Zeta_SegVector_Cursor_AreEqual(void* sv, void const* cursor_a,
+                                      void const* cursor_b);
 
 int Zeta_SegVector_Cursor_Compare(void* sv, void const* cursor_a,
                                   void const* cursor_b);

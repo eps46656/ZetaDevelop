@@ -427,28 +427,28 @@ void Zeta_RadixVector_GetLBCursor(void* rv_, void* dst_cursor) {
     Zeta_RadixVector* rv = rv_;
     CheckRV_(rv);
 
-    Zeta_RadixVector_Access(rv, dst_cursor, NULL, -1);
+    Zeta_RadixVector_Access(rv, -1, dst_cursor, NULL);
 }
 
 void Zeta_RadixVector_GetRBCursor(void* rv_, void* dst_cursor) {
     Zeta_RadixVector* rv = rv_;
     CheckRV_(rv);
 
-    Zeta_RadixVector_Access(rv, dst_cursor, NULL, rv->size);
+    Zeta_RadixVector_Access(rv, rv->size, dst_cursor, NULL);
 }
 
 void* Zeta_RadixVector_PeekL(void* rv_, void* dst_cursor, void* dst_elem) {
     Zeta_RadixVector* rv = rv_;
     CheckRV_(rv);
 
-    return Zeta_RadixVector_Access(rv, dst_cursor, dst_elem, 0);
+    return Zeta_RadixVector_Access(rv, 0, dst_cursor, dst_elem);
 }
 
 void* Zeta_RadixVector_PeekR(void* rv_, void* dst_cursor, void* dst_elem) {
     Zeta_RadixVector* rv = rv_;
     CheckRV_(rv);
 
-    return Zeta_RadixVector_Access(rv, dst_cursor, dst_elem, rv->size - 1);
+    return Zeta_RadixVector_Access(rv, rv->size - 1, dst_cursor, dst_elem);
 }
 
 void* Zeta_RadixVector_Refer(void* rv_, void const* pos_cursor_) {
@@ -460,8 +460,8 @@ void* Zeta_RadixVector_Refer(void* rv_, void const* pos_cursor_) {
     return pos_cursor->ref;
 }
 
-void* Zeta_RadixVector_Access(void* rv_, void* dst_cursor_, void* dst_elem,
-                              size_t idx) {
+void* Zeta_RadixVector_Access(void* rv_, size_t idx, void* dst_cursor_,
+                              void* dst_elem) {
     Zeta_RadixVector* rv = rv_;
     CheckRV_(rv);
 
@@ -565,7 +565,7 @@ void Zeta_RadixVector_Read(void* rv_, void const* pos_cursor_, size_t cnt,
     }
 
     if (dst_cursor != NULL) {
-        Zeta_RadixVector_Access(rv, dst_cursor, NULL, ret_idx);
+        Zeta_RadixVector_Access(rv, ret_idx, dst_cursor, NULL);
     }
 }
 
@@ -648,11 +648,11 @@ void Zeta_RadixVector_Write(void* rv_, void* pos_cursor_, size_t cnt,
     }
 
     if (dst_cursor != NULL) {
-        Zeta_RadixVector_Access(rv, dst_cursor, NULL, ret_idx);
+        Zeta_RadixVector_Access(rv, ret_idx, dst_cursor, NULL);
     }
 }
 
-void* Zeta_RadixVector_PushR(void* rv_, void* dst_cursor_, size_t cnt) {
+void* Zeta_RadixVector_PushR(void* rv_, size_t cnt, void* dst_cursor_) {
     Zeta_RadixVector* rv = rv_;
     CheckRV_(rv);
 
@@ -845,8 +845,8 @@ void Zeta_RadixVector_Sanitize(void* rv_, Zeta_MemRecorder* dst_node,
     }
 }
 
-bool_t Zeta_RadixVector_Cursor_IsEqual(void* rv_, void const* cursor_a_,
-                                       void const* cursor_b_) {
+bool_t Zeta_RadixVector_Cursor_AreEqual(void* rv_, void const* cursor_a_,
+                                        void const* cursor_b_) {
     Zeta_RadixVector* rv = rv_;
 
     Zeta_RadixVector_Cursor const* cursor_a = cursor_a_;
@@ -916,7 +916,7 @@ void Zeta_RadixVector_Cursor_AdvanceL(void* rv_, void* cursor_, size_t step) {
 
     ZETA_DebugAssert(step <= cursor->idx + 1);
 
-    Zeta_RadixVector_Access(rv, cursor, NULL, cursor->idx - step);
+    Zeta_RadixVector_Access(rv, cursor->idx - step, cursor, NULL);
 }
 
 void Zeta_RadixVector_Cursor_AdvanceR(void* rv_, void* cursor_, size_t step) {
@@ -929,7 +929,7 @@ void Zeta_RadixVector_Cursor_AdvanceR(void* rv_, void* cursor_, size_t step) {
 
     ZETA_DebugAssert(step <= rv->size - cursor->idx);
 
-    Zeta_RadixVector_Access(rv, cursor, NULL, cursor->idx + step);
+    Zeta_RadixVector_Access(rv, cursor->idx + step, cursor, NULL);
 }
 
 void Zeta_RadixVector_Cursor_Check(void* rv_, void const* cursor_) {
@@ -940,7 +940,7 @@ void Zeta_RadixVector_Cursor_Check(void* rv_, void const* cursor_) {
     ZETA_DebugAssert(cursor != NULL);
 
     Zeta_RadixVector_Cursor re_cursor;
-    Zeta_RadixVector_Access(rv, &re_cursor, NULL, cursor->idx);
+    Zeta_RadixVector_Access(rv, cursor->idx, &re_cursor, NULL);
 
     ZETA_DebugAssert(re_cursor.rv == cursor->rv);
     ZETA_DebugAssert(re_cursor.idx == cursor->idx);
@@ -990,7 +990,7 @@ void Zeta_RadixVector_DeploySeqContainer(void* rv_,
 
     seq_cntr->EraseAll = Zeta_RadixVector_EraseAll;
 
-    seq_cntr->Cursor_IsEqual = Zeta_RadixVector_Cursor_IsEqual;
+    seq_cntr->Cursor_AreEqual = Zeta_RadixVector_Cursor_AreEqual;
 
     seq_cntr->Cursor_Compare = Zeta_RadixVector_Cursor_Compare;
 

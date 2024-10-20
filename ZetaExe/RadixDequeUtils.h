@@ -46,9 +46,11 @@ void InitRadixDeque(Zeta_SeqContainer* seq_cntr, size_t seg_capacity,
 
     Zeta_RadixDeque_DeploySeqContainer(&radix_deque_pack->radix_deque,
                                        seq_cntr);
+
+    SeqContainer_AddSanitizeFunc(Zeta_RadixDeque_GetWidth, RadixDeque_Sanitize);
 }
 
-void DeinitRadixDeque(Zeta_SeqContainer* seq_cntr) {
+void RadixDeque_Deinit(Zeta_SeqContainer* seq_cntr) {
     if (seq_cntr == NULL || seq_cntr->GetSize != Zeta_RadixDeque_GetSize) {
         return;
     }
@@ -65,8 +67,8 @@ void DeinitRadixDeque(Zeta_SeqContainer* seq_cntr) {
 }
 
 template <typename Val>
-Zeta_SeqContainer* CreateRadixDeque(size_t seg_capacity, size_t branch_num,
-                                    size_t order) {
+Zeta_SeqContainer* RadixDeque_Create(size_t seg_capacity, size_t branch_num,
+                                     size_t order) {
     Zeta_SeqContainer* seq_cntr{ new Zeta_SeqContainer{} };
 
     InitRadixDeque<Val>(seq_cntr, seg_capacity, branch_num, order);
@@ -74,17 +76,17 @@ Zeta_SeqContainer* CreateRadixDeque(size_t seg_capacity, size_t branch_num,
     return seq_cntr;
 }
 
-void DestroyRadixDeque(Zeta_SeqContainer* seq_cntr) {
+void RadixDeque_Destroy(Zeta_SeqContainer* seq_cntr) {
     if (seq_cntr == NULL || seq_cntr->GetSize != Zeta_RadixDeque_GetSize) {
         return;
     }
 
-    DeinitRadixDeque(seq_cntr);
+    RadixDeque_Deinit(seq_cntr);
 
     delete seq_cntr;
 }
 
-void CheckRadixDeque(Zeta_SeqContainer const* seq_cntr) {
+void RadixDeque_Sanitize(Zeta_SeqContainer const* seq_cntr) {
     if (seq_cntr->GetSize != Zeta_RadixDeque_GetSize) { return; }
 
     RadixDequePack* pack{ ZETA_MemberToStruct(RadixDequePack, radix_deque,

@@ -151,8 +151,8 @@ void* Zeta_DebugHashTable_Refer(void* debug_ht_, void const* pos_cursor_) {
     return const_cast<void*>((*pos_cursor)->ptr);
 }
 
-void* Zeta_DebugHashTable_Find(void* debug_ht_, void* dst_cursor_,
-                               void const* key) {
+void* Zeta_DebugHashTable_Find(void* debug_ht_, void const* key,
+                               void* dst_cursor_) {
     Zeta_DebugHashTable* debug_ht = (Zeta_DebugHashTable*)debug_ht_;
     ZETA_DebugAssert(debug_ht != NULL);
 
@@ -170,8 +170,8 @@ void* Zeta_DebugHashTable_Find(void* debug_ht_, void* dst_cursor_,
     return iter == hash_table->end() ? NULL : const_cast<void*>(iter->ptr);
 }
 
-void* Zeta_DebugHashTable_Insert(void* debug_ht_, void* dst_cursor_,
-                                 void const* elem) {
+void* Zeta_DebugHashTable_Insert(void* debug_ht_, void const* elem,
+                                 void* dst_cursor_) {
     Zeta_DebugHashTable* debug_ht = (Zeta_DebugHashTable*)debug_ht_;
     ZETA_DebugAssert(debug_ht != NULL);
 
@@ -217,9 +217,9 @@ void Zeta_DebugHashTable_EraseAll(void* debug_ht_) {
     hash_table->clear();
 }
 
-bool_t Zeta_DebugHashTable_Cursor_IsEqual(void* debug_ht_,
-                                          void const* cursor_a_,
-                                          void const* cursor_b_) {
+bool_t Zeta_DebugHashTable_Cursor_AreEqual(void* debug_ht_,
+                                           void const* cursor_a_,
+                                           void const* cursor_b_) {
     Zeta_DebugHashTable* debug_ht = (Zeta_DebugHashTable*)debug_ht_;
     ZETA_DebugAssert(debug_ht != NULL);
 
@@ -294,7 +294,7 @@ void Zeta_DebugHashTable_DeployAssocContainer(void* debug_ht_,
 
     assoc_cntr->EraseAll = Zeta_DebugHashTable_EraseAll;
 
-    assoc_cntr->Cursor_IsEqual = Zeta_DebugHashTable_Cursor_IsEqual;
+    assoc_cntr->Cursor_AreEqual = Zeta_DebugHashTable_Cursor_AreEqual;
 
     assoc_cntr->Cursor_StepL = Zeta_DebugHashTable_Cursor_StepL;
 

@@ -53,18 +53,18 @@ void* Zeta_DebugHashTable_PeekL(void* debug_ht, void* dst_cursor);
 
 void* Zeta_DebugHashTable_Refer(void* debug_ht, void const* pos_cursor);
 
-void* Zeta_DebugHashTable_Find(void* debug_ht, void* dst_cursor,
-                               void const* key);
+void* Zeta_DebugHashTable_Find(void* debug_ht, void const* key,
+                               void* dst_cursor);
 
-void* Zeta_DebugHashTable_Insert(void* debug_ht, void* dst_cursor,
-                                 void const* key);
+void* Zeta_DebugHashTable_Insert(void* debug_ht, void const* key,
+                                 void* dst_cursor);
 
 void Zeta_DebugHashTable_Erase(void* debug_ht, void* pos_cursor);
 
 void Zeta_DebugHashTable_EraseAll(void* debug_ht);
 
-bool_t Zeta_DebugHashTable_Cursor_IsEqual(void* debug_ht, void const* cursor_a,
-                                          void const* cursor_b);
+bool_t Zeta_DebugHashTable_Cursor_AreEqual(void* debug_ht, void const* cursor_a,
+                                           void const* cursor_b);
 
 /*
 int Zeta_DebugHashTable_Cursor_Compare(void* debug_ht, void const* cursor_a,

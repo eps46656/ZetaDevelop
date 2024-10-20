@@ -86,8 +86,8 @@ void* Zeta_StageVector_PeekL(void* sv, void* dst_cursor, void* dst_elem);
 
 void* Zeta_StageVector_PeekR(void* sv, void* dst_cursor, void* dst_elem);
 
-void* Zeta_StageVector_Access(void* sv, void* dst_cursor, void* dst_elem,
-                              size_t idx);
+void* Zeta_StageVector_Access(void* sv, size_t idx, void* dst_cursor,
+                              void* dst_elem);
 
 void* Zeta_StageVector_Refer(void* sv, void const* pos_cursor);
 
@@ -97,9 +97,9 @@ void Zeta_StageVector_Read(void* sv, void const* pos_cursor, size_t cnt,
 void Zeta_StageVector_Write(void* sv, void* pos_cursor, size_t cnt,
                             void const* src, void* dst_cursor);
 
-void* Zeta_StageVector_PushL(void* sv, void* dst_cursor, size_t cnt);
+void* Zeta_StageVector_PushL(void* sv, size_t cnt, void* dst_cursor);
 
-void* Zeta_StageVector_PushR(void* sv, void* dst_cursor, size_t cnt);
+void* Zeta_StageVector_PushR(void* sv, size_t cnt, void* dst_cursor);
 
 void* Zeta_StageVector_Insert(void* sv, void* pos_cursor, size_t cnt);
 
@@ -122,8 +122,8 @@ void Zeta_StageVector_PrintState(void* sv);
 
 Zeta_StageVector_Stats Zeta_StageVector_GetStats(void* sv);
 
-bool_t Zeta_StageVector_Cursor_IsEqual(void* sv, void const* cursor_a,
-                                       void const* cursor_b);
+bool_t Zeta_StageVector_Cursor_AreEqual(void* sv, void const* cursor_a,
+                                        void const* cursor_b);
 
 int Zeta_StageVector_Cursor_Compare(void* sv, void const* cursor_a,
                                     void const* cursor_b);
