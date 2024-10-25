@@ -20,6 +20,8 @@ struct Zeta_Allocator {
     Zeta_MemRecorder* (*GetRecords)(void* context);
 };
 
+extern Zeta_Allocator zeta_std_allocator;
+
 void Zeta_Allocator_Init(void* allocator);
 
 #define ZETA_Allocator_GetAlign(allocator) \

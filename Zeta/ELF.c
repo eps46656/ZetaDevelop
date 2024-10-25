@@ -1,243 +1,351 @@
 #include "ELF.h"
 
 #include "Debugger.h"
+#include "DynamicVector.h"
 #include "utils.h"
 
-#define ASSERT_RET(cond)           \
-    if (!(cond)) { goto ERR_RET; } \
+#define ASSERT_(cond, expression) \
+    if (!(cond)) { expression }   \
     ZETA_StaticAssert(TRUE)
 
-#define READ(dst, length)         \
-    dst = ReadFunc(data, length); \
-    data += length;               \
+#define Read_(src, length)                        \
+    ({                                            \
+        ZETA_AutoVar(ret, ReadFunc(src, length)); \
+        src += length;                            \
+        ret;                                      \
+    })
+
+#define Write_(dst, val, length)     \
+    {                                \
+        WriteFunc(dst, val, length); \
+        dst += length;               \
+    }                                \
     ZETA_StaticAssert(TRUE)
 
-#define WRITE(val, length)       \
-    WriteFunc(dst, val, length); \
-    dst += length;               \
-    ZETA_StaticAssert(TRUE)
+byte_t const* Zeta_ELF_ReadHeader(Zeta_ELF_Header* dst, byte_t const* src,
+                                  size_t src_size) {
+    ZETA_DebugAssert(dst != NULL);
 
-byte_t const* Zeta_ELF_ReadHeader(Zeta_ELF_Header* dst, byte_t const* data,
-                                  byte_t const* data_end) {
-    ZETA_DebugAssert(data != NULL);
-    ZETA_DebugAssert(data_end != NULL);
-    ZETA_DebugAssert(data <= data_end);
+    ZETA_DebugAssert(src != NULL);
+    ZETA_DebugAssert(52 <= src_size);
 
-    size_t data_size = data_end - data;
-    ZETA_DebugAssert(52 <= data_size);
-
-    u128_t (*ReadFunc)(byte_t const* data, unsigned length) =
+    u128_t (*ReadFunc)(byte_t const* src, unsigned length) =
         Zeta_ReadLittleEndian;
 
-    ASSERT_RET(data[0] == 0x7F && data[1] == 'E' && data[2] == 'L' &&
-               data[3] == 'F');
-
-    data += 4;
-
-    READ(dst->ei_class, 1);
-
-    unsigned length;
-
-    switch (dst->ei_class) {
-        case 1: length = 4; break;
-        case 2:
-            length = 8;
-            ZETA_DebugAssert(64 <= data_size);
-            break;
-        default: goto ERR_RET;
+    if (src[0] != 0x7F || src[1] != 'E' || src[2] != 'L' || src[3] != 'F') {
+        return NULL;
     }
 
-    READ(dst->ei_data, 1);
-    ASSERT_RET(dst->ei_data == 1 || dst->ei_data == 2);
+    src += 4;
+
+    dst->ei_class = Read_(src, 1);
+    if (dst->ei_class != 1 && dst->ei_class != 2) { return NULL; }
+
+    unsigned length = dst->ei_class * 4;
+    ZETA_DebugAssert(length * 3 + 40 <= src_size);
+
+    dst->ei_data = Read_(src, 1);
+    if (dst->ei_data != 1 && dst->ei_data != 2) { return NULL; }
 
     if (dst->ei_data == 2) { ReadFunc = Zeta_ReadBigEndian; }
 
-    READ(dst->ei_version, 1);
-    READ(dst->ei_osabi, 1);
-    READ(dst->ei_abiversion, 1);
+    dst->ei_version = Read_(src, 1);
+    dst->ei_osabi = Read_(src, 1);
+    dst->ei_abiversion = Read_(src, 1);
 
-    data += 7;
+    src += 7;
 
-    READ(dst->e_type, 2);
-    READ(dst->e_machine, 2);
-    READ(dst->e_version, 4);
+    dst->e_type = Read_(src, 2);
+    dst->e_machine = Read_(src, 2);
+    dst->e_version = Read_(src, 4);
 
-    READ(dst->e_entry, length);
-    READ(dst->e_phoff, length);
-    READ(dst->e_shoff, length);
+    dst->e_entry = Read_(src, length);
+    dst->e_phoff = Read_(src, length);
+    dst->e_shoff = Read_(src, length);
 
-    READ(dst->e_flags, 4);
+    dst->e_flags = Read_(src, 4);
 
-    READ(dst->e_ehsize, 2);
+    dst->e_ehsize = Read_(src, 2);
 
-    READ(dst->e_phentsize, 2);
-    READ(dst->e_phnum, 2);
+    dst->e_phentsize = Read_(src, 2);
+    dst->e_phnum = Read_(src, 2);
 
-    READ(dst->e_shentsize, 2);
-    READ(dst->e_shnum, 2);
+    dst->e_shentsize = Read_(src, 2);
+    dst->e_shnum = Read_(src, 2);
 
-    READ(dst->e_shstrndx, 2);
+    dst->e_shstrndx = Read_(src, 2);
 
-    return data;
-
-ERR_RET:
-    return NULL;
+    return src;
 }
 
-byte_t* Zeta_ELF_WriteHeader(byte_t* dst, byte_t* dst_end,
+bool_t Zeta_ELF_CheckHeader(Zeta_ELF_Header* header) {
+    ZETA_DebugAssert(header != NULL);
+    if (header->ei_class != 1 && header->ei_class != 2) { return FALSE; }
+    if (header->ei_data != 1 && header->ei_data != 2) { return FALSE; }
+    return TRUE;
+}
+
+byte_t* Zeta_ELF_WriteHeader(byte_t* dst, size_t dst_size,
                              Zeta_ELF_Header* header) {
     ZETA_DebugAssert(dst != NULL);
-    ZETA_DebugAssert(dst_end != NULL);
-    ZETA_DebugAssert(dst <= dst_end);
     ZETA_DebugAssert(header != NULL);
 
+    if (!Zeta_ELF_CheckHeader(header)) { return NULL; }
+
+    unsigned length = header->ei_class * 4;
+    ZETA_DebugAssert(dst_size <= length * 3 + 40);
+
     u128_t (*WriteFunc)(byte_t* dst, u128_t val, unsigned length) =
-        Zeta_WriteLittleEndian;
+        header->ei_data == 1 ? Zeta_WriteLittleEndian : Zeta_WriteBigEndian;
 
-    unsigned length;
+    Write_(dst, 0x7F, 1);
+    Write_(dst, 'E', 1);
+    Write_(dst, 'L', 1);
+    Write_(dst, 'F', 1);
 
-    switch (header->ei_class) {
-        case 1:
-            length = 4;
-            ASSERT_RET(52 <= dst_end - dst);
-            break;
+    Write_(dst, header->ei_class, 1);
 
-        case 2:
-            length = 8;
-            ASSERT_RET(64 <= dst_end - dst);
-            break;
-
-        default: goto ERR_RET;
-    }
-
-    WRITE(0x7F, 1);
-    WRITE('E', 1);
-    WRITE('L', 1);
-    WRITE('F', 1);
-
-    WRITE(header->ei_class, 1);
-
-    switch (header->ei_data) {
-        case 1: break;
-        case 2: WriteFunc = Zeta_WriteBigEndian; break;
-        default: goto ERR_RET;
-    }
-
-    WRITE(header->ei_version, 1);
-    WRITE(header->ei_osabi, 1);
-    WRITE(header->ei_abiversion, 1);
+    Write_(dst, header->ei_version, 1);
+    Write_(dst, header->ei_osabi, 1);
+    Write_(dst, header->ei_abiversion, 1);
 
     dst += 7;
 
-    WRITE(header->e_type, 2);
-    WRITE(header->e_machine, 2);
-    WRITE(header->e_version, 4);
+    Write_(dst, header->e_type, 2);
+    Write_(dst, header->e_machine, 2);
+    Write_(dst, header->e_version, 4);
 
-    WRITE(header->e_entry, length);
-    WRITE(header->e_phoff, length);
-    WRITE(header->e_shoff, length);
+    Write_(dst, header->e_entry, length);
+    Write_(dst, header->e_phoff, length);
+    Write_(dst, header->e_shoff, length);
 
-    WRITE(header->e_flags, 4);
+    Write_(dst, header->e_flags, 4);
 
-    WRITE(header->e_ehsize, 2);
+    Write_(dst, header->e_ehsize, 2);
 
-    WRITE(header->e_phentsize, 2);
-    WRITE(header->e_phnum, 2);
+    Write_(dst, header->e_phentsize, 2);
+    Write_(dst, header->e_phnum, 2);
 
-    WRITE(header->e_shentsize, 2);
-    WRITE(header->e_shnum, 2);
+    Write_(dst, header->e_shentsize, 2);
+    Write_(dst, header->e_shnum, 2);
 
-    WRITE(header->e_shstrndx, 2);
+    Write_(dst, header->e_shstrndx, 2);
 
     return dst;
-
-ERR_RET:
-    return NULL;
 }
 
-void Zeta_ELF_ReadProgramHeader(Zeta_ELF_ProgramHeader* dst,
-                                Zeta_ELF_Header* header, byte_t const* data,
-                                byte_t const* data_end) {
-    ZETA_DebugAssert(data <= data_end);
+byte_t const* Zeta_ELF_ReadProgramHeader(Zeta_ELF_ProgramHeader* dst,
+                                         Zeta_ELF_Header* header,
+                                         byte_t const* src, size_t src_size) {
+    ZETA_DebugAssert(dst != NULL);
+    ZETA_DebugAssert(header != NULL);
+    ZETA_DebugAssert(src != NULL);
 
-    u128_t (*ReadFunc)(byte_t const* data, unsigned length) =
+    if (!Zeta_ELF_CheckHeader(header)) { return NULL; }
+
+    unsigned length = header->ei_class * 4;
+    ZETA_DebugAssert(src_size <= length * 6 + 8);
+
+    u128_t (*ReadFunc)(byte_t const* src, unsigned length) =
         header->ei_data == 1 ? Zeta_ReadLittleEndian : Zeta_ReadBigEndian;
 
-    unsigned length;
+    dst->p_type = Read_(src, 4);
 
-    switch (header->ei_class) {
-        case 1:
-            length = 4;
-            ZETA_DebugAssert(32 <= data_end - data);
-            break;
-        case 2:
-            length = 8;
-            ZETA_DebugAssert(56 <= data_end - data);
-            break;
-        default: goto ERR_RET;
-    }
+    if (length == 8) { dst->p_flags = Read_(src, 4); }
 
-    READ(dst->p_type, 4);
+    dst->p_offset = Read_(src, length);
+    dst->p_vaddr = Read_(src, length);
+    dst->p_paddr = Read_(src, length);
+    dst->p_filesz = Read_(src, length);
+    dst->p_memsz = Read_(src, length);
 
-    if (length == 8) { READ(dst->p_flags, 4); }
+    if (length == 4) { dst->p_flags = Read_(src, 4); }
 
-    READ(dst->p_offset, length);
-    READ(dst->p_vaddr, length);
-    READ(dst->p_paddr, length);
-    READ(dst->p_filesz, length);
-    READ(dst->p_memsz, length);
+    dst->p_align = Read_(src, length);
 
-    if (length == 4) { READ(dst->p_flags, 4); }
-
-    READ(dst->p_align, length);
-
-    return;
-
-ERR_RET:
-    ZETA_DebugAssert(FALSE);
+    return src;
 }
 
-void Zeta_ELF_ReadSectionHeader(Zeta_ELF_SectionHeader* dst,
-                                Zeta_ELF_Header* header, byte_t const* data,
-                                byte_t const* data_end) {
-    ZETA_DebugAssert(data != NULL);
-    ZETA_DebugAssert(data_end != NULL);
-    ZETA_DebugAssert(data <= data_end);
+byte_t const* Zeta_ELF_ReadSectionHeader(Zeta_ELF_SectionHeader* dst,
+                                         Zeta_ELF_Header* header,
+                                         byte_t const* src, size_t src_size) {
+    ZETA_DebugAssert(dst != NULL);
+    ZETA_DebugAssert(header != NULL);
+    ZETA_DebugAssert(src != NULL);
 
-    u128_t (*ReadFunc)(byte_t const* data, unsigned length) =
+    if (!Zeta_ELF_CheckHeader(header)) { return NULL; }
+
+    unsigned length = header->ei_class * 4;
+    ZETA_DebugAssert(length * 6 + 16 <= src_size);
+
+    u128_t (*ReadFunc)(byte_t const* src, unsigned length) =
         header->ei_data == 1 ? Zeta_ReadLittleEndian : Zeta_ReadBigEndian;
 
-    unsigned length;
+    dst->sh_name = Read_(src, 4);
+    dst->sh_type = Read_(src, 4);
 
-    switch (header->ei_class) {
-        case 1:
-            length = 4;
-            ZETA_DebugAssert(40 <= data_end - data);
-            break;
-        case 2:
-            length = 8;
-            ZETA_DebugAssert(64 <= data_end - data);
-            break;
-        default: goto ERR_RET;
+    dst->sh_flags = Read_(src, length);
+
+    dst->sh_addr = Read_(src, length);
+    dst->sh_offset = Read_(src, length);
+    dst->sh_size = Read_(src, length);
+
+    dst->sh_link = Read_(src, 4);
+    dst->sh_info = Read_(src, 4);
+
+    dst->sh_addralign = Read_(src, length);
+    dst->sh_entsize = Read_(src, length);
+
+    return src;
+}
+
+void Zeta_ELF_ReadSymbol(Zeta_ELF_Symbol* dst, Zeta_ELF_Header* header,
+                         byte_t const* src, size_t src_size) {
+    ZETA_DebugAssert(dst != NULL);
+    ZETA_DebugAssert(header != NULL);
+    ZETA_DebugAssert(src != NULL);
+
+    unsigned length = header->ei_class * 4;
+    ZETA_DebugAssert(length * 4 + 2 <= src_size);
+
+    u128_t (*ReadFunc)(byte_t const* src, unsigned length) =
+        header->ei_data == 1 ? Zeta_ReadLittleEndian : Zeta_ReadBigEndian;
+
+    dst->st_name = Read_(src, length);
+
+    if (length == 4) {
+        dst->st_value = Read_(src, length);
+        dst->st_size = Read_(src, length);
     }
 
-    READ(dst->sh_name, 4);
-    READ(dst->sh_type, 4);
+    dst->st_info = Read_(src, 1);
+    dst->st_other = Read_(src, 1);
+    dst->st_shndx = Read_(src, length);
 
-    READ(dst->sh_flags, length);
+    if (length == 8) {
+        dst->st_value = Read_(src, length);
+        dst->st_size = Read_(src, length);
+    }
+}
 
-    READ(dst->sh_addr, length);
-    READ(dst->sh_offset, length);
-    READ(dst->sh_size, length);
+bool_t Zeta_ELF_ReadProgramHeaders(Zeta_ELF* elf, byte_t const* src,
+                                   size_t src_size) {
+    ZETA_DebugAssert(elf != NULL);
+    ZETA_DebugAssert(src != NULL);
 
-    READ(dst->sh_link, 4);
-    READ(dst->sh_info, 4);
+    if (!Zeta_ELF_CheckHeader(&elf->header)) { return FALSE; }
 
-    READ(dst->sh_addralign, length);
-    READ(dst->sh_entsize, length);
+    size_t prog_headers_cnt = elf->header.e_phnum;
 
-    return;
+    if (src_size <
+        elf->header.e_phoff + elf->header.e_phentsize * prog_headers_cnt) {
+        return FALSE;
+    }
 
-ERR_RET:
-    ZETA_DebugAssert(FALSE);
+    if (elf->prog_headers.context == NULL) {
+        Zeta_DynamicVector* dv = ZETA_Allocator_SafeAllocate(
+            &zeta_std_allocator, alignof(max_align_t),
+            sizeof(Zeta_DynamicVector));
+
+        dv->width = sizeof(Zeta_ELF_ProgramHeader);
+        dv->stride = sizeof(Zeta_ELF_ProgramHeader);
+        dv->seg_capacity = 8;
+
+        dv->data_allocator = &zeta_std_allocator;
+        dv->seg_allocator = &zeta_std_allocator;
+
+        Zeta_DynamicVector_Init(dv);
+
+        Zeta_DynamicVector_DeploySeqContainer(dv, &elf->prog_headers);
+    }
+
+    size_t cur_prog_header_cnt = ZETA_SeqContainer_GetSize(&elf->prog_headers);
+
+    if (cur_prog_header_cnt < prog_headers_cnt) {
+        ZETA_SeqContainer_PushR(&elf->prog_headers,
+                                prog_headers_cnt - cur_prog_header_cnt, NULL);
+    } else {
+        ZETA_SeqContainer_PopR(&elf->prog_headers,
+                               cur_prog_header_cnt - prog_headers_cnt);
+    }
+
+    Zeta_ELF_ProgramHeader tmp;
+
+    void* cursor = ZETA_SeqContainer_AllocaCursor(&elf->prog_headers);
+    ZETA_SeqContainer_Access(&elf->prog_headers, 1, cursor, NULL);
+
+    for (size_t prog_header_i = 0; prog_header_i < prog_headers_cnt;
+         ++prog_header_i) {
+        byte_t const* v = Zeta_ELF_ReadProgramHeader(
+            &tmp, &elf->header,
+            src + elf->header.e_phoff + elf->header.e_phentsize * prog_header_i,
+            elf->header.e_phentsize);
+
+        if (v == NULL) { return FALSE; }
+
+        ZETA_SeqContainer_Write(&elf->prog_headers, cursor, 1, &tmp, cursor);
+    }
+
+    return TRUE;
+}
+
+bool_t Zeta_ELF_ReadSesctionHeaders(Zeta_ELF* elf, byte_t const* src,
+                                    size_t src_size) {
+    ZETA_DebugAssert(elf != NULL);
+    ZETA_DebugAssert(src != NULL);
+
+    if (!Zeta_ELF_CheckHeader(&elf->header)) { return FALSE; }
+
+    size_t sect_headers_cnt = elf->header.e_phnum;
+
+    if (src_size <
+        elf->header.e_shoff + elf->header.e_shentsize * sect_headers_cnt) {
+        return FALSE;
+    }
+
+    if (elf->sect_headers.context == NULL) {
+        Zeta_DynamicVector* dv = ZETA_Allocator_SafeAllocate(
+            &zeta_std_allocator, alignof(max_align_t),
+            sizeof(Zeta_DynamicVector));
+
+        dv->width = sizeof(Zeta_ELF_SectionHeader);
+        dv->stride = sizeof(Zeta_ELF_SectionHeader);
+        dv->seg_capacity = 8;
+
+        dv->data_allocator = &zeta_std_allocator;
+        dv->seg_allocator = &zeta_std_allocator;
+
+        Zeta_DynamicVector_Init(dv);
+
+        Zeta_DynamicVector_DeploySeqContainer(dv, &elf->sect_headers);
+    }
+
+    size_t cur_sect_header_cnt = ZETA_SeqContainer_GetSize(&elf->sect_headers);
+
+    if (cur_sect_header_cnt < sect_headers_cnt) {
+        ZETA_SeqContainer_PushR(&elf->sect_headers,
+                                sect_headers_cnt - cur_sect_header_cnt, NULL);
+    } else {
+        ZETA_SeqContainer_PopR(&elf->sect_headers,
+                               cur_sect_header_cnt - sect_headers_cnt);
+    }
+
+    Zeta_ELF_SectionHeader tmp;
+
+    void* cursor = ZETA_SeqContainer_AllocaCursor(&elf->sect_headers);
+    ZETA_SeqContainer_Access(&elf->sect_headers, 1, cursor, NULL);
+
+    for (size_t sect_header_i = 0; sect_header_i < sect_headers_cnt;
+         ++sect_header_i) {
+        byte_t const* v = Zeta_ELF_ReadSectionHeader(
+            &tmp, &elf->header,
+            src + elf->header.e_shoff + elf->header.e_shentsize * sect_header_i,
+            elf->header.e_phentsize);
+
+        if (v == NULL) { return FALSE; }
+
+        ZETA_SeqContainer_Write(&elf->sect_headers, cursor, 1, &tmp, cursor);
+    }
+
+    return TRUE;
 }

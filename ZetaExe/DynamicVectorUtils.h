@@ -46,8 +46,8 @@ void DynamicVector_Init(Zeta_SeqContainer* seq_cntr, size_t seg_capacity) {
     Zeta_DynamicVector_DeploySeqContainer(&dynamic_vec_pack->dynamic_vec,
                                           seq_cntr);
 
-    SeqContainer_AddSanitizeFunc(Zeta_DynamicVector_GetWidth,
-                                 DynamicVector_Sanitize);
+    SeqContainerUtils_AddSanitizeFunc(Zeta_DynamicVector_GetWidth,
+                                      DynamicVector_Sanitize);
 }
 
 void DynamicVector_Deinit(Zeta_SeqContainer* seq_cntr) {

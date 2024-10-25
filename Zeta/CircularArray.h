@@ -28,6 +28,8 @@ struct Zeta_CircularArray_Cursor {
 
 void Zeta_CircularArray_Init(void* ca);
 
+void Zeta_CircularArray_Deinit(void* ca);
+
 size_t Zeta_CircularArray_GetWidth(void* ca);
 
 size_t Zeta_CircularArray_GetStride(void* ca);

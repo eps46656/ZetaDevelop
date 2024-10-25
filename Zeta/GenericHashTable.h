@@ -27,24 +27,16 @@ struct Zeta_GenericHashTable {
     Zeta_Allocator* table_allocator;
 
     void* node_hash_context;
-
-    unsigned long long (*NodeHash)(void* node_hash_context, void const* node,
-                                   unsigned long long salt);
+    Zeta_Hash NodeHash;
 
     void* key_hash_context;
-
-    unsigned long long (*KeyHash)(void* key_hash_context, void const* key,
-                                  unsigned long long salt);
+    Zeta_Hash KeyHash;
 
     void* node_cmp_context;
-
-    int (*NodeCompare)(void* node_cmp_context, void const* node_a,
-                       void const* node_b);
+    Zeta_Compare NodeCompare;
 
     void* node_key_cmp_context;
-
-    int (*NodeKeyCompare)(void* node_key_cmp_context, void const* node,
-                          void const* key);
+    Zeta_Compare NodeKeyCompare;
 };
 
 struct Zeta_GenericHashTable_Node {

@@ -10,20 +10,21 @@ struct DebugDequePack {
     Zeta_DebugDeque debug_deque;
 };
 
-template <typename Val>
+template <typename Elem>
 void DebugDeque_Init(Zeta_SeqContainer* seq_cntr) {
     DebugDequePack* debug_deque_pack{ static_cast<DebugDequePack*>(
         std::malloc(sizeof(DebugDequePack))) };
 
-    debug_deque_pack->debug_deque.width = sizeof(Val);
-    debug_deque_pack->debug_deque.stride = sizeof(Val);
+    debug_deque_pack->debug_deque.width = sizeof(Elem);
+    debug_deque_pack->debug_deque.stride = sizeof(Elem);
 
     Zeta_DebugDeque_Init(&debug_deque_pack->debug_deque);
 
     Zeta_DebugDeque_DeploySeqContainer(&debug_deque_pack->debug_deque,
                                        seq_cntr);
 
-    SeqContainer_AddSanitizeFunc(Zeta_DebugDeque_GetWidth, DebugDeque_Sanitize);
+    SeqContainerUtils_AddSanitizeFunc(Zeta_DebugDeque_GetWidth,
+                                      DebugDeque_Sanitize);
 }
 
 void DebugDeque_Deinit(Zeta_SeqContainer* seq_cntr) {
@@ -39,10 +40,10 @@ void DebugDeque_Deinit(Zeta_SeqContainer* seq_cntr) {
     std::free(debug_deque_pack);
 }
 
-template <typename Val>
+template <typename Elem>
 Zeta_SeqContainer* DebugDeque_Create() {
     Zeta_SeqContainer* seq_cntr{ new Zeta_SeqContainer{} };
-    DebugDeque_Init<Val>(seq_cntr);
+    DebugDeque_Init<Elem>(seq_cntr);
     return seq_cntr;
 }
 

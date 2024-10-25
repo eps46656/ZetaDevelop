@@ -1,47 +1,54 @@
 import os
 import sys
 import argparse
+import termcolor
 
-sys.path.append(f"{os.path.dirname(__file__)}/..")
+File = os.path.realpath(__file__)
+Dir = os.path.realpath(os.path.dirname(__file__))
 
+sys.path.append(f"{Dir}/..")
+
+from config import ModeEnum, target
 from utils import *
-from Builder import *
-from Compiler import *
+from Builder import Builder
+from LLVMCompiler import LLVMCompiler
+from LLVMCompiler import LLVMCompilerConfig
 
-File = GetNormPath(__file__)
-Dir = GetNormPath(os.path.dirname(__file__))
+File = GetRealPath(File)
+Dir = GetRealPath(Dir)
 
-ZetaExeDir = GetNormPath(os.path.dirname(File))
-ZetaDevDir = GetNormPath(f"{ZetaExeDir}/..")
-ZetaDir = GetNormPath(f"{ZetaDevDir}/Zeta")
+ZetaExeDir = GetRealPath(Dir)
+ZetaDevDir = GetRealPath(f"{ZetaExeDir}/..")
+ZetaDir = GetRealPath(f"{ZetaDevDir}/Zeta")
 
-sys.path.append(os.path.dirname(ZetaDir))
+sys.path.append(GetDirPath(ZetaDir))
+
 import Zeta.build
 
-def AddDeps(builder, ZetaBuildDir, ZetaExeBuildDir, verbose, mode):
-    compiler = Compiler({
-        "verbose": verbose,
+def AddDeps(builder: Builder, ZetaBuildDir: str, ZetaExeBuildDir: str, verbose: bool, mode: ModeEnum):
+    compiler = LLVMCompiler(LLVMCompilerConfig(
+        verbose=verbose,
 
-        "mode": mode,
+        target=target,
 
-        "build_dir": ZetaExeBuildDir,
+        mode=mode,
 
-        "working_dirs": {
+        build_dir=ZetaExeBuildDir,
+
+        working_dirs={
             ZetaDevDir,
             ZetaDir,
             ZetaExeDir,
         },
 
-        "target": target,
-
-        "c_include_dirs": {
+        c_include_dirs={
             f"{ZetaDir}",
         },
 
-        "cpp_include_dirs": {
+        cpp_include_dirs={
             f"{ZetaDir}",
         },
-    })
+    ))
 
     '''
     if os.name == "nt":
@@ -654,6 +661,56 @@ def AddDeps(builder, ZetaBuildDir, ZetaExeBuildDir, verbose, mode):
     )
 
     builder.Add(
+        f"{ZetaExeDir}/test_jump.cpp",
+        {
+            f"{File}",
+            f"{ZetaDir}/Jump.h",
+        },
+        None
+    )
+
+    builder.Add(
+        f"{ZetaExeBuildDir}/test_jump.o",
+        {
+            f"{File}",
+            f"{ZetaExeDir}/test_jump.cpp",
+        },
+        lambda : compiler.cpp_to_obj(
+            f"{ZetaExeBuildDir}/test_jump.o",
+            f"{ZetaExeDir}/test_jump.cpp",
+        )
+    )
+
+    builder.Add(
+        f"{ZetaExeBuildDir}/test_jump.exe",
+        {
+            f"{File}",
+
+            f"{ZetaBuildDir}/DebugStrPipe.o",
+            f"{ZetaBuildDir}/DebugPipe.o",
+            f"{ZetaBuildDir}/Debugger.o",
+            f"{ZetaBuildDir}/io.o",
+            f"{ZetaBuildDir}/Jump.o",
+            f"{ZetaBuildDir}/Logger.o",
+
+            f"{ZetaExeBuildDir}/test_jump.o",
+        },
+        lambda : compiler.to_exe(
+            f"{ZetaExeBuildDir}/test_jump.exe",
+            {
+                f"{ZetaBuildDir}/DebugStrPipe.o",
+                f"{ZetaBuildDir}/DebugPipe.o",
+                f"{ZetaBuildDir}/Debugger.o",
+                f"{ZetaBuildDir}/io.o",
+                f"{ZetaBuildDir}/Jump.o",
+                f"{ZetaBuildDir}/Logger.o",
+
+                f"{ZetaExeBuildDir}/test_jump.o",
+            }
+        )
+    )
+
+    builder.Add(
         f"{ZetaExeDir}/test_treealloc.cpp",
         {
             f"{File}",
@@ -1140,8 +1197,6 @@ def AddDeps(builder, ZetaBuildDir, ZetaExeBuildDir, verbose, mode):
             f"{ZetaExeDir}/CircularArrayUtils.h",
             f"{ZetaExeDir}/DebugDequeUtils.h",
             f"{ZetaExeDir}/DynamicVectorUtils.h",
-            f"{ZetaExeDir}/RadixDequeUtils.h",
-            f"{ZetaExeDir}/RadixVectorUtils.h",
             f"{ZetaExeDir}/SeqContainerUtils.h",
             f"{ZetaExeDir}/StageVectorUtils.h",
             f"{ZetaExeDir}/Timer.h",
@@ -1192,8 +1247,6 @@ def AddDeps(builder, ZetaBuildDir, ZetaExeBuildDir, verbose, mode):
             f"{ZetaBuildDir}/MemCheck.o",
             f"{ZetaBuildDir}/Logger.o",
             f"{ZetaBuildDir}/RBTree.o",
-            f"{ZetaBuildDir}/RadixVector.o",
-            f"{ZetaBuildDir}/RadixDeque.o",
             f"{ZetaBuildDir}/OrdCnt3RBTreeNode.o",
             f"{ZetaBuildDir}/OrdCntRBTreeNode.o",
             f"{ZetaBuildDir}/SegUtils.o",
@@ -1222,8 +1275,6 @@ def AddDeps(builder, ZetaBuildDir, ZetaExeBuildDir, verbose, mode):
                 f"{ZetaBuildDir}/MemCheck.o",
                 f"{ZetaBuildDir}/Logger.o",
                 f"{ZetaBuildDir}/RBTree.o",
-                f"{ZetaBuildDir}/RadixVector.o",
-                f"{ZetaBuildDir}/RadixDeque.o",
                 f"{ZetaBuildDir}/OrdCnt3RBTreeNode.o",
                 f"{ZetaBuildDir}/OrdCntRBTreeNode.o",
                 f"{ZetaBuildDir}/SegUtils.o",
@@ -2151,7 +2202,7 @@ def main():
 
     args = parser.parse_args(sys.argv[1:])
 
-    HighLightPrint(f"args = {args}")
+    print(termcolor.colored(f"{args=}", "yellow"))
 
     mode = ModeEnum[args.mode.upper()]
 
@@ -2175,28 +2226,25 @@ def main():
 
     non_built, built = builder.Build(target, args.rebuild)
 
-    ybeg = "\033[93m"
-    yend = "\033[0m"
-
-    HighLightPrint("success")
+    print(termcolor.colored(f"success", "yellow"))
 
     non_built.sort()
     built.sort()
 
-    HighLightPrint("not_built:")
+    print(termcolor.colored(f"not_built:", "yellow"))
 
     for i in non_built:
         print(f"\t{i}")
 
-    HighLightPrint("built:")
+    print(termcolor.colored(f"built:", "yellow"))
 
     for i in built:
         print(f"\t{i}")
 
-    print(f"{ybeg}target:{yend} {target}")
+    print(termcolor.colored(f"target: ", "yellow") + f"{target}")
 
     if args.run_target:
-        print(f"{ybeg}running{yend} {target}")
+        print(termcolor.colored(f"running: ", "yellow") + f"{target}")
         os.system(target)
 
 if __name__ == "__main__":

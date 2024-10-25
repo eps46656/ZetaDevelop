@@ -4,31 +4,33 @@ import dataclasses
 class EmptyClass:
     pass
 
-class AuthIntEnum(enum.IntEnum):
-    pass
-
-class ModeEnum(enum.IntEnum):
+class ModeEnum(enum.Enum):
     DEBUG = enum.auto(),
     RELEASE = enum.auto(),
 
-class ArchEnum(enum.IntEnum):
+class ArchEnum(enum.Enum):
     X86_64 = enum.auto(),
     ARM32 = enum.auto(),
     ARM64 = enum.auto(),
     RISCV32 = enum.auto(),
     RISCV64 = enum.auto(),
 
-class VendorEnum(enum.IntEnum):
+class VendorEnum(enum.Enum):
     PC = enum.auto(),
 
-class SysEnum(enum.IntEnum):
+class SysEnum(enum.Enum):
     LINUX = enum.auto(),
     WINDOWS = enum.auto(),
 
-class EnvEnum(enum.IntEnum):
+class EnvEnum(enum.Enum):
     GNU = enum.auto(),
     ELF = enum.auto(),
     MSVC = enum.auto(),
+
+class ColorEnum(enum.Enum):
+    red = enum.auto(),
+    orange = enum.auto(),
+    yellow = enum.auto(),
 
 # ------------------------------------------------------------------------------
 

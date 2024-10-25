@@ -77,38 +77,6 @@ static const Zeta_Date leap_sec_hists[] = {
     (Zeta_Date){ 2016, 12, 31 },  //
 };
 
-/*
-static const Zeta_Date leap_sec_hists[] = {
-    (Zeta_Date){ 1972, 7, 1 },  //
-    (Zeta_Date){ 1973, 1, 1 },  //
-    (Zeta_Date){ 1974, 1, 1 },  //
-    (Zeta_Date){ 1975, 1, 1 },  //
-    (Zeta_Date){ 1976, 1, 1 },  //
-    (Zeta_Date){ 1977, 1, 1 },  //
-    (Zeta_Date){ 1978, 1, 1 },  //
-    (Zeta_Date){ 1979, 1, 1 },  //
-    (Zeta_Date){ 1980, 1, 1 },  //
-    (Zeta_Date){ 1981, 7, 1 },  //
-    (Zeta_Date){ 1982, 7, 1 },  //
-    (Zeta_Date){ 1983, 7, 1 },  //
-    (Zeta_Date){ 1985, 7, 1 },  //
-    (Zeta_Date){ 1988, 1, 1 },  //
-    (Zeta_Date){ 1990, 1, 1 },  //
-    (Zeta_Date){ 1991, 1, 1 },  //
-    (Zeta_Date){ 1992, 7, 1 },  //
-    (Zeta_Date){ 1993, 7, 1 },  //
-    (Zeta_Date){ 1994, 7, 1 },  //
-    (Zeta_Date){ 1996, 1, 1 },  //
-    (Zeta_Date){ 1997, 7, 1 },  //
-    (Zeta_Date){ 1999, 1, 1 },  //
-    (Zeta_Date){ 2006, 1, 1 },  //
-    (Zeta_Date){ 2009, 1, 1 },  //
-    (Zeta_Date){ 2012, 7, 1 },  //
-    (Zeta_Date){ 2015, 7, 1 },  //
-    (Zeta_Date){ 2017, 1, 1 },  //
-};
-*/
-
 #define IsLeapYear_(year)                                     \
     ({                                                        \
         long long tmp = (year);                               \

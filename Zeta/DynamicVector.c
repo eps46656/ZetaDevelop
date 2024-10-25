@@ -111,16 +111,16 @@ static Zeta_DynamicVector_Cursor Access_(Zeta_DynamicVector* dv, size_t idx) {
 
     return (Zeta_DynamicVector_Cursor){
         dv, idx,
-        (unsigned char*)(*(void**)((
+        *(void**)((
             dv->size_a <= seg_idx && seg_idx < dv->size_a + dv->size_b
                 ? Zeta_CircularArray_Access(&cur_ca, seg_idx - dv->size_a, NULL,
                                             NULL)
-                : Zeta_CircularArray_Access(&nxt_ca, seg_idx, NULL, NULL)))) +
+                : Zeta_CircularArray_Access(&nxt_ca, seg_idx, NULL, NULL))) +
             dv->stride * ele_idx
     };
 }
 
-static void* Push_(void* dv_, void* dst_cursor_, size_t cnt, int dir) {
+static void* Push_(void* dv_, void* dst_cursor_, int dir, size_t cnt) {
     Zeta_DynamicVector* dv = dv_;
     CheckDV_(dv);
 
@@ -132,8 +132,9 @@ static void* Push_(void* dv_, void* dst_cursor_, size_t cnt, int dir) {
     }
 
     size_t stride = dv->stride;
-    size_t offset = dv->offset;
     size_t seg_capacity = dv->seg_capacity;
+
+    size_t offset = dv->offset;
     size_t size = dv->size;
 
     size_t seg_cnt =
@@ -270,12 +271,12 @@ RET:;
     size_t ret_ele_idx = ret_offset % seg_capacity;
 
     void* ref =
-        (unsigned char*)(*(void**)((
-            dv->size_a <= ret_seg_idx && ret_seg_idx < dv->size_a + dv->size_b
-                ? Zeta_CircularArray_Access(&cur_ca, ret_seg_idx - dv->size_a,
-                                            NULL, NULL)
-                : Zeta_CircularArray_Access(&nxt_ca, ret_seg_idx, NULL,
-                                            NULL)))) +
+        *(void**)((dv->size_a <= ret_seg_idx &&
+                           ret_seg_idx < dv->size_a + dv->size_b
+                       ? Zeta_CircularArray_Access(
+                             &cur_ca, ret_seg_idx - dv->size_a, NULL, NULL)
+                       : Zeta_CircularArray_Access(&nxt_ca, ret_seg_idx, NULL,
+                                                   NULL))) +
         dv->stride * ret_ele_idx;
 
     if (dst_cursor != NULL) {
@@ -291,8 +292,9 @@ static void Pop_(void* dv_, int dir, size_t cnt) {
     Zeta_DynamicVector* dv = dv_;
     CheckDV_(dv);
 
-    size_t offset = dv->offset;
     size_t seg_capacity = dv->seg_capacity;
+
+    size_t offset = dv->offset;
     size_t size = dv->size;
 
     ZETA_DebugAssert(cnt <= size);
@@ -301,8 +303,6 @@ static void Pop_(void* dv_, int dir, size_t cnt) {
         dir == 0 ? (offset + cnt) / seg_capacity
                  : ZETA_CeilIntDiv(offset + size, seg_capacity) -
                        ZETA_CeilIntDiv(offset + size - cnt, seg_capacity);
-
-    if (seg_cnt == 0) { goto POP_SEG_END; }
 
     Zeta_CircularArray cur_ca;
     cur_ca.data = dv->cur_data;
@@ -319,6 +319,8 @@ static void Pop_(void* dv_, int dir, size_t cnt) {
     nxt_ca.offset = dv->nxt_offset;
     nxt_ca.size = dv->size_a + dv->size_b + dv->size_c;
     nxt_ca.capacity = dv->nxt_capacity;
+
+    if (seg_cnt == 0) { goto POP_SEG_END; }
 
     size_t origin_seg_cnt = seg_cnt;
 
@@ -634,6 +636,94 @@ void* Zeta_DynamicVector_Access(void* dv_, size_t idx, void* dst_cursor_,
     return pos_cursor.ref;
 }
 
+#define Transform_                                                             \
+    Zeta_DynamicVector* dv = dv_;                                              \
+    Zeta_DynamicVector_Cursor const* pos_cursor = pos_cursor_;                 \
+                                                                               \
+    CheckDVCursor_(dv, pos_cursor);                                            \
+                                                                               \
+    ZETA_DebugAssert(pos_cursor->idx <= dv->size);                             \
+    ZETA_DebugAssert(cnt <= dv->size - pos_cursor->idx);                       \
+                                                                               \
+    Zeta_DynamicVector_Cursor* dst_cursor = dst_cursor_;                       \
+                                                                               \
+    if (cnt == 0) {                                                            \
+        if (dst_cursor != NULL) {                                              \
+            dst_cursor->dv = pos_cursor->dv;                                   \
+            dst_cursor->idx = pos_cursor->idx;                                 \
+            dst_cursor->ref = pos_cursor->ref;                                 \
+        }                                                                      \
+                                                                               \
+        return;                                                                \
+    }                                                                          \
+                                                                               \
+    size_t width = dv->width;                                                  \
+    size_t stride = dv->stride;                                                \
+    size_t seg_capacity = dv->seg_capacity;                                    \
+                                                                               \
+    Zeta_CircularArray cur_ca;                                                 \
+    cur_ca.data = dv->cur_data;                                                \
+    cur_ca.width = sizeof(void*);                                              \
+    cur_ca.stride = sizeof(void*);                                             \
+    cur_ca.offset = dv->cur_offset;                                            \
+    cur_ca.size = dv->size_b;                                                  \
+    cur_ca.capacity = dv->cur_capacity;                                        \
+                                                                               \
+    Zeta_CircularArray nxt_ca;                                                 \
+    nxt_ca.data = dv->nxt_data;                                                \
+    nxt_ca.width = sizeof(void*);                                              \
+    nxt_ca.stride = sizeof(void*);                                             \
+    nxt_ca.offset = dv->nxt_offset;                                            \
+    nxt_ca.size = dv->size_a + dv->size_b + dv->size_c;                        \
+    nxt_ca.capacity = dv->nxt_capacity;                                        \
+                                                                               \
+    TryMigrate_(dv, &cur_ca, &nxt_ca, cnt);                                    \
+                                                                               \
+    UpdateCA_(dv, &cur_ca, &nxt_ca);                                           \
+                                                                               \
+    size_t offset = dv->offset + pos_cursor->idx;                              \
+                                                                               \
+    while (0 < cnt) {                                                          \
+        size_t seg_idx = offset / seg_capacity;                                \
+        size_t ele_idx = offset % seg_capacity;                                \
+                                                                               \
+        size_t cur_cnt = ZETA_GetMinOf(cnt, seg_capacity - ele_idx);           \
+        cnt -= cur_cnt;                                                        \
+                                                                               \
+        void* seg = *(                                                         \
+            void**)(dv->size_a <= seg_idx && seg_idx < dv->size_a + dv->size_b \
+                        ? Zeta_CircularArray_Access(                           \
+                              &cur_ca, seg_idx - dv->size_a, NULL, NULL)       \
+                        : Zeta_CircularArray_Access(&nxt_ca, seg_idx, NULL,    \
+                                                    NULL));                    \
+                                                                               \
+        ElemArrTransform(elem_arr_transform_context, seg + stride * ele_idx,   \
+                         width, stride, cur_cnt);                              \
+                                                                               \
+        offset += cur_cnt;                                                     \
+    }                                                                          \
+                                                                               \
+    if (dst_cursor != NULL) {                                                  \
+        dst_cursor->dv = dv;                                                   \
+        dst_cursor->idx = offset - dv->offset;                                 \
+                                                                               \
+        if (dst_cursor->idx == dv->size) {                                     \
+            dst_cursor->ref = NULL;                                            \
+        } else {                                                               \
+            size_t seg_idx = offset / dv->seg_capacity;                        \
+            size_t ele_idx = offset % dv->seg_capacity;                        \
+                                                                               \
+            dst_cursor->ref =                                                  \
+                *(void**)((                                                    \
+                    dv->size_a <= seg_idx && seg_idx < dv->size_a + dv->size_b \
+                        ? Zeta_CircularArray_Access(                           \
+                              &cur_ca, seg_idx - dv->size_a, NULL, NULL)       \
+                        : Zeta_CircularArray_Access(&nxt_ca, seg_idx, NULL,    \
+                                                    NULL))) +                  \
+                stride * ele_idx;                                              \
+        }                                                                      \
+    }
+
 void Zeta_DynamicVector_Read(void* dv_, void const* pos_cursor_, size_t cnt,
                              void* dst_, void* dst_cursor_) {
     Zeta_DynamicVector* dv = dv_;
@@ -691,12 +781,12 @@ void Zeta_DynamicVector_Read(void* dv_, void const* pos_cursor_, size_t cnt,
         size_t cur_cnt = ZETA_GetMinOf(cnt, seg_capacity - ele_idx);
         cnt -= cur_cnt;
 
-        void* seg =
-            *(void**)(dv->size_a <= seg_idx && seg_idx < dv->size_a + dv->size_b
-                          ? Zeta_CircularArray_Access(
-                                &cur_ca, seg_idx - dv->size_a, NULL, NULL)
-                          : Zeta_CircularArray_Access(&nxt_ca, seg_idx, NULL,
-                                                      NULL));
+        unsigned char* seg = (unsigned char*)(*(
+            void**)(dv->size_a <= seg_idx && seg_idx < dv->size_a + dv->size_b
+                        ? Zeta_CircularArray_Access(
+                              &cur_ca, seg_idx - dv->size_a, NULL, NULL)
+                        : Zeta_CircularArray_Access(&nxt_ca, seg_idx, NULL,
+                                                    NULL)));
 
         Zeta_MemCopy(dst, seg + stride * ele_idx, stride * cur_cnt);
 
@@ -770,24 +860,24 @@ void Zeta_DynamicVector_Write(void* dv_, void* pos_cursor_, size_t cnt,
     TryMigrate_(dv, &cur_ca, &nxt_ca, cnt);
 
     UpdateCA_(dv, &cur_ca, &nxt_ca);
-
     unsigned char const* src = src_;
     ZETA_DebugAssert(src != NULL);
 
     size_t offset = dv->offset + pos_cursor->idx;
 
     while (0 < cnt) {
-        size_t seg_idx = offset / dv->seg_capacity;
-        size_t ele_idx = offset % dv->seg_capacity;
+        size_t seg_idx = offset / seg_capacity;
+        size_t ele_idx = offset % seg_capacity;
 
         size_t cur_cnt = ZETA_GetMinOf(cnt, seg_capacity - ele_idx);
         cnt -= cur_cnt;
 
-        void* seg = *(void**)((
-            dv->size_a <= seg_idx && seg_idx < dv->size_a + dv->size_b
-                ? Zeta_CircularArray_Access(&cur_ca, seg_idx - dv->size_a, NULL,
-                                            NULL)
-                : Zeta_CircularArray_Access(&nxt_ca, seg_idx, NULL, NULL)));
+        unsigned char* seg = (unsigned char*)(*(
+            void**)(dv->size_a <= seg_idx && seg_idx < dv->size_a + dv->size_b
+                        ? Zeta_CircularArray_Access(
+                              &cur_ca, seg_idx - dv->size_a, NULL, NULL)
+                        : Zeta_CircularArray_Access(&nxt_ca, seg_idx, NULL,
+                                                    NULL)));
 
         Zeta_MemCopy(seg + stride * ele_idx, src, stride * cur_cnt);
 
@@ -818,11 +908,11 @@ void Zeta_DynamicVector_Write(void* dv_, void* pos_cursor_, size_t cnt,
 }
 
 void* Zeta_DynamicVector_PushL(void* dv, size_t cnt, void* dst_cursor) {
-    return Push_(dv, dst_cursor, cnt, 0);
+    return Push_(dv, dst_cursor, 0, cnt);
 }
 
 void* Zeta_DynamicVector_PushR(void* dv, size_t cnt, void* dst_cursor) {
-    return Push_(dv, dst_cursor, cnt, 1);
+    return Push_(dv, dst_cursor, 1, cnt);
 }
 
 void Zeta_DynamicVector_PopL(void* dv, size_t cnt) { Pop_(dv, 0, cnt); }
@@ -832,6 +922,8 @@ void Zeta_DynamicVector_PopR(void* dv, size_t cnt) { Pop_(dv, 1, cnt); }
 void Zeta_DynamicVector_EraseAll(void* dv_) {
     Zeta_DynamicVector* dv = dv_;
     CheckDV_(dv);
+
+    Pop_(dv, 0, dv->size);
 }
 
 void Zeta_DynamicVector_Check(void* dv_) {

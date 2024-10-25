@@ -34,6 +34,8 @@ void Zeta_CircularArray_Init(void* ca_) {
     ca->capacity = 0;
 }
 
+void Zeta_CircularArray_Deinit(void* ca) { ZETA_Unused(ca); }
+
 size_t Zeta_CircularArray_GetWidth(void* ca_) {
     Zeta_CircularArray* ca = ca_;
     CheckCA_(ca);
@@ -218,8 +220,8 @@ void Zeta_CircularArray_Read(void* ca_, void const* pos_cursor_, size_t cnt,
         Zeta_ElemCopy(dst, Refer_(data, stride, offset, idx, capacity), stride,
                       width, cur_cnt);
 
-        dst += stride * cur_cnt;
         idx += cur_cnt;
+        dst += stride * cur_cnt;
     }
 
     if (dst_cursor != NULL) {
@@ -268,9 +270,6 @@ void Zeta_CircularArray_Write(void* ca_, void* pos_cursor_, size_t cnt,
         size_t cur_cnt =
             ZETA_GetMinOf(cnt, Zeta_CircularArray_GetLongestContSucr(ca, idx));
         cnt -= cur_cnt;
-
-        Zeta_MemCopy(Refer_(data, stride, offset, idx, capacity), src,
-                     stride * cur_cnt);
 
         Zeta_ElemCopy(Refer_(data, stride, offset, idx, capacity), src, stride,
                       width, cur_cnt);
@@ -323,11 +322,11 @@ void* Zeta_CircularArray_PushR(void* ca_, size_t cnt, void* dst_cursor_) {
 
     ZETA_DebugAssert(cnt <= capacity - size);
 
-    ca->size += cnt;
+    ca->size = size += cnt;
 
-    void* ref = size < ca->size
-                    ? Refer_(ca->data, ca->stride, ca->offset, size, capacity)
-                    : NULL;
+    void* ref = cnt == 0 ? NULL
+                         : Refer_(ca->data, ca->stride, ca->offset, size - cnt,
+                                  capacity);
 
     if (dst_cursor != NULL) {
         dst_cursor->ca = ca;
@@ -545,25 +544,7 @@ ELE_BW_COPY: {
     return;
 }
 
-VEC_MOVE: {
-    while (0 < cnt) {
-        size_t cur_cnt = ZETA_GetMinOf(
-            cnt, ZETA_GetMinOf(
-                     Zeta_CircularArray_GetLongestContSucr(dst_ca, dst_beg),
-                     Zeta_CircularArray_GetLongestContSucr(src_ca, src_beg)));
-        cnt -= cur_cnt;
-
-        Zeta_MemMove(
-            Refer_(dst_data, dst_stride, dst_offset, dst_beg, dst_capacity),
-            Refer_(src_data, src_stride, src_offset, src_beg, src_capacity),
-            dst_stride * cur_cnt);
-
-        dst_beg += cur_cnt;
-        src_beg += cur_cnt;
-    }
-
-    return;
-}
+VEC_MOVE:
 
 VEC_FW_COPY: {
     while (0 < cnt) {
@@ -644,9 +625,9 @@ void Zeta_CircularArray_AssignFromSeqContainer(void* ca_, void* ca_cursor_,
             ZETA_GetMinOf(cnt, Zeta_CircularArray_GetLongestContSucr(ca, idx));
         cnt -= cur_cnt;
 
-        seq_cntr->Read(seq_cntr->context, seq_cntr_cursor, cur_cnt,
-                       Refer_(data, stride, offset, idx, capacity),
-                       seq_cntr_cursor);
+        ZETA_SeqContainer_Read(seq_cntr, seq_cntr_cursor, cur_cnt,
+                               Refer_(data, stride, offset, idx, capacity),
+                               seq_cntr_cursor);
 
         idx += cur_cnt;
     }

@@ -4,22 +4,24 @@
 
 #include <cstdlib>
 
-template <typename Val>
+#include "SeqContainerUtils.h"
+
+template <typename Elem>
 void CircularArray_Init(Zeta_SeqContainer* seq_cntr, size_t capacity) {
     Zeta_CircularArray* ca{ static_cast<Zeta_CircularArray*>(
         std::malloc(sizeof(Zeta_CircularArray))) };
 
-    ca->data = std::malloc(sizeof(Val) * capacity);
-    ca->width = sizeof(Val);
-    ca->stride = sizeof(Val);
+    ca->data = std::malloc(sizeof(Elem) * capacity);
+    ca->width = sizeof(Elem);
+    ca->stride = sizeof(Elem);
     ca->offset = 0;
     ca->size = 0;
     ca->capacity = capacity;
 
     Zeta_CircularArray_DeploySeqContainer(ca, seq_cntr);
 
-    SeqContainer_AddSanitizeFunc(Zeta_CircularArray_GetWidth,
-                                 CircularArray_Sanitize);
+    SeqContainerUtils_AddSanitizeFunc(Zeta_CircularArray_GetWidth,
+                                      CircularArray_Sanitize);
 }
 
 void CircularArray_Deinit(Zeta_SeqContainer* seq_cntr) {
@@ -29,11 +31,11 @@ void CircularArray_Deinit(Zeta_SeqContainer* seq_cntr) {
     std::free(ca->data);
 }
 
-template <typename Val>
+template <typename Elem>
 Zeta_SeqContainer* CircularArray_Create(size_t capacity) {
     Zeta_SeqContainer* seq_cntr{ new Zeta_SeqContainer{} };
 
-    CircularArray_Init<Val>(seq_cntr, capacity);
+    CircularArray_Init<Elem>(seq_cntr, capacity);
 
     return seq_cntr;
 }

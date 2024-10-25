@@ -1,34 +1,46 @@
 import os
 import sys
 import argparse
+from typeguard import typechecked
+import termcolor
 
-sys.path.append(f"{os.path.dirname(__file__)}/..")
+File = os.path.realpath(__file__)
+Dir = os.path.realpath(os.path.dirname(__file__))
 
+sys.path.append(f"{Dir}/..")
+
+from config import ModeEnum
+from config import target
 from utils import *
-from Builder import *
-from Compiler import *
+from Builder import Builder
+from LLVMCompiler import LLVMCompiler
+from LLVMCompiler import LLVMCompilerConfig
 
-File = GetNormPath(__file__)
-Dir = GetNormPath(os.path.dirname(__file__))
+File = GetRealPath(File)
+Dir = GetRealPath(Dir)
 
-ZetaDir = GetNormPath(os.path.dirname(File))
-ZetaDevDir = GetNormPath(f"{ZetaDir}/..")
+ZetaDir = GetRealPath(Dir)
+ZetaDevDir = GetRealPath(f"{ZetaDir}/..")
 
-def AddDeps(builder, ZetaBuildDir, verbose, mode):
-    compiler = Compiler({
-        "verbose": verbose,
+@typechecked
+def AddDeps(builder: Builder, ZetaBuildDir: str, verbose: bool, mode: config.ModeEnum):
+    compiler = LLVMCompiler(LLVMCompilerConfig(
+        verbose=verbose,
 
-        "mode": mode,
+        target=target,
 
-        "build_dir": ZetaBuildDir,
+        mode=mode,
 
-        "working_dirs": [
+        build_dir=ZetaBuildDir,
+
+        working_dirs=[
             ZetaDevDir,
             ZetaDir,
         ],
 
-        "target": target,
-    })
+        c_include_dirs=[],
+        cpp_include_dirs=[],
+    ))
 
     # --------------------------------------------------------------------------
 
@@ -1049,6 +1061,37 @@ def AddDeps(builder, ZetaBuildDir, verbose, mode):
     )
 
     builder.Add(
+        f"{ZetaDir}/Jump.h",
+        {
+            f"{File}",
+
+            f"{ZetaDir}/define.h",
+        },
+        None
+    )
+
+    builder.Add(
+        f"{ZetaDir}/Jump_x86_64.s",
+        {
+            f"{File}",
+        },
+        None
+    )
+
+    builder.Add(
+        f"{ZetaBuildDir}/Jump.o",
+        {
+            f"{File}",
+            f"{ZetaDir}/Jump.h",
+            f"{ZetaDir}/Jump_x86_64.s",
+        },
+        lambda : compiler.asm_to_obj(
+            f"{ZetaBuildDir}/Jump.o",
+            f"{ZetaDir}/Jump_x86_64.s",
+        )
+    )
+
+    builder.Add(
         f"{ZetaDir}/MemCheck.h",
         {
             f"{File}",
@@ -2036,7 +2079,7 @@ def main():
 
     print(f"args = {args}")
 
-    mode = ModeEnum[args.mode.upper]
+    mode = ModeEnum[args.mode.upper()]
 
     ZetaBuildDir = None
 
@@ -2055,28 +2098,25 @@ def main():
 
     non_built, built = builder.Build(target, args.rebuild)
 
-    ybeg = "\033[93m"
-    yend = "\033[0m"
-
-    print("success")
+    print(termcolor.colored(f"success", "yellow"))
 
     non_built.sort()
     built.sort()
 
-    print(f"{ybeg}not_built:{yend}")
+    print(termcolor.colored(f"not_built:", "yellow"))
 
     for i in non_built:
         print(f"\t{i}")
 
-    print(f"{ybeg}built:{yend}")
+    print(termcolor.colored(f"built:", "yellow"))
 
     for i in built:
         print(f"\t{i}")
 
-    print(f"{ybeg}target:{yend} {target}")
+    print(termcolor.colored(f"target: ", "yellow") + f"{target}")
 
     if args.run_target:
-        print(f"{ybeg}running{yend} {target}")
+        print(termcolor.colored(f"running: ", "yellow") + f"{target}")
         os.system(target)
 
 if __name__ == "__main__":

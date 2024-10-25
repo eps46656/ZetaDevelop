@@ -6,6 +6,9 @@ ZETA_ExternC_Beg;
 
 ZETA_DeclareStruct(Zeta_SeqContainer);
 
+/**
+ * @brief The interface of sequential container.
+ */
 struct Zeta_SeqContainer {
     /**
      * @brief The context of the container.
@@ -18,7 +21,16 @@ struct Zeta_SeqContainer {
     size_t cursor_size;
 
     /**
-     * @brief The number of bytes occupied by element.
+     * @brief Deinitialize the container. Concrete container should implement
+     *        this function.
+     *
+     * @param context The context of the container.
+     */
+    void (*Deinit)(void* context);
+
+    /**
+     * @brief The number of bytes occupied by element. Concrete container should
+     *        implement this function.
      *
      * @param context The context of the container.
      */
@@ -26,13 +38,15 @@ struct Zeta_SeqContainer {
 
     /**
      * @brief The byte offset of two adjacent elements in an element array.
+     *        Concrete container should implement this function.
      *
      * @param context The context of the container.
      */
     size_t (*GetStride)(void* context);
 
     /**
-     * @brief The number of element in the container.
+     * @brief The number of element in the container. Concrete container should
+     *        implement this function.
      *
      * @param context The context of the container.
      */
@@ -40,13 +54,15 @@ struct Zeta_SeqContainer {
 
     /**
      * @brief The maximum number of element can be contained by the container.
+     *        Concrete container should implement this function.
      *
      * @param context The context of the container.
      */
     size_t (*GetCapacity)(void* context);
 
     /**
-     * @brief Get the left cursor.
+     * @brief Get the left cursor. Concrete container can implement this
+     *        function optionally.
      *
      * @param context The context of the container.
      * @param dst_cursor The destination of returned cursor.
@@ -54,7 +70,8 @@ struct Zeta_SeqContainer {
     void (*GetLBCursor)(void* context, void* dst_cursor);
 
     /**
-     * @brief Get the right cursor.
+     * @brief Get the right cursor. Concrete container should implement this
+     *        function.
      *
      * @param context The context of the container.
      * @param dst_cursor The destination of returned cursor.
@@ -62,7 +79,8 @@ struct Zeta_SeqContainer {
     void (*GetRBCursor)(void* context, void* dst_cursor);
 
     /**
-     * @brief Peek the left-most element.
+     * @brief Peek the left-most element. Concrete container can implement this
+     *        function optionally.
      *
      * @param context The context of the container.
      * @param dst_cursor Optional. The destination of returned cursor.
@@ -74,7 +92,8 @@ struct Zeta_SeqContainer {
     void* (*PeekL)(void* context, void* dst_cursor, void* dst_elem);
 
     /**
-     * @brief Peek the right-most element.
+     * @brief Peek the right-most element. Concrete container should implement
+     *        this function.
      *
      * @param context The context of the container.
      * @param dst_cursor Optional. The destination of returned cursor.
@@ -86,7 +105,8 @@ struct Zeta_SeqContainer {
     void* (*PeekR)(void* context, void* dst_cursor, void* dst_elem);
 
     /**
-     * @brief Access element by index.
+     * @brief Access element by index. Concrete container can implement this
+     *        function optionally.
      *
      * @param context The context of the container.
      * @param idx The index of target element.
@@ -100,18 +120,20 @@ struct Zeta_SeqContainer {
                     void* dst_elem);
 
     /**
-     * @brief Get the pointer of element pointed by cursor.
+     * @brief Get the pointer of element pointed by cursor. Concrete container
+     *        should implement this function.
      *
      * @param context The context of the container.
      * @param pos_cursor The cursor pointing to target element.
      *
      * @return The pointer to target element if it can be referred. Otherwise,
-     * NULL.
+     *         NULL.
      */
     void* (*Refer)(void* context, void const* pos_cursor);
 
     /**
-     * @brief Read <cnt> elements from cursor.
+     * @brief Read \p cnt elements from cursor. Concrete container should
+     *        implement this function.
      *
      * @param context The context of the container.
      * @param pos_cursor The cursor pointing to target element. Will be renewed
@@ -125,13 +147,14 @@ struct Zeta_SeqContainer {
                  void* dst_cursor);
 
     /**
-     * @brief Write <cnt> elements from cursor.
+     * @brief Write \p cnt elements from cursor. Concrete container should
+     *        implement this function.
      *
      * @param context The context of the container.
      * @param pos_cursor The cursor pointing to target element. Will be renewed
      *                   to prevent invalid.
      * @param cnt The number of written elements.
-     * @param dst The destination of written elements.
+     * @param src The source of written elements.
      * @param dst_cursor Optional. The destination of returned cursor pointing
      *                   right next of last written elements.
      */
@@ -139,115 +162,139 @@ struct Zeta_SeqContainer {
                   void* dst_cursor);
 
     /**
-     * @brief Push <cnt> elements from left end.
+     * @brief Push \p cnt elements from left end. Concrete container can
+     *        implement this function optionally.
      *
      * @param context The context of the container.
+     * @param cnt The number of pushing elements.
      * @param dst_cursor Optional. The destination of returned cursor which
      *                   points to the first pushed element.
+     *
+     * @return The pointer pointing the first pushed element if it can be
+     *         referred. Otherwise, NULL.
      */
     void* (*PushL)(void* context, size_t cnt, void* dst_cursor);
 
     /**
-     * @brief Push <cnt> elements from right end.
+     * @brief Push \p cnt elements from right end. Concrete container should
+     *        implement this function.
      *
      * @param context The context of the container.
+     * @param cnt The number of pushing elements.
      * @param dst_cursor Optional. The destination of returned cursor which
      *                   points to the first pushed element.
+     *
+     * @return The pointer pointing the first pushed element if it can be
+     *         referred. Otherwise, NULL.
      */
     void* (*PushR)(void* context, size_t cnt, void* dst_cursor);
 
     /**
-     * @brief Insert <cnt> elements at <cursor>.
+     * @brief Insert \p cnt elements at \p pos_cursor. Concrete container can
+     *        implement this function optionally.
      *
      * @param context The context of the container.
-     * @param pos_cursor The cursor pointing to insertion point. Will be renewed
+     * @param pos_cursor The cursor pointing to inserting point. Will be renewed
      *                   to prevent invalid.
-     * @param cnt The number of insertion elements.
+     * @param cnt The number of inserting elements.
+     *
+     * @return The pointer pointing the first inserted element if it can be
+     *         referred. Otherwise, NULL.
      */
     void* (*Insert)(void* context, void* pos_cursor, size_t cnt);
 
     /**
-     * @brief Pop <cnt> elements from left end.
+     * @brief Pop \p cnt elements from left end. Concrete container can
+     *        implement this function optionally.
      *
      * @param context The context of the container.
+     * @param cnt The number of popped elements.
      */
     void (*PopL)(void* context, size_t cnt);
 
     /**
-     * @brief Pop <cnt> elements from right end.
+     * @brief Pop \p cnt elements from right end. Concrete container should
+     *        implement this function.
      *
      * @param context The context of the container.
+     * @param cnt The number of popped elements.
      */
     void (*PopR)(void* context, size_t cnt);
 
     /**
-     * @brief Erase <cnt> elements at <cursor>.
+     * @brief Erase \p cnt elements at \p pos_cursor. Concrete container can
+     *        implement this function optionally.
      *
      * @param context The context of the container.
-     * @param pos_cursor The cursor pointing to erasion point. Will be renewed
+     * @param pos_cursor The cursor pointing to erasing point. Will be renewed
      *                   to prevent invalid.
-     * @param cnt The number of erasion elements.
+     * @param cnt The number of erasing elements.
      */
     void (*Erase)(void* context, void* pos_cursor, size_t cnt);
 
     /**
-     * @brief Erase all elements in the container.
+     * @brief Erase all elements in the container. Concrete container should
+     *        implement this function.
      *
      * @param context The context of the container.
-     * @param pos_cursor The cursor pointing to erasion point. Will be renewed
-     *                   to prevent invalid.
-     * @param cnt The number of erasion elements.
      */
     void (*EraseAll)(void* context);
 
     /**
-     * @brief Determine two cursors if they point to the same position.
+     * @brief Determine if \p cursor_a and \p cursor_b point to the same
+     *        position. Concrete container should implement this function.
      *
      * @param context The context of the container.
      * @param cursor_a The first target cursor.
      * @param cursor_b The second target cursor.
+     *
+     * @return If \p cursor_a and \p cursor_b point to the same position.
      */
     bool_t (*Cursor_AreEqual)(void* context, void const* cursor_a,
                               void const* cursor_b);
 
     /**
-     * @brief Compare the direction between two cursors.
+     * @brief Compare the direction between \p cursor_a and \p cursor_b.
+     *        Concrete container can implement this function optionally.
      *
      * @param context The context of the container.
      * @param cursor_a The first target cursor.
      * @param cursor_b The second target cursor.
      *
-     * @return Negative, if cursor_a is to the left of cursor_b. Positive, if
-     *         cursor_a is to the right of cursor_b. Zero, if cursor_a and
-     *         cursor_b point to the same position.
+     * @return Negative, if \p cursor_a is to the left of \p cursor_b. Positive,
+     *         if \p cursor_a is to the right of \p cursor_b. Zero, if
+     *         \p cursor_a and \p cursor_b point to the same position.
      */
     int (*Cursor_Compare)(void* context, void const* cursor_a,
                           void const* cursor_b);
 
     /**
-     * @brief Get the distance between two cursors.
+     * @brief Get the distance from \p cursor_a to \p cursor_b. Concrete
+     *        sequential container can implement this function optionally.
      *
      * @param context The context of the container.
      * @param cursor_a The first target cursor.
      * @param cursor_b The second target cursor.
      *
-     * @return The distance from cursor_a to cursor_b.
+     * @return The distance from \p cursor_a to \p cursor_b.
      */
     size_t (*Cursor_GetDist)(void* context, void const* cursor_a,
                              void const* cursor_b);
 
     /**
-     * @brief Get the index pointed by cursor.
+     * @brief Get the index pointed by \p cursor. Concrete container can
+     *        implement this function optionally.
      *
      * @param context The context of the container.
      * @param cursor The target cursor.
      *
-     * @return The index pointed by cursor.
+     * @return The index pointed by \p cursor.
      */
     size_t (*Cursor_GetIdx)(void* context, void const* cursor);
 
     /**
-     * @brief Step cursor left.
+     * @brief Step \p cursor left. Concrete container can implement this
+     *        function optionally.
      *
      * @param context The context of the container.
      * @param cursor The target cursor.
@@ -255,7 +302,8 @@ struct Zeta_SeqContainer {
     void (*Cursor_StepL)(void* context, void* cursor);
 
     /**
-     * @brief Step cursor right.
+     * @brief Step \p cursor right. Concrete container should implement this
+     *        function.
      *
      * @param context The context of the container.
      * @param cursor The target cursor.
@@ -263,7 +311,8 @@ struct Zeta_SeqContainer {
     void (*Cursor_StepR)(void* context, void* cursor);
 
     /**
-     * @brief Advance cursor left <step>.
+     * @brief Advance cursor left \p step. Concrete container can implement
+     *        this function optionally.
      *
      * @param context The context of the container.
      * @param cursor The target cursor.
@@ -272,7 +321,8 @@ struct Zeta_SeqContainer {
     void (*Cursor_AdvanceL)(void* context, void* cursor, size_t step);
 
     /**
-     * @brief Advance cursor right <step>.
+     * @brief Advance \p cursor right \p step. Concrete container can implement
+     *        this function optionally.
      *
      * @param context The context of the container.
      * @param cursor The target cursor.
@@ -281,7 +331,35 @@ struct Zeta_SeqContainer {
     void (*Cursor_AdvanceR)(void* context, void* cursor, size_t step);
 };
 
+/**
+ * @brief Initialize the fields of interface with NULL.
+ */
 void Zeta_SeqContainer_Init(Zeta_SeqContainer* seq_cntr);
+
+/**
+ * @brief Assign \p src_seq_cntr to \p dst_seq_cntr.
+ *
+ * @param dst_seq_cntr The destination container.
+ * @param src_seq_cntr The source container.
+ */
+void Zeta_SeqContainer_Assign(Zeta_SeqContainer* dst_seq_cntr,
+                              Zeta_SeqContainer* src_seq_cntr);
+
+/**
+ * @brief Resize the container with push left or pop left.
+ *
+ * @param seq_cntr The target container.
+ * @param size The number of elements in \p seq_cntr after resizing.
+ */
+void Zeta_SeqContainer_ResizeL(Zeta_SeqContainer* seq_cntr, size_t size);
+
+/**
+ * @brief Resize the container with push right or pop right.
+ *
+ * @param seq_cntr The target container.
+ * @param size The number of elements in \p seq_cntr after resizing.
+ */
+void Zeta_SeqContainer_ResizeR(Zeta_SeqContainer* seq_cntr, size_t size);
 
 #define ZETA_SeqContainer_AllocaCursor(seq_cntr)                     \
     __builtin_alloca_with_align(                                     \
@@ -291,6 +369,9 @@ void Zeta_SeqContainer_Init(Zeta_SeqContainer* seq_cntr);
 #define ZETA_SeqContainer_Call_(seq_cntr, member_func, args...)       \
     ZETA_CallMemberFunc((Zeta_SeqContainer*)ZETA_ToVoidPtr(seq_cntr), \
                         member_func, args)
+
+#define ZETA_SeqContainer_Deinit(seq_cntr) \
+    ZETA_SeqContainer_Call_((seq_cntr), Deinit)
 
 #define ZETA_SeqContainer_GetWidth(seq_cntr) \
     ZETA_SeqContainer_Call_((seq_cntr), GetWidth)

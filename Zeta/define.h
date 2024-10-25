@@ -63,12 +63,22 @@ typedef unsigned unichar_t;
     ZETA_StaticAssert(TRUE)
 
 #if defined(__cplusplus)
+
+#define ZETA_TypeOf(expression) decltype(expression)
+
+#else
+
+#define ZETA_TypeOf(expression) typeof(expression)
+
+#endif
+
+#if defined(__cplusplus)
 #define ZETA_AutoVar(var, expression) \
     auto var{ (expression) };         \
     ZETA_StaticAssert(TRUE)
 #else
-#define ZETA_AutoVar(var, expression)        \
-    typeof((expression)) var = (expression); \
+#define ZETA_AutoVar(var, expression)             \
+    ZETA_TypeOf((expression)) var = (expression); \
     ZETA_StaticAssert(TRUE)
 #endif
 
@@ -417,3 +427,15 @@ ZETA_StaticAssert(255 <= ZETA_RangeMaxOf(byte_t));
 
 #define ZETA_CallMemberFunc(obj, member_func, args...) \
     ZETA_CallMemberFunc_(ZETA_TmpName, obj, member_func, args)
+
+typedef int (*Zeta_Compare)(void* context, void const* a, void const* b);
+
+typedef unsigned long long (*Zeta_Hash)(void* context, void const* a,
+                                        unsigned long long salt);
+
+typedef void (*Zeta_FuncPtr_ArrayRead)(void* context, void const* data,
+                                       size_t width, size_t stride,
+                                       size_t size);
+
+typedef void (*Zeta_FuncPtr_ArrayWrite)(void* context, void* data, size_t width,
+                                        size_t stride, size_t size);

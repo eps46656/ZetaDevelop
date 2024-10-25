@@ -2,8 +2,12 @@ from config import *
 from utils import *
 
 import os
+import typing
 import subprocess
+import termcolor
+from typeguard import typechecked
 
+@typechecked
 def GetClangTriple(target: Target):
     arch_table = {
         ArchEnum.X86_64: "x86_64",
@@ -35,25 +39,38 @@ def GetClangTriple(target: Target):
 
     return f"{arch}-{vendor}-{sys}-{env}"
 
-def GetLLCArch(target):
+@typechecked
+def GetLLCArch(target: Target):
     arch_table = {
         ArchEnum.X86_64: "x86-64",
         ArchEnum.ARM32: "arm32",
         ArchEnum.ARM64: "arm64",
         ArchEnum.RISCV32: "riscv32",
-        ArchEnum.RISCV64: "riscv64"
+        ArchEnum.RISCV64: "riscv64",
     }
 
     arch = arch_table[target.arch]
 
     return arch
 
-def ShowCommand(cmd):
-    cmd = f" ".join(cmd)
-    HighLightPrint(f"cmd = {cmd}")
+@typechecked
+def PrintCommand(cmd: typing.Iterable[str]):
+    cmd = " ".join(cmd)
+    print(termcolor.colored(f"{cmd=}", "cyan"))
 
-class Compiler:
-    def __init__(self, config):
+@dataclasses.dataclass
+class LLVMCompilerConfig:
+    verbose: bool
+    target: Target
+    mode: ModeEnum
+    build_dir: str
+    working_dirs: typing.Iterable[str]
+    c_include_dirs: typing.Iterable[str]
+    cpp_include_dirs: typing.Iterable[str]
+
+@typechecked
+class LLVMCompiler:
+    def __init__(self, config: LLVMCompilerConfig):
         '''
 
         config = class {
@@ -68,17 +85,16 @@ class Compiler:
 
         '''
 
-        self.mode = config.get("mode", ModeEnum.DEBUG)
+        self.verbose = config.verbose
+
+        self.target = dataclasses.replace(config.target)
+
+        self.mode = config.mode
         assert self.mode in ModeEnum
 
-        self.verbose = config.get("verbose", True)
+        self.build_dir = config.build_dir
 
-        self.build_dir = config["build_dir"]
-
-        self.working_dirs = set(NotNoneFilter(
-            config.get("working_dirs", [])))
-
-        self.target = dataclasses.replace(config["target"])
+        self.working_dirs = set(FilterNotNone(config.working_dirs))
 
         self.c_to_obj_command = None
         self.cpp_to_obj_command = None
@@ -89,22 +105,26 @@ class Compiler:
         if os.name == "nt":
             self.c_to_obj_command = "clang"
             self.cpp_to_obj_command = "clang"
+            self.asm_to_obj_command = "llvm-as"
             self.link_lls_command = "llvm-link"
             self.opt_ll_command = "opt"
             self.to_exe_command = "clang"
         else:
             self.c_to_obj_command = "clang-18"
             self.cpp_to_obj_command = "clang-18"
+            self.asm_to_obj_command = "llvm-as-18"
             self.link_lls_command = "llvm-link-18"
             self.opt_ll_command = "opt-18"
             self.to_exe_command = "clang-18"
 
-        self.c_include_dirs = config.get("c_include_dirs", [])
-        self.cpp_include_dirs = config.get("cpp_include_dirs", [])
+        self.c_include_dirs = config.c_include_dirs
+        self.cpp_include_dirs = config.cpp_include_dirs
 
         self.randomize_layout_seed = 13493037705
 
         clang_triple = GetClangTriple(self.target)
+
+        self.error_limit = 10
 
         self.c_to_obj_args = [
             f"-v" if self.verbose else "",
@@ -113,8 +133,8 @@ class Compiler:
             f"-std=c2x",
             *(f"--include-directory={include_dir}"
               for include_dir in self.c_include_dirs),
-            "-ferror-limit=2",
-            f"-frandomize-layout-seed={self.randomize_layout_seed}",
+            f"-ferror-limit={self.error_limit}",
+            # f"-frandomize-layout-seed={self.randomize_layout_seed}",
         ]
 
         self.cpp_to_obj_args = [
@@ -124,8 +144,8 @@ class Compiler:
             f"-std=c++17",
             *(f"--include-directory={include_dir}"
               for include_dir in self.cpp_include_dirs),
-            "-ferror-limit=2",
-            f"-frandomize-layout-seed={self.randomize_layout_seed}",
+            f"-ferror-limit={self.error_limit}",
+            # f"-frandomize-layout-seed={self.randomize_layout_seed}",
         ]
 
         if self.mode == ModeEnum.DEBUG:
@@ -188,7 +208,7 @@ class Compiler:
             "-lstdc++",
             # "-lm",
 
-            f"-frandomize-layout-seed={self.randomize_layout_seed}",
+            # f"-frandomize-layout-seed={self.randomize_layout_seed}",
         ]
 
         if self.mode == ModeEnum.DEBUG:
@@ -211,6 +231,11 @@ class Compiler:
                 "-flto",
             ]
 
+    def RunCommand_(self, *cmd):
+        cmd = ToListCommand(cmd)
+        PrintCommand(cmd)
+        subprocess.run(cmd, check=True)
+
     def GetIncludes(self, src):
         includes =  subprocess.run(
             ToListCommand(
@@ -218,8 +243,8 @@ class Compiler:
                 "--trace-includes",
                 "-fshow-skipped-includes",
                 "-fsyntax-only",
-                *(["--include-directory", include_dir]
-                  for include_dir in self.cpp_include_dirs),
+                (("--include-directory", include_dir)
+                 for include_dir in self.cpp_include_dirs),
                 src,
             ),
             check=True,
@@ -228,13 +253,13 @@ class Compiler:
             stderr=subprocess.PIPE,
         ).stderr.decode("utf-8").replace("\r", "").split("\n")
 
-        ret = []
+        ret = list()
 
         for include in includes:
             if not include or not include.startswith(". "):
                 continue
 
-            include = GetNormPath(include[2:])
+            include = GetRealPath(include[2:])
 
             if any(include.startswith(working_dir)
                    for working_dir in self.working_dirs):
@@ -242,10 +267,10 @@ class Compiler:
 
         return ret
 
-    def c_to_obj(self, dst, src):
+    def c_to_obj(self, dst: str, src: str):
         os.makedirs(os.path.dirname(dst), exist_ok=True)
 
-        cmd = ToListCommand(
+        self.RunCommand_(
             self.c_to_obj_command,
             "--compile",
             "-o", dst,
@@ -253,14 +278,10 @@ class Compiler:
             src,
         )
 
-        ShowCommand(cmd)
-
-        subprocess.run(cmd, check=True)
-
-    def cpp_to_obj(self, dst, src):
+    def cpp_to_obj(self, dst: str, src: str):
         os.makedirs(os.path.dirname(dst), exist_ok=True)
 
-        cmd = ToListCommand(
+        self.RunCommand_(
             self.cpp_to_obj_command,
             "--compile",
             "-o", dst,
@@ -268,25 +289,27 @@ class Compiler:
             src,
         )
 
-        ShowCommand(cmd)
+    def asm_to_obj(self, dst: str, src: str):
+        os.makedirs(os.path.dirname(dst), exist_ok=True)
 
-        subprocess.run(cmd, check=True)
+        self.RunCommand_(
+            self.c_to_obj_command,
+            "--compile",
+            "-o", dst,
+            src,
+        )
 
-    def ll_to_asm(self, dst, src):
-        cmd = ToListCommand([
+    def ll_to_asm(self, dst: str, src: str):
+        self.RunCommand_(
             self.ll_to_obj_command,
             "-o", dst,
             "-filetype=asm",
             self.ll_to_asm_args,
             src,
-        ])
-
-        ShowCommand(cmd)
-
-        subprocess.run(cmd, check=True)
+        )
 
     def ll_to_obj(self, dst, src):
-        cmd = ToListCommand(
+        self.RunCommand_(
             self.ll_to_obj_command,
             "-o", dst,
             "-filetype=obj",
@@ -294,18 +317,10 @@ class Compiler:
             src,
         )
 
-        ShowCommand(cmd)
-
-        subprocess.run(cmd, check=True)
-
     def to_exe(self, dst, srcs):
-        cmd = ToListCommand(
+        self.RunCommand_(
             self.to_exe_command,
             "-o", dst,
             self.to_exe_args,
-            *(src for src in FilterNotNone(srcs)),
+            FilterNotNone(srcs),
         )
-
-        ShowCommand(cmd)
-
-        subprocess.run(cmd, check=True)

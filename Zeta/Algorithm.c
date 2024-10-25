@@ -5,9 +5,7 @@
 #define INSERTION_TH (8)
 
 static void Insertion_(unsigned char* data, size_t width, size_t stride,
-                       void* cmp_context,
-                       int (*Compare)(void* context, void const* x,
-                                      void const* y)) {
+                       void* cmp_context, Zeta_Compare Compare) {
     unsigned char* pre_data = data - stride;
 
     if (Compare(cmp_context, pre_data, data) <= 0) { return; }
@@ -29,8 +27,7 @@ static void Insertion_(unsigned char* data, size_t width, size_t stride,
 
 static void InsertionSort_(unsigned char* data, size_t width, size_t stride,
                            size_t size, void* cmp_context,
-                           int (*Compare)(void* context, void const* x,
-                                          void const* y)) {
+                           Zeta_Compare Compare) {
     if (size <= 1) { return; }
 
     unsigned char* end = data + stride * size;
@@ -50,8 +47,7 @@ static void InsertionSort_(unsigned char* data, size_t width, size_t stride,
 
 static unsigned char* Partition_(unsigned char* data, size_t width,
                                  size_t stride, size_t size, void* cmp_context,
-                                 int (*Compare)(void* cmp_context,
-                                                void const* x, void const* y)) {
+                                 Zeta_Compare Compare) {
     unsigned char* i = data;
     unsigned char* j = data + stride * size;
 
@@ -75,10 +71,10 @@ static unsigned char* Partition_(unsigned char* data, size_t width,
     return j;
 }
 
-static unsigned char* SimplePartition_(
-    unsigned char* data, size_t width, size_t stride, size_t size,
-    void* cmp_context,
-    int (*Compare)(void* cmp_context, void const* x, void const* y)) {
+static unsigned char* SimplePartition_(unsigned char* data, size_t width,
+                                       size_t stride, size_t size,
+                                       void* cmp_context,
+                                       Zeta_Compare Compare) {
     unsigned char* a = data + stride * (size * 1 / 4);
     unsigned char* b = data + stride * (size * 2 / 4);
     unsigned char* c = data + stride * (size * 3 / 4);
@@ -100,13 +96,12 @@ static unsigned char* SimplePartition_(
 
 static void PrettyKthElement_(unsigned char* data, size_t width, size_t stride,
                               size_t mid, size_t size, void* cmp_context,
-                              int (*Compare)(void* cmp_context, void const* x,
-                                             void const* y));
+                              Zeta_Compare Compare);
 
-static unsigned char* PrettyPartition_(
-    unsigned char* data, size_t width, size_t stride, size_t size,
-    void* cmp_context,
-    int (*Compare)(void* cmp_context, void const* x, void const* y)) {
+static unsigned char* PrettyPartition_(unsigned char* data, size_t width,
+                                       size_t stride, size_t size,
+                                       void* cmp_context,
+                                       Zeta_Compare Compare) {
     if (size <= INSERTION_TH) {
         InsertionSort_(data, width, stride, size, cmp_context, Compare);
         return data + stride * (size / 2);
@@ -133,8 +128,7 @@ static unsigned char* PrettyPartition_(
 
 static void PrettyKthElement_(unsigned char* data, size_t width, size_t stride,
                               size_t mid, size_t size, void* cmp_context,
-                              int (*Compare)(void* cmp_context, void const* x,
-                                             void const* y)) {
+                              Zeta_Compare Compare) {
     for (;;) {
         if (size <= INSERTION_TH) {
             InsertionSort_(data, width, stride, size, cmp_context, Compare);
@@ -164,8 +158,7 @@ static void PrettyKthElement_(unsigned char* data, size_t width, size_t stride,
 
 static void KthElement_(unsigned char* data, size_t width, size_t stride,
                         size_t mid, size_t size, void* cmp_context,
-                        int (*Compare)(void* cmp_context, void const* x,
-                                       void const* y)) {
+                        Zeta_Compare Compare) {
     size_t chance = size * 4;
 
     for (;;) {
@@ -203,9 +196,7 @@ static void KthElement_(unsigned char* data, size_t width, size_t stride,
 }
 
 void Zeta_KthElement(void* data, size_t width, size_t stride, size_t mid,
-                     size_t size, void* cmp_context,
-                     int (*Compare)(void* cmp_context, void const* x,
-                                    void const* y)) {
+                     size_t size, void* cmp_context, Zeta_Compare Compare) {
     ZETA_DebugAssert(data != NULL);
     ZETA_DebugAssert(0 < width);
     ZETA_DebugAssert(width <= stride);
@@ -220,8 +211,7 @@ void Zeta_KthElement(void* data, size_t width, size_t stride, size_t mid,
 }
 
 void Sort_(size_t credit, unsigned char* data, size_t width, size_t stride,
-           size_t size, void* cmp_context,
-           int (*Compare)(void* cmp_context, void const* x, void const* y)) {
+           size_t size, void* cmp_context, Zeta_Compare Compare) {
     for (;;) {
         if (size <= INSERTION_TH) {
             InsertionSort_(data, width, stride, size, cmp_context, Compare);
@@ -256,9 +246,7 @@ void Sort_(size_t credit, unsigned char* data, size_t width, size_t stride,
 }
 
 void Zeta_Sort(void* data, size_t width, size_t stride, size_t size,
-               void* cmp_context,
-               int (*Compare)(void* cmp_context, void const* x,
-                              void const* y)) {
+               void* cmp_context, Zeta_Compare Compare) {
     ZETA_DebugAssert(data != NULL);
     ZETA_DebugAssert(0 < width);
     ZETA_DebugAssert(width <= stride);

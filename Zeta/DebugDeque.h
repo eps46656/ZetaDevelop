@@ -43,11 +43,14 @@ void Zeta_DebugDeque_Read(void* dd, void const* pos_cursor, size_t cnt,
 void Zeta_DebugDeque_Write(void* dd, void* pos_cursor, size_t cnt,
                            void const* src, void* dst_cursor);
 
-void* Zeta_DebugDeque_PushL(void* dd, size_t cnt, void* dst_cursor);
+void* Zeta_DebugDeque_PushL(void* dd, size_t cnt, void const* src,
+                            void* dst_cursor);
 
-void* Zeta_DebugDeque_PushR(void* dd, size_t cnt, void* dst_cursor);
+void* Zeta_DebugDeque_PushR(void* dd, size_t cnt, void const* src,
+                            void* dst_cursor);
 
-void* Zeta_DebugDeque_Insert(void* dd, void* pos_cursor, size_t cnt);
+void* Zeta_DebugDeque_Insert(void* dd, void* pos_cursor, size_t cnt,
+                             void const* src);
 
 void Zeta_DebugDeque_PopL(void* dd, size_t cnt);
 

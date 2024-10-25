@@ -99,7 +99,7 @@ unsigned long long Zeta_MemHash(void* data_, size_t size) {
     return ret;
 }
 
-void Zeta_ElemCopy(void* dst_, void const* src_, size_t stride, size_t width,
+void Zeta_ElemCopy(void* dst_, void const* src_, size_t width, size_t stride,
                    size_t size) {
     unsigned char* dst = dst_;
     unsigned char const* src = src_;
@@ -126,7 +126,7 @@ void Zeta_ElemCopy(void* dst_, void const* src_, size_t stride, size_t width,
     }
 }
 
-void Zeta_ElemMove(void* dst_, void const* src_, size_t stride, size_t width,
+void Zeta_ElemMove(void* dst_, void const* src_, size_t width, size_t stride,
                    size_t size) {
     unsigned char* dst = dst_;
     unsigned char const* src = src_;
@@ -160,25 +160,25 @@ void Zeta_ElemMove(void* dst_, void const* src_, size_t stride, size_t width,
     }
 }
 
-unsigned long long Zeta_ReadLittleEndianULL(byte_t const* data,
+unsigned long long Zeta_ReadLittleEndianULL(byte_t const* src,
                                             unsigned length) {
-    ZETA_DebugAssert(data != NULL);
+    ZETA_DebugAssert(src != NULL);
     ZETA_DebugAssert(8 * length <= ZETA_WidthOf(unsigned long long));
 
     unsigned long long ret = 0;
 
-    for (unsigned i = length; 0 < i--;) { ret = ret * 256 + data[i]; }
+    for (unsigned i = length; 0 < i--;) { ret = ret * 256 + src[i]; }
 
     return ret;
 }
 
-u128_t Zeta_ReadLittleEndian(byte_t const* data, unsigned length) {
-    ZETA_DebugAssert(data != NULL);
+u128_t Zeta_ReadLittleEndian(byte_t const* src, unsigned length) {
+    ZETA_DebugAssert(src != NULL);
     ZETA_DebugAssert(8 * length <= ZETA_WidthOf(u128_t));
 
     u128_t ret = 0;
 
-    for (unsigned i = length; 0 < i--;) { ret = ret * 256 + data[i]; }
+    for (unsigned i = length; 0 < i--;) { ret = ret * 256 + src[i]; }
 
     return ret;
 }
@@ -207,24 +207,24 @@ u128_t Zeta_WriteLittleEndian(byte_t* dst, u128_t val, unsigned length) {
     return val;
 }
 
-unsigned long long Zeta_ReadBigEndianULL(byte_t const* data, unsigned length) {
-    ZETA_DebugAssert(data != NULL);
+unsigned long long Zeta_ReadBigEndianULL(byte_t const* src, unsigned length) {
+    ZETA_DebugAssert(src != NULL);
     ZETA_DebugAssert(8 * length <= ZETA_WidthOf(unsigned long long));
 
     unsigned long long ret = 0;
 
-    for (unsigned i = 0; i < length; ++i) { ret = ret * 256 + data[i]; }
+    for (unsigned i = 0; i < length; ++i) { ret = ret * 256 + src[i]; }
 
     return ret;
 }
 
-u128_t Zeta_ReadBigEndian(byte_t const* data, unsigned length) {
-    ZETA_DebugAssert(data != NULL);
+u128_t Zeta_ReadBigEndian(byte_t const* src, unsigned length) {
+    ZETA_DebugAssert(src != NULL);
     ZETA_DebugAssert(8 * length <= ZETA_WidthOf(u128_t));
 
     u128_t ret = 0;
 
-    for (unsigned i = 0; i < length; ++i) { ret = ret * 256 + data[i]; }
+    for (unsigned i = 0; i < length; ++i) { ret = ret * 256 + src[i]; }
 
     return ret;
 }
@@ -250,6 +250,11 @@ u128_t Zeta_WriteBigEndian(byte_t* dst, u128_t val, unsigned length) {
     }
 
     return val;
+}
+
+byte_t const* Zeta_ReadStr(byte_t const* src, size_t src_size) {
+    for (; 0 < src_size && *src != '\0'; --src_size, ++src) {}
+    return src;
 }
 
 unsigned long long Zeta_SimpleRandom(unsigned long long x) {

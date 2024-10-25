@@ -1,6 +1,6 @@
 #pragma once
 
-#include "define.h"
+#include "SeqContainer.h"
 
 ZETA_ExternC_Beg;
 
@@ -8,6 +8,8 @@ ZETA_DeclareStruct(Zeta_ELF_Ret);
 ZETA_DeclareStruct(Zeta_ELF_Header);
 ZETA_DeclareStruct(Zeta_ELF_ProgramHeader);
 ZETA_DeclareStruct(Zeta_ELF_SectionHeader);
+ZETA_DeclareStruct(Zeta_ELF_Symbol);
+ZETA_DeclareStruct(Zeta_ELF);
 
 #define ZETA_ELF_PT_NULL 0
 #define ZETA_ELF_PT_LOAD 1
@@ -107,15 +109,46 @@ struct Zeta_ELF_SectionHeader {
     u64_t sh_entsize;
 };
 
-byte_t const* Zeta_ELF_ReadHeader(Zeta_ELF_Header* dst, byte_t const* data,
-                                  byte_t const* data_end);
+struct Zeta_ELF_Symbol {
+    u64_t st_name;
+    unsigned char st_info;
+    unsigned char st_other;
+    u64_t st_shndx;
+    u64_t st_value;
+    u64_t st_size;
+};
 
-void Zeta_ELF_ReadProgramHeader(Zeta_ELF_ProgramHeader* dst,
-                                Zeta_ELF_Header* header, byte_t const* data,
-                                byte_t const* data_end);
+struct Zeta_ELF {
+    Zeta_ELF_Header header;
 
-void Zeta_ELF_ReadSectionHeader(Zeta_ELF_SectionHeader* dst,
-                                Zeta_ELF_Header* header, byte_t const* data,
-                                byte_t const* data_end);
+    Zeta_SeqContainer prog_headers;
+    Zeta_SeqContainer sect_headers;
+};
+
+void Zeta_ELF_Init(Zeta_ELF* elf);
+
+void Zeta_ELF_Deinit(Zeta_ELF* elf);
+
+byte_t const* Zeta_ELF_ReadHeader(Zeta_ELF_Header* elf, byte_t const* src,
+                                  size_t src_size);
+
+bool_t Zeta_ELF_ReadProgramHeaders(Zeta_ELF* elf, byte_t const* src,
+                                   size_t src_size);
+
+bool_t Zeta_ELF_ReadSectionHeaders(Zeta_ELF* dst, byte_t const* src,
+                                   size_t src_size);
+
+bool_t Zeta_ELF_CheckHeader(Zeta_ELF_Header* header);
+
+byte_t const* Zeta_ELF_ReadProgramHeader(Zeta_ELF_ProgramHeader* dst,
+                                         Zeta_ELF_Header* header,
+                                         byte_t const* src, size_t src_size);
+
+byte_t const* Zeta_ELF_ReadSectionHeader(Zeta_ELF_SectionHeader* dst,
+                                         Zeta_ELF_Header* header,
+                                         byte_t const* src, size_t src_size);
+
+void Zeta_ELF_ReadSymbol(Zeta_ELF_Symbol* dst, Zeta_ELF_Header* header,
+                         byte_t const* src, size_t src_size);
 
 ZETA_ExternC_End;

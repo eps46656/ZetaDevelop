@@ -163,6 +163,7 @@ void Zeta_DebugDeque_Read(void* dd_, void const* pos_cursor_, size_t cnt,
     std::deque<void*>* deque = (std::deque<void*>*)dd->deque;
 
     unsigned char* dst = (unsigned char*)dst_;
+    ZETA_DebugAssert(dst != NULL);
 
     size_t beg = *pos_cursor;
     ZETA_DebugAssert(beg <= deque->size());
@@ -174,7 +175,7 @@ void Zeta_DebugDeque_Read(void* dd_, void const* pos_cursor_, size_t cnt,
     if (dst_cursor != NULL) { *dst_cursor = end; }
 
     for (size_t idx = beg; idx < end; ++idx) {
-        Zeta_MemCopy(dst, (*deque)[idx], dd->width);
+        Zeta_MemCopy(dst, (*deque)[idx], dd->stride);
         dst += dd->stride;
     }
 }
@@ -188,7 +189,8 @@ void Zeta_DebugDeque_Write(void* dd_, void* pos_cursor_, size_t cnt,
 
     std::deque<void*>* deque = (std::deque<void*>*)dd->deque;
 
-    unsigned char const* src = (unsigned char const*)src_;
+    unsigned char const* src = (unsigned char*)src_;
+    ZETA_DebugAssert(src != NULL);
 
     size_t beg = *pos_cursor;
     ZETA_DebugAssert(beg <= deque->size());
@@ -199,8 +201,9 @@ void Zeta_DebugDeque_Write(void* dd_, void* pos_cursor_, size_t cnt,
 
     if (dst_cursor != NULL) { *dst_cursor = end; }
 
-    for (size_t idx = beg; idx < end; ++idx, src += dd->stride) {
-        Zeta_MemCopy((*deque)[idx], src, dd->width);
+    for (size_t idx = beg; idx < end; ++idx) {
+        Zeta_MemCopy((*deque)[idx], src, dd->stride);
+        src += dd->stride;
     }
 }
 
@@ -213,7 +216,11 @@ void* Zeta_DebugDeque_PushL(void* dd_, size_t cnt, void* dst_cursor_) {
     size_t* dst_cursor = (size_t*)dst_cursor_;
     if (dst_cursor != NULL) { *dst_cursor = 0; }
 
-    while (0 < cnt--) { deque->push_front(new unsigned char[dd->width]); }
+    deque->insert(deque->begin(), cnt, nullptr);
+
+    for (size_t idx{ 0 }; idx < cnt; ++idx) {
+        (*deque)[idx] = new unsigned char[dd->width];
+    }
 
     return deque->empty() ? NULL : deque->front();
 }
@@ -229,7 +236,11 @@ void* Zeta_DebugDeque_PushR(void* dd_, size_t cnt, void* dst_cursor_) {
     size_t* dst_cursor = (size_t*)dst_cursor_;
     if (dst_cursor != NULL) { *dst_cursor = origin_size; }
 
-    while (0 < cnt--) { deque->push_back(new unsigned char[dd->width]); }
+    deque->insert(deque->end(), cnt, nullptr);
+
+    for (size_t idx{ deque->size() - cnt }; idx < deque->size(); ++idx) {
+        (*deque)[idx] = new unsigned char[dd->width];
+    }
 
     return origin_size < deque->size() ? (*deque)[origin_size] : NULL;
 }

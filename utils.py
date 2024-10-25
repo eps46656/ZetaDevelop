@@ -1,39 +1,40 @@
-from config import *
-
 import os
+import typing
+from typeguard import typechecked
+import enum
 
-def NotNoneFilter(iterable):
-    return filter(lambda x: x is not None, iterable)
+@typechecked
+def GetRealPath(path: str):
+    return os.path.realpath(path).replace("\\", "/")
 
-def GetNormPath(path):
-    return os.path.abspath(path).replace("\\", "/")
+@typechecked
+def GetDirPath(path: str):
+    return GetRealPath(os.path.dirname(path))
 
+@typechecked
 def ToPath(path):
     path = path.strip("\'\"")
     return f"\'{path}\'"
 
-def HighLightPrint(x):
-    print(f"\033[93m{x}\033[0m")
+@typechecked
+def FilterNotNone(iter: typing.Iterable):
+    return (x for x in iter if x)
 
-def FilterNotNone(iter):
-    return filter(lambda x: x is not None, iter)
-
-def ToListCommand_(dst, cmd):
-    if cmd is None:
-        return None
-
-    if isinstance(cmd, str):
-        dst.append(cmd)
-        return
-
-    for k in cmd:
-        ToListCommand_(dst, k)
-
+@typechecked
 def ToListCommand(*cmd):
-    ret = []
+    ret = list()
 
-    ToListCommand_(ret, cmd)
+    q = list(cmd)
 
-    return ret
+    while 0 < len(q):
+        x = q.pop()
 
+        if not x:
+            continue
 
+        if isinstance(x, str):
+            ret.append(x)
+        else:
+            q.extend(x)
+
+    return list(reversed(ret))

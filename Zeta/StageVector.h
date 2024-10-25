@@ -16,7 +16,7 @@ ZETA_DeclareStruct(Zeta_StageVector_Stats);
 #define ZETA_StageVector_dat_color (1)
 
 struct Zeta_StageVector {
-    /** The maximum number of elements in a Stagement. */
+    /** The maximum number of elements in a segment. */
     size_t seg_capacity;
 
     Zeta_SeqContainer* origin;
@@ -79,7 +79,7 @@ void Zeta_StageVector_GetLBCursor(void* sv, void* dst_cursor);
 void Zeta_StageVector_GetRBCursor(void* sv, void* dst_cursor);
 
 void* Zeta_StageVector_FindFirst(void* sv, void* dst_cursor, void* dst_elem,
-                                 void* context,
+                                 void* compare_context,
                                  bool_t (*Compare)(void* context, void* ele));
 
 void* Zeta_StageVector_PeekL(void* sv, void* dst_cursor, void* dst_elem);

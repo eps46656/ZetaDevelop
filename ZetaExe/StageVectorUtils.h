@@ -5,6 +5,7 @@
 
 #include <cstdlib>
 
+#include "SeqContainerUtils.h"
 #include "StdAllocator.h"
 
 struct StageVectorPack {
@@ -20,11 +21,11 @@ struct StageVectorPack {
     Zeta_StageVector stage_vector;
 };
 
-template <typename Val>
+template <typename Elem>
 void StageVector_Init(Zeta_SeqContainer* seq_cntr,
                       Zeta_SeqContainer* origin_seq_cntr, size_t seg_capacity) {
     if (origin_seq_cntr != NULL) {
-        ZETA_DebugAssert(sizeof(Val) <=
+        ZETA_DebugAssert(sizeof(Elem) <=
                          ZETA_SeqContainer_GetStride(origin_seq_cntr));
     }
 
@@ -32,8 +33,8 @@ void StageVector_Init(Zeta_SeqContainer* seq_cntr,
         std::malloc(sizeof(StageVectorPack))) };
 
     if (origin_seq_cntr == NULL) {
-        pack->dummy_vec.width = sizeof(Val);
-        pack->dummy_vec.stride = sizeof(Val);
+        pack->dummy_vec.width = sizeof(Elem);
+        pack->dummy_vec.stride = sizeof(Elem);
 
         Zeta_DummyVector_DeploySeqContainer(&pack->dummy_vec,
                                             &pack->dummy_vec_seq_cntr);
@@ -56,8 +57,8 @@ void StageVector_Init(Zeta_SeqContainer* seq_cntr,
 
     Zeta_StageVector_DeploySeqContainer(&pack->stage_vector, seq_cntr);
 
-    SeqContainer_AddSanitizeFunc(Zeta_StageVector_GetWidth,
-                                 StageVector_Sanitize);
+    SeqContainerUtils_AddSanitizeFunc(Zeta_StageVector_GetWidth,
+                                      StageVector_Sanitize);
 }
 
 void StageVector_Deinit(Zeta_SeqContainer* seq_cntr) {
@@ -76,11 +77,11 @@ void StageVector_Deinit(Zeta_SeqContainer* seq_cntr) {
     std::free(pack);
 }
 
-template <typename Val>
+template <typename Elem>
 Zeta_SeqContainer* StageVector_Create(Zeta_SeqContainer* origin_seq_cntr,
                                       size_t seg_capacity) {
     Zeta_SeqContainer* seq_cntr{ new Zeta_SeqContainer{} };
-    StageVector_Init<Val>(seq_cntr, origin_seq_cntr, seg_capacity);
+    StageVector_Init<Elem>(seq_cntr, origin_seq_cntr, seg_capacity);
     return seq_cntr;
 }
 

@@ -52,10 +52,10 @@ void Zeta_MemReverse(void* data, size_t stride, size_t size);
 
 unsigned long long Zeta_MemHash(void* data, size_t size);
 
-void Zeta_ElemCopy(void* dst, void const* src, size_t stride, size_t width,
+void Zeta_ElemCopy(void* dst, void const* src, size_t width, size_t stride,
                    size_t size);
 
-void Zeta_ElemMove(void* dst, void const* src, size_t stride, size_t width,
+void Zeta_ElemMove(void* dst, void const* src, size_t width, size_t stride,
                    size_t size);
 
 #define ZETA_ReadLittleEndian4_(src_tmp, src)                      \
@@ -109,23 +109,22 @@ void Zeta_ElemMove(void* dst, void const* src, size_t stride, size_t width,
 /**
  * @brief Read little endian stored length bytes occupying integer from data.
  *
- * @param data The byte array stores integer.
+ * @param src The byte array stores integer.
  * @param length The number of bytes the integer occupied.
  *
  * @return The read integer
  */
-unsigned long long Zeta_ReadLittleEndianULL(byte_t const* data,
-                                            unsigned length);
+unsigned long long Zeta_ReadLittleEndianULL(byte_t const* src, unsigned length);
 
 /**
  * @brief Read little endian stored length bytes occupying integer from data.
  *
- * @param data The byte array stores integer.
+ * @param src The byte array stores integer.
  * @param length The number of bytes the integer occupied.
  *
  * @return The read integer
  */
-u128_t Zeta_ReadLittleEndian(byte_t const* data, unsigned length);
+u128_t Zeta_ReadLittleEndian(byte_t const* src, unsigned length);
 
 /**
  * @brief Write an integer to data in little endian occupying length bytes.
@@ -154,22 +153,22 @@ u128_t Zeta_WriteLittleEndian(byte_t* dst, u128_t val, unsigned length);
 /**
  * @brief Read big endian stored length bytes occupying integer from data.
  *
- * @param data The byte array stores integer.
+ * @param src The byte array stores integer.
  * @param length The number of bytes the integer occupied.
  *
  * @return The read integer
  */
-unsigned long long Zeta_ReadBigEndianULL(byte_t const* data, unsigned length);
+unsigned long long Zeta_ReadBigEndianULL(byte_t const* src, unsigned length);
 
 /**
  * @brief Read big endian stored length bytes occupying integer from data.
  *
- * @param data The byte array stores integer.
+ * @param src The byte array stores integer.
  * @param length The number of bytes the integer occupied.
  *
  * @return The read integer
  */
-u128_t Zeta_ReadBigEndian(byte_t const* data, unsigned length);
+u128_t Zeta_ReadBigEndian(byte_t const* src, unsigned length);
 
 /**
  * @brief Write an integer to data in big endian occupying length bytes.
@@ -189,6 +188,8 @@ unsigned long long Zeta_WriteBigEndianULL(byte_t* dst, unsigned long long val,
  * @param val The target integer.
  */
 u128_t Zeta_WriteBigEndian(byte_t* dst, u128_t val, unsigned length);
+
+byte_t const* Zeta_ReadStr(byte_t const* src, size_t src_size);
 
 unsigned long long Zeta_SimpleRandom(unsigned long long x);
 
