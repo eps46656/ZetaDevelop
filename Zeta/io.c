@@ -1,6 +1,6 @@
 #include "io.h"
 
-#include "Debugger.h"
+#include "debugger.h"
 #include "utils.h"
 
 static unsigned char lower_chars[] = "0123456789abcdef";

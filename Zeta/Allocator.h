@@ -1,6 +1,6 @@
 #pragma once
 
-#include "MemCheck.h"
+#include "mem_check_utils.h"
 
 ZETA_ExternC_Beg;
 

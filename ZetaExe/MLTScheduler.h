@@ -7,9 +7,9 @@
 #include <vector>
 
 #include "../Zeta/MultiLevelTable.h"
-#include "../Zeta/OrdLinkedListNode.h"
-#include "CppStdAllocator.h"
-#include "ZetaPoolAllocator.h"
+#include "../Zeta/ord_linked_list_node.h"
+#include "ZetaPoolallocator.h"
+#include "cpp_std_allocator.h"
 
 size_t GetIdx(Zeta_MultiLevelTable* mlt, size_t const* idxes) {
     size_t idx = idxes[0];

@@ -9,19 +9,7 @@ std::mt19937_64& RandomEngine() {
     return en;
 }
 
-void RandomSetSeed() {
-    unsigned random_seed = time(NULL);
-    unsigned fixed_seed = 123456789;
-
-    unsigned seed = random_seed;
-    // unsigned seed = fixed_seed;
-
-    ZETA_PrintVar(random_seed);
-    ZETA_PrintVar(fixed_seed);
-    ZETA_PrintVar(seed);
-
-    RandomEngine().seed(seed);
-}
+void SetRandomSeed(unsigned seed) { RandomEngine().seed(seed); }
 
 long long GetRandomInt(long long lb, long long rb) {
     static std::uniform_int_distribution<long long> ll_generator{

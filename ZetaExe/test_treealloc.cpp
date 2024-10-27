@@ -1,6 +1,6 @@
-#include <DebugHashTable.h>
 #include <Debugger.h>
-#include <TreeAllocator.h>
+#include <Treeallocator.h>
+#include <debug_hash_table.h>
 
 #include <iostream>
 #include <map>

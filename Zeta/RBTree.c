@@ -1,6 +1,6 @@
-#include "RBTree.h"
+#include "rbtree.h"
 
-#include "Debugger.h"
+#include "debugger.h"
 #include "utils.h"
 
 #define Black (0)

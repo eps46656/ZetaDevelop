@@ -1,6 +1,6 @@
 
-#include "../Zeta/Debugger.h"
-#include "../Zeta/UTF8.h"
+#include "../Zeta/debugger.h"
+#include "../Zeta/utf8.h"
 
 #define BIN_PATTERN "%c%c%c%c%c%c%c%c"
 

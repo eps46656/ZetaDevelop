@@ -1,6 +1,6 @@
-#include "UTF8.h"
+#include "utf8.h"
 
-#include "Debugger.h"
+#include "debugger.h"
 #include "utils.h"
 
 static unsigned char* EncodeChar_(unsigned char* dst, unichar_t data) {

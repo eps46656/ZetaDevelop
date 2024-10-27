@@ -7,12 +7,12 @@
 #include <stdexcept>
 #include <string>
 
-#include "../Zeta/DiskInfo.h"
-#include "../Zeta/DiskPartGPT.h"
-#include "../Zeta/DiskPartMBR.h"
-#include "../Zeta/UTF16.h"
-#include "../Zeta/UTF8.h"
 #include "../Zeta/define.h"
+#include "../Zeta/disk_info.h"
+#include "../Zeta/disk_part_gpt.h"
+#include "../Zeta/disk_part_mbt.h"
+#include "../Zeta/utf16.h"
+#include "../Zeta/utf8.h"
 
 #define lengthof(arr) (sizeof(arr) / sizeof(arr[0]))
 

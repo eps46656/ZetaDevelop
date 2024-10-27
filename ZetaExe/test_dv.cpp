@@ -4,7 +4,7 @@
 #include <random>
 #include <unordered_set>
 
-#include "../Zeta/DynamicVector.h"
+#include "../Zeta/dynamic_vector.h"
 #include "../Zeta/utils.h"
 
 struct Data {

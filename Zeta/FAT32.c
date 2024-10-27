@@ -1,11 +1,10 @@
-#include "FAT32.h"
+#include "fat32.h"
 
-#include "Debugger.h"
-#include "Disk.h"
-#include "DummyVector.h"
-#include "DynamicVector.h"
 #include "MultiLevelTable.h"
-#include "StageVector.h"
+#include "debugger.h"
+#include "dummy_vector.h"
+#include "dynamic_vector.h"
+#include "stage_vector.h"
 #include "utils.h"
 
 /*
@@ -203,7 +202,7 @@ struct Node {
     size_t origin_size;
     // the original size of node
 
-    Zeta_SeqContainer clus_num_vec_dummy_vec_seq_cntr;
+    Zeta_SeqCntr clus_num_vec_dummy_vec_seq_cntr;
     Zeta_StageVector clus_num_vec;
     // contain clus numbers strding clus_num_stride
 
@@ -464,12 +463,11 @@ void NodeVector_Cursor_Check(void* nv_, void const* cursor_) {
     ZETA_DebugAssert(*cursor + 1 < nv->size + 2);
 }
 
-static void NodeVector_DeploySeqContainer(void* nv_,
-                                          Zeta_SeqContainer* seq_cntr) {
+static void NodeVector_DeploySeqCntr(void* nv_, Zeta_SeqCntr* seq_cntr) {
     NodeVector* nv = nv_;
     ZETA_DebugAssert(nv != NULL);
 
-    Zeta_SeqContainer_Init(seq_cntr);
+    Zeta_SeqCntr_Init(seq_cntr);
 
     seq_cntr->context = nv;
 

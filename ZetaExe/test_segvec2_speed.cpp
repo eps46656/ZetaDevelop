@@ -5,10 +5,10 @@
 #include <random>
 #include <set>
 
-#include "../Zeta/DebugDeque.h"
 #include "../Zeta/SegVector.h"
+#include "../Zeta/debug_deque.h"
 #include "../Zeta/utils.h"
-#include "StdAllocator.h"
+#include "std_allocator.h"
 
 typedef unsigned val_t;
 
@@ -24,7 +24,7 @@ std::multiset<val_t> ms;
 std::deque<val_t> dd;
 Zeta_SegVector sv;
 
-Zeta_SeqContainer seq_cntr;
+Zeta_SeqCntr seq_cntr;
 
 void SV_Init() {
     StdAllocator_DeployAllocator(&node_allocator_, &node_allocator);
@@ -37,7 +37,7 @@ void SV_Init() {
     sv.seg_allocator = &seg_allocator;
 
     Zeta_SegVector_Init(&sv);
-    Zeta_SegVector_DeploySeqContainer(&sv, &seq_cntr);
+    Zeta_SegVector_DeploySeqCntr(&sv, &seq_cntr);
 }
 
 bool_t SV_LowerBound_(void* val, void* ele) {

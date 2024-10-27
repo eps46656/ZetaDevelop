@@ -1,7 +1,7 @@
 
 #include <stdio.h>
 
-#include "../Zeta/CRC.h"
+#include "../Zeta/crc.h"
 #include "../Zeta/utils.h"
 
 typedef unsigned long long ull;

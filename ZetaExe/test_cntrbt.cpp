@@ -1,10 +1,10 @@
 #include <random>
 #include <vector>
 
-#include "../Zeta/Debugger.h"
-#include "../Zeta/OrdCnt3RBTreeNode.h"
-#include "../Zeta/OrdCntRBTreeNode.h"
-#include "../Zeta/RBTree.h"
+#include "../Zeta/debugger.h"
+#include "../Zeta/ord_cnt_3rb_tree_node.h"
+#include "../Zeta/ord_cnt_rb_tree_node.h"
+#include "../Zeta/rbtree.h"
 #include "../Zeta/utils.h"
 
 // -----------------------------------------------------------------------------

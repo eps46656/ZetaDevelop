@@ -1,6 +1,6 @@
-#include "CRC.h"
+#include "crc.h"
 
-#include "Debugger.h"
+#include "debugger.h"
 
 void Zeta_CRCHasher_Init(void* hasher_, unsigned _BitInt(64) div,
                          unsigned _BitInt(64) reg) {

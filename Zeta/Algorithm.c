@@ -1,6 +1,6 @@
-#include "Algorithm.h"
+#include "algorithm.h"
 
-#include "Debugger.h"
+#include "debugger.h"
 
 #define INSERTION_TH (8)
 

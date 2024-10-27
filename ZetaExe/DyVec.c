@@ -1,5 +1,5 @@
 
-#include "../Zeta/DynamicVector.h"
+#include "../Zeta/dynamic_vector.h"
 
 typedef unsigned long long data_t;
 

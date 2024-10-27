@@ -258,6 +258,14 @@ typedef unsigned unichar_t;
 
 typedef unsigned _BitInt(ZETA_WidthOf(unsigned long long)) ULLBitInt_t;
 
+#define ZETA_InRangeOf_(tmp_val, val, type)                          \
+    ({                                                               \
+        ZETA_AutoVar(tmp_val, val);                                  \
+        ZETA_RangeMinOf(type) <= val&& val <= ZETA_RangeMaxOf(type); \
+    })
+
+#define ZETA_InRangeOf(val, type) ZETA_InRangeOf_(ZETA_TmpName, val, type)
+
 #define ZETA_2Power(x) ((ULLBitInt_t)(1) << (x))
 
 #define ZETA_Is2Power(x) (__builtin_popcountll(x) == 1)
@@ -292,6 +300,16 @@ typedef unsigned _BitInt(ZETA_WidthOf(unsigned long long)) ULLBitInt_t;
     })
 
 #define ZETA_GetMaxOf(x, y) ZETA_GetMaxOf_(ZETA_TmpName, ZETA_TmpName, (x), (y))
+
+#define ZETA_ThreeWayCompare_(tmp_x, tmp_y, x, y) \
+    ({                                            \
+        ZETA_AutoVar(tmp_x, x);                   \
+        ZETA_AutoVar(tmp_y, y);                   \
+        (tmp_y < tmp_x) - (tmp_x < tmp_y);        \
+    })
+
+#define ZETA_ThreeWayCompare(x, y) \
+    ZETA_ThreeWayCompare_(ZETA_TmpName, ZETA_TmpName, x, y)
 
 #define ZETA_Swap_(tmp_x, tmp_y, x, y, tmp) \
     {                                       \
@@ -414,19 +432,20 @@ ZETA_StaticAssert(255 <= ZETA_RangeMaxOf(byte_t));
     }                                                           \
     ZETA_StaticAssert(TRUE)
 
-#define ZETA_CallMemberFunc__(tmp_obj, member_func, args...) \
-    ZETA_DebugAssert(tmp_obj != NULL);                       \
-    ZETA_DebugAssert(tmp_obj->member_func != NULL);          \
-    tmp_obj->member_func(args);
+#define ZETA_CallMemberFunc__(tmp_obj, member_func, ...) \
+    ZETA_DebugAssert(tmp_obj != NULL);                   \
+    ZETA_DebugAssert(tmp_obj->member_func != NULL);      \
+    tmp_obj->member_func(__VA_ARGS__);
 
-#define ZETA_CallMemberFunc_(tmp_obj, obj, member_func, args...)            \
-    ({                                                                      \
-        ZETA_AutoVar(tmp_obj, (obj));                                       \
-        ZETA_CallMemberFunc__(tmp_obj, member_func, tmp_obj->context, args) \
+#define ZETA_CallMemberFunc_(tmp_obj, obj, member_func, ...)          \
+    ({                                                                \
+        ZETA_AutoVar(tmp_obj, (obj));                                 \
+        ZETA_CallMemberFunc__(tmp_obj, member_func, tmp_obj->context, \
+                              __VA_ARGS__)                            \
     })
 
-#define ZETA_CallMemberFunc(obj, member_func, args...) \
-    ZETA_CallMemberFunc_(ZETA_TmpName, obj, member_func, args)
+#define ZETA_CallMemberFunc(obj, member_func, ...) \
+    ZETA_CallMemberFunc_(ZETA_TmpName, obj, member_func, __VA_ARGS__)
 
 typedef int (*Zeta_Compare)(void* context, void const* a, void const* b);
 

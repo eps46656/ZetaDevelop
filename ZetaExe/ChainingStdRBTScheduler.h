@@ -3,8 +3,8 @@
 #include <map>
 #include <vector>
 
-#include "../Zeta/OrdLinkedListNode.h"
-#include "CppStdAllocator.h"
+#include "../Zeta/ord_linked_list_node.h"
+#include "cpp_std_allocator.h"
 
 class ChainingStdRBTScheduler {
 public:

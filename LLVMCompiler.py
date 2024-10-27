@@ -122,13 +122,13 @@ class LLVMCompiler:
 
         self.randomize_layout_seed = 13493037705
 
-        clang_triple = GetClangTriple(self.target)
+        self.clang_triple = GetClangTriple(self.target)
 
         self.error_limit = 10
 
         self.c_to_obj_args = [
             f"-v" if self.verbose else "",
-            # f"-target {clang_triple}",
+            f"--target={self.clang_triple}",
             f"-m64",
             f"-std=c2x",
             *(f"--include-directory={include_dir}"
@@ -139,7 +139,7 @@ class LLVMCompiler:
 
         self.cpp_to_obj_args = [
             f"-v" if self.verbose else "",
-            # f"-target {clang_triple}",
+            f"--target={self.clang_triple}",
             f"-m64",
             f"-std=c++17",
             *(f"--include-directory={include_dir}"
@@ -202,9 +202,8 @@ class LLVMCompiler:
 
         self.to_exe_args = [
             "--verbose" if self.verbose else "",
-
+            f"--target={self.clang_triple}",
             "-m64",
-
             "-lstdc++",
             # "-lm",
 

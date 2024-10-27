@@ -1,7 +1,7 @@
 
 #include <stdio.h>
 
-#include "../Zeta/SHA256.h"
+#include "../Zeta/sha256.h"
 #include "../Zeta/utils.h"
 
 typedef unsigned long long ull;

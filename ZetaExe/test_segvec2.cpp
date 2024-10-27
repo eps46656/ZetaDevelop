@@ -4,7 +4,7 @@
 
 #include "../Zeta/SegVector.h"
 #include "../Zeta/utils.h"
-#include "StdAllocator.h"
+#include "std_allocator.h"
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
@@ -23,7 +23,7 @@ Zeta_Allocator seg_allocator;
 std::deque<val_t> dd;
 Zeta_SegVector sv;
 
-Zeta_SeqContainer seq_cntr;
+Zeta_SeqCntr seq_cntr;
 Zeta_CursorOperator seq_cntr_cursor_opr;
 
 // -----------------------------------------------------------------------------
@@ -46,7 +46,7 @@ void SetupSegVector() {
 
     ZETA_PrintPos;
 
-    Zeta_SegVector_DeploySeqContainer(&sv, &seq_cntr);
+    Zeta_SegVector_DeploySeqCntr(&sv, &seq_cntr);
 }
 
 bool_t SV_LowerBound_(void* val, void* ele) {

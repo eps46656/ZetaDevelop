@@ -1,7 +1,6 @@
-#include <fstream>
+#include <file_sys_fat32.h>
 
-#include "../Zeta/Disk.h"
-#include "../Zeta/FileSysFAT32.h"
+#include <fstream>
 
 struct FileDisk {
     std::fstream fs;

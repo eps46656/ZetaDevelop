@@ -3,10 +3,10 @@
 #include <random>
 #include <set>
 
-#include "../Zeta/CircularArray.h"
-#include "../Zeta/DebugDeque.h"
 #include "../Zeta/SegVector.h"
-#include "StdAllocator.h"
+#include "../Zeta/circular_array.h"
+#include "../Zeta/debug_deque.h"
+#include "std_allocator.h"
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
@@ -74,12 +74,12 @@ void GetRandomVal(std::vector<Val>& dst) {
 
 Zeta_DebugDeque dd;
 
-void InitDD(Zeta_SeqContainer* seq_cntr) {
+void InitDD(Zeta_SeqCntr* seq_cntr) {
     dd.width = sizeof(Val);
 
     Zeta_DebugDeque_Init(&dd);
 
-    Zeta_DebugDeque_DeploySeqContainer(&dd, seq_cntr);
+    Zeta_DebugDeque_DeploySeqCntr(&dd, seq_cntr);
 }
 
 // -----------------------------------------------------------------------------
@@ -90,7 +90,7 @@ void InitDD(Zeta_SeqContainer* seq_cntr) {
 
 Zeta_CircularArray ca;
 
-void InitCV(Zeta_SeqContainer* seq_cntr) {
+void InitCV(Zeta_SeqCntr* seq_cntr) {
     ca.width = sizeof(Val);
     ca.stride = sizeof(Val);
     ca.offset = 0;
@@ -98,7 +98,7 @@ void InitCV(Zeta_SeqContainer* seq_cntr) {
     ca.capacity = CAPACITY;
     ca.data = std::malloc(sizeof(Val) * CAPACITY);
 
-    Zeta_CircularArray_DeploySeqContainer(&ca, seq_cntr);
+    Zeta_CircularArray_DeploySeqCntr(&ca, seq_cntr);
 }
 
 // -----------------------------------------------------------------------------
@@ -115,7 +115,7 @@ Zeta_SegVector sv;
 
 bool_t sv_inited{ FALSE };
 
-void InitSV(Zeta_SeqContainer* seq_cntr) {
+void InitSV(Zeta_SeqCntr* seq_cntr) {
     sv_inited = TRUE;
 
     StdAllocator_DeployAllocator(&node_allocator_, &node_allocator);
@@ -128,20 +128,20 @@ void InitSV(Zeta_SeqContainer* seq_cntr) {
     sv.seg_allocator = &seg_allocator;
 
     Zeta_SegVector_Init(&sv);
-    Zeta_SegVector_DeploySeqContainer(&sv, seq_cntr);
+    Zeta_SegVector_DeploySeqCntr(&sv, seq_cntr);
 }
 
-void SV_Check(Zeta_SeqContainer* seq_cntr);
+void SV_Check(Zeta_SeqCntr* seq_cntr);
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 
-size_t SC_GetSize(Zeta_SeqContainer* seq_cntr) {
+size_t SC_GetSize(Zeta_SeqCntr* seq_cntr) {
     return seq_cntr->GetSize(seq_cntr->context);
 }
 
-Val SC_Access(Zeta_SeqContainer* seq_cntr, size_t idx) {
+Val SC_Access(Zeta_SeqCntr* seq_cntr, size_t idx) {
     Zeta_Cursor cursor;
     Val val;
 
@@ -153,7 +153,7 @@ Val SC_Access(Zeta_SeqContainer* seq_cntr, size_t idx) {
     return val;
 }
 
-void* SC_PushL(Zeta_SeqContainer* seq_cntr, Val val) {
+void* SC_PushL(Zeta_SeqCntr* seq_cntr, Val val) {
     Zeta_Cursor pos_cursor;
 
     void* ele = seq_cntr->PushL(seq_cntr->context, &pos_cursor);
@@ -169,7 +169,7 @@ void* SC_PushL(Zeta_SeqContainer* seq_cntr, Val val) {
     return (Val*)ele;
 }
 
-Val* SC_PushR(Zeta_SeqContainer* seq_cntr, Val val) {
+Val* SC_PushR(Zeta_SeqCntr* seq_cntr, Val val) {
     Zeta_Cursor pos_cursor;
 
     void* ele = seq_cntr->PushL(seq_cntr->context, &pos_cursor);
@@ -186,7 +186,7 @@ Val* SC_PushR(Zeta_SeqContainer* seq_cntr, Val val) {
     return (Val*)ele;
 }
 
-void SC_Read(Zeta_SeqContainer* seq_cntr, size_t idx, size_t cnt, Val* dst) {
+void SC_Read(Zeta_SeqCntr* seq_cntr, size_t idx, size_t cnt, Val* dst) {
     Zeta_Cursor pos_cursor;
 
     seq_cntr->Access(seq_cntr->context, &pos_cursor, NULL, idx);
@@ -200,8 +200,7 @@ void SC_Read(Zeta_SeqContainer* seq_cntr, size_t idx, size_t cnt, Val* dst) {
                      idx + cnt);
 }
 
-void SC_Write(Zeta_SeqContainer* seq_cntr, size_t idx, size_t cnt,
-              Val const* src) {
+void SC_Write(Zeta_SeqCntr* seq_cntr, size_t idx, size_t cnt, Val const* src) {
     Zeta_Cursor pos_cursor;
 
     seq_cntr->Access(seq_cntr->context, &pos_cursor, NULL, idx);
@@ -215,8 +214,7 @@ void SC_Write(Zeta_SeqContainer* seq_cntr, size_t idx, size_t cnt,
                      idx + cnt);
 }
 
-void SC_Insert(Zeta_SeqContainer* seq_cntr, size_t idx, size_t cnt,
-               Val const* src) {
+void SC_Insert(Zeta_SeqCntr* seq_cntr, size_t idx, size_t cnt, Val const* src) {
     Zeta_Cursor pos_cursor;
 
     seq_cntr->Access(seq_cntr->context, &pos_cursor, NULL, idx);
@@ -239,7 +237,7 @@ void SC_Insert(Zeta_SeqContainer* seq_cntr, size_t idx, size_t cnt,
                      idx + cnt);
 }
 
-void SC_Erase(Zeta_SeqContainer* seq_cntr, size_t idx, size_t cnt) {
+void SC_Erase(Zeta_SeqCntr* seq_cntr, size_t idx, size_t cnt) {
     Zeta_Cursor pos_cursor;
 
     seq_cntr->Access(seq_cntr->context, &pos_cursor, NULL, idx);
@@ -263,7 +261,7 @@ void EraseAll_(void* context, void* ele) {
 }
 
 
-void SC_EraseAll(Zeta_SeqContainer* seq_cntr) {
+void SC_EraseAll(Zeta_SeqCntr* seq_cntr) {
 
     std::unordered_set<Val, ValHash> vals;
 
@@ -283,7 +281,7 @@ void SC_EraseAll(Zeta_SeqContainer* seq_cntr) {
     seq_cntr->EraseAll(seq_cntr->context, NULL, EraseAll_);
 }*/
 
-void SC_CheckIterator(Zeta_SeqContainer* seq_cntr, size_t idx_a, size_t idx_b) {
+void SC_CheckIterator(Zeta_SeqCntr* seq_cntr, size_t idx_a, size_t idx_b) {
     Zeta_Cursor cursor_a;
     Zeta_Cursor cursor_b;
 
@@ -326,7 +324,7 @@ void SC_CheckIterator(Zeta_SeqContainer* seq_cntr, size_t idx_a, size_t idx_b) {
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 
-void SV_Check(Zeta_SeqContainer* seq_cntr) {
+void SV_Check(Zeta_SeqCntr* seq_cntr) {
     if (seq_cntr->GetSize != Zeta_SegVector_GetSize) { return; }
 
     Zeta_DebugHashTable node_hm;
@@ -433,7 +431,7 @@ std::pair<size_t, size_t> GetRandomEraseIdxCnt(size_t size_) {
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 
-void Compare(Zeta_SeqContainer* seq_cntr_a, Zeta_SeqContainer* seq_cntr_b) {
+void Compare(Zeta_SeqCntr* seq_cntr_a, Zeta_SeqCntr* seq_cntr_b) {
     size_t size_a{ SC_GetSize(seq_cntr_a) };
     size_t size_b{ SC_GetSize(seq_cntr_b) };
 
@@ -483,7 +481,7 @@ void Compare(Zeta_SeqContainer* seq_cntr_a, Zeta_SeqContainer* seq_cntr_b) {
         seq_cntr_b->Cursor_AreEqual(seq_cntr_b->context, &cursor_b, &rb_b));
 }
 
-void CheckCursor(Zeta_SeqContainer* seq_cntr, size_t idx_a_, size_t idx_b_) {
+void CheckCursor(Zeta_SeqCntr* seq_cntr, size_t idx_a_, size_t idx_b_) {
     Zeta_Cursor cursor_a;
     Zeta_Cursor cursor_b;
 
@@ -512,7 +510,7 @@ void CheckCursor(Zeta_SeqContainer* seq_cntr, size_t idx_a_, size_t idx_b_) {
                      idx_a);
 }
 
-void CheckCursor(Zeta_SeqContainer* seq_cntr) {
+void CheckCursor(Zeta_SeqCntr* seq_cntr) {
     size_t size{ SC_GetSize(seq_cntr) };
 
     size_t test_num{ static_cast<size_t>(std::sqrt(size)) };
@@ -537,7 +535,7 @@ void CheckCursor(Zeta_SeqContainer* seq_cntr) {
 std::vector<Val> vals_a;
 std::vector<Val> vals_b;
 
-void SyncInsert(Zeta_SeqContainer* seq_cntr_a, Zeta_SeqContainer* seq_cntr_b) {
+void SyncInsert(Zeta_SeqCntr* seq_cntr_a, Zeta_SeqCntr* seq_cntr_b) {
     size_t size_a{ SC_GetSize(seq_cntr_a) };
     size_t size_b{ SC_GetSize(seq_cntr_b) };
 
@@ -555,7 +553,7 @@ void SyncInsert(Zeta_SeqContainer* seq_cntr_a, Zeta_SeqContainer* seq_cntr_b) {
     SC_Insert(seq_cntr_b, idx, vals_a.size(), vals_a.data());
 }
 
-void SyncErase(Zeta_SeqContainer* seq_cntr_a, Zeta_SeqContainer* seq_cntr_b) {
+void SyncErase(Zeta_SeqCntr* seq_cntr_a, Zeta_SeqCntr* seq_cntr_b) {
     size_t size_a{ SC_GetSize(seq_cntr_a) };
     size_t size_b{ SC_GetSize(seq_cntr_b) };
 
@@ -570,7 +568,7 @@ void SyncErase(Zeta_SeqContainer* seq_cntr_a, Zeta_SeqContainer* seq_cntr_b) {
     SC_Erase(seq_cntr_b, idx, cnt);
 }
 
-void SyncCompare(Zeta_SeqContainer* seq_cntr_a, Zeta_SeqContainer* seq_cntr_b) {
+void SyncCompare(Zeta_SeqCntr* seq_cntr_a, Zeta_SeqCntr* seq_cntr_b) {
     size_t size_a{ SC_GetSize(seq_cntr_a) };
     size_t size_b{ SC_GetSize(seq_cntr_b) };
 
@@ -608,7 +606,7 @@ void SyncCompare(Zeta_SeqContainer* seq_cntr_a, Zeta_SeqContainer* seq_cntr_b) {
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 
-void PrintSeqContainer(Zeta_SeqContainer* seq_cntr) {
+void PrintSeqCntr(Zeta_SeqCntr* seq_cntr) {
     size_t size{ SC_GetSize(seq_cntr) };
 
     Zeta_Cursor cursor;
@@ -637,10 +635,10 @@ void main2() {
 
     en.seed(seed);
 
-    Zeta_SeqContainer seq_cntr_a;
+    Zeta_SeqCntr seq_cntr_a;
     InitDD(&seq_cntr_a);
 
-    Zeta_SeqContainer seq_cntr_b;
+    Zeta_SeqCntr seq_cntr_b;
     InitSV(&seq_cntr_b);
 
     for (size_t test_i = 0; test_i < 10000; ++test_i) {

@@ -2,9 +2,9 @@
 #include <map>
 #include <random>
 
-#include "../Zeta/DebugHashTable.h"
-#include "../Zeta/SlabAllocator.h"
-#include "StdAllocator.h"
+#include "../Zeta/Slaballocator.h"
+#include "../Zeta/debug_hash_table.h"
+#include "std_allocator.h"
 
 typedef long long unsigned llu;
 

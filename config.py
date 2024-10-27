@@ -44,9 +44,13 @@ class Target:
 target = Target(
     arch=ArchEnum.X86_64,
     # arch=ArchEnum.RISCV64,
+
     vendor=VendorEnum.PC,
-    sys=SysEnum.LINUX,
-    # sys=SysEnum.WINDOWS,
-    env=EnvEnum.GNU,
-    # env=EnvEnum.MSVC,
+
+    # sys=SysEnum.LINUX,
+    sys=SysEnum.WINDOWS,
+
+    # env=EnvEnum.ELF,
+    # env=EnvEnum.GNU,
+    env=EnvEnum.MSVC,
 )

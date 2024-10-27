@@ -1,4 +1,4 @@
-#include "../Zeta/DebugHashTable.h"
+#include "../Zeta/debug_hash_table.h"
 
 int main() {
     void* ht = DebugHashTable_Create();

@@ -305,8 +305,7 @@ void Zeta_MultiLevelSegVector_EraseAll(void* mlsv_) {
     mlsv->size = 0;
 }
 
-void Zeta_MultiLevelSegVector_DeplotSeqContainer(void* mlsv_,
-                                                 Zeta_SeqContainer* dst) {
+void Zeta_MultiLevelSegVector_DeplotSeqCntr(void* mlsv_, Zeta_SeqCntr* dst) {
     Zeta_MultiLevelSegVector* mlsv = mlsv_;
     ZETA_DebugAssert(mlsv != NULL);
 

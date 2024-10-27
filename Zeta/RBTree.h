@@ -1,7 +1,7 @@
 #pragma once
 
-#include "BinTree.h"
-#include "DebugPipe.h"
+#include "bin_tree.h"
+#include "debug_pipe.h"
 
 ZETA_ExternC_Beg;
 

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Pipe.h"
+#include "pipe.h"
 
 ZETA_ExternC_Beg;
 

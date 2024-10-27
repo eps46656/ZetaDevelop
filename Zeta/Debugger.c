@@ -1,7 +1,7 @@
-#include "Debugger.h"
+#include "debugger.h"
 
-#include "DebugStrPipe.h"
-#include "Pipe.h"
+#include "debug_str_pipe.h"
+#include "pipe.h"
 
 Zeta_Pipe* debug_pipe = NULL;
 

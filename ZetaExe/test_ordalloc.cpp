@@ -2,8 +2,8 @@
 #include <map>
 #include <random>
 
-#include "../Zeta/DebugHashTable.h"
-#include "../Zeta/OrdAllocator.h"
+#include "../Zeta/Ordallocator.h"
+#include "../Zeta/debug_hash_table.h"
 
 typedef long long unsigned llu;
 

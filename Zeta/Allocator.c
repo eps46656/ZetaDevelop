@@ -1,6 +1,6 @@
-#include "Allocator.h"
+#include "allocator.h"
 
-#include "Debugger.h"
+#include "debugger.h"
 
 void Zeta_Allocator_Init(void* allocator_) {
     Zeta_Allocator* allocator = allocator_;

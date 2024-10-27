@@ -4,10 +4,10 @@
 #include <map>
 #include <random>
 
-#include "../Zeta/DebugDeque.h"
 #include "../Zeta/SegVector.h"
+#include "../Zeta/debug_deque.h"
 #include "../Zeta/utils.h"
-#include "StdAllocator.h"
+#include "std_allocator.h"
 
 typedef unsigned val_t;
 

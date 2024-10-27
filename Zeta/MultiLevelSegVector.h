@@ -1,9 +1,9 @@
 #pragma once
 
-#include "Allocator.h"
-#include "CircularArray.h"
 #include "MultiLevelTable.h"
-#include "SeqContainer.h"
+#include "allocator.h"
+#include "circular_array.h"
+#include "seq_cntr.h"
 
 ZETA_ExternC_Beg;
 

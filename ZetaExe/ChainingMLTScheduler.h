@@ -3,10 +3,10 @@
 #include <map>
 #include <vector>
 
-#include "../Zeta/Debugger.h"
 #include "../Zeta/MultiLevelTable.h"
-#include "../Zeta/OrdLinkedListNode.h"
-#include "ZetaPoolAllocator.h"
+#include "../Zeta/debugger.h"
+#include "../Zeta/ord_linked_list_node.h"
+#include "ZetaPoolallocator.h"
 
 class ChainingMLTScheduler {
 public:

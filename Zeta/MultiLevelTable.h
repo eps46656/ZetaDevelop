@@ -1,7 +1,7 @@
 #pragma once
 
-#include "Allocator.h"
-#include "DebugHashTable.h"
+#include "allocator.h"
+#include "debug_hash_table.h"
 
 ZETA_ExternC_Beg;
 

@@ -1,10 +1,10 @@
 #pragma once
 
-#include "BlockVector.h"
-#include "CacheManager.h"
-#include "DateTime.h"
-#include "FileSys.h"
 #include "SegVector.h"
+#include "block_vector.h"
+#include "cache_manager.h"
+#include "datetime.h"
+#include "file_sys.h"
 
 ZETA_DeclareStruct(Zeta_FAT32_Header);
 ZETA_DeclareStruct(Zeta_FAT32_DirEntry);

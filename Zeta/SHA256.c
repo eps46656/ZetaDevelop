@@ -1,6 +1,6 @@
-#include "SHA256.h"
+#include "sha256.h"
 
-#include "Debugger.h"
+#include "debugger.h"
 #include "utils.h"
 
 typedef Zeta_SHA256Hasher_word_t word_t;

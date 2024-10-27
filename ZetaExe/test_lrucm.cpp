@@ -2,11 +2,11 @@
 #include <unordered_map>
 #include <unordered_set>
 
-#include "../Zeta/DummyBlockVector.h"
-#include "../Zeta/DummyCacheManager.h"
-#include "../Zeta/LRUCacheManager.h"
-#include "../Zeta/RBTree.h"
-#include "StdAllocator.h"
+#include "../Zeta/dummy_block_vector.h"
+#include "../Zeta/dummy_cache_manager.h"
+#include "../Zeta/lru_cache_manager.h"
+#include "../Zeta/rbtree.h"
+#include "std_allocator.h"
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------

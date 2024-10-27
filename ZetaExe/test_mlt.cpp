@@ -7,9 +7,9 @@
 #include <vector>
 
 #include "../Zeta/MultiLevelTable.h"
-#include "../Zeta/OrdLinkedListNode.h"
-#include "CppStdAllocator.h"
-#include "ZetaPoolAllocator.h"
+#include "../Zeta/ord_linked_list_node.h"
+#include "ZetaPoolallocator.h"
+#include "cpp_std_allocator.h"
 
 size_t time_ring{ (size_t)1 << 32 };
 size_t tasks_num{ (size_t)1 << 8 };

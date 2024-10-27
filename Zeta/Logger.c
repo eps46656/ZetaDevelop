@@ -1,6 +1,6 @@
-#include "Logger.h"
+#include "logger.h"
 
-#include "Pipe.h"
+#include "pipe.h"
 
 void Zeta_Logger_LogUDec_(Zeta_Pipe* pipe, void* ptr_) {
     void* ptr = *((void**)ptr_);

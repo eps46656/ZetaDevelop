@@ -6,6 +6,7 @@ import os
 import time
 from typeguard import typechecked
 import termcolor
+import traceback
 
 def GetMTime(path: str):
     try:
@@ -134,39 +135,60 @@ class Builder:
 
         mtimes = { unit: GetMTime(unit) for unit in dep_units }
 
-        not_built: list[str] = list()
-        built: list[str] = list()
+        skipped_build_units: set[str] = set()
+        finished_build_units: set[str] = set()
 
-        finished_unit_cnt = 0
+        ready_build_units: set[str] = set()
+
+        failed_build_units: set[str] = set()
+        unready_build_units: set[str] = set()
+
+        ready_unit_cnt = 0
 
         for unit in dep_units:
             if len(self.deps[unit]) == 0:
-                finished_unit_cnt += 1
+                skipped_build_units.add(unit)
+                ready_build_units.add(unit)
+                ready_unit_cnt += 1
                 continue
 
-            adj_mtime = max(mtimes[dep] for dep in self.deps[unit])
-
-            if not rebuild and adj_mtime <= mtimes[unit]:
-                not_built.append(unit)
-                finished_unit_cnt += 1
+            if not self.deps[unit].issubset(ready_build_units):
+                unready_build_units.add(unit)
                 continue
 
-            print(termcolor.colored("building", "yellow") + f" ({round(finished_unit_cnt / len(dep_units) * 100):3}%): {unit}")
+            if not rebuild and max(mtimes[dep] for dep in self.deps[unit]) <= mtimes[unit]:
+                skipped_build_units.add(unit)
+                ready_build_units.add(unit)
+                ready_unit_cnt += 1
+                continue
+
+            print(termcolor.colored("building", "yellow") + f" ({round(ready_unit_cnt / len(dep_units) * 100):3}%): {unit}")
 
             building_func = self.building_funcs[unit]
 
             if building_func is not None:
-                building_func()
+                try:
+                    building_func()
+                except Exception as e:
+                    failed_build_units.add(unit)
+                    print(traceback.format_exc())
+                    continue
 
             assert os.path.exists(unit), \
                 f"unit {unit} does not exist after built"
 
-            built.append(unit)
+            finished_build_units.add(unit)
+            ready_build_units.add(unit)
 
             now = time.time()
             SetMTime(unit, now)
             mtimes[unit] = now
 
-            finished_unit_cnt += 1
+            ready_unit_cnt += 1
 
-        return not_built, built
+        return len(dep_units) == len(ready_build_units), {
+            "skipped": skipped_build_units,
+            "finished": finished_build_units,
+            "failed": failed_build_units,
+            "unready": unready_build_units,
+        }

@@ -1,7 +1,7 @@
 #include <sanitizer/common_interface_defs.h>
 #include <stdio.h>
 
-#include "Logger.h"
+#include "logger.h"
 
 ZETA_ExternC_Beg;
 

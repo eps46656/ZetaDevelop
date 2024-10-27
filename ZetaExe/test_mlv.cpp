@@ -4,7 +4,7 @@
 #include <vector>
 
 #include "../Zeta/MultiLevelTable.h"
-#include "StdAllocator.h"
+#include "std_allocator.h"
 
 StdAllocator mlv_node_allocator_;
 StdAllocator mlv_table_allocator_;

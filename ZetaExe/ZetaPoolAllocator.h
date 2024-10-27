@@ -2,7 +2,7 @@
 #include <unordered_map>
 #include <vector>
 
-#include "../Zeta/Allocator.h"
+#include "../Zeta/allocator.h"
 
 struct ZetaPoolAllocator {
     size_t size;

@@ -1,6 +1,6 @@
 #include "utils.h"
 
-#include "Debugger.h"
+#include "debugger.h"
 
 void Zeta_HelloWorld() { printf("Hello World.\n"); }
 
