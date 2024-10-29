@@ -7,20 +7,20 @@ ZETA_ExternC_Beg;
 void Zeta_HelloWorld();
 
 /**
- * @brief Copy byte array from dst to src
+ * @brief Copy byte array from dst to src.
  *
  * @param dst The pointer points to destination byte array.
  * @param src The pointer points to source byte array.
- * @param size The number of bytes the byte arrays pointed by dst and src.
+ * @param size The number of bytes to be copied.
  */
 void Zeta_MemCopy(void* dst, void const* src, size_t size);
 
 /**
- * @brief Copy byte array from dst to src
+ * @brief Copy byte array from dst to src.
  *
  * @param dst The pointer points to destination byte array.
  * @param src The pointer points to source byte array.
- * @param size The number of bytes the byte arrays pointed by dst and src.
+ * @param size The number of bytes to be moved.
  */
 void Zeta_MemMove(void* dst, void const* src, size_t size);
 
@@ -29,12 +29,12 @@ void Zeta_MemMove(void* dst, void const* src, size_t size);
  *
  * @param x The pointer points to the first byte array.
  * @param y The pointer points to the second byte array.
- * @param size The number of bytes the byte arrays pointed by x and y.
+ * @param size The number of bytes to be swapped.
  */
 void Zeta_MemSwap(void* x, void* y, size_t size);
 
 /**
- * @brief Rotate the bytes in [beg, end). mid should always in [beg, end].
+ * @brief Rotate the bytes in [beg, end) with mid pivot.
  *
  * @details Let #lv and #rv denote the value of [beg, mid) and [mid, end). The
  * initial value of [beg, end) should be #lv + #rv. After rotation, the value of

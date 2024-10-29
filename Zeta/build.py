@@ -165,7 +165,6 @@ def AddDeps(builder: Builder, ZetaBuildDir: str, verbose: bool, mode: ModeEnum):
         {
             f"{File}",
             f"{ZetaDir}/bin_heap.h",
-
             f"{ZetaDir}/debugger.h",
             f"{ZetaDir}/utils.h",
         },
@@ -244,38 +243,6 @@ def AddDeps(builder: Builder, ZetaBuildDir: str, verbose: bool, mode: ModeEnum):
         lambda : compiler.c_to_obj(
             f"{ZetaBuildDir}/block_vector.o",
             f"{ZetaDir}/block_vector.c",
-        )
-    )
-
-    builder.Add(
-        f"{ZetaDir}/BTree.h",
-        {
-            f"{File}",
-            f"{ZetaDir}/define.h",
-        },
-        None
-    )
-
-    builder.Add(
-        f"{ZetaDir}/BTree.c",
-        {
-            f"{File}",
-            f"{ZetaDir}/BTree.h",
-            f"{ZetaDir}/circular_array.h",
-            f"{ZetaDir}/utils.h",
-        },
-        None
-    )
-
-    builder.Add(
-        f"{ZetaBuildDir}/BTree.o",
-        {
-            f"{File}",
-            f"{ZetaDir}/BTree.c",
-        },
-        lambda : compiler.c_to_obj(
-            f"{ZetaBuildDir}/BTree.o",
-            f"{ZetaDir}/BTree.c",
         )
     )
 
@@ -436,38 +403,6 @@ def AddDeps(builder: Builder, ZetaBuildDir: str, verbose: bool, mode: ModeEnum):
     )
 
     builder.Add(
-        f"{ZetaDir}/debugger.h",
-        {
-            f"{File}",
-            f"{ZetaDir}/logger.h",
-        },
-        None
-    )
-
-    builder.Add(
-        f"{ZetaDir}/debugger.c",
-        {
-            f"{File}",
-            f"{ZetaDir}/debugger.h",
-            f"{ZetaDir}/debug_str_pipe.h",
-            f"{ZetaDir}/pipe.h",
-        },
-        None
-    )
-
-    builder.Add(
-        f"{ZetaBuildDir}/debugger.o",
-        {
-            f"{File}",
-            f"{ZetaDir}/debugger.c",
-        },
-        lambda : compiler.c_to_obj(
-            f"{ZetaBuildDir}/debugger.o",
-            f"{ZetaDir}/debugger.c",
-        )
-    )
-
-    builder.Add(
         f"{ZetaDir}/debug_hash_table.h",
         {
             f"{File}",
@@ -557,6 +492,38 @@ def AddDeps(builder: Builder, ZetaBuildDir: str, verbose: bool, mode: ModeEnum):
         lambda : compiler.cpp_to_obj(
             f"{ZetaBuildDir}/debug_str_pipe.o",
             f"{ZetaDir}/debug_str_pipe.cpp",
+        )
+    )
+
+    builder.Add(
+        f"{ZetaDir}/debugger.h",
+        {
+            f"{File}",
+            f"{ZetaDir}/logger.h",
+        },
+        None
+    )
+
+    builder.Add(
+        f"{ZetaDir}/debugger.c",
+        {
+            f"{File}",
+            f"{ZetaDir}/debugger.h",
+            f"{ZetaDir}/debug_str_pipe.h",
+            f"{ZetaDir}/pipe.h",
+        },
+        None
+    )
+
+    builder.Add(
+        f"{ZetaBuildDir}/debugger.o",
+        {
+            f"{File}",
+            f"{ZetaDir}/debugger.c",
+        },
+        lambda : compiler.c_to_obj(
+            f"{ZetaBuildDir}/debugger.o",
+            f"{ZetaDir}/debugger.c",
         )
     )
 
@@ -960,37 +927,6 @@ def AddDeps(builder: Builder, ZetaBuildDir: str, verbose: bool, mode: ModeEnum):
     )
 
     builder.Add(
-        f"{ZetaDir}/hash_table_utils.h",
-        {
-            f"{File}",
-            f"{ZetaDir}/define.h",
-        },
-        None
-    )
-
-    builder.Add(
-        f"{ZetaDir}/hash_table_utils.c",
-        {
-            f"{File}",
-            f"{ZetaDir}/hash_table_utils.h",
-            f"{ZetaDir}/debugger.h",
-        },
-        None
-    )
-
-    builder.Add(
-        f"{ZetaBuildDir}/hash_table_utils.o",
-        {
-            f"{File}",
-            f"{ZetaDir}/hash_table_utils.c",
-        },
-        lambda : compiler.c_to_obj(
-            f"{ZetaBuildDir}/hash_table_utils.o",
-            f"{ZetaDir}/hash_table_utils.c",
-        )
-    )
-
-    builder.Add(
         f"{ZetaDir}/FileSysFAT32.h",
         {
             f"{File}",
@@ -1114,38 +1050,6 @@ def AddDeps(builder: Builder, ZetaBuildDir: str, verbose: bool, mode: ModeEnum):
     )
 
     builder.Add(
-        f"{ZetaDir}/mem_check_utils.h",
-        {
-            f"{File}",
-            f"{ZetaDir}/define.h",
-        },
-        None
-    )
-
-    builder.Add(
-        f"{ZetaDir}/mem_check_utils.cpp",
-        {
-            f"{File}",
-            f"{ZetaDir}/mem_check_utils.h",
-            f"{ZetaDir}/debugger.h",
-            f"{ZetaDir}/utils.h",
-        },
-        None
-    )
-
-    builder.Add(
-        f"{ZetaBuildDir}/mem_check_utils.o",
-        {
-            f"{File}",
-            f"{ZetaDir}/mem_check_utils.cpp",
-        },
-        lambda : compiler.cpp_to_obj(
-            f"{ZetaBuildDir}/mem_check_utils.o",
-            f"{ZetaDir}/mem_check_utils.cpp",
-        )
-    )
-
-    builder.Add(
         f"{ZetaDir}/lin_space_allocator.h",
         {
             f"{File}",
@@ -1218,8 +1122,9 @@ def AddDeps(builder: Builder, ZetaBuildDir: str, verbose: bool, mode: ModeEnum):
             f"{File}",
 
             f"{ZetaDir}/allocator.h",
-            f"{ZetaDir}/bin_heap.h",
             f"{ZetaDir}/block_vector.h",
+            f"{ZetaDir}/cache_manager.h",
+            f"{ZetaDir}/debug_pipe.h",
             f"{ZetaDir}/ord_bin_tree_node.h",
             f"{ZetaDir}/ord_linked_list_node.h",
             f"{ZetaDir}/ord_rb_tree_node.h",
@@ -1234,6 +1139,7 @@ def AddDeps(builder: Builder, ZetaBuildDir: str, verbose: bool, mode: ModeEnum):
 
             f"{ZetaDir}/lru_cache_manager.h",
 
+            f"{ZetaDir}/debugger.h",
             f"{ZetaDir}/rbtree.h",
             f"{ZetaDir}/utils.h",
         },
@@ -1253,37 +1159,7 @@ def AddDeps(builder: Builder, ZetaBuildDir: str, verbose: bool, mode: ModeEnum):
     )
 
     builder.Add(
-        f"{ZetaDir}/MultiLevelHashTable.h",
-        {
-            f"{File}",
-            f"{ZetaDir}/MultiLevelVector.h",
-        },
-        None
-    )
-
-    builder.Add(
-        f"{ZetaDir}/MultiLevelHashTable.c",
-        {
-            f"{File}",
-            f"{ZetaDir}/MultiLevelHashTable.h",
-        },
-        None
-    )
-
-    builder.Add(
-        f"{ZetaBuildDir}/MultiLevelHashTable.o",
-        {
-            f"{File}",
-            f"{ZetaDir}/MultiLevelHashTable.c",
-        },
-        lambda : compiler.c_to_obj(
-            f"{ZetaBuildDir}/MultiLevelHashTable.o",
-            f"{ZetaDir}/MultiLevelHashTable.c",
-        )
-    )
-
-    builder.Add(
-        f"{ZetaDir}/NearCntRBTreeNode.h",
+        f"{ZetaDir}/mem_check_utils.h",
         {
             f"{File}",
             f"{ZetaDir}/define.h",
@@ -1292,53 +1168,25 @@ def AddDeps(builder: Builder, ZetaBuildDir: str, verbose: bool, mode: ModeEnum):
     )
 
     builder.Add(
-        f"{ZetaDir}/NearCntRBTreeNode.c",
+        f"{ZetaDir}/mem_check_utils.cpp",
         {
             f"{File}",
-            f"{ZetaDir}/NearCntRBTreeNode.h",
+            f"{ZetaDir}/mem_check_utils.h",
+            f"{ZetaDir}/debugger.h",
+            f"{ZetaDir}/utils.h",
         },
         None
     )
 
     builder.Add(
-        f"{ZetaBuildDir}/NearCntRBTreeNode.o",
+        f"{ZetaBuildDir}/mem_check_utils.o",
         {
             f"{File}",
-            f"{ZetaDir}/NearCntRBTreeNode.c",
+            f"{ZetaDir}/mem_check_utils.cpp",
         },
-        lambda : compiler.c_to_obj(
-            f"{ZetaBuildDir}/NearCntRBTreeNode.o",
-            f"{ZetaDir}/NearCntRBTreeNode.c",
-        )
-    )
-
-    builder.Add(
-        f"{ZetaDir}/NearRBTreeNode.h",
-        {
-            f"{File}",
-            f"{ZetaDir}/define.h",
-        },
-        None
-    )
-
-    builder.Add(
-        f"{ZetaDir}/NearRBTreeNode.c",
-        {
-            f"{File}",
-            f"{ZetaDir}/NearRBTreeNode.h",
-        },
-        None
-    )
-
-    builder.Add(
-        f"{ZetaBuildDir}/NearRBTreeNode.o",
-        {
-            f"{File}",
-            f"{ZetaDir}/NearRBTreeNode.c",
-        },
-        lambda : compiler.c_to_obj(
-            f"{ZetaBuildDir}/NearRBTreeNode.o",
-            f"{ZetaDir}/NearRBTreeNode.c",
+        lambda : compiler.cpp_to_obj(
+            f"{ZetaBuildDir}/mem_check_utils.o",
+            f"{ZetaDir}/mem_check_utils.cpp",
         )
     )
 
@@ -1917,7 +1765,7 @@ def AddDeps(builder: Builder, ZetaBuildDir: str, verbose: bool, mode: ModeEnum):
         {
             f"{File}",
             f"{ZetaDir}/allocator.h",
-            f"{ZetaDir}/memCheck.h",
+            f"{ZetaDir}/mem_check_utils.h",
             f"{ZetaDir}/ord_linked_list_node.h",
         },
         None
@@ -2161,6 +2009,8 @@ def main():
     AddDeps(builder, ZetaBuildDir, args.verbose, mode)
     builder.Add("all", builder.GetUnits(), None)
 
+    builder.Check()
+
     target = f"{ZetaBuildDir}/{args.target}"
 
     is_success, units = builder.Build(target, args.rebuild)
@@ -2172,7 +2022,7 @@ def main():
     for unit_state, units in units.items():
         print(termcolor.colored(f"{unit_state} build units:", "yellow"))
 
-        for i in units:
+        for i in sorted(units):
             print(f"\t{i}")
 
     print(termcolor.colored(f"target: ", "yellow") + f"{target}")
@@ -2183,7 +2033,7 @@ def main():
         return
 
     if args.run_target:
-        print(termcolor.colored(f"running: ", "yellow") + f"{target}")
+        print(termcolor.colored(f"Running: ", "yellow") + f"{target}")
         os.system(target)
 
 if __name__ == "__main__":

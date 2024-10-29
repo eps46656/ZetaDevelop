@@ -33,6 +33,9 @@ size_t Zeta_BinTree_GetSize(Zeta_BinTreeNodeOperator const* btn_opr, void* n);
 void Zeta_BinTree_SetSize(Zeta_BinTreeNodeOperator const* btn_opr, void* n,
                           size_t size);
 
+void Zeta_BinTree_SetDiffSize(Zeta_BinTreeNodeOperator const* btn_opr, void* n,
+                              size_t diff_size);
+
 void Zeta_BinTree_AttatchL(Zeta_BinTreeNodeOperator const* btn_opr, void* pos,
                            void* n);
 

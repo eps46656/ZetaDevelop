@@ -270,7 +270,7 @@ struct Zeta_SeqCntr {
 
     /**
      * @brief Get the distance from \p cursor_a to \p cursor_b. Concrete
-     *        sequential container can implement this function optionally.
+     *        container can implement this function optionally.
      *
      * @param context The context of the container.
      * @param cursor_a The first target cursor.

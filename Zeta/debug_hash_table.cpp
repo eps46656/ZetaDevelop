@@ -4,7 +4,6 @@
 #include <unordered_set>
 
 #include "debugger.h"
-#include "hash_table_utils.h"
 
 struct Pack {
     bool_t is_elem;

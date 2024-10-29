@@ -1,4 +1,5 @@
 #include "bin_tree.h"
+
 #include "debugger.h"
 #include "utils.h"
 
@@ -95,6 +96,14 @@ void Zeta_BinTree_SetSize(Zeta_BinTreeNodeOperator const* btn_opr, void* n,
     ZETA_DebugAssert(btn_opr->GetAccSize != NULL);
 
     AddDiffSize_(btn_opr, n, size - Zeta_BinTree_GetSize(btn_opr, n));
+}
+
+void Zeta_BinTree_SetDiffSize(Zeta_BinTreeNodeOperator const* btn_opr, void* n,
+                              size_t diff_size) {
+    ZETA_DebugAssert(btn_opr != NULL);
+    ZETA_DebugAssert(n != NULL);
+
+    AddDiffSize_(btn_opr, n, diff_size);
 }
 
 #define Attatch_(D)                                                       \

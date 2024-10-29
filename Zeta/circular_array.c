@@ -1,4 +1,5 @@
 #include "circular_array.h"
+
 #include "debugger.h"
 #include "utils.h"
 

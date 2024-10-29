@@ -1,5 +1,6 @@
-#include "debugger.h"
 #include "dynamic_hash_table.h"
+
+#include "debugger.h"
 #include "utils.h"
 
 #if ZETA_IsDebug

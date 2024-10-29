@@ -447,6 +447,9 @@ ZETA_StaticAssert(255 <= ZETA_RangeMaxOf(byte_t));
 #define ZETA_CallMemberFunc(obj, member_func, ...) \
     ZETA_CallMemberFunc_(ZETA_TmpName, obj, member_func, __VA_ARGS__)
 
+#define ZETA_LittleEndian (0)
+#define ZETA_BigEndian (1)
+
 typedef int (*Zeta_Compare)(void* context, void const* a, void const* b);
 
 typedef unsigned long long (*Zeta_Hash)(void* context, void const* a,

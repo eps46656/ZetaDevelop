@@ -55,6 +55,10 @@ size_t Zeta_LinSpaceAllocator_Allocate(void* lsa, size_t cnt);
 
 void Zeta_LinSpaceAllocator_Deallocate(void* lsa, size_t idx);
 
+size_t Zeta_LinSpaceAllocator_GetVacantSizeL(void* lsa);
+
+size_t Zeta_LinSpaceAllocator_GetVacantSizeR(void* lsa);
+
 void Zeta_LinSpaceAllocator_ExtendL(void* lsa, size_t cnt);
 
 void Zeta_LinSpaceAllocator_ExtendR(void* lsa, size_t cnt);
