@@ -11,7 +11,7 @@ static void Insertion_(unsigned char* data, size_t width, size_t stride,
     if (Compare(cmp_context, pre_data, data) <= 0) { return; }
 
     void* tmp =
-        __builtin_alloca_with_align(width, CHAR_BIT * alignof(max_align_t));
+        __builtin_alloca_with_align(width, __CHAR_BIT__ * alignof(max_align_t));
 
     Zeta_MemCopy(tmp, data, width);
 

@@ -50,7 +50,7 @@ void* Zeta_MemRotate(void* beg, void* mid, void* end);
 
 void Zeta_MemReverse(void* data, size_t stride, size_t size);
 
-unsigned long long Zeta_MemHash(void* data, size_t size);
+unsigned long long Zeta_MemHash(void const* data, size_t size);
 
 void Zeta_ElemCopy(void* dst, void const* src, size_t width, size_t stride,
                    size_t size);

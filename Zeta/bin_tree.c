@@ -128,6 +128,8 @@ void Zeta_BinTree_SetDiffSize(Zeta_BinTreeNodeOperator const* btn_opr, void* n,
     ZETA_DebugAssert(GetD(context, n) == NULL);                           \
     ZETA_DebugAssert(m == NULL || GetP(context, m) == NULL);              \
                                                                           \
+    if (m == NULL) { return; }                                            \
+                                                                          \
     SetD(context, n, m);                                                  \
     SetP(context, m, n);                                                  \
                                                                           \

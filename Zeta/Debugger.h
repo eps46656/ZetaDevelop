@@ -5,7 +5,7 @@
 
 ZETA_ExternC_Beg;
 
-extern Zeta_Pipe* debug_pipe;
+extern Zeta_Pipe* zeta_debug_pipe;
 
 extern bool_t zeta_assert_stage;
 
@@ -14,12 +14,12 @@ extern bool_t zeta_assert_stage;
 #define ZETA_DebugLogCurPos                        \
     Zeta_Debugger_InitPipe();                      \
     if (ZETA_Debug_ImmPrint) { ZETA_PrintCurPos; } \
-    ZETA_LogCurPos(debug_pipe)
+    ZETA_LogCurPos(zeta_debug_pipe)
 
 #define ZETA_DebugLogVar(var)                        \
     Zeta_Debugger_InitPipe();                        \
     if (ZETA_Debug_ImmPrint) { ZETA_PrintVar(var); } \
-    ZETA_LogVar(debug_pipe, var)
+    ZETA_LogVar(zeta_debug_pipe, var)
 
 #define ZETA_Pause                                              \
     {                                                           \

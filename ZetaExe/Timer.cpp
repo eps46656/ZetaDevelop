@@ -1,4 +1,4 @@
-#include "Timer.h"
+#include "timer.h"
 
 #if defined(__LINUX__)
 
@@ -11,7 +11,7 @@
 
 #else
 
-ZETA_StaticAssert(FALSE);
+#error "Unsupported machine."
 
 #endif
 

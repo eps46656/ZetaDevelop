@@ -37,8 +37,6 @@ void Zeta_DebugHashTable_Deinit(void* debug_ht);
 
 size_t Zeta_DebugHashTable_GetWidth(void* debug_ht);
 
-size_t Zeta_DebugHashTable_GetStride(void* debug_ht);
-
 size_t Zeta_DebugHashTable_GetSize(void* debug_ht);
 
 size_t Zeta_DebugHashTable_GetCapacity(void* debug_ht);
@@ -90,9 +88,5 @@ void Zeta_DebugHashTable_Cursor_StepR(void* debug_ht, void* cursor);
 
 void Zeta_DebugHashTable_DeployAssocCntr(void* debug_ht,
                                          Zeta_AssocCntr* assoc_cntr);
-
-// -----------------------------------------------------------------------------
-
-void Zeta_DebugHashTable_PtrSizePairInit(void* debug_ht);
 
 ZETA_ExternC_End;

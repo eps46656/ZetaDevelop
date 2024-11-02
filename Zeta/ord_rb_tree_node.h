@@ -28,4 +28,6 @@ void Zeta_OrdRBTreeNode_SetColor(void* context, void* n, int color);
 void Zeta_OrdRBTreeNode_DeployBinTreeNodeOperator(
     void* context, Zeta_BinTreeNodeOperator* btn_opr);
 
+extern Zeta_BinTreeNodeOperator const zeta_ord_rb_tree_node_opr;
+
 ZETA_ExternC_End;

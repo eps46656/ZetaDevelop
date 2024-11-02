@@ -21,20 +21,12 @@ struct Zeta_AssocCntr {
     size_t cursor_size;
 
     /**
-     * @brief The number of bytes occupied by element. Concrete container should
-     *        implement this function.
-     *
-     * @param context The context of the container.
-     */
-    size_t (*GetWidth)(void* context);
-
-    /**
      * @brief The byte offset of two adjacent elements in an element array.
      *        Concrete container should implement this function.
      *
      * @param context The context of the container.
      */
-    size_t (*GetStride)(void* context);
+    size_t (*GetWidth)(void* context);
 
     /**
      * @brief The number of element in the container. Concrete container should
@@ -218,7 +210,7 @@ void Zeta_AssocCntr_Init(Zeta_AssocCntr* assoc_cntr);
 #define ZETA_AssocCntr_AllocaCursor(assoc_cntr)                     \
     __builtin_alloca_with_align(                                    \
         ((Zeta_AssocCntr*)ZETA_ToVoidPtr(assoc_cntr))->cursor_size, \
-        CHAR_BIT * alignof(max_align_t))
+        __CHAR_BIT__ * alignof(max_align_t))
 
 #define ZETA_AssocCntr_Call_(assoc_cntr, member_func, ...)           \
     ZETA_CallMemberFunc((Zeta_AssocCntr*)ZETA_ToVoidPtr(assoc_cntr), \
@@ -226,9 +218,6 @@ void Zeta_AssocCntr_Init(Zeta_AssocCntr* assoc_cntr);
 
 #define ZETA_AssocCntr_GetWidth(assoc_cntr) \
     ZETA_AssocCntr_Call_((assoc_cntr), GetWidth)
-
-#define ZETA_AssocCntr_GetStride(assoc_cntr) \
-    ZETA_AssocCntr_Call_((assoc_cntr), GetStride)
 
 #define ZETA_AssocCntr_GetSize(assoc_cntr) \
     ZETA_AssocCntr_Call_((assoc_cntr), GetSize)

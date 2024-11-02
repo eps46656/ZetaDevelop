@@ -8,12 +8,9 @@ ZETA_DeclareStruct(Zeta_DummyVector);
 
 struct Zeta_DummyVector {
     size_t width;
-    size_t stride;
 };
 
 size_t Zeta_DummyVector_GetWidth(void* dv);
-
-size_t Zeta_DummyVector_GetStride(void* dv);
 
 size_t Zeta_DummyVector_GetSize(void* dv);
 

@@ -99,7 +99,7 @@ def AddDeps(builder: Builder, ZetaBuildDir: str, ZetaExeBuildDir: str, verbose: 
             f"{File}",
             f"{ZetaDir}/MultiLevelTable.h",
             f"{ZetaDir}/ord_linked_list_node.h",
-            f"{ZetaExeDir}/ZetaPoolallocator.h",
+            f"{ZetaExeDir}/zeta_pool_allocator.h",
         },
         None
     )
@@ -487,10 +487,10 @@ def AddDeps(builder: Builder, ZetaBuildDir: str, ZetaExeBuildDir: str, verbose: 
             f"{ZetaExeDir}/assoc_cntr_utils.h",
             f"{ZetaExeDir}/debug_hash_table_utils.h",
             f"{ZetaExeDir}/dynamic_hash_table_utils.h",
+            f"{ZetaExeDir}/pod_value.h",
             f"{ZetaExeDir}/random.h",
             f"{ZetaExeDir}/std_allocator.h",
-            f"{ZetaExeDir}/Timer.h",
-            f"{ZetaExeDir}/Value.h",
+            f"{ZetaExeDir}/timer.h",
         },
         None
     )
@@ -513,10 +513,9 @@ def AddDeps(builder: Builder, ZetaBuildDir: str, ZetaExeBuildDir: str, verbose: 
             f"{File}",
             f"{ZetaBuildDir}/assoc_cntr.o",
             f"{ZetaBuildDir}/bin_tree.o",
-            f"{ZetaBuildDir}/debugger.o",
             f"{ZetaBuildDir}/debug_hash_table.o",
-            f"{ZetaBuildDir}/debug_pipe.o",
             f"{ZetaBuildDir}/debug_str_pipe.o",
+            f"{ZetaBuildDir}/debugger.o",
             f"{ZetaBuildDir}/dynamic_hash_table.o",
             f"{ZetaBuildDir}/generic_hash_table.o",
             f"{ZetaBuildDir}/io.o",
@@ -526,7 +525,7 @@ def AddDeps(builder: Builder, ZetaBuildDir: str, ZetaExeBuildDir: str, verbose: 
             f"{ZetaBuildDir}/ord_rb_tree_node.o",
             f"{ZetaBuildDir}/rbtree.o",
             f"{ZetaBuildDir}/utils.o",
-            f"{ZetaExeBuildDir}/Timer.o",
+            f"{ZetaExeBuildDir}/timer.o",
             f"{ZetaExeBuildDir}/test_dht.o",
         },
         lambda : compiler.to_exe(
@@ -535,10 +534,9 @@ def AddDeps(builder: Builder, ZetaBuildDir: str, ZetaExeBuildDir: str, verbose: 
             {
                 f"{ZetaBuildDir}/assoc_cntr.o",
                 f"{ZetaBuildDir}/bin_tree.o",
-                f"{ZetaBuildDir}/debugger.o",
                 f"{ZetaBuildDir}/debug_hash_table.o",
-                f"{ZetaBuildDir}/debug_pipe.o",
                 f"{ZetaBuildDir}/debug_str_pipe.o",
+                f"{ZetaBuildDir}/debugger.o",
                 f"{ZetaBuildDir}/dynamic_hash_table.o",
                 f"{ZetaBuildDir}/generic_hash_table.o",
                 f"{ZetaBuildDir}/io.o",
@@ -548,7 +546,7 @@ def AddDeps(builder: Builder, ZetaBuildDir: str, ZetaExeBuildDir: str, verbose: 
                 f"{ZetaBuildDir}/ord_rb_tree_node.o",
                 f"{ZetaBuildDir}/rbtree.o",
                 f"{ZetaBuildDir}/utils.o",
-                f"{ZetaExeBuildDir}/Timer.o",
+                f"{ZetaExeBuildDir}/timer.o",
                 f"{ZetaExeBuildDir}/test_dht.o",
             }
         )
@@ -610,7 +608,6 @@ def AddDeps(builder: Builder, ZetaBuildDir: str, ZetaExeBuildDir: str, verbose: 
             f"{File}",
 
             f"{ZetaBuildDir}/debug_str_pipe.o",
-            f"{ZetaBuildDir}/debug_pipe.o",
             f"{ZetaBuildDir}/debugger.o",
             f"{ZetaBuildDir}/io.o",
             f"{ZetaBuildDir}/jump.o",
@@ -622,7 +619,6 @@ def AddDeps(builder: Builder, ZetaBuildDir: str, ZetaExeBuildDir: str, verbose: 
             f"{ZetaExeBuildDir}/test_jump.exe",
             {
                 f"{ZetaBuildDir}/debug_str_pipe.o",
-                f"{ZetaBuildDir}/debug_pipe.o",
                 f"{ZetaBuildDir}/debugger.o",
                 f"{ZetaBuildDir}/io.o",
                 f"{ZetaBuildDir}/jump.o",
@@ -664,7 +660,6 @@ def AddDeps(builder: Builder, ZetaBuildDir: str, ZetaExeBuildDir: str, verbose: 
             f"{ZetaBuildDir}/bin_tree.o",
             f"{ZetaBuildDir}/debug_hash_table.o",
             f"{ZetaBuildDir}/debug_str_pipe.o",
-            f"{ZetaBuildDir}/debug_pipe.o",
             f"{ZetaBuildDir}/debugger.o",
             f"{ZetaBuildDir}/io.o",
             f"{ZetaBuildDir}/logger.o",
@@ -682,7 +677,6 @@ def AddDeps(builder: Builder, ZetaBuildDir: str, ZetaExeBuildDir: str, verbose: 
                 f"{ZetaBuildDir}/bin_tree.o",
                 f"{ZetaBuildDir}/debug_hash_table.o",
                 f"{ZetaBuildDir}/debug_str_pipe.o",
-                f"{ZetaBuildDir}/debug_pipe.o",
                 f"{ZetaBuildDir}/debugger.o",
                 f"{ZetaBuildDir}/io.o",
                 f"{ZetaBuildDir}/logger.o",
@@ -742,7 +736,6 @@ def AddDeps(builder: Builder, ZetaBuildDir: str, ZetaExeBuildDir: str, verbose: 
             f"{File}",
 
             f"{ZetaBuildDir}/debugger.o",
-            f"{ZetaBuildDir}/debug_pipe.o",
             f"{ZetaBuildDir}/debug_str_pipe.o",
             f"{ZetaBuildDir}/logger.o",
             f"{ZetaBuildDir}/io.o",
@@ -755,7 +748,6 @@ def AddDeps(builder: Builder, ZetaBuildDir: str, ZetaExeBuildDir: str, verbose: 
             f"{ZetaExeBuildDir}/test_utf8.exe",
             {
                 f"{ZetaBuildDir}/debugger.o",
-                f"{ZetaBuildDir}/debug_pipe.o",
                 f"{ZetaBuildDir}/debug_str_pipe.o",
                 f"{ZetaBuildDir}/logger.o",
                 f"{ZetaBuildDir}/io.o",
@@ -800,7 +792,6 @@ def AddDeps(builder: Builder, ZetaBuildDir: str, ZetaExeBuildDir: str, verbose: 
             f"{File}",
 
             f"{ZetaBuildDir}/debugger.o",
-            f"{ZetaBuildDir}/debug_pipe.o",
             f"{ZetaBuildDir}/debug_str_pipe.o",
             f"{ZetaBuildDir}/logger.o",
             f"{ZetaBuildDir}/io.o",
@@ -813,7 +804,6 @@ def AddDeps(builder: Builder, ZetaBuildDir: str, ZetaExeBuildDir: str, verbose: 
             f"{ZetaExeBuildDir}/test_utf16.exe",
             {
                 f"{ZetaBuildDir}/debugger.o",
-                f"{ZetaBuildDir}/debug_pipe.o",
                 f"{ZetaBuildDir}/debug_str_pipe.o",
                 f"{ZetaBuildDir}/logger.o",
                 f"{ZetaBuildDir}/io.o",
@@ -857,7 +847,6 @@ def AddDeps(builder: Builder, ZetaBuildDir: str, ZetaExeBuildDir: str, verbose: 
             f"{ZetaBuildDir}/circular_array.o",
             f"{ZetaBuildDir}/debug_deque.o",
             f"{ZetaBuildDir}/debug_hash_table.o",
-            f"{ZetaBuildDir}/debug_pipe.o",
             f"{ZetaBuildDir}/rbtree.o",
             f"{ZetaBuildDir}/ord_cnt_rb_tree_node.o",
             f"{ZetaBuildDir}/utils.o",
@@ -872,7 +861,6 @@ def AddDeps(builder: Builder, ZetaBuildDir: str, ZetaExeBuildDir: str, verbose: 
                 f"{ZetaBuildDir}/circular_array.o",
                 f"{ZetaBuildDir}/debug_deque.o",
                 f"{ZetaBuildDir}/debug_hash_table.o",
-                f"{ZetaBuildDir}/debug_pipe.o",
                 f"{ZetaBuildDir}/rbtree.o",
                 f"{ZetaBuildDir}/ord_cnt_rb_tree_node.o",
                 f"{ZetaBuildDir}/utils.o",
@@ -913,7 +901,6 @@ def AddDeps(builder: Builder, ZetaBuildDir: str, ZetaExeBuildDir: str, verbose: 
             f"{ZetaBuildDir}/circular_array.o",
             f"{ZetaBuildDir}/debug_deque.o",
             f"{ZetaBuildDir}/debug_hash_table.o",
-            f"{ZetaBuildDir}/debug_pipe.o",
             f"{ZetaBuildDir}/ord_cnt_rb_tree_node.o",
             f"{ZetaBuildDir}/rbtree.o",
             f"{ZetaBuildDir}/SegVector.o",
@@ -928,7 +915,6 @@ def AddDeps(builder: Builder, ZetaBuildDir: str, ZetaExeBuildDir: str, verbose: 
                 f"{ZetaBuildDir}/circular_array.o",
                 f"{ZetaBuildDir}/debug_deque.o",
                 f"{ZetaBuildDir}/debug_hash_table.o",
-                f"{ZetaBuildDir}/debug_pipe.o",
                 f"{ZetaBuildDir}/ord_cnt_rb_tree_node.o",
                 f"{ZetaBuildDir}/rbtree.o",
                 f"{ZetaBuildDir}/SegVector.o",
@@ -971,7 +957,6 @@ def AddDeps(builder: Builder, ZetaBuildDir: str, ZetaExeBuildDir: str, verbose: 
             f"{ZetaBuildDir}/circular_array.o",
             f"{ZetaBuildDir}/debug_deque.o",
             f"{ZetaBuildDir}/debug_hash_table.o",
-            f"{ZetaBuildDir}/debug_pipe.o",
             f"{ZetaBuildDir}/rbtree.o",
             f"{ZetaBuildDir}/ord_cnt_rb_tree_node.o",
             f"{ZetaBuildDir}/utils.o",
@@ -986,7 +971,6 @@ def AddDeps(builder: Builder, ZetaBuildDir: str, ZetaExeBuildDir: str, verbose: 
                 f"{ZetaBuildDir}/circular_array.o",
                 f"{ZetaBuildDir}/debug_deque.o",
                 f"{ZetaBuildDir}/debug_hash_table.o",
-                f"{ZetaBuildDir}/debug_pipe.o",
                 f"{ZetaBuildDir}/rbtree.o",
                 f"{ZetaBuildDir}/ord_cnt_rb_tree_node.o",
                 f"{ZetaBuildDir}/utils.o",
@@ -1027,7 +1011,6 @@ def AddDeps(builder: Builder, ZetaBuildDir: str, ZetaExeBuildDir: str, verbose: 
             f"{ZetaBuildDir}/bin_tree.o",
             f"{ZetaBuildDir}/circular_array.o",
             f"{ZetaBuildDir}/debug_hash_table.o",
-            f"{ZetaBuildDir}/debug_pipe.o",
             f"{ZetaBuildDir}/rbtree.o",
             f"{ZetaBuildDir}/ord_cnt_rb_tree_node.o",
             f"{ZetaBuildDir}/utils.o",
@@ -1041,7 +1024,6 @@ def AddDeps(builder: Builder, ZetaBuildDir: str, ZetaExeBuildDir: str, verbose: 
                 f"{ZetaBuildDir}/bin_tree.o",
                 f"{ZetaBuildDir}/circular_array.o",
                 f"{ZetaBuildDir}/debug_hash_table.o",
-                f"{ZetaBuildDir}/debug_pipe.o",
                 f"{ZetaBuildDir}/rbtree.o",
                 f"{ZetaBuildDir}/ord_cnt_rb_tree_node.o",
                 f"{ZetaBuildDir}/utils.o",
@@ -1084,7 +1066,6 @@ def AddDeps(builder: Builder, ZetaBuildDir: str, ZetaExeBuildDir: str, verbose: 
             f"{ZetaBuildDir}/circular_array.o",
             f"{ZetaBuildDir}/debug_deque.o",
             f"{ZetaBuildDir}/debug_hash_table.o",
-            f"{ZetaBuildDir}/debug_pipe.o",
             f"{ZetaBuildDir}/rbtree.o",
             f"{ZetaBuildDir}/ord_cnt_rb_tree_node.o",
             f"{ZetaBuildDir}/SegVector.o",
@@ -1099,7 +1080,6 @@ def AddDeps(builder: Builder, ZetaBuildDir: str, ZetaExeBuildDir: str, verbose: 
                 f"{ZetaBuildDir}/circular_array.o",
                 f"{ZetaBuildDir}/debug_deque.o",
                 f"{ZetaBuildDir}/debug_hash_table.o",
-                f"{ZetaBuildDir}/debug_pipe.o",
                 f"{ZetaBuildDir}/rbtree.o",
                 f"{ZetaBuildDir}/ord_cnt_rb_tree_node.o",
                 f"{ZetaBuildDir}/SegVector.o",
@@ -1120,9 +1100,10 @@ def AddDeps(builder: Builder, ZetaBuildDir: str, ZetaExeBuildDir: str, verbose: 
             f"{ZetaExeDir}/circular_array_utils.h",
             f"{ZetaExeDir}/debug_deque_utils.h",
             f"{ZetaExeDir}/dynamic_vector_utils.h",
+            f"{ZetaExeDir}/pod_value.h",
             f"{ZetaExeDir}/seq_cntr_utils.h",
             f"{ZetaExeDir}/stage_vector_utils.h",
-            f"{ZetaExeDir}/Timer.h",
+            f"{ZetaExeDir}/timer.h",
         },
         None
     )
@@ -1161,7 +1142,6 @@ def AddDeps(builder: Builder, ZetaBuildDir: str, ZetaExeBuildDir: str, verbose: 
             f"{ZetaBuildDir}/circular_array.o",
             f"{ZetaBuildDir}/debug_deque.o",
             f"{ZetaBuildDir}/debug_hash_table.o",
-            f"{ZetaBuildDir}/debug_pipe.o",
             f"{ZetaBuildDir}/debug_str_pipe.o",
             f"{ZetaBuildDir}/debugger.o",
             f"{ZetaBuildDir}/dummy_vector.o",
@@ -1171,12 +1151,13 @@ def AddDeps(builder: Builder, ZetaBuildDir: str, ZetaExeBuildDir: str, verbose: 
             f"{ZetaBuildDir}/mem_check_utils.o",
             f"{ZetaBuildDir}/ord_cnt_3rb_tree_node.o",
             f"{ZetaBuildDir}/ord_cnt_rb_tree_node.o",
+            f"{ZetaBuildDir}/pool_allocator.o",
             f"{ZetaBuildDir}/rbtree.o",
             f"{ZetaBuildDir}/seg_utils.o",
             f"{ZetaBuildDir}/seq_cntr.o",
             f"{ZetaBuildDir}/stage_vector.o",
             f"{ZetaBuildDir}/utils.o",
-            f"{ZetaExeBuildDir}/Timer.o",
+            f"{ZetaExeBuildDir}/timer.o",
             f"{ZetaExeBuildDir}/test_stagevec.o",
         },
         lambda : compiler.to_exe(
@@ -1189,7 +1170,6 @@ def AddDeps(builder: Builder, ZetaBuildDir: str, ZetaExeBuildDir: str, verbose: 
                 f"{ZetaBuildDir}/circular_array.o",
                 f"{ZetaBuildDir}/debug_deque.o",
                 f"{ZetaBuildDir}/debug_hash_table.o",
-                f"{ZetaBuildDir}/debug_pipe.o",
                 f"{ZetaBuildDir}/debug_str_pipe.o",
                 f"{ZetaBuildDir}/debugger.o",
                 f"{ZetaBuildDir}/dummy_vector.o",
@@ -1199,12 +1179,13 @@ def AddDeps(builder: Builder, ZetaBuildDir: str, ZetaExeBuildDir: str, verbose: 
                 f"{ZetaBuildDir}/mem_check_utils.o",
                 f"{ZetaBuildDir}/ord_cnt_3rb_tree_node.o",
                 f"{ZetaBuildDir}/ord_cnt_rb_tree_node.o",
+                f"{ZetaBuildDir}/pool_allocator.o",
                 f"{ZetaBuildDir}/rbtree.o",
                 f"{ZetaBuildDir}/seg_utils.o",
                 f"{ZetaBuildDir}/seq_cntr.o",
                 f"{ZetaBuildDir}/stage_vector.o",
                 f"{ZetaBuildDir}/utils.o",
-                f"{ZetaExeBuildDir}/Timer.o",
+                f"{ZetaExeBuildDir}/timer.o",
                 f"{ZetaExeBuildDir}/test_stagevec.o",
             }
         )
@@ -1245,7 +1226,6 @@ def AddDeps(builder: Builder, ZetaBuildDir: str, ZetaExeBuildDir: str, verbose: 
             f"{ZetaBuildDir}/circular_array.o",
             f"{ZetaBuildDir}/debug_deque.o",
             f"{ZetaBuildDir}/debug_hash_table.o",
-            f"{ZetaBuildDir}/debug_pipe.o",
             f"{ZetaBuildDir}/debug_str_pipe.o",
             f"{ZetaBuildDir}/debugger.o",
             f"{ZetaBuildDir}/dummy_vector.o",
@@ -1268,7 +1248,6 @@ def AddDeps(builder: Builder, ZetaBuildDir: str, ZetaExeBuildDir: str, verbose: 
                 f"{ZetaBuildDir}/circular_array.o",
                 f"{ZetaBuildDir}/debug_deque.o",
                 f"{ZetaBuildDir}/debug_hash_table.o",
-                f"{ZetaBuildDir}/debug_pipe.o",
                 f"{ZetaBuildDir}/debug_str_pipe.o",
                 f"{ZetaBuildDir}/debugger.o",
                 f"{ZetaBuildDir}/dummy_vector.o",
@@ -1476,7 +1455,6 @@ def AddDeps(builder: Builder, ZetaBuildDir: str, ZetaExeBuildDir: str, verbose: 
             f"{ZetaBuildDir}/bin_tree.o",
             f"{ZetaBuildDir}/block_vector.o",
             f"{ZetaBuildDir}/debug_hash_table.o",
-            f"{ZetaBuildDir}/debug_pipe.o",
             f"{ZetaBuildDir}/dummy_block_vector.o",
             f"{ZetaBuildDir}/dummy_cache_manager.o",
             f"{ZetaBuildDir}/lru_cache_manager.o",
@@ -1495,7 +1473,6 @@ def AddDeps(builder: Builder, ZetaBuildDir: str, ZetaExeBuildDir: str, verbose: 
                 f"{ZetaBuildDir}/bin_tree.o",
                 f"{ZetaBuildDir}/block_vector.o",
                 f"{ZetaBuildDir}/debug_hash_table.o",
-                f"{ZetaBuildDir}/debug_pipe.o",
                 f"{ZetaBuildDir}/dummy_block_vector.o",
                 f"{ZetaBuildDir}/dummy_cache_manager.o",
                 f"{ZetaBuildDir}/lru_cache_manager.o",
@@ -1553,7 +1530,7 @@ def AddDeps(builder: Builder, ZetaBuildDir: str, ZetaExeBuildDir: str, verbose: 
             f"{ZetaBuildDir}/io.o",
             f"{ZetaBuildDir}/utils.o",
 
-            f"{ZetaExeBuildDir}/Timer.o",
+            f"{ZetaExeBuildDir}/timer.o",
 
             f"{ZetaExeBuildDir}/test_sort.o",
         },
@@ -1567,7 +1544,7 @@ def AddDeps(builder: Builder, ZetaBuildDir: str, ZetaExeBuildDir: str, verbose: 
                 f"{ZetaBuildDir}/io.o",
                 f"{ZetaBuildDir}/utils.o",
 
-                f"{ZetaExeBuildDir}/Timer.o",
+                f"{ZetaExeBuildDir}/timer.o",
 
                 f"{ZetaExeBuildDir}/test_sort.o",
             }
@@ -1665,7 +1642,6 @@ def AddDeps(builder: Builder, ZetaBuildDir: str, ZetaExeBuildDir: str, verbose: 
 
             f"{ZetaBuildDir}/allocator.o",
             f"{ZetaBuildDir}/bin_tree.o",
-            f"{ZetaBuildDir}/debug_pipe.o",
             f"{ZetaBuildDir}/debug_str_pipe.o",
             f"{ZetaBuildDir}/debugger.o",
             f"{ZetaBuildDir}/io.o",
@@ -1683,7 +1659,6 @@ def AddDeps(builder: Builder, ZetaBuildDir: str, ZetaExeBuildDir: str, verbose: 
             {
                 f"{ZetaBuildDir}/allocator.o",
                 f"{ZetaBuildDir}/bin_tree.o",
-                f"{ZetaBuildDir}/debug_pipe.o",
                 f"{ZetaBuildDir}/debug_str_pipe.o",
                 f"{ZetaBuildDir}/debugger.o",
                 f"{ZetaBuildDir}/io.o",
@@ -1754,7 +1729,7 @@ def AddDeps(builder: Builder, ZetaBuildDir: str, ZetaExeBuildDir: str, verbose: 
             f"{File}",
             f"{ZetaDir}/MultiLevelTable.h",
             f"{ZetaExeDir}/cpp_std_allocator.h",
-            f"{ZetaExeDir}/ZetaPoolallocator.h",
+            f"{ZetaExeDir}/zeta_pool_allocator.h",
         },
         None
     )
@@ -2008,7 +1983,6 @@ def AddDeps(builder: Builder, ZetaBuildDir: str, ZetaExeBuildDir: str, verbose: 
             f"{ZetaBuildDir}/logger.o",
             f"{ZetaBuildDir}/debugger.o",
             f"{ZetaBuildDir}/debug_str_pipe.o",
-            f"{ZetaBuildDir}/debug_pipe.o",
             f"{ZetaBuildDir}/io.o",
             f"{ZetaBuildDir}/rbtree.o",
             f"{ZetaBuildDir}/ord_cnt_rb_tree_node.o",
@@ -2024,7 +1998,6 @@ def AddDeps(builder: Builder, ZetaBuildDir: str, ZetaExeBuildDir: str, verbose: 
                 f"{ZetaBuildDir}/bin_tree.o",
                 f"{ZetaBuildDir}/debugger.o",
                 f"{ZetaBuildDir}/debug_str_pipe.o",
-                f"{ZetaBuildDir}/debug_pipe.o",
                 f"{ZetaBuildDir}/io.o",
                 f"{ZetaBuildDir}/logger.o",
                 f"{ZetaBuildDir}/rbtree.o",
@@ -2082,7 +2055,7 @@ def AddDeps(builder: Builder, ZetaBuildDir: str, ZetaExeBuildDir: str, verbose: 
     )
 
     builder.Add(
-        f"{ZetaExeDir}/Timer.h",
+        f"{ZetaExeDir}/timer.h",
         {
             f"{File}",
         },
@@ -2090,28 +2063,28 @@ def AddDeps(builder: Builder, ZetaBuildDir: str, ZetaExeBuildDir: str, verbose: 
     )
 
     builder.Add(
-        f"{ZetaExeDir}/Timer.cpp",
+        f"{ZetaExeDir}/timer.cpp",
         {
             f"{File}",
-            f"{ZetaExeDir}/Timer.h",
+            f"{ZetaExeDir}/timer.h",
         },
         None
     )
 
     builder.Add(
-        f"{ZetaExeBuildDir}/Timer.o",
+        f"{ZetaExeBuildDir}/timer.o",
         {
             f"{File}",
-            f"{ZetaExeDir}/Timer.h",
+            f"{ZetaExeDir}/timer.h",
         },
         lambda : compiler.cpp_to_obj(
-            f"{ZetaExeBuildDir}/Timer.o",
-            f"{ZetaExeDir}/Timer.cpp",
+            f"{ZetaExeBuildDir}/timer.o",
+            f"{ZetaExeDir}/timer.cpp",
         )
     )
 
     builder.Add(
-        f"{ZetaExeDir}/Value.h",
+        f"{ZetaExeDir}/pod_value.h",
         {
             f"{File}",
         },
@@ -2119,28 +2092,28 @@ def AddDeps(builder: Builder, ZetaBuildDir: str, ZetaExeBuildDir: str, verbose: 
     )
 
     builder.Add(
-        f"{ZetaExeDir}/Value.cpp",
+        f"{ZetaExeDir}/pod_value.cpp",
         {
             f"{File}",
-            f"{ZetaExeDir}/Value.h",
+            f"{ZetaExeDir}/pod_value.h",
         },
         None
     )
 
     builder.Add(
-        f"{ZetaExeBuildDir}/Value.o",
+        f"{ZetaExeBuildDir}/pod_value.o",
         {
             f"{File}",
-            f"{ZetaExeDir}/Value.h",
+            f"{ZetaExeDir}/pod_value.h",
         },
         lambda : compiler.cpp_to_obj(
-            f"{ZetaExeBuildDir}/Value.o",
-            f"{ZetaExeDir}/Value.cpp",
+            f"{ZetaExeBuildDir}/pod_value.o",
+            f"{ZetaExeDir}/pod_value.cpp",
         )
     )
 
     builder.Add(
-        f"{ZetaExeDir}/ZetaPoolallocator.h",
+        f"{ZetaExeDir}/zeta_pool_allocator.h",
         {
             f"{ZetaDir}/allocator.h",
         },

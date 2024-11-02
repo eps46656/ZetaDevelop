@@ -1,5 +1,6 @@
-#include "debugger.h"
 #include "seg_utils.h"
+
+#include "debugger.h"
 #include "utils.h"
 
 void SegShoveL(Zeta_CircularArray* l_ca, Zeta_CircularArray* r_ca,
@@ -8,7 +9,6 @@ void SegShoveL(Zeta_CircularArray* l_ca, Zeta_CircularArray* r_ca,
     ZETA_DebugAssert(r_ca != NULL);
 
     ZETA_DebugAssert(l_ca->width == r_ca->width);
-    ZETA_DebugAssert(l_ca->stride == r_ca->stride);
 
     ZETA_DebugAssert(shove_cnt <= l_ca->capacity - l_ca->size);
     ZETA_DebugAssert(shove_cnt <= r_ca->size + ins_cnt);
@@ -46,7 +46,6 @@ void SegShoveR(Zeta_CircularArray* l_ca, Zeta_CircularArray* r_ca,
     ZETA_DebugAssert(r_ca != NULL);
 
     ZETA_DebugAssert(l_ca->width == r_ca->width);
-    ZETA_DebugAssert(l_ca->stride == r_ca->stride);
 
     ZETA_DebugAssert(r_ca->size + shove_cnt <= r_ca->capacity);
     ZETA_DebugAssert(shove_cnt <= l_ca->size + ins_cnt);

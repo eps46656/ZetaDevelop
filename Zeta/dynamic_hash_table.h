@@ -16,7 +16,7 @@ ZETA_DeclareStruct(Zeta_DynamicHashTable_Cursor);
 
 struct Zeta_DynamicHashTable {
     size_t width;
-    size_t stride;
+    size_t width;
 
     Zeta_OrdLinkedListNode* lln;
 
@@ -61,7 +61,7 @@ void Zeta_DynamicHashTable_Deinit(void* dht);
 
 size_t Zeta_DynamicHashTable_GetWidth(void* dht);
 
-size_t Zeta_DynamicHashTable_GetStride(void* dht);
+size_t Zeta_DynamicHashTable_GetWidth(void* dht);
 
 size_t Zeta_DynamicHashTable_GetSize(void* dht);
 

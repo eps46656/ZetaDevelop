@@ -4,7 +4,7 @@
 
 ZETA_ExternC_Beg;
 
-ZETA_StaticAssert(32 <= CHAR_BIT * sizeof(size_t));
+ZETA_StaticAssert(32 <= __CHAR_BIT__ * sizeof(size_t));
 
 ZETA_DeclareStruct(Zeta_LCGRandomGenerator);
 

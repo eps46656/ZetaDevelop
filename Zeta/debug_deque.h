@@ -9,7 +9,6 @@ ZETA_DeclareStruct(Zeta_DebugDeque);
 struct Zeta_DebugDeque {
     void* deque;
     size_t width;
-    size_t stride;
 };
 
 void Zeta_DebugDeque_Init(void* dd);
@@ -17,8 +16,6 @@ void Zeta_DebugDeque_Init(void* dd);
 void Zeta_DebugDeque_Deinit(void* dd);
 
 size_t Zeta_DebugDeque_GetWidth(void* dd);
-
-size_t Zeta_DebugDeque_GetStride(void* dd);
 
 size_t Zeta_DebugDeque_GetSize(void* dd);
 

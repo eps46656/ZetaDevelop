@@ -81,13 +81,6 @@ size_t Zeta_DebugHashTable_GetWidth(void* debug_ht_) {
     return debug_ht->width;
 }
 
-size_t Zeta_DebugHashTable_GetStride(void* debug_ht_) {
-    Zeta_DebugHashTable* debug_ht = (Zeta_DebugHashTable*)debug_ht_;
-    ZETA_DebugAssert(debug_ht != NULL);
-
-    return debug_ht->width;
-}
-
 size_t Zeta_DebugHashTable_GetSize(void* debug_ht_) {
     Zeta_DebugHashTable* debug_ht = (Zeta_DebugHashTable*)debug_ht_;
     ZETA_DebugAssert(debug_ht != NULL);
@@ -274,8 +267,6 @@ void Zeta_DebugHashTable_DeployAssocCntr(void* debug_ht_,
 
     assoc_cntr->GetWidth = Zeta_DebugHashTable_GetWidth;
 
-    assoc_cntr->GetStride = Zeta_DebugHashTable_GetStride;
-
     assoc_cntr->GetSize = Zeta_DebugHashTable_GetSize;
 
     assoc_cntr->GetCapacity = Zeta_DebugHashTable_GetCapacity;
@@ -299,22 +290,4 @@ void Zeta_DebugHashTable_DeployAssocCntr(void* debug_ht_,
     assoc_cntr->Cursor_StepL = Zeta_DebugHashTable_Cursor_StepL;
 
     assoc_cntr->Cursor_StepR = Zeta_DebugHashTable_Cursor_StepR;
-}
-
-void Zeta_DebugHashTable_PtrSizePairInit(void* debug_ht_) {
-    Zeta_DebugHashTable* debug_ht = (Zeta_DebugHashTable*)debug_ht_;
-    ZETA_DebugAssert(debug_ht != NULL);
-
-    debug_ht->width = sizeof(Zeta_PtrSizePair);
-
-    debug_ht->elem_hash_context = NULL;
-    debug_ht->ElemHash = Zeta_PtrSizePair_Hash;
-
-    debug_ht->elem_cmp_context = NULL;
-    debug_ht->ElemCompare = Zeta_PtrSizePair_Compare;
-
-    debug_ht->elem_key_cmp_context = NULL;
-    debug_ht->ElemKeyCompare = Zeta_PtrSizePair_PtrCompare;
-
-    Zeta_DebugHashTable_Init(debug_ht);
 }

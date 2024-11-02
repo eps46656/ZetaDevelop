@@ -7,7 +7,7 @@ void Zeta_LCGRandomGenerator_Set(void* lcgrg_, size_t seed) {
     size_t c;
     size_t m;
 
-    if (48 <= CHAR_BIT * sizeof(size_t)) {
+    if (48 <= __CHAR_BIT__ * sizeof(size_t)) {
         a = 25214903917;
         c = 11;
         m = 281474976710656;

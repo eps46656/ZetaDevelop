@@ -14,8 +14,6 @@ void Zeta_SeqCntr_Init(Zeta_SeqCntr* seq_cntr) {
 
     seq_cntr->GetWidth = NULL;
 
-    seq_cntr->GetStride = NULL;
-
     seq_cntr->GetSize = NULL;
 
     seq_cntr->GetCapacity = NULL;
@@ -75,18 +73,15 @@ void Zeta_SeqCntr_Assign(Zeta_SeqCntr* dst_seq_cntr,
     ZETA_DebugAssert(ZETA_SeqCntr_GetWidth(dst_seq_cntr) ==
                      ZETA_SeqCntr_GetWidth(src_seq_cntr));
 
-    ZETA_DebugAssert(ZETA_SeqCntr_GetStride(dst_seq_cntr) ==
-                     ZETA_SeqCntr_GetStride(src_seq_cntr));
-
-    size_t stride = ZETA_SeqCntr_GetStride(dst_seq_cntr);
+    size_t width = ZETA_SeqCntr_GetWidth(dst_seq_cntr);
 
     size_t prefer_buffer_capacity = sizeof(void*) * 64;
 
     size_t buffer_capacity =
-        ZETA_GetMaxOf(1, ZETA_CeilIntDiv(prefer_buffer_capacity, stride));
+        ZETA_GetMaxOf(1, ZETA_CeilIntDiv(prefer_buffer_capacity, width));
 
-    void* buffer = __builtin_alloca_with_align(stride * buffer_capacity,
-                                               CHAR_BIT * alignof(max_align_t));
+    void* buffer = __builtin_alloca_with_align(
+        width * buffer_capacity, __CHAR_BIT__ * alignof(max_align_t));
 
     size_t size = ZETA_SeqCntr_GetSize(src_seq_cntr);
     Zeta_SeqCntr_ResizeR(dst_seq_cntr, size);
@@ -133,54 +128,3 @@ void Zeta_SeqCntr_ResizeR(Zeta_SeqCntr* seq_cntr, size_t size) {
         ZETA_SeqCntr_PopR(seq_cntr, origin_size - size);
     }
 }
-
-/*
-ZETA_DeclareStruct(ReadToMemContext);
-
-static void ReadToMem_(void* dst_, void const* elem, size_t width,
-                       size_t stride, size_t size) {
-    void** dst = (void**)dst_;
-    Zeta_ElemCopy(*dst, elem, width, stride, size);
-    *dst = *dst + stride * size;
-}
-
-void Zeta_SeqCntr_ReadToMem_Raw(
-    void* seq_cntr_context,
-    ZETA_TypeOf(((Zeta_SeqCntr*)(NULL))->Read) Read, void* pos_cursor,
-    size_t cnt, void* dst, void* dst_cursor) {
-    Read(seq_cntr_context, pos_cursor, cnt, &dst, ReadToMem_, dst_cursor);
-}
-
-void Zeta_SeqCntr_ReadToMem(Zeta_SeqCntr* seq_cntr, void* pos_cursor,
-                                 size_t cnt, void* dst, void* dst_cursor) {
-    ZETA_DebugAssert(seq_cntr != NULL);
-    ZETA_DebugAssert(cnt == 0 || dst != NULL);
-
-    ZETA_SeqCntr_Read(seq_cntr, pos_cursor, cnt, &dst, ReadToMem_,
-                           dst_cursor);
-}
-
-static void WriteFromMem_(void* src_, void* elem, size_t width, size_t stride,
-                          size_t size) {
-    void const** src = src_;
-    Zeta_ElemCopy(elem, *src, width, stride, size);
-    *src = *src + stride * size;
-}
-
-void Zeta_SeqCntr_WriteFromMem_Raw(
-    void* seq_cntr_context,
-    ZETA_TypeOf(((Zeta_SeqCntr*)(NULL))->Write) Write, void* pos_cursor,
-    size_t cnt, void const* src, void* dst_cursor) {
-    Write(seq_cntr_context, pos_cursor, cnt, &src, WriteFromMem_, dst_cursor);
-}
-
-void Zeta_SeqCntr_WriteFromMem(Zeta_SeqCntr* seq_cntr,
-                                    void* pos_cursor, size_t cnt,
-                                    void const* src, void* dst_cursor) {
-    ZETA_DebugAssert(seq_cntr != NULL);
-    ZETA_DebugAssert(cnt == 0 || src != NULL);
-
-    ZETA_SeqCntr_Write(seq_cntr, pos_cursor, cnt, &src, WriteFromMem_,
-                            dst_cursor);
-}
-*/

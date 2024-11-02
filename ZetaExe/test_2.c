@@ -66,7 +66,7 @@ void main3() {
 
     double max_k_err = 0;
 
-    for (double x = 0; x <= 1024; x += 0.0001) {
+    for (double x = 0; x <= 1024 * 16; x += 0.0001) {
         double zetay = Zeta_FixedPointSqrt(x * base) / base;
 
         // double stdy = pow(2, x);
@@ -90,7 +90,7 @@ void main3() {
 
 int main() {
     printf("main start\n");
-    main1();
+    main2();
     printf("ok\n");
     return 0;
 }

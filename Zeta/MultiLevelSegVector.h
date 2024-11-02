@@ -69,7 +69,7 @@ size_t Zeta_MultiLevelSegVector_GetWidth(void* dv);
 /**
  * @brief Get the width(byte) of an element occupying.
  */
-size_t Zeta_MultiLevelSegVector_GetStride(void* dv);
+size_t Zeta_MultiLevelSegVector_GetWidth(void* dv);
 
 /**
  * @brief Get the number of elements.

@@ -24,7 +24,7 @@ static unsigned long long GHTNodeHash_(void* dht_, void const* htn,
 
     void const* elem = (unsigned char*)ZETA_MemberToStruct(
                            Zeta_DynamicHashTable_Node, htn, htn) -
-                       dht->stride;
+                       dht->width;
 
     return dht->ElemHash(dht->elem_hash_context, elem, salt);
 }
@@ -41,11 +41,11 @@ static int GHTNodeCompare_(void* dht_, void const* htn_a, void const* htn_b) {
 
     void const* elem_a = (unsigned char*)ZETA_MemberToStruct(
                              Zeta_DynamicHashTable_Node, htn, htn_a) -
-                         dht->stride;
+                         dht->width;
 
     void const* elem_b = (unsigned char*)ZETA_MemberToStruct(
                              Zeta_DynamicHashTable_Node, htn, htn_b) -
-                         dht->stride;
+                         dht->width;
 
     return dht->ElemCompare(dht->elem_cmp_context, elem_a, elem_b);
 }
@@ -55,7 +55,7 @@ static int GHTNodeKeyCompare_(void* dht_, void const* htn, void const* key) {
 
     void const* elem = (unsigned char*)ZETA_MemberToStruct(
                            Zeta_DynamicHashTable_Node, htn, htn) -
-                       dht->stride;
+                       dht->width;
 
     return dht->ElemKeyCompare(dht->elem_key_cmp_context, elem, key);
 }
@@ -65,14 +65,13 @@ void Zeta_DynamicHashTable_Init(void* dht_) {
     ZETA_DebugAssert(dht != NULL);
 
     size_t width = dht->width;
-    size_t stride = dht->stride;
+    size_t width = dht->width;
 
     ZETA_DebugAssert(0 < width);
-    ZETA_DebugAssert(width <= stride);
 
-    dht->stride = stride = (stride + alignof(Zeta_DynamicHashTable_Node) - 1) /
-                           alignof(Zeta_DynamicHashTable_Node) *
-                           alignof(Zeta_DynamicHashTable_Node);
+    dht->width = width = (width + alignof(Zeta_DynamicHashTable_Node) - 1) /
+                         alignof(Zeta_DynamicHashTable_Node) *
+                         alignof(Zeta_DynamicHashTable_Node);
 
     ZETA_DebugAssert(dht->ElemHash != NULL);
     ZETA_DebugAssert(dht->KeyHash != NULL);
@@ -125,7 +124,7 @@ void Zeta_DynamicHashTable_Deinit(void* dht_) {
         Zeta_OrdLinkedListNode_Extract(nxt_lln);
 
         ZETA_Allocator_Deallocate(dht->node_allocator,
-                                  (unsigned char*)nxt_node - dht->stride);
+                                  (unsigned char*)nxt_node - dht->width);
     }
 
     ZETA_Allocator_Deallocate(dht->node_allocator, dht->lln);
@@ -136,13 +135,6 @@ size_t Zeta_DynamicHashTable_GetWidth(void* dht_) {
     CheckDHT_(dht);
 
     return dht->width;
-}
-
-size_t Zeta_DynamicHashTable_GetStride(void* dht_) {
-    Zeta_DynamicHashTable* dht = dht_;
-    CheckDHT_(dht);
-
-    return dht->stride;
 }
 
 size_t Zeta_DynamicHashTable_GetSize(void* dht_) {
@@ -200,7 +192,7 @@ void* Zeta_DynamicHashTable_PeekL(void* dht_, void* dst_cursor_) {
 
     return (unsigned char*)ZETA_MemberToStruct(Zeta_DynamicHashTable_Node, lln,
                                                cursor.lln) -
-           dht->stride;
+           dht->width;
 }
 
 void* Zeta_DynamicHashTable_PeekR(void* dht_, void* dst_cursor_) {
@@ -222,7 +214,7 @@ void* Zeta_DynamicHashTable_PeekR(void* dht_, void* dst_cursor_) {
                ? NULL
                : (unsigned char*)ZETA_MemberToStruct(Zeta_DynamicHashTable_Node,
                                                      lln, cursor.lln) -
-                     dht->stride;
+                     dht->width;
 }
 
 void* Zeta_DynamicHashTable_Refer(void* dht_, void const* pos_cursor_) {
@@ -235,7 +227,7 @@ void* Zeta_DynamicHashTable_Refer(void* dht_, void const* pos_cursor_) {
                ? NULL
                : (unsigned char*)ZETA_MemberToStruct(Zeta_DynamicHashTable_Node,
                                                      lln, pos_cursor->lln) -
-                     dht->stride;
+                     dht->width;
 }
 
 void* Zeta_DynamicHashTable_Find(void* dht_, void const* key,
@@ -266,7 +258,7 @@ void* Zeta_DynamicHashTable_Find(void* dht_, void const* key,
         dst_cursor->lln = &node->lln;
     }
 
-    return (unsigned char*)node - dht->stride;
+    return (unsigned char*)node - dht->width;
 }
 
 void* Zeta_DynamicHashTable_Insert(void* dht_, void const* elem,
@@ -281,14 +273,14 @@ void* Zeta_DynamicHashTable_Insert(void* dht_, void const* elem,
     Zeta_DynamicHashTable_Node* node =
         (void*)((unsigned char*)ZETA_Allocator_SafeAllocate(
                     dht->node_allocator, alignof(Zeta_DynamicHashTable_Node*),
-                    dht->stride + sizeof(Zeta_DynamicHashTable_Node)) +
-                dht->stride);
+                    dht->width + sizeof(Zeta_DynamicHashTable_Node)) +
+                dht->width);
 
     Zeta_OrdLinkedListNode_Init(&node->lln);
 
     Zeta_OrdRBTreeNode_Init(NULL, &node->htn.n);
 
-    Zeta_MemCopy((unsigned char*)node - dht->stride, elem, dht->width);
+    Zeta_MemCopy((unsigned char*)node - dht->width, elem, dht->width);
 
     Zeta_GenericHashTable_Insert(&dht->ght, &node->htn);
 
@@ -299,7 +291,7 @@ void* Zeta_DynamicHashTable_Insert(void* dht_, void const* elem,
         dst_cursor->lln = &node->lln;
     }
 
-    return (unsigned char*)node - dht->stride;
+    return (unsigned char*)node - dht->width;
 }
 
 void Zeta_DynamicHashTable_Erase(void* dht_, void* pos_cursor_) {
@@ -322,7 +314,7 @@ void Zeta_DynamicHashTable_Erase(void* dht_, void* pos_cursor_) {
     Zeta_GenericHashTable_Erase(&dht->ght, &node->htn);
 
     ZETA_Allocator_Deallocate(dht->node_allocator,
-                              (unsigned char*)node - dht->stride);
+                              (unsigned char*)node - dht->width);
 }
 
 void Zeta_DynamicHashTable_EraseAll(void* dht_) {
@@ -340,7 +332,7 @@ void Zeta_DynamicHashTable_EraseAll(void* dht_) {
         Zeta_OrdLinkedListNode_Extract(nxt_lln);
 
         ZETA_Allocator_Deallocate(dht->node_allocator,
-                                  (unsigned char*)nxt_node - dht->stride);
+                                  (unsigned char*)nxt_node - dht->width);
     }
 }
 
@@ -356,12 +348,10 @@ void Zeta_DynamicHashTable_Check(void* dht_) {
     ZETA_DebugAssert(dht != NULL);
 
     size_t width = dht->width;
-    size_t stride = dht->stride;
 
     ZETA_DebugAssert(0 < width);
-    ZETA_DebugAssert(width <= stride);
 
-    ZETA_DebugAssert(stride % alignof(Zeta_DynamicHashTable_Node) == 0);
+    ZETA_DebugAssert(width % alignof(Zeta_DynamicHashTable_Node) == 0);
 
     ZETA_DebugAssert(dht->ElemHash != NULL);
     ZETA_DebugAssert(dht->KeyHash != NULL);
@@ -399,8 +389,8 @@ void Zeta_DynamicHashTable_Sanitize(void* dht_, Zeta_MemRecorder* dst_table,
             ZETA_MemberToStruct(Zeta_DynamicHashTable_Node, lln, lln);
 
         Zeta_MemRecorder_Record(
-            dst_node, (unsigned char*)node - dht->stride,
-            dht->stride + sizeof(Zeta_DynamicHashTable_Node));
+            dst_node, (unsigned char*)node - dht->width,
+            dht->width + sizeof(Zeta_DynamicHashTable_Node));
 
         ZETA_DebugAssert(Zeta_MemRecorder_Unrecord(htn_records, &node->htn));
     }
@@ -470,8 +460,6 @@ void Zeta_DynamicHashTable_DeployAssocCntr(void* dht_,
     assoc_cntr->cursor_size = sizeof(Zeta_DynamicHashTable_Cursor);
 
     assoc_cntr->GetWidth = Zeta_DynamicHashTable_GetWidth;
-
-    assoc_cntr->GetStride = Zeta_DynamicHashTable_GetStride;
 
     assoc_cntr->GetSize = Zeta_DynamicHashTable_GetSize;
 

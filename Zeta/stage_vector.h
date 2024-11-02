@@ -12,8 +12,8 @@ ZETA_DeclareStruct(Zeta_StageVector_Seg);
 ZETA_DeclareStruct(Zeta_StageVector_Cursor);
 ZETA_DeclareStruct(Zeta_StageVector_Stats);
 
-#define ZETA_StageVector_ref_color (0)
-#define ZETA_StageVector_dat_color (1)
+#define ZETA_StageVector_ref_color (1)
+#define ZETA_StageVector_dat_color (2)
 
 struct Zeta_StageVector {
     /** The maximum number of elements in a segment. */
@@ -68,8 +68,6 @@ void Zeta_StageVector_Deinit(void* sv);
 
 size_t Zeta_StageVector_GetWidth(void* sv);
 
-size_t Zeta_StageVector_GetStride(void* sv);
-
 size_t Zeta_StageVector_GetSize(void* sv);
 
 size_t Zeta_StageVector_GetCapacity(void* sv);
@@ -112,6 +110,10 @@ void Zeta_StageVector_Erase(void* sv, void* pos_cursor, size_t cnt);
 void Zeta_StageVector_EraseAll(void* sv);
 
 void Zeta_StageVector_Reset(void* sv);
+
+void Zeta_StageVector_AssignFromStageVector(void* sv, void* src_sv);
+
+void Zeta_StageVector_Collapse(void* sv);
 
 void Zeta_StageVector_Check(void* sv);
 

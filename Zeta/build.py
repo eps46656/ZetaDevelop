@@ -434,37 +434,6 @@ def AddDeps(builder: Builder, ZetaBuildDir: str, verbose: bool, mode: ModeEnum):
     )
 
     builder.Add(
-        f"{ZetaDir}/debug_pipe.h",
-        {
-            f"{File}",
-            f"{ZetaDir}/seq_cntr.h",
-        },
-        None
-    )
-
-    builder.Add(
-        f"{ZetaDir}/debug_pipe.cpp",
-        {
-            f"{File}",
-            f"{ZetaDir}/debug_pipe.h",
-            f"{ZetaDir}/debugger.h",
-        },
-        None
-    )
-
-    builder.Add(
-        f"{ZetaBuildDir}/debug_pipe.o",
-        {
-            f"{File}",
-            f"{ZetaDir}/debug_pipe.cpp",
-        },
-        lambda : compiler.cpp_to_obj(
-            f"{ZetaBuildDir}/debug_pipe.o",
-            f"{ZetaDir}/debug_pipe.cpp",
-        )
-    )
-
-    builder.Add(
         f"{ZetaDir}/debug_str_pipe.h",
         {
             f"{File}",
@@ -1124,7 +1093,6 @@ def AddDeps(builder: Builder, ZetaBuildDir: str, verbose: bool, mode: ModeEnum):
             f"{ZetaDir}/allocator.h",
             f"{ZetaDir}/block_vector.h",
             f"{ZetaDir}/cache_manager.h",
-            f"{ZetaDir}/debug_pipe.h",
             f"{ZetaDir}/ord_bin_tree_node.h",
             f"{ZetaDir}/ord_linked_list_node.h",
             f"{ZetaDir}/ord_rb_tree_node.h",
@@ -1182,11 +1150,15 @@ def AddDeps(builder: Builder, ZetaBuildDir: str, verbose: bool, mode: ModeEnum):
         f"{ZetaBuildDir}/mem_check_utils.o",
         {
             f"{File}",
-            f"{ZetaDir}/mem_check_utils.cpp",
+            f"{ZetaDir}/mem_check_utils.cpp"
+                if mode == ModeEnum.DEBUG
+                else f"{ZetaDir}/null.c",
         },
         lambda : compiler.cpp_to_obj(
             f"{ZetaBuildDir}/mem_check_utils.o",
-            f"{ZetaDir}/mem_check_utils.cpp",
+            f"{ZetaDir}/mem_check_utils.cpp"
+                if mode == ModeEnum.DEBUG
+                else f"{ZetaDir}/null.c",
         )
     )
 
@@ -1393,7 +1365,7 @@ def AddDeps(builder: Builder, ZetaBuildDir: str, verbose: bool, mode: ModeEnum):
     )
 
     builder.Add(
-        f"{ZetaDir}/Poolallocator.h",
+        f"{ZetaDir}/pool_allocator.h",
         {
             f"{File}",
             f"{ZetaDir}/allocator.h",
@@ -1402,23 +1374,24 @@ def AddDeps(builder: Builder, ZetaBuildDir: str, verbose: bool, mode: ModeEnum):
     )
 
     builder.Add(
-        f"{ZetaDir}/Poolallocator.c",
+        f"{ZetaDir}/pool_allocator.c",
         {
             f"{File}",
-            f"{ZetaDir}/Poolallocator.h",
+            f"{ZetaDir}/pool_allocator.h",
+            f"{ZetaDir}/debugger.h",
         },
         None
     )
 
     builder.Add(
-        f"{ZetaBuildDir}/Poolallocator.o",
+        f"{ZetaBuildDir}/pool_allocator.o",
         {
             f"{File}",
-            f"{ZetaDir}/Poolallocator.c",
+            f"{ZetaDir}/pool_allocator.c",
         },
         lambda : compiler.c_to_obj(
-            f"{ZetaBuildDir}/Poolallocator.o",
-            f"{ZetaDir}/Poolallocator.c",
+            f"{ZetaBuildDir}/pool_allocator.o",
+            f"{ZetaDir}/pool_allocator.c",
         )
     )
 
@@ -1482,76 +1455,6 @@ def AddDeps(builder: Builder, ZetaBuildDir: str, verbose: bool, mode: ModeEnum):
         lambda : compiler.c_to_obj(
             f"{ZetaBuildDir}/random.o",
             f"{ZetaDir}/random.c",
-        )
-    )
-
-    builder.Add(
-        f"{ZetaDir}/RadixDeque.h",
-        {
-            f"{File}",
-            f"{ZetaDir}/allocator.h",
-            f"{ZetaDir}/seq_cntr.h",
-        },
-        None
-    )
-
-    builder.Add(
-        f"{ZetaDir}/RadixDeque.c",
-        {
-            f"{File}",
-            f"{ZetaDir}/RadixDeque.h",
-
-            f"{ZetaDir}/debugger.h",
-            f"{ZetaDir}/circular_array.h",
-            f"{ZetaDir}/utils.h",
-        },
-        None
-    )
-
-    builder.Add(
-        f"{ZetaBuildDir}/RadixDeque.o",
-        {
-            f"{File}",
-            f"{ZetaDir}/RadixDeque.c",
-        },
-        lambda : compiler.c_to_obj(
-            f"{ZetaBuildDir}/RadixDeque.o",
-            f"{ZetaDir}/RadixDeque.c",
-        )
-    )
-
-    builder.Add(
-        f"{ZetaDir}/RadixVector.h",
-        {
-            f"{File}",
-            f"{ZetaDir}/allocator.h",
-            f"{ZetaDir}/seq_cntr.h",
-        },
-        None
-    )
-
-    builder.Add(
-        f"{ZetaDir}/RadixVector.c",
-        {
-            f"{File}",
-            f"{ZetaDir}/RadixVector.h",
-
-            f"{ZetaDir}/debugger.h",
-            f"{ZetaDir}/circular_array.h",
-            f"{ZetaDir}/utils.h",
-        },
-        None
-    )
-
-    builder.Add(
-        f"{ZetaBuildDir}/RadixVector.o",
-        {
-            f"{File}",
-            f"{ZetaDir}/RadixVector.c",
-        },
-        lambda : compiler.c_to_obj(
-            f"{ZetaBuildDir}/RadixVector.o",
-            f"{ZetaDir}/RadixVector.c",
         )
     )
 

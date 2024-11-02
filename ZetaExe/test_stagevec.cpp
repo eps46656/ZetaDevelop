@@ -10,13 +10,14 @@
 #include <set>
 #include <unordered_set>
 
-#include "Timer.h"
 #include "buffer.h"
 #include "circular_array_utils.h"
 #include "debug_deque_utils.h"
 #include "dynamic_vector_utils.h"
+#include "pod_value.h"
 #include "seq_cntr_utils.h"
 #include "stage_vector_utils.h"
+#include "timer.h"
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
@@ -51,46 +52,8 @@ void SignalHandler(int sig) {
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 
-struct Val {
-    static constexpr size_t width{ 4 };
-
-    unsigned char data[width];
-};
-
-bool_t operator==(const Val& val_a, const Val& val_b) {
-    for (size_t i{ 0 }; i < Val::width; ++i) {
-        if (val_a.data[i] != val_b.data[i]) { return FALSE; }
-    }
-
-    return TRUE;
-}
-
-std::ostream& operator<<(std::ostream& os, const Val& val) {
-    char cs[]{ "0123456789ABCDEF" };
-
-    for (size_t i{ Val::width }; 0 < i--;) {
-        os << cs[val.data[i] / 16] << cs[val.data[i] % 16];
-    }
-
-    return os;
-}
-
-struct ValHash {
-    std::hash<unsigned char> hash_;
-
-    size_t operator()(const Val& val) const {
-        size_t ret{ 0 };
-
-        for (size_t i{ 0 }; i < Val::width; ++i) {
-            ret += this->hash_(val.data[i]);
-        }
-
-        return ret;
-    }
-};
-
-void GetRandomVal(Val& dst) {
-    for (size_t i{ 0 }; i < Val::width; ++i) {
+void GetRandomVal(PODValue& dst) {
+    for (size_t i{ 0 }; i < PODValue::width; ++i) {
         dst.data[i] = (unsigned char)GetRandomInt(0, 255);
     }
 }
@@ -105,205 +68,6 @@ void GetRandomVals(Iterator beg, Iterator end) {
 // -----------------------------------------------------------------------------
 
 #define SEG_CAPACITY (32)
-
-Val SC_Access(Zeta_SeqCntr* seq_cntr, size_t idx) {
-    void* pos_cursor = ZETA_SeqCntr_AllocaCursor(seq_cntr);
-
-    Val val;
-
-    Val* ele = (Val*)ZETA_SeqCntr_Access(seq_cntr, idx, pos_cursor, &val);
-
-    ZETA_DebugAssert(*ele == val);
-    ZETA_DebugAssert(ele == ZETA_SeqCntr_Refer(seq_cntr, pos_cursor));
-    ZETA_DebugAssert(idx == ZETA_SeqCntr_Cursor_GetIdx(seq_cntr, pos_cursor));
-
-    return val;
-}
-
-void* SC_PushL(Zeta_SeqCntr* seq_cntr, Val val) {
-    ZETA_DebugAssert(seq_cntr != NULL);
-
-    void* pos_cursor = ZETA_SeqCntr_AllocaCursor(seq_cntr);
-
-    void* ele = ZETA_SeqCntr_PushL(seq_cntr, 1, pos_cursor);
-
-    void* re_ele = ZETA_SeqCntr_Refer(seq_cntr, pos_cursor);
-
-    ZETA_DebugAssert(ZETA_SeqCntr_Cursor_GetIdx(seq_cntr, pos_cursor) == 0);
-    ZETA_DebugAssert(ele == re_ele);
-
-    *(Val*)ele = val;
-
-    return (Val*)ele;
-}
-
-Val* SC_PushR(Zeta_SeqCntr* seq_cntr, Val val) {
-    void* pos_cursor = ZETA_SeqCntr_AllocaCursor(seq_cntr);
-
-    void* ele = ZETA_SeqCntr_PushL(seq_cntr, 1, pos_cursor);
-
-    void* re_ele = ZETA_SeqCntr_Refer(seq_cntr, pos_cursor);
-
-    ZETA_DebugAssert(ZETA_SeqCntr_Cursor_GetIdx(seq_cntr, pos_cursor) ==
-                     ZETA_SeqCntr_GetSize(seq_cntr) - 1);
-
-    ZETA_DebugAssert(ele == re_ele);
-
-    *(Val*)ele = val;
-
-    return (Val*)ele;
-}
-
-void SC_Read(Zeta_SeqCntr* seq_cntr, size_t beg, size_t cnt, Val* dst) {
-    if (seq_cntr == NULL) { return; }
-
-    ZETA_DebugLogCurPos;
-
-    size_t size{ ZETA_SeqCntr_GetSize(seq_cntr) };
-
-    ZETA_DebugAssert(beg < size);
-
-    size_t cnt_a{ ZETA_GetMinOf(cnt, size - beg) };
-    size_t cnt_b{ cnt - cnt_a };
-
-    void* pos_cursor = ZETA_SeqCntr_AllocaCursor(seq_cntr);
-
-    ZETA_SeqCntr_Access(seq_cntr, beg, pos_cursor, NULL);
-
-    ZETA_DebugAssert(ZETA_SeqCntr_Cursor_GetIdx(seq_cntr, pos_cursor) == beg);
-
-    ZETA_SeqCntr_Read(seq_cntr, pos_cursor, cnt_a, dst, pos_cursor);
-
-    SeqCntrUtils_Sanitize(seq_cntr);
-
-    dst += cnt_a;
-
-    ZETA_DebugAssert(ZETA_SeqCntr_Cursor_GetIdx(seq_cntr, pos_cursor) ==
-                     beg + cnt_a);
-
-    ZETA_SeqCntr_Access(seq_cntr, 0, pos_cursor, NULL);
-
-    ZETA_DebugAssert(ZETA_SeqCntr_Cursor_GetIdx(seq_cntr, pos_cursor) == 0);
-
-    ZETA_SeqCntr_Read(seq_cntr, pos_cursor, cnt_b, dst, pos_cursor);
-
-    SeqCntrUtils_Sanitize(seq_cntr);
-
-    ZETA_DebugAssert(ZETA_SeqCntr_Cursor_GetIdx(seq_cntr, pos_cursor) == cnt_b);
-}
-
-void SC_PushL(Zeta_SeqCntr* seq_cntr, Val const* src) {
-    if (seq_cntr == NULL) { return; }
-
-    void* pos_cursor = ZETA_SeqCntr_AllocaCursor(seq_cntr);
-
-    Val* ele = (Val*)ZETA_SeqCntr_PushL(seq_cntr, 1, pos_cursor);
-
-    SeqCntrUtils_Sanitize(seq_cntr);
-
-    ZETA_DebugAssert(ele == ZETA_SeqCntr_Refer(seq_cntr, pos_cursor));
-
-    ZETA_DebugAssert(
-        ZETA_SeqCntr_Cursor_AreEqual(seq_cntr, pos_cursor, pos_cursor));
-
-    *ele = *src;
-}
-
-void SC_PushR(Zeta_SeqCntr* seq_cntr, Val const* src) {
-    if (seq_cntr == NULL) { return; }
-
-    void* pos_cursor = ZETA_SeqCntr_AllocaCursor(seq_cntr);
-
-    Val* ele = (Val*)ZETA_SeqCntr_PushR(seq_cntr, 1, pos_cursor);
-
-    SeqCntrUtils_Sanitize(seq_cntr);
-
-    ZETA_DebugAssert(ele == ZETA_SeqCntr_Refer(seq_cntr, pos_cursor));
-
-    ZETA_DebugAssert(
-        ZETA_SeqCntr_Cursor_AreEqual(seq_cntr, pos_cursor, pos_cursor));
-
-    *ele = *src;
-}
-
-void SC_PopL(Zeta_SeqCntr* seq_cntr, size_t cnt) {
-    if (seq_cntr == NULL) { return; }
-
-    ZETA_SeqCntr_PopL(seq_cntr, cnt);
-
-    SeqCntrUtils_Sanitize(seq_cntr);
-}
-
-void SC_PopR(Zeta_SeqCntr* seq_cntr, size_t cnt) {
-    if (seq_cntr == NULL) { return; }
-
-    ZETA_SeqCntr_PopR(seq_cntr, cnt);
-
-    SeqCntrUtils_Sanitize(seq_cntr);
-}
-
-void SC_Erase(Zeta_SeqCntr* seq_cntr, size_t idx, size_t cnt) {
-    if (seq_cntr == NULL) { return; }
-
-    void* pos_cursor = ZETA_SeqCntr_AllocaCursor(seq_cntr);
-
-    ZETA_SeqCntr_Access(seq_cntr, idx, pos_cursor, NULL);
-
-    SeqCntrUtils_Sanitize(seq_cntr);
-
-    ZETA_DebugAssert(ZETA_SeqCntr_Cursor_GetIdx(seq_cntr, pos_cursor) == idx);
-
-    ZETA_SeqCntr_Erase(seq_cntr, pos_cursor, cnt);
-
-    SeqCntrUtils_Sanitize(seq_cntr);
-
-    ZETA_DebugAssert(ZETA_SeqCntr_Cursor_GetIdx(seq_cntr, pos_cursor) == idx);
-}
-
-void SC_Print(Zeta_SeqCntr* seq_cntr) {
-    if (seq_cntr == NULL) { return; }
-
-    size_t size{ ZETA_SeqCntr_GetSize(seq_cntr) };
-
-    Val tmp;
-
-    void* pos_cursor = ZETA_SeqCntr_AllocaCursor(seq_cntr);
-
-    ZETA_SeqCntr_PeekL(seq_cntr, pos_cursor, NULL);
-
-    for (size_t i{ 0 }; i < size; ++i) {
-        ZETA_SeqCntr_Read(seq_cntr, pos_cursor, 1, &tmp, pos_cursor);
-        std::cout << tmp << " ";
-    }
-
-    std::cout << "\n";
-}
-
-void SC_Assign(Zeta_SeqCntr* src, Zeta_SeqCntr* dst) {
-    ZETA_DebugAssert(src != NULL);
-    ZETA_DebugAssert(dst != NULL);
-
-    ZETA_DebugAssert(ZETA_SeqCntr_GetWidth(src) == sizeof(Val));
-    ZETA_DebugAssert(ZETA_SeqCntr_GetWidth(dst) == sizeof(Val));
-
-    void* src_cursor = ZETA_SeqCntr_AllocaCursor(src);
-    void* dst_cursor = ZETA_SeqCntr_AllocaCursor(dst);
-
-    size_t size = ZETA_SeqCntr_GetSize(src);
-
-    ZETA_SeqCntr_PeekL(src, src_cursor, NULL);
-
-    ZETA_SeqCntr_EraseAll(dst);
-    ZETA_SeqCntr_GetRBCursor(dst, dst_cursor);
-    ZETA_SeqCntr_Insert(dst, dst_cursor, size);
-
-    Val tmp;
-
-    for (size_t i = 0; i < size; ++i) {
-        ZETA_SeqCntr_Read(src, src_cursor, 1, &tmp, src_cursor);
-        ZETA_SeqCntr_Write(dst, dst_cursor, 1, &tmp, dst_cursor);
-    }
-}
 
 void SeqCntrUtils_SanitizeIterator(Zeta_SeqCntr* seq_cntr, size_t idx_a,
                                    size_t idx_b) {
@@ -337,29 +101,6 @@ void SeqCntrUtils_SanitizeIterator(Zeta_SeqCntr* seq_cntr, size_t idx_a,
 
     ZETA_DebugAssert(
         ZETA_SeqCntr_Cursor_AreEqual(seq_cntr, cursor_a, cursor_b));
-}
-
-// -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
-
-void SC_Destroy(Zeta_SeqCntr* seq_cntr) {
-    if (seq_cntr == NULL) { return; }
-
-    if (seq_cntr->GetSize == Zeta_DebugDeque_GetSize) {
-        DebugDeque_Destroy(seq_cntr);
-        return;
-    }
-
-    if (seq_cntr->GetSize == Zeta_StageVector_GetSize) {
-        StageVector_Destroy(seq_cntr);
-        return;
-    }
-
-    if (seq_cntr->GetSize == Zeta_DynamicVector_GetSize) {
-        DynamicVector_Destroy(seq_cntr);
-        return;
-    }
 }
 
 // -----------------------------------------------------------------------------
@@ -464,8 +205,8 @@ void Compare(Zeta_SeqCntr* seq_cntr_a, Zeta_SeqCntr* seq_cntr_b) {
 
     ZETA_SeqCntr_PeekL(seq_cntr_b, cursor_b, NULL);
 
-    Val tmp_a;
-    Val tmp_b;
+    PODValue tmp_a;
+    PODValue tmp_b;
 
     for (size_t i{ 0 }; i < size_a; ++i) {
         ZETA_DebugAssert(ZETA_SeqCntr_Cursor_GetIdx(seq_cntr_a, cursor_a) == i);
@@ -547,180 +288,327 @@ void CheckCursor(Zeta_SeqCntr* seq_cntr) {
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 
-#define MAX_OP_SIZE (1024)
-
-Val* GetValBuffer_A(size_t size) {
-    static Buffer<Val> buffer;
+PODValue* GetValBuffer_A(size_t size) {
+    static Buffer<PODValue> buffer;
     return buffer.GetBuffer(size);
 }
 
-Val* GetValBuffer_B(size_t size) {
-    static Buffer<Val> buffer;
+PODValue* GetValBuffer_B(size_t size) {
+    static Buffer<PODValue> buffer;
     return buffer.GetBuffer(size);
 }
 
-size_t SyncGetSize(Zeta_SeqCntr* seq_cntr_a, Zeta_SeqCntr* seq_cntr_b) {
-    if (seq_cntr_a == NULL && seq_cntr_b == NULL) { return 0; }
-
-    size_t size;
-
-    if (seq_cntr_a != NULL) {
-        size = ZETA_SeqCntr_GetSize(seq_cntr_a);
-    } else {
-        size = ZETA_SeqCntr_GetSize(seq_cntr_b);
-    }
-
-    ZETA_DebugAssert(seq_cntr_a == NULL ||
-                     size == ZETA_SeqCntr_GetSize(seq_cntr_a));
-
-    ZETA_DebugAssert(seq_cntr_b == NULL ||
-                     size == ZETA_SeqCntr_GetSize(seq_cntr_b));
-
-    return size;
-}
-
-void SyncRead(Zeta_SeqCntr* seq_cntr_a, Zeta_SeqCntr* seq_cntr_b) {
+void SyncRead(Zeta_SeqCntr* seq_cntr_a, Zeta_SeqCntr* seq_cntr_b,
+              size_t max_op_size) {
     if (seq_cntr_a == NULL || seq_cntr_b == NULL) { return; }
 
+    ZETA_DebugAssert(0 < max_op_size);
+
     long long size{ static_cast<long long>(
-        SyncGetSize(seq_cntr_a, seq_cntr_b)) };
+        SeqCntrUtils_SyncGetSize(seq_cntr_a, seq_cntr_b)) };
 
     if (size == 0) { return; }
 
     long long cnt_lb{ 1 };
-    long long cnt_rb{ std::min<long long>(MAX_OP_SIZE, size) };
+    long long cnt_rb{ std::min<long long>(max_op_size, size) };
 
     if (cnt_rb < cnt_lb) { return; }
 
     long long idx{ GetRandomInt(0, size - 1) };
     long long cnt{ GetRandomInt(cnt_lb, cnt_rb) };
 
-    Val* buffer_a{ GetValBuffer_A(cnt) };
-    Val* buffer_b{ GetValBuffer_B(cnt) };
+    PODValue* buffer_a{ GetValBuffer_A(cnt) };
+    PODValue* buffer_b{ GetValBuffer_B(cnt) };
 
-    SC_Read(seq_cntr_a, idx, cnt, buffer_a);
+    if (seq_cntr_a != NULL) {
+        SeqCntrUtils_Read(seq_cntr_a, idx, buffer_a, buffer_a + cnt);
+    }
 
-    SC_Read(seq_cntr_b, idx, cnt, buffer_b);
+    if (seq_cntr_b != NULL) {
+        SeqCntrUtils_Read(seq_cntr_b, idx, buffer_b, buffer_b + cnt);
+    }
 
-    ZETA_DebugAssert(std::memcmp(buffer_a, buffer_b, sizeof(Val) * cnt) == 0);
+    ZETA_DebugAssert(std::memcmp(buffer_a, buffer_b, sizeof(PODValue) * cnt) ==
+                     0);
 }
 
-void SyncWrite(Zeta_SeqCntr* seq_cntr_a, Zeta_SeqCntr* seq_cntr_b) {
+void SyncWrite(Zeta_SeqCntr* seq_cntr_a, Zeta_SeqCntr* seq_cntr_b,
+               size_t max_op_size) {
     if (seq_cntr_a == NULL && seq_cntr_b == NULL) { return; }
 
+    ZETA_DebugAssert(0 < max_op_size);
+
     long long size{ static_cast<long long>(
-        SyncGetSize(seq_cntr_a, seq_cntr_b)) };
+        SeqCntrUtils_SyncGetSize(seq_cntr_a, seq_cntr_b)) };
 
     if (size == 0) { return; }
 
     long long cnt_lb{ 0 };
-    long long cnt_rb{ std::min<long long>(MAX_OP_SIZE, size) };
+    long long cnt_rb{ std::min<long long>(max_op_size, size) };
 
     long long idx{ GetRandomInt(0, size - 1) };
     long long cnt{ GetRandomInt(cnt_lb, cnt_rb) };
 
-    Val* buffer_a{ GetValBuffer_A(cnt) };
+    PODValue* buffer_a{ GetValBuffer_A(cnt) };
 
     GetRandomVals(buffer_a, buffer_a + cnt);
 
-    SeqCntrUtils_Write(seq_cntr_a, idx, buffer_a, buffer_a + cnt);
+    if (seq_cntr_a != NULL) {
+        SeqCntrUtils_Write(seq_cntr_a, idx, buffer_a, buffer_a + cnt);
+    }
 
-    SeqCntrUtils_Write(seq_cntr_b, idx, buffer_a, buffer_a + cnt);
+    if (seq_cntr_b != NULL) {
+        SeqCntrUtils_Write(seq_cntr_b, idx, buffer_a, buffer_a + cnt);
+    }
 }
 
-void SyncInsert(Zeta_SeqCntr* seq_cntr_a, Zeta_SeqCntr* seq_cntr_b) {
+void SyncPushL(Zeta_SeqCntr* seq_cntr_a, Zeta_SeqCntr* seq_cntr_b,
+               size_t max_op_size) {
     if (seq_cntr_a == NULL && seq_cntr_b == NULL) { return; }
 
-    size_t size{ SyncGetSize(seq_cntr_a, seq_cntr_b) };
+    ZETA_DebugAssert(0 < max_op_size);
+
+    long long cnt_lb{ 0 };
+    long long cnt_rb{ static_cast<long long>(max_op_size) };
+
+    size_t cnt{ static_cast<size_t>(GetRandomInt(cnt_lb, cnt_rb)) };
+
+    PODValue* buffer_a{ GetValBuffer_A(cnt) };
+
+    GetRandomVals(buffer_a, buffer_a + cnt);
+
+    if (seq_cntr_a != NULL) {
+        SeqCntrUtils_PushL(seq_cntr_a, buffer_a, buffer_a + cnt);
+    }
+
+    if (seq_cntr_b != NULL) {
+        SeqCntrUtils_PushL(seq_cntr_b, buffer_a, buffer_a + cnt);
+    }
+}
+
+void SyncPushR(Zeta_SeqCntr* seq_cntr_a, Zeta_SeqCntr* seq_cntr_b,
+               size_t max_op_size) {
+    if (seq_cntr_a == NULL && seq_cntr_b == NULL) { return; }
+
+    ZETA_DebugAssert(0 < max_op_size);
+
+    long long cnt_lb{ 0 };
+    long long cnt_rb{ static_cast<long long>(max_op_size) };
+
+    size_t cnt{ static_cast<size_t>(GetRandomInt(cnt_lb, cnt_rb)) };
+
+    PODValue* buffer_a{ GetValBuffer_A(cnt) };
+
+    GetRandomVals(buffer_a, buffer_a + cnt);
+
+    if (seq_cntr_a != NULL) {
+        SeqCntrUtils_PushR(seq_cntr_a, buffer_a, buffer_a + cnt);
+    }
+
+    if (seq_cntr_b != NULL) {
+        SeqCntrUtils_PushR(seq_cntr_b, buffer_a, buffer_a + cnt);
+    }
+}
+
+void SyncPopL(Zeta_SeqCntr* seq_cntr_a, Zeta_SeqCntr* seq_cntr_b,
+              size_t max_op_size) {
+    if (seq_cntr_a == NULL && seq_cntr_b == NULL) { return; }
+
+    ZETA_DebugAssert(0 < max_op_size);
+
+    long long size{ static_cast<long long>(
+        SeqCntrUtils_SyncGetSize(seq_cntr_a, seq_cntr_b)) };
+
+    long long cnt_lb{ 0 };
+    long long cnt_rb{ std::min<long long>(max_op_size, size) };
+
+    size_t cnt{ static_cast<size_t>(GetRandomInt(cnt_lb, cnt_rb)) };
+
+    if (seq_cntr_a != NULL) { SeqCntrUtils_PopL(seq_cntr_a, cnt); }
+    if (seq_cntr_b != NULL) { SeqCntrUtils_PopL(seq_cntr_b, cnt); }
+}
+
+void SyncPopR(Zeta_SeqCntr* seq_cntr_a, Zeta_SeqCntr* seq_cntr_b,
+              size_t max_op_size) {
+    if (seq_cntr_a == NULL && seq_cntr_b == NULL) { return; }
+
+    ZETA_DebugAssert(0 < max_op_size);
+
+    long long size{ static_cast<long long>(
+        SeqCntrUtils_SyncGetSize(seq_cntr_a, seq_cntr_b)) };
+
+    long long cnt_lb{ 0 };
+    long long cnt_rb{ std::min<long long>(max_op_size, size) };
+
+    size_t cnt{ static_cast<size_t>(GetRandomInt(cnt_lb, cnt_rb)) };
+
+    if (seq_cntr_a != NULL) { SeqCntrUtils_PopR(seq_cntr_a, cnt); }
+    if (seq_cntr_b != NULL) { SeqCntrUtils_PopR(seq_cntr_b, cnt); }
+}
+
+void SyncInsert(Zeta_SeqCntr* seq_cntr_a, Zeta_SeqCntr* seq_cntr_b,
+                size_t max_op_size) {
+    if (seq_cntr_a == NULL && seq_cntr_b == NULL) { return; }
+
+    ZETA_DebugAssert(0 < max_op_size);
+
+    size_t size{ SeqCntrUtils_SyncGetSize(seq_cntr_a, seq_cntr_b) };
 
     size_t cnt_lb{ 0 };
-    size_t cnt_rb{ MAX_OP_SIZE };
+    size_t cnt_rb{ max_op_size };
 
     size_t idx{ static_cast<size_t>(GetRandomInt(0, size)) };
     size_t cnt{ static_cast<size_t>(GetRandomInt(cnt_lb, cnt_rb)) };
 
-    Val* buffer_a{ GetValBuffer_A(cnt) };
+    PODValue* buffer_a{ GetValBuffer_A(cnt) };
 
     GetRandomVals(buffer_a, buffer_a + cnt);
 
     ZETA_DebugLogCurPos;
 
     if (seq_cntr_a != NULL) {
-        SeqCntrUtils_Insert<Val>(seq_cntr_a, idx, buffer_a, buffer_a + cnt);
+        SeqCntrUtils_Insert<PODValue>(seq_cntr_a, idx, buffer_a,
+                                      buffer_a + cnt);
     }
 
     ZETA_DebugLogCurPos;
 
     if (seq_cntr_b != NULL) {
-        SeqCntrUtils_Insert<Val>(seq_cntr_b, idx, buffer_a, buffer_a + cnt);
+        SeqCntrUtils_Insert<PODValue>(seq_cntr_b, idx, buffer_a,
+                                      buffer_a + cnt);
     }
 
     ZETA_DebugLogCurPos;
 }
 
-void SyncErase(Zeta_SeqCntr* seq_cntr_a, Zeta_SeqCntr* seq_cntr_b) {
+void SyncErase(Zeta_SeqCntr* seq_cntr_a, Zeta_SeqCntr* seq_cntr_b,
+               size_t max_op_size) {
     if (seq_cntr_a == NULL && seq_cntr_b == NULL) { return; }
 
+    ZETA_DebugAssert(0 < max_op_size);
+
     long long size{ static_cast<long long>(
-        SyncGetSize(seq_cntr_a, seq_cntr_b)) };
+        SeqCntrUtils_SyncGetSize(seq_cntr_a, seq_cntr_b)) };
 
     long long cnt_lb{ 0 };
-    long long cnt_rb{ std::min<long long>(MAX_OP_SIZE, size) };
+    long long cnt_rb{ std::min<long long>(max_op_size, size) };
 
     long long cnt{ GetRandomInt(cnt_lb, cnt_rb) };
     long long idx{ GetRandomInt(0, size - cnt) };
 
     ZETA_DebugLogCurPos;
 
-    if (seq_cntr_a != NULL) { SC_Erase(seq_cntr_a, idx, cnt); }
+    if (seq_cntr_a != NULL) { SeqCntrUtils_Erase(seq_cntr_a, idx, cnt); }
 
     ZETA_DebugLogCurPos;
 
-    if (seq_cntr_b != NULL) { SC_Erase(seq_cntr_b, idx, cnt); }
+    if (seq_cntr_b != NULL) { SeqCntrUtils_Erase(seq_cntr_b, idx, cnt); }
 
     ZETA_DebugLogCurPos;
-}
-
-void SyncPushL(Zeta_SeqCntr* seq_cntr_a, Zeta_SeqCntr* seq_cntr_b) {
-    if (seq_cntr_a == NULL && seq_cntr_b == NULL) { return; }
-
-    Val val;
-    GetRandomVal(val);
-
-    SC_PushL(seq_cntr_a, &val);
-    SC_PushL(seq_cntr_b, &val);
-}
-
-void SyncPushR(Zeta_SeqCntr* seq_cntr_a, Zeta_SeqCntr* seq_cntr_b) {
-    if (seq_cntr_a == NULL && seq_cntr_b == NULL) { return; }
-
-    Val val;
-    GetRandomVal(val);
-
-    SC_PushR(seq_cntr_a, &val);
-
-    SC_PushR(seq_cntr_b, &val);
-}
-
-void SyncPopL(Zeta_SeqCntr* seq_cntr_a, Zeta_SeqCntr* seq_cntr_b) {
-    if (seq_cntr_a == NULL && seq_cntr_b == NULL) { return; }
-
-    Val val;
-    GetRandomVal(val);
-
-    SC_PopL(seq_cntr_a, 1);
-    SC_PopL(seq_cntr_b, 1);
-}
-
-void SyncPopR(Zeta_SeqCntr* seq_cntr_a, Zeta_SeqCntr* seq_cntr_b) {
-    if (seq_cntr_a == NULL && seq_cntr_b == NULL) { return; }
-
-    SC_PopR(seq_cntr_a, 1);
-    SC_PopR(seq_cntr_b, 1);
 }
 
 void SyncCompare(Zeta_SeqCntr* seq_cntr_a, Zeta_SeqCntr* seq_cntr_b) {
-    for (size_t i{ 0 }; i < 8; ++i) { SyncRead(seq_cntr_a, seq_cntr_b); }
+    for (size_t i{ 0 }; i < 8; ++i) { SyncRead(seq_cntr_a, seq_cntr_b, 16); }
+}
+
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+
+enum OpEnum : int {
+    READ,
+    WRITE,
+    PUSH_L,
+    PUSH_R,
+    POP_L,
+    POP_R,
+    INSERT,
+    ERASE,
+
+    CURSOR_STEP_L,
+    CURSOR_STEP_R,
+    CURSOR_ADVANCE_L,
+    CURSOR_ADVANCE_R,
+};
+
+void DoRandomOperations(Zeta_SeqCntr* seq_cntr_a, Zeta_SeqCntr* seq_cntr_b,
+                        size_t iter_cnt,  //
+
+                        size_t read_max_op_size,   //
+                        size_t write_max_op_size,  //
+                        size_t push_l_max_op_size,
+                        size_t push_r_max_op_size,  //
+                        size_t pop_l_max_op_size,   //
+                        size_t pop_r_max_op_size,   //
+                        size_t insert_max_op_size,  //
+                        size_t erase_max_op_size,   //
+
+                        size_t cursor_step_l_max_op_size,  //
+                        size_t cursor_step_r_max_op_size,  //
+                        size_t cursor_advance_l_op_size,   //
+                        size_t cursor_advance_r_op_size    //
+) {
+    ZETA_Unused(cursor_step_l_max_op_size);
+    ZETA_Unused(cursor_step_r_max_op_size);
+    ZETA_Unused(cursor_advance_l_op_size);
+    ZETA_Unused(cursor_advance_r_op_size);
+
+    std::vector<int> ops;
+
+    if (0 < read_max_op_size) { ops.push_back(OpEnum::READ); }
+    if (0 < write_max_op_size) { ops.push_back(OpEnum::WRITE); }
+    if (0 < push_l_max_op_size) { ops.push_back(OpEnum::PUSH_L); }
+    if (0 < push_r_max_op_size) { ops.push_back(OpEnum::PUSH_R); }
+    if (0 < pop_l_max_op_size) { ops.push_back(OpEnum::POP_L); }
+    if (0 < pop_r_max_op_size) { ops.push_back(OpEnum::POP_R); }
+    if (0 < insert_max_op_size) { ops.push_back(OpEnum::INSERT); }
+    if (0 < erase_max_op_size) { ops.push_back(OpEnum::ERASE); }
+
+    ZETA_DebugAssert(!ops.empty());
+
+    for (size_t iter_i{ 0 }; iter_i < iter_cnt; ++iter_i) {
+        ZETA_PrintVar(iter_i);
+
+        switch (GetRandomInt(0, ops.size() - 1)) {
+            case OpEnum::READ:
+                SyncRead(seq_cntr_a, seq_cntr_b, read_max_op_size);
+                break;
+
+            case OpEnum::WRITE:
+                SyncWrite(seq_cntr_a, seq_cntr_b, write_max_op_size);
+                break;
+
+            case OpEnum::PUSH_L:
+                SyncPushL(seq_cntr_a, seq_cntr_b, push_l_max_op_size);
+                break;
+
+            case OpEnum::PUSH_R:
+                SyncPushR(seq_cntr_a, seq_cntr_b, push_r_max_op_size);
+                break;
+
+            case OpEnum::POP_L:
+                SyncPopL(seq_cntr_a, seq_cntr_b, pop_l_max_op_size);
+                break;
+
+            case OpEnum::POP_R:
+                SyncPopR(seq_cntr_a, seq_cntr_b, pop_r_max_op_size);
+                break;
+
+            case OpEnum::INSERT:
+                SyncInsert(seq_cntr_a, seq_cntr_b, insert_max_op_size);
+                break;
+
+            case OpEnum::ERASE:
+                SyncErase(seq_cntr_a, seq_cntr_b, erase_max_op_size);
+                break;
+        }
+
+        Compare(seq_cntr_a, seq_cntr_b);
+        CheckCursor(seq_cntr_a);
+        CheckCursor(seq_cntr_b);
+
+        Zeta_Debugger_ClearPipe();
+    }
 }
 
 // -----------------------------------------------------------------------------
@@ -734,7 +622,7 @@ void PrintSeqCntr(Zeta_SeqCntr* seq_cntr) {
 
     ZETA_SeqCntr_PeekL(seq_cntr, &cursor, NULL);
 
-    Val tmp;
+    PODValue tmp;
 
     for (size_t i{ 0 }; i < size; ++i) {
         ZETA_DebugAssert(ZETA_SeqCntr_Cursor_GetIdx(seq_cntr, &cursor) == i);
@@ -762,21 +650,22 @@ void main2() {
 
     RandomEngine().seed(seed);
 
-    Zeta_SeqCntr* seq_cntr_a_origin{ DebugDeque_Create<Val>() };
+    Zeta_SeqCntr* seq_cntr_a_origin{ DebugDeque_Create<PODValue>() };
 
-    Zeta_SeqCntr* seq_cntr_a{ DebugDeque_Create<Val>() };
+    Zeta_SeqCntr* seq_cntr_a{ DebugDeque_Create<PODValue>() };
 
     // Zeta_SeqCntr* seq_cntr_a{ NULL };
 
     size_t origin_size{ 1024 * 1024 };
 
-    Val* buffer_a{ GetValBuffer_A(origin_size) };
+    PODValue* buffer_a{ GetValBuffer_A(origin_size) };
     GetRandomVals(buffer_a, buffer_a + origin_size);
 
-    SeqCntrUtils_Insert<Val>(seq_cntr_a_origin, 0, buffer_a,
-                             buffer_a + origin_size);
+    SeqCntrUtils_Insert<PODValue>(seq_cntr_a_origin, 0, buffer_a,
+                                  buffer_a + origin_size);
 
-    Zeta_SeqCntr* seq_cntr_b{ StageVector_Create<Val>(seq_cntr_a_origin, 64) };
+    Zeta_SeqCntr* seq_cntr_b{ StageVector_Create<PODValue>(seq_cntr_a_origin,
+                                                           64) };
 
     for (size_t _ = 0; _ < 16; ++_) {
         if (seq_cntr_a != NULL) {
@@ -786,29 +675,24 @@ void main2() {
         Zeta_StageVector_Reset(seq_cntr_b->context);
 
         for (size_t test_i = 0; test_i < 256; ++test_i) {
-            SyncInsert(seq_cntr_a, seq_cntr_b);
+            DoRandomOperations(seq_cntr_a, seq_cntr_b,
 
-            Compare(seq_cntr_a, seq_cntr_b);
+                               4,  // iter_cnt
 
-            CheckCursor(seq_cntr_a);
+                               16,  // read_max_op_size
+                               16,  // write_max_op_size
+                               16,  // push_l_max_op_size
+                               16,  // push_r_max_op_size
+                               16,  // pop_l_max_op_size
+                               16,  // pop_r_max_op_size
+                               16,  // insert_max_op_size
+                               16,  // erase_max_op_size
 
-            CheckCursor(seq_cntr_b);
-
-            Zeta_Debugger_ClearPipe();
-
-            SyncWrite(seq_cntr_a, seq_cntr_b);
-            Compare(seq_cntr_a, seq_cntr_b);
-            CheckCursor(seq_cntr_a);
-            CheckCursor(seq_cntr_b);
-
-            Zeta_Debugger_ClearPipe();
-
-            SyncErase(seq_cntr_a, seq_cntr_b);
-            Compare(seq_cntr_a, seq_cntr_b);
-            CheckCursor(seq_cntr_a);
-            CheckCursor(seq_cntr_b);
-
-            Zeta_Debugger_ClearPipe();
+                               16,  // cursor_step_l_max_op_size
+                               16,  // cursor_step_r_max_op_size
+                               16,  // cursor_advance_l_op_size
+                               16   // cursor_advance_r_op_size
+            );
 
             if (seq_cntr_b != NULL &&
                 seq_cntr_b->GetSize == Zeta_StageVector_GetSize) {
@@ -826,10 +710,11 @@ void main2() {
 
                 size_t mem_usage = sizeof(Zeta_StageVector_Seg) *
                                        (stats.ref_seg_cnt + stats.dat_seg_cnt) +
-                                   sizeof(Val) * SEG_CAPACITY;
+                                   sizeof(PODValue) * SEG_CAPACITY;
 
                 std::cout << "eff: = "
-                          << (double)mem_usage / (double)(sizeof(Val) * size)
+                          << (double)mem_usage /
+                                 (double)(sizeof(PODValue) * size)
                           << "\n";
             }
 
@@ -837,9 +722,9 @@ void main2() {
         }
     }
 
-    SC_Destroy(seq_cntr_a);
-    SC_Destroy(seq_cntr_b);
-    SC_Destroy(seq_cntr_a_origin);
+    SeqCntrUtils_Destroy(seq_cntr_a);
+    SeqCntrUtils_Destroy(seq_cntr_b);
+    SeqCntrUtils_Destroy(seq_cntr_a_origin);
 }
 
 void main3() {
@@ -858,27 +743,29 @@ void main3() {
     RandomEngine().seed(seed);
 
     // Zeta_SeqCntr* seq_cntr_a{ NULL };
-    Zeta_SeqCntr* seq_cntr_a{ DebugDeque_Create<Val>() };
+    Zeta_SeqCntr* seq_cntr_a{ DebugDeque_Create<PODValue>() };
 
     // Zeta_SeqCntr* seq_cntr_b{ NULL };
 
     /*
-    Zeta_SeqCntr* seq_cntr_b{ CircularArray_Create<Val>(16 * 1024 *
+    Zeta_SeqCntr* seq_cntr_b{ CircularArray_Create<PODValue>(16 * 1024 *
                                                              1024) };
 */
 
-    // Zeta_SeqCntr* seq_cntr_b{ RadixDeque_Create<Val>(64, 3, 12)
-    //  }; Zeta_SeqCntr* seq_cntr_b{ DynamicVector_Create<Val>(7) };
-    Zeta_SeqCntr* seq_cntr_b{ StageVector_Create<Val>(NULL, 32) };
+    // Zeta_SeqCntr* seq_cntr_b{ RadixDeque_Create<PODValue>(64, 3, 12)
+    //  }; Zeta_SeqCntr* seq_cntr_b{ DynamicVector_Create<PODValue>(7) };
+    Zeta_SeqCntr* seq_cntr_b{ StageVector_Create<PODValue>(NULL, 32) };
 
     ZETA_PrintCurPos;
 
     size_t max_size{ 0 };
 
-    for (size_t _ = 0; _ < 1024; ++_) {
-        SyncPushR(seq_cntr_a, seq_cntr_b);
+    size_t max_op_size{ 16 };
 
-        SyncRead(seq_cntr_a, seq_cntr_b);
+    for (size_t _ = 0; _ < 1024; ++_) {
+        SyncPushR(seq_cntr_a, seq_cntr_b, max_op_size);
+
+        SyncRead(seq_cntr_a, seq_cntr_b, max_op_size);
         CheckCursor(seq_cntr_a);
         CheckCursor(seq_cntr_b);
         Zeta_Debugger_ClearPipe();
@@ -894,23 +781,23 @@ void main3() {
         // Zeta_StageVector_Reset(seq_cntr_b->context);
 
         for (size_t test_i = 0; test_i < 256; ++test_i) {
-            SyncInsert(seq_cntr_a, seq_cntr_b);
+            SyncInsert(seq_cntr_a, seq_cntr_b, max_op_size);
 
-            SyncRead(seq_cntr_a, seq_cntr_b);
+            SyncRead(seq_cntr_a, seq_cntr_b, max_op_size);
             CheckCursor(seq_cntr_a);
             CheckCursor(seq_cntr_b);
             Zeta_Debugger_ClearPipe();
 
-            SyncErase(seq_cntr_a, seq_cntr_b);
+            SyncErase(seq_cntr_a, seq_cntr_b, max_op_size);
 
-            SyncRead(seq_cntr_a, seq_cntr_b);
+            SyncRead(seq_cntr_a, seq_cntr_b, max_op_size);
             CheckCursor(seq_cntr_a);
             CheckCursor(seq_cntr_b);
             Zeta_Debugger_ClearPipe();
 
-            SyncWrite(seq_cntr_a, seq_cntr_b);
+            SyncWrite(seq_cntr_a, seq_cntr_b, max_op_size);
 
-            SyncRead(seq_cntr_a, seq_cntr_b);
+            SyncRead(seq_cntr_a, seq_cntr_b, max_op_size);
             CheckCursor(seq_cntr_a);
             CheckCursor(seq_cntr_b);
             Zeta_Debugger_ClearPipe();
@@ -921,14 +808,14 @@ void main3() {
 
     ZETA_PrintVar(max_size);
 
-    SC_Destroy(seq_cntr_a);
-    SC_Destroy(seq_cntr_b);
+    SeqCntrUtils_Destroy(seq_cntr_a);
+    SeqCntrUtils_Destroy(seq_cntr_b);
 }
 
 void main4() {
     ZETA_PrintCurPos;
 
-    Zeta_SeqCntr* seq_cntr{ DebugDeque_Create<Val>() };
+    Zeta_SeqCntr* seq_cntr{ DebugDeque_Create<PODValue>() };
 
     SeqCntrUtils_Sanitize(seq_cntr);
 
@@ -937,7 +824,7 @@ void main4() {
     ZETA_PrintVar(ZETA_SeqCntr_GetWidth(seq_cntr));
 
     void* cursor = ZETA_SeqCntr_AllocaCursor(seq_cntr);
-    Val* ele;
+    PODValue* ele;
 
     // seq_cntr->GetRBCursor(seq_cntr->context, &cursor);
 
@@ -945,7 +832,7 @@ void main4() {
 
     for (int _ = 0; _ < 100; ++_) {
         for (int _ = 0; _ < 10; ++_) {
-            ele = (Val*)ZETA_SeqCntr_PushL(seq_cntr, 1, &cursor);
+            ele = (PODValue*)ZETA_SeqCntr_PushL(seq_cntr, 1, &cursor);
 
             ZETA_PrintCurPos;
 
@@ -956,7 +843,7 @@ void main4() {
         }
 
         for (int _ = 0; _ < 10; ++_) {
-            ele = (Val*)ZETA_SeqCntr_PushR(seq_cntr, 1, &cursor);
+            ele = (PODValue*)ZETA_SeqCntr_PushR(seq_cntr, 1, &cursor);
 
             ZETA_PrintCurPos;
 
@@ -968,23 +855,329 @@ void main4() {
     }
 }
 
-int main() {
-    // signal(SIGINT, SignalHandler);
-    // signal(SIGILL, SignalHandler);
-    // signal(SIGFPE, SignalHandler);
-    // signal(SIGSEGV, SignalHandler);
-    // signal(SIGTERM, SignalHandler);
-    // signal(SIGBREAK, SignalHandler);
-    // signal(SIGABRT, SignalHandler);
-    // signal(SIGABRT_COMPAT, SignalHandler);
+void main5() {
+    unsigned random_seed = time(NULL);
+    unsigned fixed_seed = 1729615114;
 
+    unsigned seed = random_seed;
+    // unsigned seed = fixed_seed;
+
+    ZETA_PrintCurPos;
+
+    ZETA_PrintVar(random_seed);
+    ZETA_PrintVar(fixed_seed);
+    ZETA_PrintVar(seed);
+
+    RandomEngine().seed(seed);
+
+    Zeta_SeqCntr* seq_cntr_a_origin{ DebugDeque_Create<PODValue>() };
+    Zeta_SeqCntr* seq_cntr_b_origin{ DebugDeque_Create<PODValue>() };
+
+    size_t origin_size{ 1024 * 1024 };
+
+    PODValue* buffer_a{ GetValBuffer_A(origin_size) };
+    GetRandomVals(buffer_a, buffer_a + origin_size);
+    SeqCntrUtils_Insert<PODValue>(seq_cntr_a_origin, 0, buffer_a,
+                                  buffer_a + origin_size);
+
+    Zeta_SeqCntr* seq_cntr_a{ DebugDeque_Create<PODValue>() };
+
+    Zeta_SeqCntr* seq_cntr_b{ StageVector_Create<PODValue>(seq_cntr_b_origin,
+                                                           7) };
+
+    for (size_t _ = 0; _ < 16; ++_) {
+        ZETA_PrintVar(_);
+
+        Zeta_SeqCntr_Assign(seq_cntr_a, seq_cntr_a_origin);
+        Zeta_SeqCntr_Assign(seq_cntr_b_origin, seq_cntr_a_origin);
+
+        Zeta_StageVector_Reset(seq_cntr_b->context);
+
+        DoRandomOperations(seq_cntr_a, seq_cntr_b,
+
+                           16,  // iter_cnt
+
+                           16,  // read_max_op_size
+                           16,  // write_max_op_size
+                           16,  // push_l_max_op_size
+                           16,  // push_r_max_op_size
+                           16,  // pop_l_max_op_size
+                           16,  // pop_r_max_op_size
+                           16,  // insert_max_op_size
+                           16,  // erase_max_op_size
+
+                           16,  // cursor_step_l_max_op_size
+                           16,  // cursor_step_r_max_op_size
+                           16,  // cursor_advance_l_op_size
+                           16   // cursor_advance_r_op_size
+        );
+    }
+
+    SeqCntrUtils_Destroy(seq_cntr_a);
+    SeqCntrUtils_Destroy(seq_cntr_b);
+
+    SeqCntrUtils_Destroy(seq_cntr_a_origin);
+    SeqCntrUtils_Destroy(seq_cntr_b_origin);
+}
+
+void main6() {
+    unsigned random_seed = time(NULL);
+    unsigned fixed_seed = 1729615114;
+
+    unsigned seed = random_seed;
+    // unsigned seed = fixed_seed;
+
+    ZETA_PrintCurPos;
+
+    ZETA_PrintVar(random_seed);
+    ZETA_PrintVar(fixed_seed);
+    ZETA_PrintVar(seed);
+
+    RandomEngine().seed(seed);
+
+    Zeta_SeqCntr* seq_cntr_a_origin{ DebugDeque_Create<PODValue>() };
+    Zeta_SeqCntr* seq_cntr_b_origin{ DebugDeque_Create<PODValue>() };
+    Zeta_SeqCntr* seq_cntr_c_origin{ DebugDeque_Create<PODValue>() };
+
+    size_t origin_size{ 1024 * 1024 };
+
+    PODValue* buffer_a{ GetValBuffer_A(origin_size) };
+    GetRandomVals(buffer_a, buffer_a + origin_size);
+    SeqCntrUtils_Insert<PODValue>(seq_cntr_a_origin, 0, buffer_a,
+                                  buffer_a + origin_size);
+
+    Zeta_SeqCntr* seq_cntr_a{ DebugDeque_Create<PODValue>() };
+
+    Zeta_SeqCntr* seq_cntr_b{ StageVector_Create<PODValue>(seq_cntr_b_origin,
+                                                           7) };
+
+    Zeta_SeqCntr* seq_cntr_c{ StageVector_Create<PODValue>(seq_cntr_c_origin,
+                                                           7) };
+
+    for (size_t _ = 0; _ < 16; ++_) {
+        ZETA_PrintVar(_);
+
+        Zeta_SeqCntr_Assign(seq_cntr_a_origin, seq_cntr_a);
+        Zeta_SeqCntr_Assign(seq_cntr_b_origin, seq_cntr_a);
+        Zeta_SeqCntr_Assign(seq_cntr_c_origin, seq_cntr_a);
+
+        Zeta_StageVector_Reset(seq_cntr_b->context);
+        Zeta_StageVector_Reset(seq_cntr_c->context);
+
+        DoRandomOperations(seq_cntr_a, seq_cntr_b,
+
+                           512,  // iter_cnt
+
+                           16,  // read_max_op_size
+                           16,  // write_max_op_size
+                           16,  // push_l_max_op_size
+                           16,  // push_r_max_op_size
+                           16,  // pop_l_max_op_size
+                           16,  // pop_r_max_op_size
+                           16,  // insert_max_op_size
+                           16,  // erase_max_op_size
+
+                           16,  // cursor_step_l_max_op_size
+                           16,  // cursor_step_r_max_op_size
+                           16,  // cursor_advance_l_op_size
+                           16   // cursor_advance_r_op_size
+        );
+
+        DoRandomOperations(NULL, seq_cntr_c,
+
+                           512,  // iter_cnt
+
+                           16,  // read_max_op_size
+                           16,  // write_max_op_size
+                           16,  // push_l_max_op_size
+                           16,  // push_r_max_op_size
+                           16,  // pop_l_max_op_size
+                           16,  // pop_r_max_op_size
+                           16,  // insert_max_op_size
+                           16,  // erase_max_op_size
+
+                           16,  // cursor_step_l_max_op_size
+                           16,  // cursor_step_r_max_op_size
+                           16,  // cursor_advance_l_op_size
+                           16   // cursor_advance_r_op_size
+        );
+
+        Zeta_StageVector_AssignFromStageVector(seq_cntr_c->context,
+                                               seq_cntr_b->context);
+
+        SeqCntrUtils_Sanitize(seq_cntr_b);
+        SeqCntrUtils_Sanitize(seq_cntr_c);
+
+        DoRandomOperations(seq_cntr_a, seq_cntr_c,
+
+                           512,  // iter_cnt
+
+                           16,  // read_max_op_size
+                           16,  // write_max_op_size
+                           16,  // push_l_max_op_size
+                           16,  // push_r_max_op_size
+                           16,  // pop_l_max_op_size
+                           16,  // pop_r_max_op_size
+                           16,  // insert_max_op_size
+                           16,  // erase_max_op_size
+
+                           16,  // cursor_step_l_max_op_size
+                           16,  // cursor_step_r_max_op_size
+                           16,  // cursor_advance_l_op_size
+                           16   // cursor_advance_r_op_size
+        );
+    }
+
+    SeqCntrUtils_Destroy(seq_cntr_a);
+    SeqCntrUtils_Destroy(seq_cntr_b);
+    SeqCntrUtils_Destroy(seq_cntr_c);
+
+    SeqCntrUtils_Destroy(seq_cntr_a_origin);
+    SeqCntrUtils_Destroy(seq_cntr_b_origin);
+    SeqCntrUtils_Destroy(seq_cntr_c_origin);
+}
+
+void main7() {
+    unsigned random_seed = time(NULL);
+    unsigned fixed_seed = 1729615114;
+
+    unsigned seed = random_seed;
+    // unsigned seed = fixed_seed;
+
+    ZETA_PrintCurPos;
+
+    ZETA_PrintVar(random_seed);
+    ZETA_PrintVar(fixed_seed);
+    ZETA_PrintVar(seed);
+
+    RandomEngine().seed(seed);
+
+    /*
+
+    seq_cntr_base -> seq_cntr_b -> seq_cntr_c
+
+    seq_cntr_a
+
+    collapse
+
+    seq_cntr_base -> seq_cntr_b
+
+    seq_cntr_base -> seq_cntr_c
+
+    seq_cntr_a
+
+    */
+
+    Zeta_SeqCntr* seq_cntr_base{ DebugDeque_Create<PODValue>() };
+
+    size_t origin_size{ 1024 * 1024 };
+
+    PODValue* buffer_a{ GetValBuffer_A(origin_size) };
+    GetRandomVals(buffer_a, buffer_a + origin_size);
+    SeqCntrUtils_Insert<PODValue>(seq_cntr_base, 0, buffer_a,
+                                  buffer_a + origin_size);
+
+    Zeta_SeqCntr* seq_cntr_a{ DebugDeque_Create<PODValue>() };
+
+    Zeta_SeqCntr* seq_cntr_b{ StageVector_Create<PODValue>(seq_cntr_base, 7) };
+
+    for (size_t _ = 0; _ < 16; ++_) {
+        ZETA_PrintVar(_);
+
+        Zeta_SeqCntr_Assign(seq_cntr_a, seq_cntr_base);
+        Zeta_StageVector_Reset(seq_cntr_b->context);
+
+        DoRandomOperations(seq_cntr_a, seq_cntr_b,
+
+                           16,  // iter_cnt
+
+                           16,  // read_max_op_size
+                           16,  // write_max_op_size
+                           16,  // push_l_max_op_size
+                           16,  // push_r_max_op_size
+                           16,  // pop_l_max_op_size
+                           16,  // pop_r_max_op_size
+                           16,  // insert_max_op_size
+                           16,  // erase_max_op_size
+
+                           16,  // cursor_step_l_max_op_size
+                           16,  // cursor_step_r_max_op_size
+                           16,  // cursor_advance_l_op_size
+                           16   // cursor_advance_r_op_size
+        );
+
+        ZETA_PrintCurPos;
+
+        Zeta_SeqCntr* seq_cntr_c{ StageVector_Create<PODValue>(seq_cntr_b, 7) };
+
+        ZETA_PrintCurPos;
+
+        DoRandomOperations(seq_cntr_a, seq_cntr_c,
+
+                           16,  // iter_cnt
+
+                           16,  // read_max_op_size
+                           16,  // write_max_op_size
+                           16,  // push_l_max_op_size
+                           16,  // push_r_max_op_size
+                           16,  // pop_l_max_op_size
+                           16,  // pop_r_max_op_size
+                           16,  // insert_max_op_size
+                           16,  // erase_max_op_size
+
+                           16,  // cursor_step_l_max_op_size
+                           16,  // cursor_step_r_max_op_size
+                           16,  // cursor_advance_l_op_size
+                           16   // cursor_advance_r_op_size
+        );
+
+        ZETA_PrintCurPos;
+
+        Zeta_StageVector_Collapse(seq_cntr_c->context);
+
+        ZETA_PrintCurPos;
+
+        SeqCntrUtils_Sanitize(seq_cntr_b);
+        SeqCntrUtils_Sanitize(seq_cntr_c);
+
+        ZETA_PrintCurPos;
+
+        DoRandomOperations(seq_cntr_a, seq_cntr_c,
+
+                           16,  // iter_cnt
+
+                           16,  // read_max_op_size
+                           16,  // write_max_op_size
+                           16,  // push_l_max_op_size
+                           16,  // push_r_max_op_size
+                           16,  // pop_l_max_op_size
+                           16,  // pop_r_max_op_size
+                           16,  // insert_max_op_size
+                           16,  // erase_max_op_size
+
+                           16,  // cursor_step_l_max_op_size
+                           16,  // cursor_step_r_max_op_size
+                           16,  // cursor_advance_l_op_size
+                           16   // cursor_advance_r_op_size
+        );
+
+        SeqCntrUtils_Destroy(seq_cntr_c);
+    }
+
+    SeqCntrUtils_Destroy(seq_cntr_a);
+    SeqCntrUtils_Destroy(seq_cntr_b);
+
+    SeqCntrUtils_Destroy(seq_cntr_base);
+}
+
+int main() {
     printf("main start\n");
 
     ZETA_PrintCurPos;
 
     unsigned long long beg_time{ GetTime() };
 
-    main3();
+    main7();
 
     unsigned long long end_time{ GetTime() };
 

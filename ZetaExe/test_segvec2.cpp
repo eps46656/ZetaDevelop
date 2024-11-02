@@ -35,7 +35,7 @@ void SetupSegVector() {
     StdAllocator_DeployAllocator(&seg_allocator_, &seg_allocator);
 
     sv.width = sizeof(val_t);
-    sv.stride = sizeof(val_t);
+    sv.width = sizeof(val_t);
     sv.seg_capacity = 32;
     sv.node_allocator = &node_allocator;
     sv.seg_allocator = &seg_allocator;

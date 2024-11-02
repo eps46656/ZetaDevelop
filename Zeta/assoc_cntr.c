@@ -11,8 +11,6 @@ void Zeta_AssocCntr_Init(Zeta_AssocCntr* assoc_cntr) {
 
     assoc_cntr->GetWidth = NULL;
 
-    assoc_cntr->GetStride = NULL;
-
     assoc_cntr->GetSize = NULL;
 
     assoc_cntr->GetCapacity = NULL;

@@ -1,5 +1,6 @@
-#include "debugger.h"
 #include "dummy_vector.h"
+
+#include "debugger.h"
 
 #if ZETA_IsDebug
 
@@ -17,17 +18,10 @@
 
 size_t Zeta_DummyVector_GetWidth(void* dv_) {
     Zeta_DummyVector* dv = dv_;
+
     CheckDV_(dv);
 
     return dv->width;
-}
-
-size_t Zeta_DummyVector_GetStride(void* dv_) {
-    Zeta_DummyVector* dv = dv_;
-
-    CheckDV_(dv);
-
-    return dv->stride;
 }
 
 size_t Zeta_DummyVector_GetSize(void* dv) {
@@ -106,7 +100,6 @@ void Zeta_DummyVector_Check(void* dv_) {
     ZETA_DebugAssert(dv != NULL);
 
     ZETA_DebugAssert(0 < dv->width);
-    ZETA_DebugAssert(dv->width <= dv->stride);
 }
 
 bool_t Zeta_DummyVector_Cursor_AreEqual(void* dv, void const* cursor_a_,
@@ -193,8 +186,6 @@ void Zeta_DummyVector_DeploySeqCntr(void* dv_, Zeta_SeqCntr* seq_cntr) {
     seq_cntr->cursor_size = sizeof(size_t);
 
     seq_cntr->GetWidth = Zeta_DummyVector_GetWidth;
-
-    seq_cntr->GetStride = Zeta_DummyVector_GetStride;
 
     seq_cntr->GetSize = Zeta_DummyVector_GetSize;
 

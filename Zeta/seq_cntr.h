@@ -29,20 +29,12 @@ struct Zeta_SeqCntr {
     void (*Deinit)(void* context);
 
     /**
-     * @brief The number of bytes occupied by element. Concrete container should
-     *        implement this function.
-     *
-     * @param context The context of the container.
-     */
-    size_t (*GetWidth)(void* context);
-
-    /**
      * @brief The byte offset of two adjacent elements in an element array.
      *        Concrete container should implement this function.
      *
      * @param context The context of the container.
      */
-    size_t (*GetStride)(void* context);
+    size_t (*GetWidth)(void* context);
 
     /**
      * @brief The number of element in the container. Concrete container should
@@ -364,7 +356,7 @@ void Zeta_SeqCntr_ResizeR(Zeta_SeqCntr* seq_cntr, size_t size);
 #define ZETA_SeqCntr_AllocaCursor(seq_cntr)                     \
     __builtin_alloca_with_align(                                \
         ((Zeta_SeqCntr*)ZETA_ToVoidPtr(seq_cntr))->cursor_size, \
-        CHAR_BIT * alignof(max_align_t))
+        __CHAR_BIT__ * alignof(max_align_t))
 
 #define ZETA_SeqCntr_Call_(seq_cntr, member_func, ...)                        \
     ZETA_CallMemberFunc((Zeta_SeqCntr*)ZETA_ToVoidPtr(seq_cntr), member_func, \
@@ -373,9 +365,6 @@ void Zeta_SeqCntr_ResizeR(Zeta_SeqCntr* seq_cntr, size_t size);
 #define ZETA_SeqCntr_Deinit(seq_cntr) ZETA_SeqCntr_Call_((seq_cntr), Deinit)
 
 #define ZETA_SeqCntr_GetWidth(seq_cntr) ZETA_SeqCntr_Call_((seq_cntr), GetWidth)
-
-#define ZETA_SeqCntr_GetStride(seq_cntr) \
-    ZETA_SeqCntr_Call_((seq_cntr), GetStride)
 
 #define ZETA_SeqCntr_GetSize(seq_cntr) ZETA_SeqCntr_Call_((seq_cntr), GetSize)
 

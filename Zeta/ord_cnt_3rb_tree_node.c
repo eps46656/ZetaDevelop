@@ -1,5 +1,6 @@
-#include "debugger.h"
 #include "ord_cnt_3rb_tree_node.h"
+
+#include "debugger.h"
 
 void Zeta_OrdCnt3RBTreeNode_Init(void* context, void* n_) {
     ZETA_Unused(context);
@@ -182,3 +183,21 @@ void Zeta_OrdCnt3RBTreeNode_DeployBinTreeNodeOperator(
     btn_opr->GetAccSize = Zeta_OrdCnt3RBTreeNode_GetAccSize;
     btn_opr->SetAccSize = Zeta_OrdCnt3RBTreeNode_SetAccSize;
 }
+
+Zeta_BinTreeNodeOperator const zeta_ord_cnt_3rb_tree_node_opr = {
+    .context = NULL,  //
+
+    .GetP = Zeta_OrdCnt3RBTreeNode_GetP,  //
+    .GetL = Zeta_OrdCnt3RBTreeNode_GetL,  //
+    .GetR = Zeta_OrdCnt3RBTreeNode_GetR,  //
+
+    .SetP = Zeta_OrdCnt3RBTreeNode_SetP,  //
+    .SetL = Zeta_OrdCnt3RBTreeNode_SetL,  //
+    .SetR = Zeta_OrdCnt3RBTreeNode_SetR,  //
+
+    .GetColor = Zeta_OrdCnt3RBTreeNode_GetPColor,  //
+    .SetColor = Zeta_OrdCnt3RBTreeNode_SetPColor,  //
+
+    .GetAccSize = Zeta_OrdCnt3RBTreeNode_GetAccSize,  //
+    .SetAccSize = Zeta_OrdCnt3RBTreeNode_SetAccSize,  //
+};

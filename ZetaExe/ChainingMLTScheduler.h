@@ -6,7 +6,7 @@
 #include "../Zeta/MultiLevelTable.h"
 #include "../Zeta/debugger.h"
 #include "../Zeta/ord_linked_list_node.h"
-#include "ZetaPoolallocator.h"
+#include "zeta_pool_allocator.h"
 
 class ChainingMLTScheduler {
 public:

@@ -11,7 +11,6 @@ ZETA_DeclareStruct(Zeta_DynamicVector_Cursor);
 
 struct Zeta_DynamicVector {
     size_t width;
-    size_t stride;
 
     size_t seg_capacity;
 
@@ -46,8 +45,6 @@ void Zeta_DynamicVector_Init(void* dv);
 void Zeta_DynamicVector_Deinit(void* dv);
 
 size_t Zeta_DynamicVector_GetWidth(void* dv);
-
-size_t Zeta_DynamicVector_GetStride(void* dv);
 
 size_t Zeta_DynamicVector_GetSize(void* dv);
 

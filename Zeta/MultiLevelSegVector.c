@@ -7,11 +7,11 @@ static void CheckMLSV_(void* mlsv_) {
     ZETA_DebugAssert(mlsv != NULL);
 
     size_t width = mlsv->width;
-    size_t stride = mlsv->stride;
+    size_t width = mlsv->width;
     size_t seg_capacity = mlsv->seg_capacity;
 
     ZETA_DebugAssert(0 < width);
-    ZETA_DebugAssert(width <= stride);
+    ZETA_DebugAssert(width <= width);
     ZETA_DebugAssert(seg_capacity <= Zeta_MultiLevelSegVector_max_seg_capacity);
 
     ZETA_DebugAssert(mlsv->node_allocator != NULL);

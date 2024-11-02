@@ -1,10 +1,11 @@
 #include "disk_part_mbt.h"
+
 #include "utils.h"
 
-#define READ(src, length)                               \
-    ({                                                  \
-        src += length;                                  \
-        Zeta_ReadLittleEndianStd(src - length, length); \
+#define READ(src, length)                      \
+    ({                                         \
+        Zeta_ReadLittleEndianStd(src, length); \
+        src += length;                         \
     })
 
 #define WRITE(dst, val, length)               \

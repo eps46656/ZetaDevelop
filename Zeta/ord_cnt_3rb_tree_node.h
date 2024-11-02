@@ -37,4 +37,6 @@ void Zeta_OrdCnt3RBTreeNode_SetAccSize(void* context, void* n, size_t acc_size);
 void Zeta_OrdCnt3RBTreeNode_DeployBinTreeNodeOperator(
     void* context, Zeta_BinTreeNodeOperator* btn_opr);
 
+extern Zeta_BinTreeNodeOperator const zeta_ord_cnt_3rb_tree_node_opr;
+
 ZETA_ExternC_End;

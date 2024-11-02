@@ -39,7 +39,6 @@ void DynamicHashTable_Init(
                                  &pack->table_allocator);
 
     pack->dht.width = sizeof(Val);
-    pack->dht.stride = sizeof(Val);
 
     pack->dht.elem_hash_context = elem_hash_context;
     pack->dht.ElemHash = ElemHash;

@@ -16,13 +16,13 @@ void DebugDeque_Init(Zeta_SeqCntr* seq_cntr) {
         std::malloc(sizeof(DebugDequePack))) };
 
     debug_deque_pack->debug_deque.width = sizeof(Elem);
-    debug_deque_pack->debug_deque.stride = sizeof(Elem);
 
     Zeta_DebugDeque_Init(&debug_deque_pack->debug_deque);
 
     Zeta_DebugDeque_DeploySeqCntr(&debug_deque_pack->debug_deque, seq_cntr);
 
     SeqCntrUtils_AddSanitizeFunc(Zeta_DebugDeque_GetWidth, DebugDeque_Sanitize);
+    SeqCntrUtils_AddDestroyFunc(Zeta_DebugDeque_GetWidth, DebugDeque_Destroy);
 }
 
 void DebugDeque_Deinit(Zeta_SeqCntr* seq_cntr) {

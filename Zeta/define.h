@@ -104,157 +104,177 @@ typedef unsigned unichar_t;
 
 #endif
 
-#define ZETA_IsSigned(type)        \
-    _Generic((type)0,              \
-        char: ((char)(-1) < 0),    \
-                                   \
-        unsigned char: FALSE,      \
-        unsigned short: FALSE,     \
-        unsigned: FALSE,           \
-        unsigned long: FALSE,      \
-        unsigned long long: FALSE, \
-        u8_t: FALSE,               \
-        u16_t: FALSE,              \
-        u32_t: FALSE,              \
-        u64_t: FALSE,              \
-        u128_t: FALSE,             \
-                                   \
-        signed char: TRUE,         \
-        signed short: TRUE,        \
-        signed int: TRUE,          \
-        signed long: TRUE,         \
-        signed long long: TRUE,    \
-        s8_t: FALSE,               \
-        s16_t: FALSE,              \
-        s32_t: FALSE,              \
-        s64_t: FALSE,              \
-        s128_t: FALSE)
+#define ZETA_IsSigned(type) ((type)(-1) < 0)
 
-#define ZETA_UIntRangeMin_(utype, stype) ((utype)(0))
-#define ZETA_UIntRangeMax_(utype, stype) ((utype)(-1))
+// -----------------------------------------------------------------------------
 
-#define ZETA_SIntRangeMin_(utype, stype) \
-    ((stype)(-(stype)((utype)(-1) / (utype)(2)) - (stype)(1)))
-#define ZETA_SIntRangeMax_(utype, stype) ((stype)((utype)(-1) / 2))
+#define ZETA_UIntRangeMin_(type) ((unsigned type)(0))
 
-#define ZETA_RangeMinOf(type)                                             \
-    _Generic((type)0,                                                     \
-        char: ZETA_IsSigned(char)                                         \
-            ? ZETA_SIntRangeMin_(unsigned char, signed char)              \
-            : ZETA_UIntRangeMin_(unsigned char, signed char),             \
-                                                                          \
-        unsigned char: ZETA_UIntRangeMin_(unsigned char, signed char),    \
-                                                                          \
-        unsigned short: ZETA_UIntRangeMin_(unsigned short, signed short), \
-                                                                          \
-        unsigned: ZETA_UIntRangeMin_(unsigned, signed int),               \
-                                                                          \
-        unsigned long: ZETA_UIntRangeMin_(unsigned long, signed long),    \
-                                                                          \
-        unsigned long long: ZETA_UIntRangeMin_(unsigned long long,        \
-                                               signed long long),         \
-                                                                          \
-        u8_t: ZETA_UIntRangeMin_(u8_t, s8_t),                             \
-                                                                          \
-        u16_t: ZETA_UIntRangeMin_(u16_t, s16_t),                          \
-                                                                          \
-        u32_t: ZETA_UIntRangeMin_(u32_t, s32_t),                          \
-                                                                          \
-        u64_t: ZETA_UIntRangeMin_(u64_t, s64_t),                          \
-                                                                          \
-        u128_t: ZETA_UIntRangeMin_(u128_t, s128_t),                       \
-                                                                          \
-        signed char: ZETA_SIntRangeMin_(unsigned char, signed char),      \
-                                                                          \
-        signed short: ZETA_SIntRangeMin_(unsigned short, signed short),   \
-                                                                          \
-        signed int: ZETA_SIntRangeMin_(unsigned, signed int),             \
-                                                                          \
-        signed long: ZETA_SIntRangeMin_(unsigned long, signed long),      \
-                                                                          \
-        signed long long: ZETA_SIntRangeMin_(unsigned long long,          \
-                                             signed long long),           \
-                                                                          \
-        s8_t: ZETA_SIntRangeMin_(u8_t, s8_t),                             \
-                                                                          \
-        s16_t: ZETA_SIntRangeMin_(u16_t, s16_t),                          \
-                                                                          \
-        s32_t: ZETA_SIntRangeMin_(u32_t, s32_t),                          \
-                                                                          \
-        s64_t: ZETA_SIntRangeMin_(u64_t, s64_t),                          \
-                                                                          \
-        s128_t: ZETA_SIntRangeMin_(u128_t, s128_t))
+#define ZETA_UIntRangeMax_(type) ((unsigned type)(-1))
 
-#define ZETA_RangeMaxOf(type)                                             \
-    _Generic((type)0,                                                     \
-        char: ZETA_IsSigned(char)                                         \
-            ? ZETA_SIntRangeMax_(unsigned char, signed char)              \
-            : ZETA_UIntRangeMax_(unsigned char, signed char),             \
-                                                                          \
-        unsigned char: ZETA_UIntRangeMax_(unsigned char, signed char),    \
-                                                                          \
-        unsigned short: ZETA_UIntRangeMax_(unsigned short, signed short), \
-                                                                          \
-        unsigned: ZETA_UIntRangeMax_(unsigned, signed int),               \
-                                                                          \
-        unsigned long: ZETA_UIntRangeMax_(unsigned long, signed long),    \
-                                                                          \
-        unsigned long long: ZETA_UIntRangeMax_(unsigned long long,        \
-                                               signed long long),         \
-                                                                          \
-        u8_t: ZETA_UIntRangeMax_(u8_t, s8_t),                             \
-                                                                          \
-        u16_t: ZETA_UIntRangeMax_(u16_t, s16_t),                          \
-                                                                          \
-        u32_t: ZETA_UIntRangeMax_(u32_t, s32_t),                          \
-                                                                          \
-        u64_t: ZETA_UIntRangeMax_(u64_t, s64_t),                          \
-                                                                          \
-        u128_t: ZETA_UIntRangeMax_(u128_t, s128_t),                       \
-                                                                          \
-        signed char: ZETA_SIntRangeMax_(unsigned char, signed char),      \
-                                                                          \
-        signed short: ZETA_SIntRangeMax_(unsigned short, signed short),   \
-                                                                          \
-        signed int: ZETA_SIntRangeMax_(unsigned, signed int),             \
-                                                                          \
-        signed long: ZETA_SIntRangeMax_(unsigned long, signed long),      \
-                                                                          \
-        signed long long: ZETA_SIntRangeMax_(unsigned long long,          \
-                                             signed long long),           \
-                                                                          \
-        s8_t: ZETA_SIntRangeMax_(u8_t, s8_t),                             \
-                                                                          \
-        s16_t: ZETA_SIntRangeMax_(u16_t, s16_t),                          \
-                                                                          \
-        s32_t: ZETA_SIntRangeMax_(u32_t, s32_t),                          \
-                                                                          \
-        s64_t: ZETA_SIntRangeMax_(u64_t, s64_t),                          \
-                                                                          \
-        s128_t: ZETA_SIntRangeMax_(u128_t, s128_t))
+#define ZETA_SIntRangeMin_(type)                                              \
+    ((signed type)(-(signed type)((unsigned type)(-1) / (unsigned type)(2)) - \
+                   (signed type)(1)))
 
-#define ZETA_WidthOf(type)                                                   \
-    _Generic((type)0,                                                        \
-        unsigned char: __builtin_popcount(ZETA_RangeMaxOf(unsigned char)),   \
-                                                                             \
-        unsigned short: __builtin_popcount(ZETA_RangeMaxOf(unsigned short)), \
-                                                                             \
-        unsigned: __builtin_popcount(ZETA_RangeMaxOf(unsigned)),             \
-                                                                             \
-        unsigned long: __builtin_popcountl(ZETA_RangeMaxOf(unsigned long)),  \
-                                                                             \
-        unsigned long long: __builtin_popcountll(                            \
-                 ZETA_RangeMaxOf(unsigned long long)),                       \
-                                                                             \
-        u8_t: (8),                                                           \
-                                                                             \
-        u16_t: (16),                                                         \
-                                                                             \
-        u32_t: (32),                                                         \
-                                                                             \
-        u64_t: (64),                                                         \
-                                                                             \
-        u128_t: (128))
+#define ZETA_SIntRangeMax_(type) ((signed type)((unsigned type)(-1) / 2))
+
+// ---
+
+#define ZETA_CHAR_MIN (ZETA_IsSigned(char) ? ZETA_SCHAR_MIN : ZETA_UCHAR_MIN)
+#define ZETA_UCHAR_MIN ZETA_UIntRangeMin_(char)
+#define ZETA_SCHAR_MIN ZETA_SIntRangeMin_(char)
+
+#define ZETA_USHRT_MIN ZETA_UIntRangeMin_(short)
+#define ZETA_SSHRT_MIN ZETA_SIntRangeMin_(short)
+
+#define ZETA_UINT_MIN ZETA_UIntRangeMin_(int)
+#define ZETA_SINT_MIN ZETA_SIntRangeMin_(int)
+
+#define ZETA_ULONG_MIN ZETA_UIntRangeMin_(int)
+#define ZETA_SLONG_MIN ZETA_SIntRangeMin_(long)
+
+#define ZETA_ULLONG_MIN ZETA_UIntRangeMin_(long long)
+#define ZETA_SLLONG_MIN ZETA_SIntRangeMin_(long long)
+
+#define ZETA_U8_MIN ZETA_UIntRangeMin_(_BitInt(8))
+#define ZETA_S8_MIN ZETA_SIntRangeMin_(_BitInt(8))
+
+#define ZETA_U16_MIN ZETA_SIntRangeMin_(_BitInt(16))
+#define ZETA_S16_MIN ZETA_SIntRangeMin_(_BitInt(16))
+
+#define ZETA_U32_MIN ZETA_SIntRangeMin_(_BitInt(32))
+#define ZETA_S32_MIN ZETA_SIntRangeMin_(_BitInt(32))
+
+#define ZETA_U64_MIN ZETA_SIntRangeMin_(_BitInt(64))
+#define ZETA_S64_MIN ZETA_SIntRangeMin_(_BitInt(64))
+
+#define ZETA_U128_MIN ZETA_SIntRangeMin_(_BitInt(128))
+#define ZETA_S128_MIN ZETA_SIntRangeMin_(_BitInt(128))
+
+// ---
+
+#define ZETA_CHAR_MAX (ZETA_IsSigned(char) ? ZETA_SCHAR_MAX : ZETA_UCHAR_MAX)
+#define ZETA_UCHAR_MAX ZETA_UIntRangeMax_(char)
+#define ZETA_SCHAR_MAX ZETA_SIntRangeMax_(char)
+
+#define ZETA_USHRT_MAX ZETA_UIntRangeMax_(short)
+#define ZETA_SSHRT_MAX ZETA_SIntRangeMax_(short)
+
+#define ZETA_UINT_MAX ZETA_UIntRangeMax_(int)
+#define ZETA_SINT_MAX ZETA_SIntRangeMax_(int)
+
+#define ZETA_ULONG_MAX ZETA_UIntRangeMax_(long)
+#define ZETA_SLONG_MAX ZETA_SIntRangeMax_(long)
+
+#define ZETA_ULLONG_MAX ZETA_UIntRangeMax_(long long)
+#define ZETA_SLLONG_MAX ZETA_SIntRangeMax_(long long)
+
+#define ZETA_U8_MAX ZETA_UIntRangeMax_(_BitInt(8))
+#define ZETA_S8_MAX ZETA_SIntRangeMax_(_BitInt(8))
+
+#define ZETA_U16_MAX ZETA_UIntRangeMax_(_BitInt(16))
+#define ZETA_S16_MAX ZETA_SIntRangeMax_(_BitInt(16))
+
+#define ZETA_U32_MAX ZETA_UIntRangeMax_(_BitInt(32))
+#define ZETA_S32_MAX ZETA_SIntRangeMax_(_BitInt(32))
+
+#define ZETA_U64_MAX ZETA_UIntRangeMax_(_BitInt(64))
+#define ZETA_S64_MAX ZETA_SIntRangeMax_(_BitInt(64))
+
+#define ZETA_U128_MAX ZETA_UIntRangeMax_(_BitInt(128))
+#define ZETA_S128_MAX ZETA_SIntRangeMax_(_BitInt(128))
+
+// -----------------------------------------------------------------------------
+
+#define ZETA_RangeMinOf(type)                \
+    _Generic((type)0,                        \
+        char: ZETA_CHAR_MIN,                 \
+        unsigned char: ZETA_UCHAR_MIN,       \
+        signed char: ZETA_SCHAR_MIN,         \
+                                             \
+        unsigned short: ZETA_USHRT_MIN,      \
+        signed short: ZETA_SSHRT_MIN,        \
+                                             \
+        unsigned: ZETA_UINT_MIN,             \
+        signed: ZETA_SINT_MIN,               \
+                                             \
+        unsigned long: ZETA_ULONG_MIN,       \
+        signed long: ZETA_SLONG_MIN,         \
+                                             \
+        unsigned long long: ZETA_ULLONG_MIN, \
+        signed long long: ZETA_SLLONG_MIN,   \
+                                             \
+        u8_t: ZETA_U8_MIN,                   \
+        s8_t: ZETA_S8_MIN,                   \
+                                             \
+        u16_t: ZETA_U16_MIN,                 \
+        s16_t: ZETA_S16_MIN,                 \
+                                             \
+        u32_t: ZETA_U32_MIN,                 \
+        s32_t: ZETA_S32_MIN,                 \
+                                             \
+        u64_t: ZETA_U64_MIN,                 \
+        s64_t: ZETA_S64_MIN,                 \
+                                             \
+        u128_t: ZETA_U128_MIN,               \
+        s128_t: ZETA_S128_MIN)
+
+#define ZETA_RangeMaxOf(type)                \
+    _Generic((type)0,                        \
+        char: ZETA_CHAR_MAX,                 \
+        unsigned char: ZETA_UCHAR_MAX,       \
+        signed char: ZETA_SCHAR_MAX,         \
+                                             \
+        unsigned short: ZETA_USHRT_MAX,      \
+        signed short: ZETA_SSHRT_MAX,        \
+                                             \
+        unsigned: ZETA_UINT_MAX,             \
+        signed: ZETA_SINT_MAX,               \
+                                             \
+        unsigned long: ZETA_ULONG_MAX,       \
+        signed long: ZETA_SLONG_MAX,         \
+                                             \
+        unsigned long long: ZETA_ULLONG_MAX, \
+        signed long long: ZETA_SLLONG_MAX,   \
+                                             \
+        u8_t: ZETA_U8_MAX,                   \
+        s8_t: ZETA_S8_MAX,                   \
+                                             \
+        u16_t: ZETA_U16_MAX,                 \
+        s16_t: ZETA_S16_MAX,                 \
+                                             \
+        u32_t: ZETA_U32_MAX,                 \
+        s32_t: ZETA_S32_MAX,                 \
+                                             \
+        u64_t: ZETA_U64_MAX,                 \
+        s64_t: ZETA_S64_MAX,                 \
+                                             \
+        u128_t: ZETA_U128_MAX,               \
+        s128_t: ZETA_S128_MAX)
+
+#define ZETA_UCHAR_WIDTH (__CHAR_BIT__)
+#define ZETA_USHRT_WIDTH (__SHRT_WIDTH__)
+#define ZETA_UINT_WIDTH (__INT_WIDTH__)
+#define ZETA_ULONG_WIDTH (__LONG_WIDTH__)
+#define ZETA_ULLONG_WIDTH (__LLONG_WIDTH__)
+#define ZETA_U8_WIDTH (8)
+#define ZETA_U16_WIDTH (16)
+#define ZETA_U32_WIDTH (32)
+#define ZETA_U64_WIDTH (64)
+#define ZETA_U128_WIDTH (128)
+
+#define ZETA_WidthOf(type)                     \
+    _Generic((type)0,                          \
+        unsigned char: ZETA_UCHAR_WIDTH,       \
+        unsigned short: ZETA_USHRT_WIDTH,      \
+        unsigned: ZETA_UINT_WIDTH,             \
+        unsigned long: ZETA_ULONG_WIDTH,       \
+        unsigned long long: ZETA_ULLONG_WIDTH, \
+        u8_t: ZETA_U8_WIDTH,                   \
+        u16_t: ZETA_U16_WIDTH,                 \
+        u32_t: ZETA_U32_WIDTH,                 \
+        u64_t: ZETA_U64_WIDTH,                 \
+        u128_t: ZETA_U128_WIDTH)
 
 typedef unsigned _BitInt(ZETA_WidthOf(unsigned long long)) ULLBitInt_t;
 
@@ -264,17 +284,29 @@ typedef unsigned _BitInt(ZETA_WidthOf(unsigned long long)) ULLBitInt_t;
         ZETA_RangeMinOf(type) <= val&& val <= ZETA_RangeMaxOf(type); \
     })
 
-#define ZETA_InRangeOf(val, type) ZETA_InRangeOf_(ZETA_TmpName, val, type)
+#define ZETA_InRangeOf(val, type) ZETA_InRangeOf_(ZETA_TmpName, (val), type)
 
 #define ZETA_2Power(x) ((ULLBitInt_t)(1) << (x))
 
 #define ZETA_Is2Power(x) (__builtin_popcountll(x) == 1)
 
-#define ZETA_FloorLog2(x) \
-    (ZETA_WidthOf(unsigned long long) - 1 - __builtin_clzll(x))
+#define ZETA_FloorLog2_(tmp_x, x)                                         \
+    ({                                                                    \
+        ZETA_AutoVar(tmp_x, x);                                           \
+        tmp_x == 0 ? -1 : ZETA_ULLONG_WIDTH - 1 - __builtin_clzll(tmp_x); \
+    })
 
-#define ZETA_CeilLog2(x) \
-    (ZETA_WidthOf(unsigned long long) - __builtin_clzll(x - 1))
+#define ZETA_FloorLog2(x) ZETA_FloorLog2_(ZETA_TmpName, (x))
+
+#define ZETA_CeilLog2_(tmp_x, x)                                  \
+    ({                                                            \
+        ZETA_AutoVar(tmp_x, x);                                   \
+        tmp_x == 0 ? -1                                           \
+                   : ZETA_ULLONG_WIDTH - __builtin_clzll(tmp_x) - \
+                         (__builtin_popcountll(tmp_x) == 1);      \
+    })
+
+#define ZETA_CeilLog2(x) ZETA_CeilLog2_(ZETA_TmpName, (x))
 
 #define ZETA_PtrToAddr(x) ((uintptr_t)(void const*)(x))
 #define ZETA_AddrToPtr(x) ((void*)(uintptr_t)(x))
@@ -309,7 +341,7 @@ typedef unsigned _BitInt(ZETA_WidthOf(unsigned long long)) ULLBitInt_t;
     })
 
 #define ZETA_ThreeWayCompare(x, y) \
-    ZETA_ThreeWayCompare_(ZETA_TmpName, ZETA_TmpName, x, y)
+    ZETA_ThreeWayCompare_(ZETA_TmpName, ZETA_TmpName, (x), (y))
 
 #define ZETA_Swap_(tmp_x, tmp_y, x, y, tmp) \
     {                                       \
@@ -358,19 +390,17 @@ ZETA_StaticAssert(255 <= ZETA_RangeMaxOf(byte_t));
 #define ZETA_RoundIntDiv(x, y) \
     ZETA_RoundIntDiv_(ZETA_TmpName, ZETA_TmpName, (x), (y))
 
-#define ZETA_FixedPoint_BaseOrder (24)
+#define ZETA_FixedPoint_BaseOrder (ZETA_ULLONG_WIDTH * 3 / 8)
 
 #define ZETA_FixedPoint_Base ZETA_2Power(ZETA_FixedPoint_BaseOrder)
 
 #define ZETA_AreOverlapped_(tmp_a_beg, tmp_a_end, tmp_b_beg, tmp_b_end, a_beg, \
                             a_size, b_beg, b_size)                             \
     ({                                                                         \
-        void const* tmp_a_beg = (a_beg);                                       \
-        void const* tmp_a_end =                                                \
-            ZETA_AddrToPtr(ZETA_PtrToAddr(tmp_a_beg) + (a_size));              \
-        void const* tmp_b_beg = (b_beg);                                       \
-        void const* tmp_b_end =                                                \
-            ZETA_AddrToPtr(ZETA_PtrToAddr(tmp_b_beg) + (b_size));              \
+        unsigned char const* tmp_a_beg = (void const*)(a_beg);                 \
+        unsigned char const* tmp_a_end = tmp_a_beg + (a_size);                 \
+        unsigned char const* tmp_b_beg = (void const*)(b_beg);                 \
+        unsigned char const* tmp_b_end = tmp_b_beg + (b_size);                 \
         (tmp_b_beg < tmp_a_end) && (tmp_a_beg < tmp_b_end);                    \
     })
 

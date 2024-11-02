@@ -32,7 +32,6 @@ void DynamicVector_Init(Zeta_SeqCntr* seq_cntr, size_t seg_capacity) {
                                  &dynamic_vec_pack->seg_allocator);
 
     dynamic_vec_pack->dynamic_vec.width = sizeof(Val);
-    dynamic_vec_pack->dynamic_vec.stride = sizeof(Val);
     dynamic_vec_pack->dynamic_vec.seg_capacity = seg_capacity;
 
     dynamic_vec_pack->dynamic_vec.data_allocator =
@@ -47,6 +46,9 @@ void DynamicVector_Init(Zeta_SeqCntr* seq_cntr, size_t seg_capacity) {
 
     SeqCntrUtils_AddSanitizeFunc(Zeta_DynamicVector_GetWidth,
                                  DynamicVector_Sanitize);
+
+    SeqCntrUtils_AddDestroyFunc(Zeta_DynamicVector_GetWidth,
+                                DynamicVector_Destroy);
 }
 
 void DynamicVector_Deinit(Zeta_SeqCntr* seq_cntr) {

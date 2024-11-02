@@ -13,7 +13,6 @@ void CircularArray_Init(Zeta_SeqCntr* seq_cntr, size_t capacity) {
 
     ca->data = std::malloc(sizeof(Elem) * capacity);
     ca->width = sizeof(Elem);
-    ca->stride = sizeof(Elem);
     ca->offset = 0;
     ca->size = 0;
     ca->capacity = capacity;

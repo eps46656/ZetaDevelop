@@ -92,7 +92,7 @@ Zeta_CircularArray ca;
 
 void InitCV(Zeta_SeqCntr* seq_cntr) {
     ca.width = sizeof(Val);
-    ca.stride = sizeof(Val);
+    ca.width = sizeof(Val);
     ca.offset = 0;
     ca.size = 0;
     ca.capacity = CAPACITY;
@@ -122,7 +122,7 @@ void InitSV(Zeta_SeqCntr* seq_cntr) {
     StdAllocator_DeployAllocator(&seg_allocator_, &seg_allocator);
 
     sv.width = sizeof(Val);
-    sv.stride = sizeof(Val);
+    sv.width = sizeof(Val);
     sv.seg_capacity = 6;
     sv.node_allocator = &node_allocator;
     sv.seg_allocator = &seg_allocator;

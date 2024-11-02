@@ -4,6 +4,7 @@
 #include <stage_vector.h>
 
 #include <cstdlib>
+#include <memory>
 
 #include "seq_cntr_utils.h"
 #include "std_allocator.h"
@@ -26,7 +27,7 @@ void StageVector_Init(Zeta_SeqCntr* seq_cntr, Zeta_SeqCntr* origin_seq_cntr,
                       size_t seg_capacity) {
     if (origin_seq_cntr != NULL) {
         ZETA_DebugAssert(sizeof(Elem) <=
-                         ZETA_SeqCntr_GetStride(origin_seq_cntr));
+                         ZETA_SeqCntr_GetWidth(origin_seq_cntr));
     }
 
     StageVectorPack* pack{ static_cast<StageVectorPack*>(
@@ -34,7 +35,6 @@ void StageVector_Init(Zeta_SeqCntr* seq_cntr, Zeta_SeqCntr* origin_seq_cntr,
 
     if (origin_seq_cntr == NULL) {
         pack->dummy_vec.width = sizeof(Elem);
-        pack->dummy_vec.stride = sizeof(Elem);
 
         Zeta_DummyVector_DeploySeqCntr(&pack->dummy_vec,
                                        &pack->dummy_vec_seq_cntr);
@@ -59,6 +59,8 @@ void StageVector_Init(Zeta_SeqCntr* seq_cntr, Zeta_SeqCntr* origin_seq_cntr,
 
     SeqCntrUtils_AddSanitizeFunc(Zeta_StageVector_GetWidth,
                                  StageVector_Sanitize);
+
+    SeqCntrUtils_AddDestroyFunc(Zeta_StageVector_GetWidth, StageVector_Destroy);
 }
 
 void StageVector_Deinit(Zeta_SeqCntr* seq_cntr) {
@@ -71,9 +73,6 @@ void StageVector_Deinit(Zeta_SeqCntr* seq_cntr) {
 
     Zeta_StageVector_Deinit(seq_cntr->context);
 
-    pack->seg_allocator_.~StdAllocator();
-    pack->data_allocator_.~StdAllocator();
-
     std::free(pack);
 }
 
@@ -81,7 +80,9 @@ template <typename Elem>
 Zeta_SeqCntr* StageVector_Create(Zeta_SeqCntr* origin_seq_cntr,
                                  size_t seg_capacity) {
     Zeta_SeqCntr* seq_cntr{ new Zeta_SeqCntr{} };
+
     StageVector_Init<Elem>(seq_cntr, origin_seq_cntr, seg_capacity);
+
     return seq_cntr;
 }
 

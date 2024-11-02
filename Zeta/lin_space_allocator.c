@@ -191,7 +191,7 @@ static void NodeSetAccSize_(void* context, void* n, size_t acc_size) {
     ((Zeta_LinSpaceAllocator_Node*)n)->acc_size = acc_size;
 }
 
-static Zeta_BinTreeNodeOperator gt_opr = {
+static Zeta_BinTreeNodeOperator const gt_opr = {
     .context = NULL,
 
     .GetP = NodeGetGP_,
@@ -209,7 +209,7 @@ static Zeta_BinTreeNodeOperator gt_opr = {
     .SetAccSize = NodeSetAccSize_,
 };
 
-static Zeta_BinTreeNodeOperator st_opr = {
+static Zeta_BinTreeNodeOperator const st_opr = {
     .context = NULL,
 
     .GetP = NodeGetSP_,

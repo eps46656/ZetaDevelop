@@ -370,7 +370,7 @@ void* Zeta_RBTree_Extract(Zeta_BinTreeNodeOperator const* btn_opr, void* pos) {
 }
 
 static size_t Check_(Zeta_BinTreeNodeOperator const* btn_opr,
-                     Zeta_DebugPipe* dst_ns, void* n) {
+                     Zeta_MemRecorder* dst_mr, void* n) {
     if (n == NULL) { return 0; }
 
     void* context = btn_opr->context;
@@ -381,11 +381,11 @@ static size_t Check_(Zeta_BinTreeNodeOperator const* btn_opr,
     if (nl != NULL) { ZETA_CheckAssert(btn_opr->GetP(context, nl) == n); }
     if (nr != NULL) { ZETA_CheckAssert(btn_opr->GetP(context, nr) == n); }
 
-    size_t lbh = Check_(btn_opr, dst_ns, nl);
+    size_t lbh = Check_(btn_opr, dst_mr, nl);
 
-    if (dst_ns != NULL) { Zeta_DebugPipe_Push(dst_ns, ZETA_PtrToAddr(n)); }
+    if (dst_mr != NULL) { Zeta_MemRecorder_Record(dst_mr, n, sizeof(void*)); }
 
-    size_t rbh = Check_(btn_opr, dst_ns, nr);
+    size_t rbh = Check_(btn_opr, dst_mr, nr);
 
     ZETA_CheckAssert(lbh == rbh);
 
@@ -402,7 +402,7 @@ static size_t Check_(Zeta_BinTreeNodeOperator const* btn_opr,
 }
 
 void Zeta_RBTree_Check(Zeta_BinTreeNodeOperator const* btn_opr,
-                       Zeta_DebugPipe* dst_ns, void* root) {
+                       Zeta_MemRecorder* dst_mr, void* root) {
     ZETA_DebugAssert(btn_opr != NULL);
     ZETA_DebugAssert(btn_opr->GetP != NULL);
     ZETA_DebugAssert(btn_opr->GetL != NULL);
@@ -414,5 +414,5 @@ void Zeta_RBTree_Check(Zeta_BinTreeNodeOperator const* btn_opr,
     ZETA_DebugAssert(btn_opr->GetP(btn_opr->context, root) == NULL);
     ZETA_DebugAssert(btn_opr->GetColor(btn_opr->context, root) == Black);
 
-    Check_(btn_opr, dst_ns, root);
+    Check_(btn_opr, dst_mr, root);
 }

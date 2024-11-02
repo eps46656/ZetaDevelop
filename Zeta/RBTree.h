@@ -1,7 +1,7 @@
 #pragma once
 
 #include "bin_tree.h"
-#include "debug_pipe.h"
+#include "mem_check_utils.h"
 
 ZETA_ExternC_Beg;
 
@@ -23,6 +23,6 @@ void* Zeta_RBTree_GeneralInsertR(Zeta_BinTreeNodeOperator const* btn_opr,
 void* Zeta_RBTree_Extract(Zeta_BinTreeNodeOperator const* btn_opr, void* n);
 
 void Zeta_RBTree_Check(Zeta_BinTreeNodeOperator const* btn_opr,
-                       Zeta_DebugPipe* dst_ns, void* root);
+                       Zeta_MemRecorder* dst_mr, void* root);
 
 ZETA_ExternC_End;

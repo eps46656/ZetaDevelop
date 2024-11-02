@@ -204,9 +204,9 @@ struct Node {
 
     Zeta_SeqCntr clus_num_vec_dummy_vec_seq_cntr;
     Zeta_StageVector clus_num_vec;
-    // contain clus numbers strding clus_num_stride
+    // contain clus numbers strding clus_num_width
 
-    size_t clus_num_stride;
+    size_t clus_num_width;
 
     Zeta_StageVector stage_vec;
 };
@@ -223,7 +223,7 @@ struct NodeVector {
 
 static size_t NodeVector_GetWidth(void* nv);
 
-static size_t NodeVector_GetStride(void* nv);
+static size_t NodeVector_GetWidth(void* nv);
 
 static size_t NodeVector_GetSize(void* nv);
 
@@ -274,7 +274,7 @@ static size_t NodeVector_GetWidth(void* nv_) {
     return 1;
 }
 
-static size_t NodeVector_GetStride(void* nv_) {
+static size_t NodeVector_GetWidth(void* nv_) {
     NodeVector* nv = nv_;
     CheckNodeVector_(nv);
 
@@ -473,7 +473,7 @@ static void NodeVector_DeploySeqCntr(void* nv_, Zeta_SeqCntr* seq_cntr) {
 
     seq_cntr->GetWidth = NodeVector_GetWidth;
 
-    seq_cntr->GetStride = NodeVector_GetStride;
+    seq_cntr->GetWidth = NodeVector_GetWidth;
 
     seq_cntr->GetSize = NodeVector_GetSize;
 

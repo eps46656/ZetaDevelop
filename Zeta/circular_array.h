@@ -6,15 +6,12 @@ ZETA_ExternC_Beg;
 
 #define ZETA_CircularArray_max_capacity ZETA_GetMaxMod(size_t)
 
-#define ZETA_CircularArray_vec_mem_copy_th (sizeof(void*) * 4 + 1)
-
 ZETA_DeclareStruct(Zeta_CircularArray);
 ZETA_DeclareStruct(Zeta_CircularArray_Cursor);
 
 struct Zeta_CircularArray {
     void* data;
     size_t width;
-    size_t stride;
     size_t offset;
     size_t size;
     size_t capacity;
@@ -31,8 +28,6 @@ void Zeta_CircularArray_Init(void* ca);
 void Zeta_CircularArray_Deinit(void* ca);
 
 size_t Zeta_CircularArray_GetWidth(void* ca);
-
-size_t Zeta_CircularArray_GetStride(void* ca);
 
 size_t Zeta_CircularArray_GetOffset(void* ca);
 

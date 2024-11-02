@@ -247,7 +247,7 @@ bool_t Zeta_ELF_ReadProgramHeaders(Zeta_ELF* elf, byte_t const* src,
             sizeof(Zeta_DynamicVector));
 
         dv->width = sizeof(Zeta_ELF_ProgramHeader);
-        dv->stride = sizeof(Zeta_ELF_ProgramHeader);
+        dv->width = sizeof(Zeta_ELF_ProgramHeader);
         dv->seg_capacity = 8;
 
         dv->data_allocator = &zeta_std_allocator;
@@ -308,7 +308,7 @@ bool_t Zeta_ELF_ReadSesctionHeaders(Zeta_ELF* elf, byte_t const* src,
             sizeof(Zeta_DynamicVector));
 
         dv->width = sizeof(Zeta_ELF_SectionHeader);
-        dv->stride = sizeof(Zeta_ELF_SectionHeader);
+        dv->width = sizeof(Zeta_ELF_SectionHeader);
         dv->seg_capacity = 8;
 
         dv->data_allocator = &zeta_std_allocator;

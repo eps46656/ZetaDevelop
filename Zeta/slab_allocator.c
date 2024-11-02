@@ -1,4 +1,4 @@
-#include "Slaballocator.h"
+#include "slab_allocator.h"
 
 #include "debugger.h"
 #include "utils.h"

@@ -1,5 +1,4 @@
 #include "Treeallocator.h"
-
 #include "debugger.h"
 #include "rbtree.h"
 #include "utils.h"
@@ -102,7 +101,7 @@ size_t Zeta_TreeAllocator_GetAlign(void* ta_) {
 
 #define SNToHead_(sn_) ZETA_MemberToStruct(Zeta_TreeAllocator_Head, sn, sn_)
 
-static size_t GetStride_(Zeta_TreeAllocator_Head* head) {
+static size_t GetWidth_(Zeta_TreeAllocator_Head* head) {
     return (unsigned char*)(Zeta_OrdRBLinkedListNode_GetR(&head->hn)) -
            (unsigned char*)(&head->hn);
 }
@@ -113,7 +112,7 @@ static Zeta_OrdRBTreeNode* FindBlock_(Zeta_OrdRBTreeNode* sn_root,
     Zeta_OrdRBTreeNode* ret = NULL;
 
     while (sn != NULL) {
-        size_t sn_stride = GetStride_(SNToHead_(sn));
+        size_t sn_stride = GetWidth_(SNToHead_(sn));
 
         if (sn_stride < stride) {
             sn = Zeta_OrdRBTreeNode_GetR(NULL, sn);
@@ -145,7 +144,7 @@ static int ChooseNiceBlock_(Zeta_TreeAllocator* ta, size_t size,
 
     Zeta_TreeAllocator_Head* best_fit_head = SNToHead_(best_fit_sn);
 
-    if (GetStride_(best_fit_head) <= cut_stride + least_stride) {
+    if (GetWidth_(best_fit_head) <= cut_stride + least_stride) {
         *dst = best_fit_head;
         return choose_ret_fit;
     }
@@ -276,7 +275,7 @@ void Zeta_TreeAllocator_Deallocate(void* ta_, void* ptr) {
 static void GetVacantHead_(Zeta_MemRecorder* dst_head_recorder,
                            Zeta_TreeAllocator_Head* head, size_t lb,
                            size_t ub) {
-    size_t stride = GetStride_(head);
+    size_t stride = GetWidth_(head);
     ZETA_DebugAssert(lb <= stride && stride <= ub);
 
     Zeta_OrdRBTreeNode* sn = &head->sn;
