@@ -1532,11 +1532,12 @@ def AddDeps(builder: Builder, ZetaBuildDir: str, verbose: bool, mode: ModeEnum):
     )
 
     builder.Add(
-        f"{ZetaDir}/SegVector.h",
+        f"{ZetaDir}/seg_stage_vector_temp.h",
         {
             f"{File}",
             f"{ZetaDir}/allocator.h",
-            f"{ZetaDir}/debug_hash_table.h",
+            f"{ZetaDir}/mem_check_utils.h",
+            f"{ZetaDir}/ord_cnt_3rb_tree_node.h",
             f"{ZetaDir}/ord_cnt_rb_tree_node.h",
             f"{ZetaDir}/seq_cntr.h",
         },
@@ -1544,28 +1545,48 @@ def AddDeps(builder: Builder, ZetaBuildDir: str, verbose: bool, mode: ModeEnum):
     )
 
     builder.Add(
-        f"{ZetaDir}/SegVector.c",
+        f"{ZetaDir}/seg_stage_vector_temp.c",
         {
             f"{File}",
-            f"{ZetaDir}/SegVector.h",
-
-            f"{ZetaDir}/bin_tree.h",
+            f"{ZetaDir}/seg_stage_vector_temp.h",
             f"{ZetaDir}/circular_array.h",
+            f"{ZetaDir}/debugger.h",
+            f"{ZetaDir}/mem_check_utils.h",
+            f"{ZetaDir}/pool_allocator.h",
             f"{ZetaDir}/rbtree.h",
+            f"{ZetaDir}/seg_utils.h",
             f"{ZetaDir}/utils.h",
         },
         None
     )
 
     builder.Add(
-        f"{ZetaBuildDir}/SegVector.o",
+        f"{ZetaDir}/seg_vector.h",
         {
             f"{File}",
-            f"{ZetaDir}/SegVector.c",
+            f"{ZetaDir}/seg_stage_vector_temp.h",
+        },
+        None
+    )
+
+    builder.Add(
+        f"{ZetaDir}/seg_vector.c",
+        {
+            f"{File}",
+            f"{ZetaDir}/seg_stage_vector_temp.c",
+        },
+        None
+    )
+
+    builder.Add(
+        f"{ZetaBuildDir}/seg_vector.o",
+        {
+            f"{File}",
+            f"{ZetaDir}/seg_vector.c",
         },
         lambda : compiler.c_to_obj(
-            f"{ZetaBuildDir}/SegVector.o",
-            f"{ZetaDir}/SegVector.c",
+            f"{ZetaBuildDir}/seg_vector.o",
+            f"{ZetaDir}/seg_vector.c",
         )
     )
 
@@ -1701,10 +1722,7 @@ def AddDeps(builder: Builder, ZetaBuildDir: str, verbose: bool, mode: ModeEnum):
         f"{ZetaDir}/stage_vector.h",
         {
             f"{File}",
-            f"{ZetaDir}/allocator.h",
-            f"{ZetaDir}/mem_check_utils.h",
-            f"{ZetaDir}/ord_cnt_3rb_tree_node.h",
-            f"{ZetaDir}/seq_cntr.h",
+            f"{ZetaDir}/seg_stage_vector_temp.h",
         },
         None
     )
@@ -1713,13 +1731,7 @@ def AddDeps(builder: Builder, ZetaBuildDir: str, verbose: bool, mode: ModeEnum):
         f"{ZetaDir}/stage_vector.c",
         {
             f"{File}",
-            f"{ZetaDir}/stage_vector.h",
-            f"{ZetaDir}/circular_array.h",
-            f"{ZetaDir}/debugger.h",
-            f"{ZetaDir}/mem_check_utils.h",
-            f"{ZetaDir}/rbtree.h",
-            f"{ZetaDir}/seg_utils.h",
-            f"{ZetaDir}/utils.h",
+            f"{ZetaDir}/seg_stage_vector_temp.c",
         },
         None
     )

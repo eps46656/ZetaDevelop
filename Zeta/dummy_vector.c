@@ -121,9 +121,7 @@ int Zeta_DummyVector_Cursor_Compare(void* dv, void const* cursor_a_,
     CheckDVCursor_(dv, cursor_a);
     CheckDVCursor_(dv, cursor_b);
 
-    if (*cursor_a < *cursor_b) { return -1; }
-    if (*cursor_b < *cursor_a) { return 1; }
-    return 0;
+    return ZETA_ThreeWayCompare(*cursor_a + 1, *cursor_b + 1);
 }
 
 size_t Zeta_DummyVector_Cursor_GetDist(void* dv, void const* cursor_a_,

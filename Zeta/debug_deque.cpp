@@ -353,12 +353,7 @@ int Zeta_DebugDeque_Cursor_Compare(void* dd_, void const* cursor_a_,
     Zeta_DebugDeque_Cursor_Check(dd, cursor_a);
     Zeta_DebugDeque_Cursor_Check(dd, cursor_b);
 
-    size_t ka = *cursor_a + 1;
-    size_t kb = *cursor_b + 1;
-
-    if (ka < kb) { return -1; }
-    if (kb < ka) { return 1; }
-    return 0;
+    return ZETA_ThreeWayCompare(*cursor_a + 1, *cursor_b + 1);
 }
 
 size_t Zeta_DebugDeque_Cursor_GetDist(void* dd_, void const* cursor_a_,

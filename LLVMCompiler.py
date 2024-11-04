@@ -71,20 +71,6 @@ class LLVMCompilerConfig:
 @typechecked
 class LLVMCompiler:
     def __init__(self, config: LLVMCompilerConfig):
-        '''
-
-        config = class {
-            mode = [ModeEnum.debug(default) | ModeEnum.release]
-            verbose = [True(default) | False]
-            build_dir = path to build dir
-            working_dirs = //
-            target = Target
-            c_include_dirs = {}
-            cpp_include_dirs = {}
-        }
-
-        '''
-
         self.verbose = config.verbose
 
         self.target = dataclasses.replace(config.target)
@@ -126,6 +112,8 @@ class LLVMCompiler:
 
         self.error_limit = 10
 
+        self.address_sanitizer = True
+
         self.c_to_obj_args = [
             f"-v" if self.verbose else "",
             f"--target={self.clang_triple}",
@@ -160,10 +148,14 @@ class LLVMCompiler:
 
                 "-fno-omit-frame-pointer",
                 "-fno-optimize-sibling-calls",
-                "-fsanitize=address",
+
+                # "-fprofile-instr-generate",
+                # "-fcoverage-mapping",
+
+                "-fsanitize=address" if self.address_sanitizer else "",
+                # "-fsanitize=undefined",
                 # "-fsanitize=memory",
                 # "-fsanitize-memory-track-origins",
-                # "-fsanitize=undefined",
             ]
 
             self.cpp_to_obj_args += [
@@ -177,10 +169,14 @@ class LLVMCompiler:
 
                 "-fno-omit-frame-pointer",
                 "-fno-optimize-sibling-calls",
-                "-fsanitize=address",
+
+                # "-fprofile-instr-generate",
+                # "-fcoverage-mapping",
+
+                "-fsanitize=address" if self.address_sanitizer else "",
+                # "-fsanitize=undefined",
                 # "-fsanitize=memory",
                 # "-fsanitize-memory-track-origins",
-                # "-fsanitize=undefined",
             ]
 
         if self.mode == ModeEnum.RELEASE:
@@ -218,10 +214,11 @@ class LLVMCompiler:
 
                 "-fno-omit-frame-pointer",
                 "-fno-optimize-sibling-calls",
-                "-fsanitize=address",
+
+                "-fsanitize=address" if self.address_sanitizer else "",
+                # "-fsanitize=undefined",
                 # "-fsanitize=memory",
                 # "-fsanitize-memory-track-origins",
-                # "-fsanitize=undefined",
             ]
 
         if self.mode == ModeEnum.RELEASE:

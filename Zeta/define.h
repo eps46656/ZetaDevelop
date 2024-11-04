@@ -15,6 +15,9 @@
 #define TRUE ((bool_t)(0 == 0))
 #define FALSE ((bool_t)(0 != 0))
 
+#define NEG FALSE
+#define POS TRUE
+
 #define ZETA_StaticAssert(cond) _Static_assert(cond, "")
 
 #if !defined(ZETA_IsDebug)

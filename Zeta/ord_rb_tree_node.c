@@ -70,7 +70,7 @@ void Zeta_OrdRBTreeNode_SetR(void* context, void* n_, void* m) {
     n->r = m;
 }
 
-int Zeta_OrdRBTreeNode_GetColor(void* context, void* n_) {
+int Zeta_OrdRBTreeNode_GetPColor(void* context, void* n_) {
     ZETA_Unused(context);
 
     Zeta_OrdRBTreeNode* n = n_;
@@ -80,7 +80,7 @@ int Zeta_OrdRBTreeNode_GetColor(void* context, void* n_) {
                : n->p - __builtin_align_down(n->p, alignof(Zeta_OrdRBTreeNode));
 }
 
-void Zeta_OrdRBTreeNode_SetColor(void* context, void* n_, int color) {
+void Zeta_OrdRBTreeNode_SetPColor(void* context, void* n_, int color) {
     ZETA_Unused(context);
 
     Zeta_OrdRBTreeNode* n = n_;
@@ -122,6 +122,6 @@ Zeta_BinTreeNodeOperator const zeta_ord_rb_tree_node_opr = {
     .SetL = Zeta_OrdRBTreeNode_SetL,  //
     .SetR = Zeta_OrdRBTreeNode_SetR,  //
 
-    .GetColor = Zeta_OrdRBTreeNode_GetColor,  //
-    .SetColor = Zeta_OrdRBTreeNode_SetColor,  //
+    .GetColor = Zeta_OrdRBTreeNode_GetPColor,  //
+    .SetColor = Zeta_OrdRBTreeNode_SetPColor,  //
 }

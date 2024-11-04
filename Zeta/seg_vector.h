@@ -1,7 +1,7 @@
 #pragma once
 
 #pragma push_macro("STAGING")
-#define STAGING 1
+#define STAGING 0
 
 #include "seg_stage_vector_temp.h"
 

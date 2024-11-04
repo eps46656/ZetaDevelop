@@ -1062,12 +1062,7 @@ int Zeta_DynamicVector_Cursor_Compare(void* dv_, void const* cursor_a_,
     CheckDVCursor_(dv, cursor_a);
     CheckDVCursor_(dv, cursor_b);
 
-    size_t ka = cursor_a->idx + 1;
-    size_t kb = cursor_b->idx + 1;
-
-    if (ka < kb) { return -1; }
-    if (kb < ka) { return 1; }
-    return 0;
+    return ZETA_ThreeWayCompare(cursor_a->idx + 1, cursor_b->idx + 1);
 }
 
 size_t Zeta_DynamicVector_Cursor_GetDist(void* dv_, void const* cursor_a_,
@@ -1080,7 +1075,7 @@ size_t Zeta_DynamicVector_Cursor_GetDist(void* dv_, void const* cursor_a_,
     CheckDVCursor_(dv, cursor_a);
     CheckDVCursor_(dv, cursor_b);
 
-    return cursor_a->idx - cursor_b->idx;
+    return cursor_b->idx - cursor_a->idx;
 }
 
 size_t Zeta_DynamicVector_Cursor_GetIdx(void* dv_, void const* cursor_) {
