@@ -7,8 +7,8 @@ ZETA_ExternC_Beg;
 ZETA_DeclareStruct(Zeta_OrdRBLinkedListNode);
 
 struct Zeta_OrdRBLinkedListNode {
-    unsigned char* l;
-    unsigned char* r;
+    void* l;
+    void* r;
 } __attribute__((aligned(2)));
 
 void Zeta_OrdRBLinkedListNode_Init(void* n);

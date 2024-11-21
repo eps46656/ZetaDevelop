@@ -44,7 +44,9 @@ void Zeta_BinTree_AttatchR(Zeta_BinTreeNodeOperator const* btn_opr, void* pos,
 
 void Zeta_BinTree_Detach(Zeta_BinTreeNodeOperator const* btn_opr, void* n);
 
-void Zeta_BinTree_EraseAll(Zeta_BinTreeNodeOperator const* btn_opr, void* root);
+void Zeta_BinTree_EraseAll(Zeta_BinTreeNodeOperator const* btn_opr, void* root,
+                           void* callback_context,
+                           void (*Callback)(void* callback_context, void* n));
 
 void Zeta_BinTree_Swap(Zeta_BinTreeNodeOperator const* btn_opr, void* n,
                        void* m);

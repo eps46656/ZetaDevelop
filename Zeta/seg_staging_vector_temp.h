@@ -13,7 +13,7 @@ ZETA_ExternC_Beg;
 
 #if STAGING
 
-#define Cntr Zeta_StageVector
+#define Cntr Zeta_StagingVector
 
 #else
 
@@ -30,8 +30,13 @@ ZETA_DeclareStruct(Cntr_(Stats));
 
 #if STAGING
 
-#define ZETA_StageVector_ref_color (1)
-#define ZETA_StageVector_dat_color (2)
+#define ZETA_StagingVector_ref_color (1)
+#define ZETA_StagingVector_dat_color (2)
+
+#define ZETA_StagingVector_WriteBackStrategy_L (0b001)
+#define ZETA_StagingVector_WriteBackStrategy_R (0b010)
+#define ZETA_StagingVector_WriteBackStrategy_LR (0b011)
+#define ZETA_StagingVector_WriteBackStrategy_Random (0b100)
 
 #endif
 
@@ -51,7 +56,6 @@ struct Cntr {
     Zeta_OrdCnt3RBTreeNode* lb;
     Zeta_OrdCnt3RBTreeNode* rb;
 #else
-
     Zeta_OrdCntRBTreeNode* root;
 
     Zeta_OrdCntRBTreeNode* lb;
@@ -64,7 +68,16 @@ struct Cntr {
 
 struct Cntr_(Seg) {
 #if STAGING
-    Zeta_OrdCnt3RBTreeNode n;
+    union {
+        Zeta_OrdCnt3RBTreeNode n;
+
+        struct {
+            void* l;
+            void* r;
+            size_t dst_idx;
+            size_t acc_ref;
+        } wb;
+    };
 #else
     Zeta_OrdCntRBTreeNode n;
 #endif
@@ -127,6 +140,10 @@ void* Cntr_(Access)(void* cntr, size_t idx, void* dst_cursor, void* dst_elem);
 
 void* Cntr_(Refer)(void* cntr, void const* pos_cursor);
 
+void Cntr_(BinSearch)(void* cntr, void* elem_key_cmp_context,
+                      int(ElemKeyCompare)(void* key_elem_cmp_context,
+                                          void const* elem, void const* key));
+
 void Cntr_(Read)(void* cntr, void const* pos_cursor, size_t cnt, void* dst,
                  void* dst_cursor);
 
@@ -151,11 +168,7 @@ void Cntr_(EraseAll)(void* cntr);
 void Cntr_(Reset)(void* cntr);
 #endif
 
-#if STAGING
-void Zeta_StageVector_AssignFromStageVector(void* cntr, void* src_cntr);
-#else
-void Zeta_SegVector_AssignFromSegVector(void* cntr, void* src_cntr);
-#endif
+void Cntr_(Copy)(void* cntr, void* src_cntr);
 
 void Cntr_(Collapse)(void* cntr);
 

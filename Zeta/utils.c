@@ -10,7 +10,7 @@ void Zeta_MemCopy(void* dst, void const* src, size_t size) {
     ZETA_DebugAssert(dst != NULL);
     ZETA_DebugAssert(src != NULL);
 
-    ZETA_DebugAssert(!ZETA_AreOverlapped(dst, size, src, size));
+    ZETA_DebugAssert(!ZETA_AreOverlapped(dst, dst + size, src, src + size));
 
     __builtin_memcpy(dst, src, size);
 }
@@ -119,7 +119,7 @@ void Zeta_ElemCopy(void* dst_, void const* src_, size_t width, size_t stride,
     ZETA_DebugAssert(dst != NULL);
     ZETA_DebugAssert(src != NULL);
 
-    ZETA_DebugAssert(!ZETA_AreOverlapped(dst, length, src, length));
+    ZETA_DebugAssert(!ZETA_AreOverlapped(dst, dst + length, src, src + length));
 
     for (size_t i = 0; i < size; ++i, dst += stride, src += stride) {
         Zeta_MemCopy(dst, src, width);
@@ -146,7 +146,7 @@ void Zeta_ElemMove(void* dst_, void const* src_, size_t width, size_t stride,
     ZETA_DebugAssert(dst != NULL);
     ZETA_DebugAssert(src != NULL);
 
-    if (ZETA_AreOverlapped(dst, length, src, length) && src < dst) {
+    if (ZETA_AreOverlapped(dst, dst + length, src, src + length) && src < dst) {
         dst += stride * size;
         src += stride * size;
 

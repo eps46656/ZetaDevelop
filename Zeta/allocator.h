@@ -1,6 +1,6 @@
 #pragma once
 
-#include "mem_check_utils.h"
+#include "define.h"
 
 ZETA_ExternC_Beg;
 
@@ -16,8 +16,6 @@ struct Zeta_Allocator {
     void* (*Allocate)(void* context, size_t size);
 
     void (*Deallocate)(void* context, void* ptr);
-
-    Zeta_MemRecorder* (*GetRecords)(void* context);
 };
 
 extern Zeta_Allocator zeta_std_allocator;
@@ -64,9 +62,5 @@ void Zeta_Allocator_Init(void* allocator);
     ZETA_CallMemberFunc(((Zeta_Allocator*)(void*)(allocator)), Deallocate, \
                         (ptr));                                            \
     ZETA_StaticAssert(TRUE)
-
-#define ZETA_Allocator_GetRecords(allocator)                               \
-    ZETA_CallMemberFunc(((Zeta_Allocator*)(void*)(allocator)), GetRecords, \
-                        (ptr))
 
 ZETA_ExternC_End;

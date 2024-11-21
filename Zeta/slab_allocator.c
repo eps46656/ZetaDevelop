@@ -115,10 +115,9 @@ void Zeta_SlabAllocator_Init(void* sa_) {
     ZETA_DebugAssert(0 < width);
 
     size_t stride =
-        ZETA_CeilIntDiv(ZETA_GetMinOf(sizeof(Zeta_OrdLinkedListNode),
+        ZETA_IntRoundUp(ZETA_GetMinOf(sizeof(Zeta_OrdLinkedListNode),
                                       width + sizeof(unsigned char)),
-                        align) *
-        align;
+                        align);
 
     sa->width = stride - sizeof(unsigned char);
 

@@ -1,4 +1,5 @@
-#include "Treeallocator.h"
+#include "tree_allocator.h"
+
 #include "debugger.h"
 #include "rbtree.h"
 #include "utils.h"
@@ -14,8 +15,6 @@ struct Zeta_TreeAllocator_Head {
 
 #define occupied_head_size \
     (offsetof(Zeta_TreeAllocator_Head, hn) + sizeof(Zeta_OrdRBLinkedListNode))
-
-#define GetNxtAlign_(base, align) (ZETA_CeilIntDiv(base, align) * align)
 
 #define vacant_color 0
 #define occupied_color 1
@@ -140,7 +139,7 @@ static int ChooseNiceBlock_(Zeta_TreeAllocator* ta, size_t size,
 
     size_t least_stride = occupied_head_size + ta->least_size;
 
-    uintptr_t cut_stride = GetNxtAlign_(occupied_head_size + size, align);
+    uintptr_t cut_stride = ZETA_IntRoundUp(occupied_head_size + size, align);
 
     Zeta_TreeAllocator_Head* best_fit_head = SNToHead_(best_fit_sn);
 
@@ -169,7 +168,8 @@ size_t Zeta_TreeAllocator_Query(void* ta_, size_t size) {
 
     if (size < ta->least_size) { size = ta->least_size; }
 
-    return GetNxtAlign_(occupied_head_size + size, align) - occupied_head_size;
+    return ZETA_IntRoundUp(occupied_head_size + size, align) -
+           occupied_head_size;
 }
 
 void* Zeta_TreeAllocator_Allocate(void* ta_, size_t size) {
@@ -201,7 +201,7 @@ void* Zeta_TreeAllocator_Allocate(void* ta_, size_t size) {
 
     Zeta_TreeAllocator_Head* m_head =
         (void*)((unsigned char*)(l_head) +
-                GetNxtAlign_(occupied_head_size + size, align));
+                ZETA_IntRoundUp(occupied_head_size + size, align));
 
     Zeta_TreeAllocator_Head* r_head =
         HNToHead_(Zeta_OrdRBLinkedListNode_GetR(&l_head->hn));
@@ -317,10 +317,7 @@ vacant block check:
     check sn_tree only contains vacant blocks
 */
 
-void Zeta_TreeAllocator_Check(void* ta_, bool_t print_state,
-                              Zeta_MemRecorder* dst_recorder) {
-    ZETA_Unused(print_state);
-
+void Zeta_TreeAllocator_Sanitize(void* ta_, Zeta_MemRecorder* dst_recorder) {
     Zeta_TreeAllocator* ta = ta_;
     ZETA_DebugAssert(ta != NULL);
 

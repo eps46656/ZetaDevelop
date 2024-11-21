@@ -93,8 +93,7 @@ void* Zeta_TreeAllocator_Allocate(void* ta, size_t size);
  */
 void Zeta_TreeAllocator_Deallocate(void* ta, void* ptr);
 
-void Zeta_TreeAllocator_Check(void* ta, bool_t print_state,
-                              Zeta_MemRecorder* dst_recorder);
+void Zeta_TreeAllocator_Sanitize(void* ta, Zeta_MemRecorder* dst_recorder);
 
 void Zeta_TreeAllocator_DeployAllocator(void* ta, Zeta_Allocator* dst);
 

@@ -1,6 +1,7 @@
 #include "ord_rb_linked_list_node.h"
 
 #include "debugger.h"
+#include "ptr_utils.h"
 
 #define GetL_(n) \
     ((void*)__builtin_align_down(n->l, alignof(Zeta_OrdRBLinkedListNode)))
@@ -8,9 +9,9 @@
 #define GetR_(n) \
     ((void*)__builtin_align_down(n->r, alignof(Zeta_OrdRBLinkedListNode)))
 
-#define GetLC_(n) (n->l - (unsigned char*)GetL_(n))
+#define GetLC_(n) (n->l - GetL_(n))
 
-#define GetRC_(n) (n->r - (unsigned char*)GetR_(n))
+#define GetRC_(n) (n->r - GetR_(n))
 
 static void SetL_(void* n_, void* l) {
     Zeta_OrdRBLinkedListNode* n = n_;
@@ -66,8 +67,8 @@ void Zeta_OrdRBLinkedListNode_SetColor(void* n_, int color) {
     int lc = color % alignof(Zeta_OrdRBLinkedListNode);
     int rc = color / alignof(Zeta_OrdRBLinkedListNode);
 
-    n->l = (unsigned char*)GetL_(n) + lc;
-    n->r = (unsigned char*)GetR_(n) + rc;
+    ZETA_ColorPtr_SetColor(&n->l, alignof(Zeta_OrdRBLinkedListNode), lc);
+    ZETA_ColorPtr_SetColor(&n->r, alignof(Zeta_OrdRBLinkedListNode), rc);
 }
 
 size_t Zeta_OrdRBLinkedListNode_Count(void* n_, void* m_) {

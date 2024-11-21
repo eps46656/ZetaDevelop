@@ -7,7 +7,7 @@ ZETA_ExternC_Beg;
 ZETA_DeclareStruct(Zeta_OrdRBTreeNode);
 
 struct Zeta_OrdRBTreeNode {
-    unsigned char* p;
+    void* p;
     Zeta_OrdRBTreeNode* l;
     Zeta_OrdRBTreeNode* r;
 } __attribute__((aligned(2)));

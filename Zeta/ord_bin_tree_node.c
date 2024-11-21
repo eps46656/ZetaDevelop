@@ -1,5 +1,6 @@
-#include "debugger.h"
 #include "ord_bin_tree_node.h"
+
+#include "debugger.h"
 
 void Zeta_OrdBinTreeNode_Init(void* context, void* n_) {
     ZETA_Unused(context);
@@ -82,3 +83,21 @@ void Zeta_OrdBinTreeNode_DeployBinTreeNodeOperator(
     btn_opr->SetL = Zeta_OrdBinTreeNode_SetL;
     btn_opr->SetR = Zeta_OrdBinTreeNode_SetR;
 }
+
+Zeta_BinTreeNodeOperator const zeta_ord_bin_tree_node_opr = {
+    .context = NULL,  //
+
+    .GetP = Zeta_OrdBinTreeNode_GetP,  //
+    .GetL = Zeta_OrdBinTreeNode_GetL,  //
+    .GetR = Zeta_OrdBinTreeNode_GetR,  //
+
+    .SetP = Zeta_OrdBinTreeNode_SetP,  //
+    .SetL = Zeta_OrdBinTreeNode_SetL,  //
+    .SetR = Zeta_OrdBinTreeNode_SetR,  //
+
+    .GetColor = NULL,  //
+    .SetColor = NULL,  //
+
+    .GetAccSize = NULL,  //
+    .SetAccSize = NULL,  //
+};

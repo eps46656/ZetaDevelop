@@ -365,13 +365,13 @@ ZETA_StaticAssert(ZETA_RangeMinOf(byte_t) <= 0);
 
 ZETA_StaticAssert(255 <= ZETA_RangeMaxOf(byte_t));
 
-#define ZETA_ModAddInv_(tmp_mod, val, mod)             \
-    ({                                                 \
-        ZETA_AutoVar(tmp_mod, (mod));                  \
-        tmp_mod - 1 - ((val) + tmp_mod - 1) % tmp_mod; \
+#define ZETA_ModAddInv_(tmp_y, x, y)           \
+    ({                                         \
+        ZETA_AutoVar(tmp_y, (y));              \
+        tmp_y - 1 - ((x) + tmp_y - 1) % tmp_y; \
     })
 
-#define ZETA_ModAddInv(val, mod) ZETA_ModAddInv_(ZETA_TmpName, (val), (mod))
+#define ZETA_ModAddInv(x, y) ZETA_ModAddInv_(ZETA_TmpName, (x), (y))
 
 #define ZETA_CeilIntDiv_(tmp_x, tmp_y, x, y) \
     ({                                       \
@@ -393,23 +393,38 @@ ZETA_StaticAssert(255 <= ZETA_RangeMaxOf(byte_t));
 #define ZETA_RoundIntDiv(x, y) \
     ZETA_RoundIntDiv_(ZETA_TmpName, ZETA_TmpName, (x), (y))
 
+#define ZETA_IntRoundDown_(tmp_x, x, y) \
+    ({                                  \
+        ZETA_AutoVar(tmp_x, (x));       \
+        tmp_x - tmp_x % (y);            \
+    })
+
+#define ZETA_IntRoundDown(x, y) ZETA_IntRoundDown_(ZETA_TmpName, (x), (y))
+
+#define ZETA_IntRoundUp_(tmp_y, x, y)              \
+    ({                                             \
+        ZETA_AutoVar(tmp_y, (y));                  \
+        ZETA_DebugAssert(0 < tmp_y);               \
+        ZETA_IntRoundDown((x) + tmp_y - 1, tmp_y); \
+    })
+
+#define ZETA_IntRoundUp(x, y) ZETA_IntRoundUp_(ZETA_TmpName, (x), (y))
+
+/*
+
+  0   1   2 ... y-1
+  0 y-1 y-2 ...   1
+
+y-1   0   1     y-2
+
+*/
+
 #define ZETA_FixedPoint_BaseOrder (ZETA_ULLONG_WIDTH * 3 / 8)
 
 #define ZETA_FixedPoint_Base ZETA_2Power(ZETA_FixedPoint_BaseOrder)
 
-#define ZETA_AreOverlapped_(tmp_a_beg, tmp_a_end, tmp_b_beg, tmp_b_end, a_beg, \
-                            a_size, b_beg, b_size)                             \
-    ({                                                                         \
-        unsigned char const* tmp_a_beg = (void const*)(a_beg);                 \
-        unsigned char const* tmp_a_end = tmp_a_beg + (a_size);                 \
-        unsigned char const* tmp_b_beg = (void const*)(b_beg);                 \
-        unsigned char const* tmp_b_end = tmp_b_beg + (b_size);                 \
-        (tmp_b_beg < tmp_a_end) && (tmp_a_beg < tmp_b_end);                    \
-    })
-
-#define ZETA_AreOverlapped(a_beg, a_size, b_beg, b_size)          \
-    ZETA_AreOverlapped_(ZETA_TmpName, ZETA_TmpName, ZETA_TmpName, \
-                        ZETA_TmpName, (a_beg), (a_size), (b_beg), (b_size))
+#define ZETA_AreOverlapped(a_beg, a_end, b_beg, b_end) \
+    (((b_beg) < (a_end)) && ((a_beg) < (b_end)))
 
 #define ZETA_ImmPrint (TRUE)
 

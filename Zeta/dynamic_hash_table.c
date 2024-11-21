@@ -57,27 +57,24 @@ static int GHTNodeKeyCompare_(void* dht_, void const* htn, void const* key) {
                            Zeta_DynamicHashTable_Node, htn, htn) -
                        dht->width;
 
-    return dht->ElemKeyCompare(dht->elem_key_cmp_context, elem, key);
+    return dht->KeyElemCompare(dht->key_elem_cmp_context, key, elem);
 }
 
 void Zeta_DynamicHashTable_Init(void* dht_) {
     Zeta_DynamicHashTable* dht = dht_;
     ZETA_DebugAssert(dht != NULL);
 
-    size_t width = dht->width;
-    size_t width = dht->width;
+    ZETA_DebugAssert(0 < dht->width);
 
-    ZETA_DebugAssert(0 < width);
-
-    dht->width = width = (width + alignof(Zeta_DynamicHashTable_Node) - 1) /
-                         alignof(Zeta_DynamicHashTable_Node) *
-                         alignof(Zeta_DynamicHashTable_Node);
+    dht->width = (dht->width + alignof(Zeta_DynamicHashTable_Node) - 1) /
+                 alignof(Zeta_DynamicHashTable_Node) *
+                 alignof(Zeta_DynamicHashTable_Node);
 
     ZETA_DebugAssert(dht->ElemHash != NULL);
     ZETA_DebugAssert(dht->KeyHash != NULL);
 
     ZETA_DebugAssert(dht->ElemCompare != NULL);
-    ZETA_DebugAssert(dht->ElemKeyCompare != NULL);
+    ZETA_DebugAssert(dht->KeyElemCompare != NULL);
 
     ZETA_DebugAssert(dht->node_allocator != NULL);
     ZETA_DebugAssert(dht->node_allocator->GetAlign != NULL);
@@ -357,7 +354,7 @@ void Zeta_DynamicHashTable_Check(void* dht_) {
     ZETA_DebugAssert(dht->KeyHash != NULL);
 
     ZETA_DebugAssert(dht->ElemCompare != NULL);
-    ZETA_DebugAssert(dht->ElemKeyCompare != NULL);
+    ZETA_DebugAssert(dht->KeyElemCompare != NULL);
 
     ZETA_DebugAssert(dht->node_allocator != NULL);
     ZETA_DebugAssert(dht->node_allocator->GetAlign != NULL);

@@ -193,11 +193,14 @@ void Zeta_BinTree_Detach(Zeta_BinTreeNodeOperator const* btn_opr, void* n) {
     }
 }
 
-static void EraseAll_B_(Zeta_BinTreeNodeOperator const* btn_opr, void* n) {
+static void EraseAll_B_(Zeta_BinTreeNodeOperator const* btn_opr, void* n,
+                        void* callback_context,
+                        void (*Callback)(void* callback_context, void* n)) {
     ZETA_DebugAssert(n != NULL);
 
     void* context = btn_opr->context;
 
+    void* (*GetP)(void* context, void* n) = btn_opr->GetP;
     void* (*GetL)(void* context, void* n) = btn_opr->GetL;
     void* (*GetR)(void* context, void* n) = btn_opr->GetR;
 
@@ -207,11 +210,21 @@ static void EraseAll_B_(Zeta_BinTreeNodeOperator const* btn_opr, void* n) {
     void (*SetP)(void* context, void* n, void* p) = btn_opr->SetP;
     ZETA_DebugAssert(SetP != NULL);
 
-    SetP(context, n, NULL);
+    void* head = NULL;
+
+    unsigned long long seed = ZETA_PtrToAddr(n);
 
     for (;;) {
-        void* nl = btn_opr->GetL(btn_opr->context, n);
-        void* nr = btn_opr->GetR(btn_opr->context, n);
+        if (n == NULL) {
+            if (head == NULL) { break; }
+            n = head;
+            head = GetP(context, head);
+        }
+
+        void* nl = GetL(context, n);
+        void* nr = GetR(context, n);
+
+        if (Callback != NULL) { Callback(callback_context, n); }
 
         if (nl == NULL) {
             n = nr;
@@ -223,12 +236,21 @@ static void EraseAll_B_(Zeta_BinTreeNodeOperator const* btn_opr, void* n) {
             continue;
         }
 
-        Zeta_BinTree_RotateR(btn_opr, n);
-        n = nl;
+        if (Zeta_SimpleRandomRotate(&seed) % 2 == 0) {
+            SetP(context, nl, head);
+            head = nl;
+            n = nr;
+        } else {
+            SetP(context, nr, head);
+            head = nr;
+            n = nl;
+        }
     }
 }
 
-static void EraseAll_A_(Zeta_BinTreeNodeOperator const* btn_opr, void* n) {
+static void EraseAll_A_(Zeta_BinTreeNodeOperator const* btn_opr, void* n,
+                        void* callback_context,
+                        void (*Callback)(void* callback_context, void* n)) {
     void* context = btn_opr->context;
 
     void* (*GetL)(void* context, void* n) = btn_opr->GetL;
@@ -251,9 +273,11 @@ static void EraseAll_A_(Zeta_BinTreeNodeOperator const* btn_opr, void* n) {
         void* nl = GetL(context, n);
         void* nr = GetR(context, n);
 
+        if (Callback != NULL) { Callback(callback_context, n); }
+
         if (nl != NULL) {
             if (buffer_i == buffer_capacity) {
-                EraseAll_B_(btn_opr, nl);
+                EraseAll_B_(btn_opr, nl, callback_context, Callback);
             } else {
                 buffer[buffer_i++] = nl;
             }
@@ -261,7 +285,7 @@ static void EraseAll_A_(Zeta_BinTreeNodeOperator const* btn_opr, void* n) {
 
         if (nr != NULL) {
             if (buffer_i == buffer_capacity) {
-                EraseAll_B_(btn_opr, nr);
+                EraseAll_B_(btn_opr, nr, callback_context, Callback);
             } else {
                 buffer[buffer_i++] = nr;
             }
@@ -269,8 +293,9 @@ static void EraseAll_A_(Zeta_BinTreeNodeOperator const* btn_opr, void* n) {
     }
 }
 
-void Zeta_BinTree_EraseAll(Zeta_BinTreeNodeOperator const* btn_opr,
-                           void* root) {
+void Zeta_BinTree_EraseAll(Zeta_BinTreeNodeOperator const* btn_opr, void* root,
+                           void* callback_context,
+                           void (*Callback)(void* callback_context, void* n)) {
     ZETA_DebugAssert(btn_opr != NULL);
 
     void* context = btn_opr->context;
@@ -280,7 +305,7 @@ void Zeta_BinTree_EraseAll(Zeta_BinTreeNodeOperator const* btn_opr,
 
     ZETA_DebugAssert(GetP(context, root) == NULL);
 
-    EraseAll_A_(btn_opr, root);
+    EraseAll_A_(btn_opr, root, callback_context, Callback);
 }
 
 void Zeta_BinTree_Swap(Zeta_BinTreeNodeOperator const* btn_opr, void* n,

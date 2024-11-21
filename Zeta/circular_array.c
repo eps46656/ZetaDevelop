@@ -463,8 +463,9 @@ void Zeta_CircularArray_Assign(void* dst_ca_, void* src_ca_, size_t dst_beg,
     ZETA_DebugAssert(cnt <= src_size - src_beg);
 
     if (dst_ca != src_ca) {
-        ZETA_DebugAssert(!ZETA_AreOverlapped(dst_data, dst_capacity, src_data,
-                                             src_capacity));
+        ZETA_DebugAssert(!ZETA_AreOverlapped(dst_data, dst_data + dst_capacity,
+                                             src_data,
+                                             src_data + src_capacity));
 
         goto VEC_MOVE;
     }

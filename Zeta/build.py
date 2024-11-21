@@ -277,6 +277,39 @@ def AddDeps(builder: Builder, ZetaBuildDir: str, verbose: bool, mode: ModeEnum):
     )
 
     builder.Add(
+        f"{ZetaDir}/cascade_allocator.h",
+        {
+            f"{File}",
+            f"{ZetaDir}/allocator.h",
+        },
+        None
+    )
+
+    builder.Add(
+        f"{ZetaDir}/cascade_allocator.c",
+        {
+            f"{File}",
+            f"{ZetaDir}/cascade_allocator.h",
+            f"{ZetaDir}/debugger.h",
+            f"{ZetaDir}/ord_linked_list_node.h",
+            f"{ZetaDir}/utils.h",
+        },
+        None
+    )
+
+    builder.Add(
+        f"{ZetaBuildDir}/cascade_allocator.o",
+        {
+            f"{File}",
+            f"{ZetaDir}/cascade_allocator.c",
+        },
+        lambda : compiler.c_to_obj(
+            f"{ZetaBuildDir}/cascade_allocator.o",
+            f"{ZetaDir}/cascade_allocator.c",
+        )
+    )
+
+    builder.Add(
         f"{ZetaDir}/circular_array.h",
         {
             f"{File}",
@@ -1036,7 +1069,7 @@ def AddDeps(builder: Builder, ZetaBuildDir: str, verbose: bool, mode: ModeEnum):
             f"{ZetaDir}/lin_space_allocator.h",
             f"{ZetaDir}/debugger.h",
             f"{ZetaDir}/rbtree.h",
-            f"{ZetaDir}/rel_ptr.h",
+            f"{ZetaDir}/ptr_utils.h",
             f"{ZetaDir}/utils.h",
         },
         None
@@ -1491,7 +1524,7 @@ def AddDeps(builder: Builder, ZetaBuildDir: str, verbose: bool, mode: ModeEnum):
     )
 
     builder.Add(
-        f"{ZetaDir}/rel_ptr.h",
+        f"{ZetaDir}/ptr_utils.h",
         {
             f"{File}",
             f"{ZetaDir}/define.h",
@@ -1532,7 +1565,7 @@ def AddDeps(builder: Builder, ZetaBuildDir: str, verbose: bool, mode: ModeEnum):
     )
 
     builder.Add(
-        f"{ZetaDir}/seg_stage_vector_temp.h",
+        f"{ZetaDir}/seg_staging_vector_temp.h",
         {
             f"{File}",
             f"{ZetaDir}/allocator.h",
@@ -1545,10 +1578,10 @@ def AddDeps(builder: Builder, ZetaBuildDir: str, verbose: bool, mode: ModeEnum):
     )
 
     builder.Add(
-        f"{ZetaDir}/seg_stage_vector_temp.c",
+        f"{ZetaDir}/seg_staging_vector_temp.c",
         {
             f"{File}",
-            f"{ZetaDir}/seg_stage_vector_temp.h",
+            f"{ZetaDir}/seg_staging_vector_temp.h",
             f"{ZetaDir}/circular_array.h",
             f"{ZetaDir}/debugger.h",
             f"{ZetaDir}/mem_check_utils.h",
@@ -1564,7 +1597,7 @@ def AddDeps(builder: Builder, ZetaBuildDir: str, verbose: bool, mode: ModeEnum):
         f"{ZetaDir}/seg_vector.h",
         {
             f"{File}",
-            f"{ZetaDir}/seg_stage_vector_temp.h",
+            f"{ZetaDir}/seg_staging_vector_temp.h",
         },
         None
     )
@@ -1573,7 +1606,7 @@ def AddDeps(builder: Builder, ZetaBuildDir: str, verbose: bool, mode: ModeEnum):
         f"{ZetaDir}/seg_vector.c",
         {
             f"{File}",
-            f"{ZetaDir}/seg_stage_vector_temp.c",
+            f"{ZetaDir}/seg_staging_vector_temp.c",
         },
         None
     )
@@ -1719,37 +1752,37 @@ def AddDeps(builder: Builder, ZetaBuildDir: str, verbose: bool, mode: ModeEnum):
     )
 
     builder.Add(
-        f"{ZetaDir}/stage_vector.h",
+        f"{ZetaDir}/staging_vector.h",
         {
             f"{File}",
-            f"{ZetaDir}/seg_stage_vector_temp.h",
+            f"{ZetaDir}/seg_staging_vector_temp.h",
         },
         None
     )
 
     builder.Add(
-        f"{ZetaDir}/stage_vector.c",
+        f"{ZetaDir}/staging_vector.c",
         {
             f"{File}",
-            f"{ZetaDir}/seg_stage_vector_temp.c",
+            f"{ZetaDir}/seg_staging_vector_temp.c",
         },
         None
     )
 
     builder.Add(
-        f"{ZetaBuildDir}/stage_vector.o",
+        f"{ZetaBuildDir}/staging_vector.o",
         {
             f"{File}",
-            f"{ZetaDir}/stage_vector.c",
+            f"{ZetaDir}/staging_vector.c",
         },
         lambda : compiler.c_to_obj(
-            f"{ZetaBuildDir}/stage_vector.o",
-            f"{ZetaDir}/stage_vector.c",
+            f"{ZetaBuildDir}/staging_vector.o",
+            f"{ZetaDir}/staging_vector.c",
         )
     )
 
     builder.Add(
-        f"{ZetaDir}/Treeallocator.h",
+        f"{ZetaDir}/tree_allocator.h",
         {
             f"{File}",
             f"{ZetaDir}/allocator.h",
@@ -1761,10 +1794,10 @@ def AddDeps(builder: Builder, ZetaBuildDir: str, verbose: bool, mode: ModeEnum):
     )
 
     builder.Add(
-        f"{ZetaDir}/Treeallocator.c",
+        f"{ZetaDir}/tree_allocator.c",
         {
             f"{File}",
-            f"{ZetaDir}/Treeallocator.h",
+            f"{ZetaDir}/tree_allocator.h",
             f"{ZetaDir}/debugger.h",
             f"{ZetaDir}/rbtree.h",
             f"{ZetaDir}/utils.h",
@@ -1773,14 +1806,14 @@ def AddDeps(builder: Builder, ZetaBuildDir: str, verbose: bool, mode: ModeEnum):
     )
 
     builder.Add(
-        f"{ZetaBuildDir}/Treeallocator.o",
+        f"{ZetaBuildDir}/tree_allocator.o",
         {
             f"{File}",
-            f"{ZetaDir}/Treeallocator.c",
+            f"{ZetaDir}/tree_allocator.c",
         },
         lambda : compiler.c_to_obj(
-            f"{ZetaBuildDir}/Treeallocator.o",
-            f"{ZetaDir}/Treeallocator.c",
+            f"{ZetaBuildDir}/tree_allocator.o",
+            f"{ZetaDir}/tree_allocator.c",
         )
     )
 

@@ -1,8 +1,8 @@
 #include "lin_space_allocator.h"
 
 #include "debugger.h"
+#include "ptr_utils.h"
 #include "rbtree.h"
-#include "rel_ptr.h"
 #include "utils.h"
 
 #if ZETA_IsDebug

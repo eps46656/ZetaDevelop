@@ -1,6 +1,7 @@
 #include "ord_cnt_rb_tree_node.h"
 
 #include "debugger.h"
+#include "ptr_utils.h"
 
 void Zeta_OrdCntRBTreeNode_Init(void* context, void* n_) {
     ZETA_Unused(context);
@@ -20,7 +21,7 @@ void* Zeta_OrdCntRBTreeNode_GetP(void* context, void* n_) {
     Zeta_OrdCntRBTreeNode* n = n_;
     ZETA_DebugAssert(n != NULL);
 
-    void* p = __builtin_align_down(n->p, alignof(Zeta_OrdCntRBTreeNode));
+    void* p = ZETA_ColorPtr_GetPtr(&n->p, alignof(Zeta_OrdCntRBTreeNode));
 
     return n == p ? NULL : p;
 }
@@ -49,8 +50,8 @@ void Zeta_OrdCntRBTreeNode_SetP(void* context, void* n_, void* m) {
     Zeta_OrdCntRBTreeNode* n = n_;
     ZETA_DebugAssert(n != NULL);
 
-    n->p = (m == NULL ? (unsigned char*)n : (unsigned char*)m) +
-           (n->p - __builtin_align_down(n->p, alignof(Zeta_OrdCntRBTreeNode)));
+    ZETA_ColorPtr_SetPtr(&n->p, alignof(Zeta_OrdCntRBTreeNode),
+                         m == NULL ? (unsigned char*)n : (unsigned char*)m);
 }
 
 void Zeta_OrdCntRBTreeNode_SetL(void* context, void* n_, void* m) {
@@ -76,9 +77,9 @@ int Zeta_OrdCntRBTreeNode_GetPColor(void* context, void* n_) {
 
     Zeta_OrdCntRBTreeNode* n = n_;
 
-    return n == NULL ? 0
-                     : n->p - __builtin_align_down(
-                                  n->p, alignof(Zeta_OrdCntRBTreeNode));
+    return n == NULL
+               ? 0
+               : ZETA_ColorPtr_GetColor(&n->p, alignof(Zeta_OrdCntRBTreeNode));
 }
 
 void Zeta_OrdCntRBTreeNode_SetPColor(void* context, void* n_, int color) {
@@ -87,10 +88,7 @@ void Zeta_OrdCntRBTreeNode_SetPColor(void* context, void* n_, int color) {
     Zeta_OrdCntRBTreeNode* n = n_;
     ZETA_DebugAssert(n != NULL);
 
-    ZETA_DebugAssert(0 <= color &&
-                     (size_t)color < alignof(Zeta_OrdCntRBTreeNode));
-
-    n->p = __builtin_align_down(n->p, alignof(Zeta_OrdCntRBTreeNode)) + color;
+    ZETA_ColorPtr_SetColor(&n->p, alignof(Zeta_OrdCntRBTreeNode), color);
 }
 
 size_t Zeta_OrdCntRBTreeNode_GetAccSize(void* context, void* n_) {

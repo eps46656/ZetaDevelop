@@ -16,7 +16,6 @@ ZETA_DeclareStruct(Zeta_DynamicHashTable_Cursor);
 
 struct Zeta_DynamicHashTable {
     size_t width;
-    size_t width;
 
     Zeta_OrdLinkedListNode* lln;
 
@@ -35,10 +34,10 @@ struct Zeta_DynamicHashTable {
     int (*ElemCompare)(void* elem_cmp_context, void const* elem_a,
                        void const* elem_b);
 
-    void* elem_key_cmp_context;
+    void* key_elem_cmp_context;
 
-    int (*ElemKeyCompare)(void* elem_cmp_context, void const* elem,
-                          void const* key);
+    int (*KeyElemCompare)(void* key_elem_cmp_context, void const* key,
+                          void const* elem);
 
     Zeta_Allocator* node_allocator;
 

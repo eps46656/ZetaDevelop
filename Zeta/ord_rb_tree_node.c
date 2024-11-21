@@ -1,6 +1,7 @@
 #include "ord_rb_tree_node.h"
 
 #include "debugger.h"
+#include "ptr_utils.h"
 
 void Zeta_OrdRBTreeNode_Init(void* context, void* n_) {
     ZETA_Unused(context);
@@ -19,7 +20,7 @@ void* Zeta_OrdRBTreeNode_GetP(void* context, void* n_) {
     Zeta_OrdRBTreeNode* n = n_;
     ZETA_DebugAssert(n != NULL);
 
-    void* p = __builtin_align_down(n->p, alignof(Zeta_OrdRBTreeNode));
+    void* p = ZETA_ColorPtr_GetPtr(&n->p, alignof(Zeta_OrdRBTreeNode));
 
     return n == p ? NULL : p;
 }
@@ -48,8 +49,8 @@ void Zeta_OrdRBTreeNode_SetP(void* context, void* n_, void* m) {
     Zeta_OrdRBTreeNode* n = n_;
     ZETA_DebugAssert(n != NULL);
 
-    n->p = (m == NULL ? (unsigned char*)n : (unsigned char*)m) +
-           (n->p - __builtin_align_down(n->p, alignof(Zeta_OrdRBTreeNode)));
+    ZETA_ColorPtr_SetPtr(&n->p, alignof(Zeta_OrdRBTreeNode),
+                         m == NULL ? (unsigned char*)n : (unsigned char*)m);
 }
 
 void Zeta_OrdRBTreeNode_SetL(void* context, void* n_, void* m) {
@@ -77,7 +78,7 @@ int Zeta_OrdRBTreeNode_GetPColor(void* context, void* n_) {
 
     return n == NULL
                ? 0
-               : n->p - __builtin_align_down(n->p, alignof(Zeta_OrdRBTreeNode));
+               : ZETA_ColorPtr_GetColor(&n->p, alignof(Zeta_OrdRBTreeNode));
 }
 
 void Zeta_OrdRBTreeNode_SetPColor(void* context, void* n_, int color) {
@@ -86,9 +87,7 @@ void Zeta_OrdRBTreeNode_SetPColor(void* context, void* n_, int color) {
     Zeta_OrdRBTreeNode* n = n_;
     ZETA_DebugAssert(n != NULL);
 
-    ZETA_DebugAssert(0 <= color && (size_t)color < alignof(Zeta_OrdRBTreeNode));
-
-    n->p = __builtin_align_down(n->p, alignof(Zeta_OrdRBTreeNode)) + color;
+    ZETA_ColorPtr_SetColor(&n->p, alignof(Zeta_OrdRBTreeNode), color);
 }
 
 void Zeta_OrdRBTreeNode_DeployBinTreeNodeOperator(
@@ -107,8 +106,8 @@ void Zeta_OrdRBTreeNode_DeployBinTreeNodeOperator(
     btn_opr->SetL = Zeta_OrdRBTreeNode_SetL;
     btn_opr->SetR = Zeta_OrdRBTreeNode_SetR;
 
-    btn_opr->GetColor = Zeta_OrdRBTreeNode_GetColor;
-    btn_opr->SetColor = Zeta_OrdRBTreeNode_SetColor;
+    btn_opr->GetColor = Zeta_OrdRBTreeNode_GetPColor;
+    btn_opr->SetColor = Zeta_OrdRBTreeNode_SetPColor;
 }
 
 Zeta_BinTreeNodeOperator const zeta_ord_rb_tree_node_opr = {
@@ -124,4 +123,4 @@ Zeta_BinTreeNodeOperator const zeta_ord_rb_tree_node_opr = {
 
     .GetColor = Zeta_OrdRBTreeNode_GetPColor,  //
     .SetColor = Zeta_OrdRBTreeNode_SetPColor,  //
-}
+};
