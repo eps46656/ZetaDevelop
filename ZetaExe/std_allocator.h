@@ -20,9 +20,19 @@ struct StdAllocator {
     ~StdAllocator();
 };
 
-StdAllocator::StdAllocator() { this->mem_recorder = Zeta_MemRecorder_Create(); }
+StdAllocator::StdAllocator() {
+#if ZETA_IsDebug
+    this->mem_recorder = Zeta_MemRecorder_Create();
+#else
+    this->mem_recorder = NULL;
+#endif
+}
 
-StdAllocator::~StdAllocator() { Zeta_MemRecorder_Destroy(this->mem_recorder); }
+StdAllocator::~StdAllocator() {
+#if ZETA_IsDebug
+    Zeta_MemRecorder_Destroy(this->mem_recorder);
+#endif
+}
 
 size_t StdAllocator_GetAlign(void* sa_) {
     ZETA_Unused(sa_);

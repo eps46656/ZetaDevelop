@@ -1180,13 +1180,13 @@ def AddDeps(builder: Builder, ZetaBuildDir: str, verbose: bool, mode: ModeEnum):
             f"{File}",
             f"{ZetaDir}/mem_check_utils.cpp"
             if mode == ModeEnum.DEBUG
-            else f"{ZetaDir}/null.c",
+            else f"{ZetaDir}/null.cpp",
         },
         lambda: compiler.cpp_to_obj(
             f"{ZetaBuildDir}/mem_check_utils.o",
             f"{ZetaDir}/mem_check_utils.cpp"
             if mode == ModeEnum.DEBUG
-            else f"{ZetaDir}/null.c",
+            else f"{ZetaDir}/null.cpp",
         )
     )
 
@@ -1225,6 +1225,22 @@ def AddDeps(builder: Builder, ZetaBuildDir: str, verbose: bool, mode: ModeEnum):
         {
             f"{File}",
             f"{ZetaDir}/allocator.h",
+        },
+        None
+    )
+
+    builder.Add(
+        f"{ZetaDir}/null.c",
+        {
+            f"{File}",
+        },
+        None
+    )
+
+    builder.Add(
+        f"{ZetaDir}/null.cpp",
+        {
+            f"{File}",
         },
         None
     )

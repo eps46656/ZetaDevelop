@@ -589,6 +589,8 @@ void Zeta_LinSpaceAllocator_Check(void* lsa_) {
     ZETA_DebugAssert(lsa->gt_root != NULL);
 }
 
+#if ZETA_IsDebug
+
 static void CheckGT_(Zeta_MemRecorder* dst_gt_table, Zeta_MemRecorder* st_table,
                      Zeta_LinSpaceAllocator_Node* n) {
     if (n == NULL) { return; }
@@ -642,10 +644,15 @@ static void CheckST_(Zeta_MemRecorder* dst_st_table,
     ZETA_DebugAssert(nr == NULL || n_size <= Zeta_BinTree_GetSize(&gt_opr, nr));
 }
 
+#endif
+
 void Zeta_LinSpaceAllocator_Sanitize(void* lsa_, Zeta_MemRecorder* dst_ns) {
     Zeta_LinSpaceAllocator* lsa = lsa_;
     CheckLSA_(lsa);
 
+    ZETA_Unused(dst_ns);
+
+#if ZETA_IsDebug
     ZETA_DebugAssert(NodeGetGP_(NULL, lsa->gt_root) == NULL);
 
     ZETA_DebugAssert(lsa->st_root == NULL ||
@@ -672,4 +679,5 @@ void Zeta_LinSpaceAllocator_Sanitize(void* lsa_, Zeta_MemRecorder* dst_ns) {
     if (dst_ns == NULL) { Zeta_MemRecorder_Destroy(gt_table); }
 
     Zeta_MemRecorder_Destroy(st_table);
+#endif
 }

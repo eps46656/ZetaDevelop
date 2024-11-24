@@ -8,6 +8,7 @@
 #include <random>
 #include <vector>
 
+#include "cas_alloc_utils.h"
 #include "timer.h"
 
 // -----------------------------------------------------------------------------
@@ -72,24 +73,6 @@ struct DComparerCpp {
         return ValCompare(x.val, y.val) < 0;
     }
 };
-
-Zeta_CascadeAllocator cas_allocator_instance;
-Zeta_Allocator cas_allocator;
-
-unsigned char mem[128 * 1024 * 1024];
-
-void InitCasAllocator() {
-    cas_allocator_instance.align = alignof(max_align_t);
-    cas_allocator_instance.mem = mem;
-    cas_allocator_instance.size = sizeof(mem);
-
-    Zeta_CascadeAllocator_Init(&cas_allocator_instance);
-
-    Zeta_CascadeAllocator_DeployAllocator(&cas_allocator_instance,
-                                          &cas_allocator);
-
-    zeta_cas_allocator = &cas_allocator;
-}
 
 void main1() {
     unsigned random_seed = time(NULL);
@@ -167,8 +150,8 @@ void main2() {
     if (FALSE) {
         std::sort(vec_a.begin(), vec_a.end(), DComparerCpp{});
     } else {
-        Zeta_MergeSort(&vec_a[0].val, sizeof(Val), sizeof(D), vec_a.size(),
-                       NULL, DCompare);
+        Zeta_TransMergeSort(&vec_a[0].val, sizeof(Val), sizeof(D), vec_a.size(),
+                            NULL, DCompare);
     }
 
     unsigned long long end_time{ GetTime() };
@@ -181,7 +164,7 @@ int main() {
 
     unsigned long long beg{ GetTime() };
 
-    main1();
+    main2();
 
     unsigned long long end{ GetTime() };
 

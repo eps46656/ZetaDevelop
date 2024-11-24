@@ -115,6 +115,7 @@ def AddDeps(builder: Builder, ZetaBuildDir: str, ZetaExeBuildDir: str, verbose: 
             f"{File}",
             f"{ZetaDir}/cascade_allocator.h",
             f"{ZetaDir}/memory.h",
+            f"{ZetaExeDir}/std_allocator.h",
         },
         None
     )
@@ -1547,6 +1548,7 @@ def AddDeps(builder: Builder, ZetaBuildDir: str, ZetaExeBuildDir: str, verbose: 
             f"{ZetaDir}/cascade_allocator.h",
             f"{ZetaDir}/debugger.h",
             f"{ZetaDir}/memory.h",
+            f"{ZetaExeDir}/cas_alloc_utils.h",
             f"{ZetaExeDir}/timer.h",
         },
         None

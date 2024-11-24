@@ -234,10 +234,11 @@ static void EraseAllSeg_(Cntr* cntr, void* n) {
     if (nr != NULL) { EraseAllSeg_(cntr, nr); }
 }
 
+#if STAGING
+
 static void RefOrigin_(Cntr* cntr) {
     ZETA_Unused(cntr);
 
-#if STAGING
     Zeta_BinTreeNodeOperator const* btn_opr = TreeNodeOpr;
 
     size_t origin_size = ZETA_SeqCntr_GetSize(cntr->origin);
@@ -251,8 +252,13 @@ static void RefOrigin_(Cntr* cntr) {
     seg->ref.size = origin_size;
 
     Zeta_BinTree_SetSize(btn_opr, &seg->n, origin_size);
-#endif
 }
+
+#else
+
+#define RefOrigin_(cntr)
+
+#endif
 
 #if STAGING
 
@@ -270,14 +276,6 @@ static void PushRefL_(Cntr* cntr, Zeta_CircularArray* ca, size_t beg,
                                          origin_cursor, size);
 }
 
-#else
-
-#define PushRefL_(cntr, ca, beg, size)
-
-#endif
-
-#if STAGING
-
 static void PushRefR_(Cntr* cntr, Zeta_CircularArray* ca, size_t beg,
                       size_t size) {
     Zeta_CircularArray_Cursor ca_cursor;
@@ -293,6 +291,8 @@ static void PushRefR_(Cntr* cntr, Zeta_CircularArray* ca, size_t beg,
 }
 
 #else
+
+#define PushRefL_(cntr, ca, beg, size)
 
 #define PushRefR_(cntr, ca, beg, size)
 
@@ -526,14 +526,6 @@ static void RefShoveL_(Cntr* cntr, Zeta_CircularArray* l_ca, Cntr_(Seg) * r_seg,
     }
 }
 
-#else
-
-#define RefShoveL_(cntr, l_ca, r_seg, rl_size, ins_cnt, shove_cnt)
-
-#endif
-
-#if STAGING
-
 static void RefShoveR_(Cntr* cntr, Cntr_(Seg) * l_seg, Zeta_CircularArray* r_ca,
                        size_t lr_size, size_t ins_cnt, size_t shove_cnt) {
     size_t width = r_ca->width;
@@ -613,6 +605,8 @@ static void RefShoveR_(Cntr* cntr, Cntr_(Seg) * l_seg, Zeta_CircularArray* r_ca,
 }
 
 #else
+
+#define RefShoveL_(cntr, l_ca, r_seg, rl_size, ins_cnt, shove_cnt)
 
 #define RefShoveR_(cntr, l_seg, r_ca, lr_size, ins_cnt, shove_cnt)
 
@@ -2872,10 +2866,6 @@ struct OffsetPair {
     size_t offset;
     size_t cnt;
 };
-
-#endif
-
-#if STAGING
 
 static unsigned long long OffsetPairHash(void* context, void const* a,
                                          unsigned long long salt) {

@@ -370,6 +370,10 @@ void Zeta_DynamicHashTable_Sanitize(void* dht_, Zeta_MemRecorder* dst_table,
     Zeta_DynamicHashTable* dht = dht_;
     CheckDHT_(dht);
 
+    ZETA_Unused(dst_table);
+    ZETA_Unused(dst_node);
+
+#if ZETA_IsDebug
     Zeta_MemRecorder* htn_records = Zeta_MemRecorder_Create();
 
     Zeta_GenericHashTable_Sanitize(&dht->ght, dst_table, htn_records);
@@ -393,6 +397,7 @@ void Zeta_DynamicHashTable_Sanitize(void* dht_, Zeta_MemRecorder* dst_table,
     ZETA_DebugAssert(Zeta_MemRecorder_GetSize(htn_records) == 0);
 
     Zeta_MemRecorder_Destroy(htn_records);
+#endif
 }
 
 bool_t Zeta_DynamicHashTable_Cursor_AreEqual(void* dht_, void const* cursor_a_,

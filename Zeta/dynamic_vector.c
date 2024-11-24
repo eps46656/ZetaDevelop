@@ -979,6 +979,10 @@ void Zeta_DynamicVector_Sanitize(void* dv_, Zeta_MemRecorder* dst_data,
     Zeta_DynamicVector* dv = dv_;
     CheckDV_(dv);
 
+    ZETA_Unused(dst_data);
+    ZETA_Unused(dst_seg);
+
+#if ZETA_IsDebug
     if (dst_data != NULL) {
         if (dv->cur_data != NULL) {
             Zeta_MemRecorder_Record(dst_data, dv->cur_data,
@@ -1036,6 +1040,7 @@ void Zeta_DynamicVector_Sanitize(void* dv_, Zeta_MemRecorder* dst_data,
                 width * seg_capacity);
         }
     }
+#endif
 }
 
 bool_t Zeta_DynamicVector_Cursor_AreEqual(void* dv_, void const* cursor_a_,

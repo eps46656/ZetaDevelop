@@ -518,6 +518,8 @@ void Zeta_GenericHashTable_Check(void* ght_) {
     ZETA_DebugAssert(ght->NodeKeyCompare != NULL);
 }
 
+#if ZETA_IsDebug
+
 ZETA_DeclareStruct(SanitizeTreeRet);
 
 struct SanitizeTreeRet {
@@ -582,11 +584,17 @@ static SanitizeTreeRet SanitizeTree_(Zeta_GenericHashTable* ght,
     return ret;
 }
 
+#endif
+
 void Zeta_GenericHashTable_Sanitize(void* ght_, Zeta_MemRecorder* dst_table,
                                     Zeta_MemRecorder* dst_node) {
     Zeta_GenericHashTable* ght = ght_;
     CheckGHT_(ght);
 
+    ZETA_Unused(dst_table);
+    ZETA_Unused(dst_node);
+
+#if ZETA_IsDebug
     int state = GetState_(ght);
 
     void** cur_table = GetCurTable_(ght);
@@ -666,6 +674,7 @@ void Zeta_GenericHashTable_Sanitize(void* ght_, Zeta_MemRecorder* dst_table,
     }
 
     ZETA_DebugAssert(nxt_table_cnt == re_nxt_table_cnt);
+#endif
 }
 
 void Zeta_GenericHashTable_CheckNode(void* ght_, void* node_) {
