@@ -68,16 +68,7 @@ struct Cntr {
 
 struct Cntr_(Seg) {
 #if STAGING
-    union {
-        Zeta_OrdCnt3RBTreeNode n;
-
-        struct {
-            void* l;
-            void* r;
-            size_t dst_idx;
-            size_t acc_ref;
-        } wb;
-    };
+    Zeta_OrdCnt3RBTreeNode n;
 #else
     Zeta_OrdCntRBTreeNode n;
 #endif
@@ -171,6 +162,12 @@ void Cntr_(Reset)(void* cntr);
 void Cntr_(Copy)(void* cntr, void* src_cntr);
 
 void Cntr_(Collapse)(void* cntr);
+
+void Cntr_(WriteBack)(void* cntr, int write_back_strategy,
+                      unsigned long long cost_coeff_read,
+                      unsigned long long cost_coeff_write,
+                      unsigned long long cost_coeff_insert,
+                      unsigned long long cost_coeff_erase);
 
 void Cntr_(Check)(void* cntr);
 

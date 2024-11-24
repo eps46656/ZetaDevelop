@@ -1,12 +1,13 @@
-from config import *
-from utils import *
-
-import typing
 import os
 import time
-from typeguard import typechecked
-import termcolor
 import traceback
+import typing
+
+import termcolor
+from typeguard import typechecked
+
+from utils import FilterNotNone
+
 
 def GetMTime(path: str):
     try:
@@ -14,11 +15,13 @@ def GetMTime(path: str):
     except:
         return 0.0
 
+
 def SetMTime(path: str, mtime):
     try:
         os.utime(path, (os.path.getmtime(path), mtime))
     except:
         pass
+
 
 @typechecked
 def BFS(adj_list: dict[object, set[object]],
@@ -57,8 +60,9 @@ def BFS(adj_list: dict[object, set[object]],
 
     return ret
 
+
 @typechecked
-def TPSort(adj_list: dict[object,set[object]],
+def TPSort(adj_list: dict[object, set[object]],
            sources: typing.Iterable[object]):
     # adj_list = {
     #   "v 0": {"adj 0 0", "adj 0 1", "adj 0 2", ...},
@@ -97,6 +101,7 @@ def TPSort(adj_list: dict[object,set[object]],
 
     return ret
 
+
 @typechecked
 class Builder:
     def __init__(self):
@@ -116,7 +121,7 @@ class Builder:
         #       ...
         #   }
 
-    def Add(self, unit: str, deps: None | typing.Iterable[str], building_func: typing.Callable[[], None] | None=None):
+    def Add(self, unit: str, deps: typing.Optional[typing.Iterable[str]], building_func: typing.Optional[typing.Callable[[], None]] = None):
         assert unit not in self.deps, f"Duplicated unit {unit}."
 
         self.deps[unit] = set() if deps is None else set(FilterNotNone(deps))
@@ -133,12 +138,13 @@ class Builder:
     def Check(self):
         for unit, deps in self.deps.items():
             for dep in deps:
-                assert dep in self.deps, f"Unknown unit {dep} depended by {unit}."
+                assert dep in self.deps, f"Unknown unit {
+                    dep} depended by {unit}."
 
     def Build(self, target_unit: str, rebuild: bool):
         dep_units = self.GetDepUnits(target_unit)
 
-        mtimes = { unit: GetMTime(unit) for unit in dep_units }
+        mtimes = {unit: GetMTime(unit) for unit in dep_units}
 
         skipped_build_units: set[str] = set()
         finished_build_units: set[str] = set()
@@ -167,7 +173,8 @@ class Builder:
                 ready_unit_cnt += 1
                 continue
 
-            print(termcolor.colored("Building", "yellow") + f" ({round(ready_unit_cnt / len(dep_units) * 100):3}%): {unit}")
+            print(termcolor.colored("Building", "yellow") +
+                  f" ({round(ready_unit_cnt / len(dep_units) * 100):3}%): {unit}")
 
             building_func = self.building_funcs[unit]
 

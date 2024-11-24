@@ -70,14 +70,13 @@ void* Zeta_MemRotate(void* beg_, void* mid_, void* end_) {
     return ret;
 }
 
-void Zeta_MemReverse(void* data_, size_t stride, size_t size) {
-    unsigned char* data = data_;
-    ZETA_DebugAssert(data);
+void Zeta_MemReverse(void* data, size_t stride, size_t size) {
+    ZETA_DebugAssert(data != NULL);
 
     if (stride == 0 || size <= 1) { return; }
 
-    unsigned char* i = data;
-    unsigned char* j = data + stride * (size - 1);
+    void* i = data;
+    void* j = data + stride * (size - 1);
 
     for (; i < j; i += stride, j -= stride) { Zeta_MemSwap(i, j, stride); }
 }
@@ -99,11 +98,8 @@ unsigned long long Zeta_MemHash(void const* data_, size_t size) {
     return ret;
 }
 
-void Zeta_ElemCopy(void* dst_, void const* src_, size_t width, size_t stride,
+void Zeta_ElemCopy(void* dst, void const* src, size_t width, size_t stride,
                    size_t size) {
-    unsigned char* dst = dst_;
-    unsigned char const* src = src_;
-
     ZETA_DebugAssert(0 < width);
     ZETA_DebugAssert(width <= stride);
 
@@ -126,11 +122,8 @@ void Zeta_ElemCopy(void* dst_, void const* src_, size_t width, size_t stride,
     }
 }
 
-void Zeta_ElemMove(void* dst_, void const* src_, size_t width, size_t stride,
+void Zeta_ElemMove(void* dst, void const* src, size_t width, size_t stride,
                    size_t size) {
-    unsigned char* dst = dst_;
-    unsigned char const* src = src_;
-
     ZETA_DebugAssert(0 < width);
     ZETA_DebugAssert(width <= stride);
 
@@ -146,17 +139,20 @@ void Zeta_ElemMove(void* dst_, void const* src_, size_t width, size_t stride,
     ZETA_DebugAssert(dst != NULL);
     ZETA_DebugAssert(src != NULL);
 
+    size_t del;
+
     if (ZETA_AreOverlapped(dst, dst + length, src, src + length) && src < dst) {
         dst += stride * size;
         src += stride * size;
-
-        for (size_t i = 0; i < size; ++i) {
-            Zeta_MemMove(dst -= stride, src -= stride, width);
-        }
+        del = -stride;
     } else {
-        for (size_t i = 0; i < size; ++i) {
-            Zeta_MemMove(dst += stride, src += stride, width);
-        }
+        dst -= stride;
+        src -= stride;
+        del = stride;
+    }
+
+    for (size_t i = 0; i < size; ++i) {
+        Zeta_MemMove(dst += del, src += del, width);
     }
 }
 
@@ -257,6 +253,30 @@ byte_t const* Zeta_ReadStr(byte_t const* src, size_t src_size) {
     return src;
 }
 
+unsigned long long Zeta_ULLHash(unsigned long long x, unsigned long long salt) {
+    x ^= salt;
+
+#if ZETA_ULLONG_WIDTH == 32
+    x = (x ^ (x >> 16)) * 0x45d9f3b;
+    x = (x ^ (x >> 16)) * 0x45d9f3b;
+    x = x ^ (x >> 16);
+#elif ZETA_ULLONG_WIDTH == 64
+    x = (x ^ (x >> 30)) * 0xbf58476d1ce4e5b9ULL;
+    x = (x ^ (x >> 27)) * 0x94d049bb133111ebULL;
+    x = x ^ (x >> 31);
+#else
+#error "Unsupported machine architecture."
+#endif
+
+    x ^= salt;
+
+    return x;
+}
+
+unsigned long long Zeta_LLHash(unsigned long long x, unsigned long long salt) {
+    return Zeta_ULLHash(x, salt);
+}
+
 unsigned long long Zeta_SimpleRandom(unsigned long long x) {
     unsigned long long mask = 0xFFFF;  // 2^16 - 1
     unsigned long long a = 25214903917;
@@ -271,13 +291,6 @@ unsigned long long Zeta_SimpleRandomRotate(unsigned long long* x) {
     unsigned long long c = 3039;
 
     return (*x = (*x * a + c) % m) / 0x10000;
-}
-
-unsigned long long Zeta_SimpleHash(unsigned long long x) {
-    x = (x ^ (x >> 30)) * (unsigned long long)0xbf58476d1ce4e5b9;
-    x = (x ^ (x >> 27)) * (unsigned long long)0x94d049bb133111eb;
-    x = x ^ (x >> 31);
-    return x;
 }
 
 unsigned long long Zeta_GCD(unsigned long long x, unsigned long long y) {
@@ -415,7 +428,7 @@ unsigned long long Zeta_FixedPoint2Power(long long val_) {
         2147483649,
     };
 #else
-#error "Unsupported machine type."
+#error "Unsupported machine architecture."
 #endif
 
     ZETA_StaticAssert(ZETA_FixedPoint_BaseOrder <= c_base_order);

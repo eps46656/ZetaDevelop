@@ -440,12 +440,22 @@ void Zeta_SeqCntr_ResizeL(Zeta_SeqCntr* seq_cntr, size_t size);
 void Zeta_SeqCntr_ResizeR(Zeta_SeqCntr* seq_cntr, size_t size);
 
 /**
+ * @brief Assign \p src_seq_cntr 's range to \p dst_seq_cntr 's range.
+ *
+ * @param dst_seq_cntr The destination container.
+ * @param src_seq_cntr The source container.
+ */
+void Zeta_SeqCntr_RangeAssign(Zeta_SeqCntr* dst_seq_cntr,
+                              Zeta_SeqCntr* src_seq_cntr, size_t dst_idx,
+                              size_t src_idx, size_t cnt);
+
+/**
  * @brief Assign \p src_seq_cntr to \p dst_seq_cntr.
  *
  * @param dst_seq_cntr The destination container.
  * @param src_seq_cntr The source container.
  */
-void Zeta_SeqCntr_Assign(Zeta_SeqCntr* dst_seq_cntr, Zeta_SeqCntr* src_seq_cntr,
-                         size_t dst_idx, size_t src_idx, size_t cnt);
+void Zeta_SeqCntr_Assign(Zeta_SeqCntr* dst_seq_cntr,
+                         Zeta_SeqCntr* src_seq_cntr);
 
 ZETA_ExternC_End;

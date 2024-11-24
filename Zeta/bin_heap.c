@@ -3,11 +3,10 @@
 #include "debugger.h"
 #include "utils.h"
 
-void Zeta_BinHeap_Construct(void* data_, size_t width, size_t stride,
+void Zeta_BinHeap_Construct(void* data, size_t width, size_t stride,
                             size_t size, void* cmp_context,
                             int (*Compare)(void* cmp_context, void const* x,
                                            void const* y)) {
-    unsigned char* data = data_;
     ZETA_DebugAssert(data != NULL);
 
     ZETA_DebugAssert(0 < width);
@@ -46,11 +45,10 @@ void Zeta_BinHeap_Construct(void* data_, size_t width, size_t stride,
     }
 }
 
-void Zeta_BinHeap_Push(void* data_, size_t width, size_t stride, size_t size,
+void Zeta_BinHeap_Push(void* data, size_t width, size_t stride, size_t size,
                        void const* src_elem, void* cmp_context,
                        int (*Compare)(void* cmp_context, void const* x,
                                       void const* y)) {
-    unsigned char* data = data_;
     ZETA_DebugAssert(data != NULL);
 
     ZETA_DebugAssert(0 < width);
@@ -78,11 +76,10 @@ void Zeta_BinHeap_Push(void* data_, size_t width, size_t stride, size_t size,
     Zeta_MemCopy(data + stride * n_i, src_elem, width);
 }
 
-void Zeta_BinHeap_Pop(void* data_, size_t width, size_t stride, size_t size,
+void Zeta_BinHeap_Pop(void* data, size_t width, size_t stride, size_t size,
                       void* dst_elem, void* cmp_context,
                       int (*Compare)(void* cmp_context, void const* x,
                                      void const* y)) {
-    unsigned char* data = data_;
     ZETA_DebugAssert(data != NULL);
 
     ZETA_DebugAssert(0 < width);

@@ -17,14 +17,14 @@ static void SetL_(void* n_, void* l) {
     Zeta_OrdRBLinkedListNode* n = n_;
     ZETA_DebugAssert(n != NULL);
 
-    n->l = (unsigned char*)l + GetLC_(n);
+    n->l = l + GetLC_(n);
 }
 
 static void SetR_(void* n_, void* r) {
     Zeta_OrdRBLinkedListNode* n = n_;
     ZETA_DebugAssert(n != NULL);
 
-    n->r = (unsigned char*)r + GetRC_(n);
+    n->r = r + GetRC_(n);
 }
 
 void Zeta_OrdRBLinkedListNode_Init(void* n_) {
@@ -181,6 +181,6 @@ void Zeta_OrdRBLinkedListNode_Extract(void* n_) {
     SetR_(nl, nr);
     SetL_(nr, nl);
 
-    n->l = (unsigned char*)n + GetLC_(n);
-    n->r = (unsigned char*)n + GetRC_(n);
+    n->l = n + GetLC_(n);
+    n->r = n + GetRC_(n);
 }

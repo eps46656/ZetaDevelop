@@ -49,8 +49,7 @@ void Zeta_OrdRBTreeNode_SetP(void* context, void* n_, void* m) {
     Zeta_OrdRBTreeNode* n = n_;
     ZETA_DebugAssert(n != NULL);
 
-    ZETA_ColorPtr_SetPtr(&n->p, alignof(Zeta_OrdRBTreeNode),
-                         m == NULL ? (unsigned char*)n : (unsigned char*)m);
+    ZETA_ColorPtr_SetPtr(&n->p, alignof(Zeta_OrdRBTreeNode), m == NULL ? n : m);
 }
 
 void Zeta_OrdRBTreeNode_SetL(void* context, void* n_, void* m) {

@@ -55,7 +55,7 @@ void Zeta_OrdCnt3RBTreeNode_SetP(void* context, void* n_, void* m) {
     ZETA_DebugAssert(n != NULL);
 
     ZETA_ColorPtr_SetPtr(&n->p, alignof(Zeta_OrdCnt3RBTreeNode),
-                         m == NULL ? (unsigned char*)n : (unsigned char*)m);
+                         m == NULL ? n : m);
 }
 
 void Zeta_OrdCnt3RBTreeNode_SetL(void* context, void* n_, void* m) {
@@ -65,7 +65,7 @@ void Zeta_OrdCnt3RBTreeNode_SetL(void* context, void* n_, void* m) {
     ZETA_DebugAssert(n != NULL);
 
     ZETA_ColorPtr_SetPtr(&n->l, alignof(Zeta_OrdCnt3RBTreeNode),
-                         m == NULL ? (unsigned char*)n : (unsigned char*)m);
+                         m == NULL ? n : m);
 }
 
 void Zeta_OrdCnt3RBTreeNode_SetR(void* context, void* n_, void* m) {
@@ -75,7 +75,7 @@ void Zeta_OrdCnt3RBTreeNode_SetR(void* context, void* n_, void* m) {
     ZETA_DebugAssert(n != NULL);
 
     ZETA_ColorPtr_SetPtr(&n->r, alignof(Zeta_OrdCnt3RBTreeNode),
-                         m == NULL ? (unsigned char*)n : (unsigned char*)m);
+                         m == NULL ? n : m);
 }
 
 int Zeta_OrdCnt3RBTreeNode_GetPColor(void* context, void* n_) {

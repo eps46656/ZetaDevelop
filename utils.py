@@ -1,27 +1,32 @@
 import os
 import typing
+
 from typeguard import typechecked
-import enum
+
 
 @typechecked
 def GetRealPath(path: str):
     return os.path.realpath(path).replace("\\", "/")
 
+
 @typechecked
 def GetDirPath(path: str):
     return GetRealPath(os.path.dirname(path))
+
 
 @typechecked
 def ToPath(path):
     path = path.strip("\'\"")
     return f"\'{path}\'"
 
+
 @typechecked
 def FilterNotNone(iter: typing.Iterable):
     return (x for x in iter if x)
 
+
 @typechecked
-def SanitizeJsonStruct(x: None | bool | int | float | str | list | dict):
+def SanitizeJsonStruct(x: typing.Optional[bool | int | float | str | list | dict]):
     if x is None:
         return None
 
@@ -32,7 +37,8 @@ def SanitizeJsonStruct(x: None | bool | int | float | str | list | dict):
         return None if len(x) == 0 else x
 
     if isinstance(x, dict):
-        ret = {k: v for k, v in ((k, FilterNotNone(v)) for k, v in x.items()) if v is not None}
+        ret = {k: v for k, v in ((k, FilterNotNone(v))
+                                 for k, v in x.items()) if v is not None}
         return None if len(ret) == 0 else x
 
     if isinstance(x, list):
@@ -40,6 +46,7 @@ def SanitizeJsonStruct(x: None | bool | int | float | str | list | dict):
         return None if len(ret) == 0 else x
 
     return None
+
 
 @typechecked
 def ToListCommand(*cmd):

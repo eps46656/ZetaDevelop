@@ -9,10 +9,10 @@
 #include "std_allocator.h"
 
 struct DynamicHashTablePack {
-    StdAllocator node_allocator_;
-    StdAllocator table_allocator_;
-
+    StdAllocator node_allocator_instance;
     Zeta_Allocator node_allocator;
+
+    StdAllocator table_allocator_instance;
     Zeta_Allocator table_allocator;
 
     Zeta_DynamicHashTable dht;
@@ -34,8 +34,9 @@ void DynamicHashTable_Init(
                           void const* key)) {
     DynamicHashTablePack* pack{ new DynamicHashTablePack{} };
 
-    StdAllocator_DeployAllocator(&pack->node_allocator_, &pack->node_allocator);
-    StdAllocator_DeployAllocator(&pack->table_allocator_,
+    StdAllocator_DeployAllocator(&pack->node_allocator_instance,
+                                 &pack->node_allocator);
+    StdAllocator_DeployAllocator(&pack->table_allocator_instance,
                                  &pack->table_allocator);
 
     pack->dht.width = sizeof(Val);
@@ -123,9 +124,9 @@ void DynamicHashTable_Sanitize(Zeta_AssocCntr const* assoc_cntr) {
 
     Zeta_DynamicHashTable_Sanitize(&pack->dht, table_recorder, node_recorder);
 
-    Zeta_MemCheck_MatchRecords(pack->table_allocator_.mem_recorder,
+    Zeta_MemCheck_MatchRecords(pack->table_allocator_instance.mem_recorder,
                                table_recorder);
-    Zeta_MemCheck_MatchRecords(pack->node_allocator_.mem_recorder,
+    Zeta_MemCheck_MatchRecords(pack->node_allocator_instance.mem_recorder,
                                node_recorder);
 
     Zeta_MemRecorder_Destroy(table_recorder);

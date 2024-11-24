@@ -1,11 +1,14 @@
-from config import *
-from utils import *
-
+import dataclasses
 import os
-import typing
 import subprocess
+import typing
+
 import termcolor
 from typeguard import typechecked
+
+from config import ArchEnum, EnvEnum, ModeEnum, SysEnum, Target, VendorEnum
+from utils import FilterNotNone, GetRealPath, ToListCommand
+
 
 @typechecked
 def GetClangTriple(target: Target):
@@ -39,6 +42,7 @@ def GetClangTriple(target: Target):
 
     return f"{arch}-{vendor}-{sys}-{env}"
 
+
 @typechecked
 def GetLLCArch(target: Target):
     arch_table = {
@@ -53,10 +57,12 @@ def GetLLCArch(target: Target):
 
     return arch
 
+
 @typechecked
 def PrintCommand(cmd: typing.Iterable[str]):
     cmd = " ".join(cmd)
     print(termcolor.colored(f"{cmd=}", "cyan"))
+
 
 @dataclasses.dataclass
 class LLVMCompilerConfig:
@@ -67,6 +73,7 @@ class LLVMCompilerConfig:
     working_dirs: typing.Iterable[str]
     c_include_dirs: typing.Iterable[str]
     cpp_include_dirs: typing.Iterable[str]
+
 
 @typechecked
 class LLVMCompiler:
@@ -233,7 +240,7 @@ class LLVMCompiler:
         subprocess.run(cmd, check=True)
 
     def GetIncludes(self, src):
-        includes =  subprocess.run(
+        includes = subprocess.run(
             ToListCommand(
                 "clang++",
                 "--trace-includes",

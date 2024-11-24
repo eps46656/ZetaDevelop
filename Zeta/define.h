@@ -315,8 +315,8 @@ typedef unsigned _BitInt(ZETA_WidthOf(unsigned long long)) ULLBitInt_t;
 #define ZETA_AddrToPtr(x) ((void*)(uintptr_t)(x))
 
 #define ZETA_MemberToStruct(struct_type, member_name, member_ptr) \
-    ((struct_type*)((unsigned char*)(member_ptr) -                \
-                    offsetof(struct_type, member_name)))
+    ((struct_type*)(void*)((unsigned char*)(void*)(member_ptr) -  \
+                           offsetof(struct_type, member_name)))
 
 #define ZETA_GetMinOf_(tmp_x, tmp_y, x, y) \
     ({                                     \

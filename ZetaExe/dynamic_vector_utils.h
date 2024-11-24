@@ -9,10 +9,10 @@
 #include "std_allocator.h"
 
 struct DynamicVectorPack {
-    StdAllocator data_allocator_;
+    StdAllocator data_allocator_instance;
     Zeta_Allocator data_allocator;
 
-    StdAllocator seg_allocator_;
+    StdAllocator seg_allocator_instance;
     Zeta_Allocator seg_allocator;
 
     Zeta_DynamicVector dynamic_vec;
@@ -23,12 +23,12 @@ void DynamicVector_Init(Zeta_SeqCntr* seq_cntr, size_t seg_capacity) {
     DynamicVectorPack* dynamic_vec_pack{ static_cast<DynamicVectorPack*>(
         std::malloc(sizeof(DynamicVectorPack))) };
 
-    new (&dynamic_vec_pack->data_allocator_) StdAllocator{};
-    new (&dynamic_vec_pack->seg_allocator_) StdAllocator{};
+    new (&dynamic_vec_pack->data_allocator_instance) StdAllocator{};
+    new (&dynamic_vec_pack->seg_allocator_instance) StdAllocator{};
 
-    StdAllocator_DeployAllocator(&dynamic_vec_pack->data_allocator_,
+    StdAllocator_DeployAllocator(&dynamic_vec_pack->data_allocator_instance,
                                  &dynamic_vec_pack->data_allocator);
-    StdAllocator_DeployAllocator(&dynamic_vec_pack->seg_allocator_,
+    StdAllocator_DeployAllocator(&dynamic_vec_pack->seg_allocator_instance,
                                  &dynamic_vec_pack->seg_allocator);
 
     dynamic_vec_pack->dynamic_vec.width = sizeof(Val);
@@ -94,8 +94,9 @@ void DynamicVector_Sanitize(Zeta_SeqCntr const* seq_cntr) {
         const_cast<void*>(static_cast<void const*>(&pack->dynamic_vec)), data,
         seg);
 
-    Zeta_MemCheck_MatchRecords(pack->data_allocator_.mem_recorder, data);
-    Zeta_MemCheck_MatchRecords(pack->seg_allocator_.mem_recorder, seg);
+    Zeta_MemCheck_MatchRecords(pack->data_allocator_instance.mem_recorder,
+                               data);
+    Zeta_MemCheck_MatchRecords(pack->seg_allocator_instance.mem_recorder, seg);
 
     Zeta_MemRecorder_Destroy(data);
     Zeta_MemRecorder_Destroy(seg);

@@ -1,12 +1,11 @@
-import enum
 import dataclasses
+import enum
 
-class EmptyClass:
-    pass
 
 class ModeEnum(enum.Enum):
     DEBUG = enum.auto(),
     RELEASE = enum.auto(),
+
 
 class ArchEnum(enum.Enum):
     X86_64 = enum.auto(),
@@ -15,17 +14,21 @@ class ArchEnum(enum.Enum):
     RISCV32 = enum.auto(),
     RISCV64 = enum.auto(),
 
+
 class VendorEnum(enum.Enum):
     PC = enum.auto(),
+
 
 class SysEnum(enum.Enum):
     LINUX = enum.auto(),
     WINDOWS = enum.auto(),
 
+
 class EnvEnum(enum.Enum):
     GNU = enum.auto(),
     ELF = enum.auto(),
     MSVC = enum.auto(),
+
 
 class ColorEnum(enum.Enum):
     red = enum.auto(),
@@ -34,12 +37,14 @@ class ColorEnum(enum.Enum):
 
 # ------------------------------------------------------------------------------
 
+
 @dataclasses.dataclass
 class Target:
     arch: ArchEnum
     vendor: VendorEnum
     sys: SysEnum
     env: EnvEnum
+
 
 target = Target(
     arch=ArchEnum.X86_64,

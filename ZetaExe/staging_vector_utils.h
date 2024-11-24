@@ -10,10 +10,10 @@
 #include "std_allocator.h"
 
 struct StagingVectorPack {
-    StdAllocator seg_allocator_;
+    StdAllocator seg_allocator_instance;
     Zeta_Allocator seg_allocator;
 
-    StdAllocator data_allocator_;
+    StdAllocator data_allocator_instance;
     Zeta_Allocator data_allocator;
 
     Zeta_DummyVector dummy_vec;
@@ -30,7 +30,7 @@ void StagingVector_Init(Zeta_SeqCntr* seq_cntr, Zeta_SeqCntr* origin_seq_cntr,
                          ZETA_SeqCntr_GetWidth(origin_seq_cntr));
     }
 
-    StagingVectorrPack* pack{ static_cast<StagingVectorPack*>(
+    StagingVectorPack* pack{ static_cast<StagingVectorPack*>(
         std::malloc(sizeof(StagingVectorPack))) };
 
     if (origin_seq_cntr == NULL) {
@@ -42,11 +42,13 @@ void StagingVector_Init(Zeta_SeqCntr* seq_cntr, Zeta_SeqCntr* origin_seq_cntr,
         origin_seq_cntr = &pack->dummy_vec_seq_cntr;
     }
 
-    new (&pack->seg_allocator_) StdAllocator{};
-    new (&pack->data_allocator_) StdAllocator{};
+    new (&pack->seg_allocator_instance) StdAllocator{};
+    new (&pack->data_allocator_instance) StdAllocator{};
 
-    StdAllocator_DeployAllocator(&pack->seg_allocator_, &pack->seg_allocator);
-    StdAllocator_DeployAllocator(&pack->data_allocator_, &pack->data_allocator);
+    StdAllocator_DeployAllocator(&pack->seg_allocator_instance,
+                                 &pack->seg_allocator);
+    StdAllocator_DeployAllocator(&pack->data_allocator_instance,
+                                 &pack->data_allocator);
 
     pack->staging_vector.origin = origin_seq_cntr;
     pack->staging_vector.seg_capacity = seg_capacity;
@@ -110,8 +112,9 @@ void StagingVector_Sanitize(Zeta_SeqCntr const* seq_cntr) {
         const_cast<void*>(static_cast<void const*>(&pack->staging_vector)), seg,
         data);
 
-    Zeta_MemCheck_MatchRecords(pack->seg_allocator_.mem_recorder, seg);
-    Zeta_MemCheck_MatchRecords(pack->data_allocator_.mem_recorder, data);
+    Zeta_MemCheck_MatchRecords(pack->seg_allocator_instance.mem_recorder, seg);
+    Zeta_MemCheck_MatchRecords(pack->data_allocator_instance.mem_recorder,
+                               data);
 
     Zeta_MemRecorder_Destroy(seg);
     Zeta_MemRecorder_Destroy(data);

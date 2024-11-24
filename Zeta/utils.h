@@ -191,11 +191,11 @@ u128_t Zeta_WriteBigEndian(byte_t* dst, u128_t val, unsigned length);
 
 byte_t const* Zeta_ReadStr(byte_t const* src, size_t src_size);
 
+unsigned long long Zeta_ULLHash(unsigned long long x, unsigned long long salt);
+
 unsigned long long Zeta_SimpleRandom(unsigned long long x);
 
 unsigned long long Zeta_SimpleRandomRotate(unsigned long long* x);
-
-unsigned long long Zeta_SimpleHash(unsigned long long x);
 
 unsigned long long Zeta_GCD(unsigned long long x, unsigned long long y);
 

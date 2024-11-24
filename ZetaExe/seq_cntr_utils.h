@@ -699,46 +699,38 @@ void SeqCntrUtils_DoRandomOperations(std::vector<Zeta_SeqCntr*> seq_cntrs,
     for (size_t iter_i{ 0 }; iter_i < iter_cnt; ++iter_i) {
         switch (ops[GetRandomInt<size_t, size_t>(0, ops.size() - 1)]) {
             case SeqCntrUtils_OpEnum::READ:
-                ZETA_PrintVar(iter_i);
                 SeqCntrUtils_SyncRandomRead<Value>(seq_cntrs, read_max_op_size);
                 break;
 
             case SeqCntrUtils_OpEnum::WRITE:
-                ZETA_PrintVar(iter_i);
                 SeqCntrUtils_SyncRandomWrite<Value>(seq_cntrs,
                                                     write_max_op_size);
                 break;
 
             case SeqCntrUtils_OpEnum::PUSH_L:
-                ZETA_PrintVar(iter_i);
                 SeqCntrUtils_SyncRandomPushL<Value>(seq_cntrs,
                                                     push_l_max_op_size);
                 break;
 
             case SeqCntrUtils_OpEnum::PUSH_R:
-                ZETA_PrintVar(iter_i);
                 SeqCntrUtils_SyncRandomPushR<Value>(seq_cntrs,
                                                     push_r_max_op_size);
                 break;
 
             case SeqCntrUtils_OpEnum::POP_L:
-                ZETA_PrintVar(iter_i);
                 SeqCntrUtils_SyncRandomPopL(seq_cntrs, pop_l_max_op_size);
                 break;
 
             case SeqCntrUtils_OpEnum::POP_R:
-                ZETA_PrintVar(iter_i);
                 SeqCntrUtils_SyncRandomPopR(seq_cntrs, pop_r_max_op_size);
                 break;
 
             case SeqCntrUtils_OpEnum::INSERT:
-                ZETA_PrintVar(iter_i);
                 SeqCntrUtils_SyncRandomInsert<Value>(seq_cntrs,
                                                      insert_max_op_size);
                 break;
 
             case SeqCntrUtils_OpEnum::ERASE:
-                ZETA_PrintVar(iter_i);
                 SeqCntrUtils_SyncRandomErase(seq_cntrs, erase_max_op_size);
                 break;
         }

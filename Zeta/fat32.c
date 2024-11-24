@@ -4,7 +4,7 @@
 #include "debugger.h"
 #include "dummy_vector.h"
 #include "dynamic_vector.h"
-#include "stage_vector.h"
+#include "staging_vector.h"
 #include "utils.h"
 
 /*
@@ -203,12 +203,12 @@ struct Node {
     // the original size of node
 
     Zeta_SeqCntr clus_num_vec_dummy_vec_seq_cntr;
-    Zeta_StageVector clus_num_vec;
+    Zeta_StagingVector clus_num_vec;
     // contain clus numbers strding clus_num_width
 
     size_t clus_num_width;
 
-    Zeta_StageVector stage_vec;
+    Zeta_StagingVector stage_vec;
 };
 
 struct NodeVector {

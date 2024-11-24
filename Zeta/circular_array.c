@@ -19,8 +19,7 @@
 #endif
 
 #define Refer_(data, width, offset, idx, capacity) \
-    ((void*)((unsigned char*)(data) +              \
-             (width) * (((offset) + (idx)) % (capacity))))
+    ((data) + (width) * (((offset) + (idx)) % (capacity)))
 
 void Zeta_CircularArray_Init(void* ca_) {
     Zeta_CircularArray* ca = ca_;
@@ -176,7 +175,7 @@ void* Zeta_CircularArray_Refer(void* ca_, void const* pos_cursor_) {
 }
 
 void Zeta_CircularArray_Read(void* ca_, void const* pos_cursor_, size_t cnt,
-                             void* dst_, void* dst_cursor_) {
+                             void* dst, void* dst_cursor_) {
     Zeta_CircularArray* ca = ca_;
     Zeta_CircularArray_Cursor const* pos_cursor = pos_cursor_;
 
@@ -186,7 +185,6 @@ void Zeta_CircularArray_Read(void* ca_, void const* pos_cursor_, size_t cnt,
 
     if (cnt == 0) { return; }
 
-    unsigned char* dst = dst_;
     ZETA_DebugAssert(dst != NULL);
 
     void* data = ca->data;
@@ -221,7 +219,7 @@ void Zeta_CircularArray_Read(void* ca_, void const* pos_cursor_, size_t cnt,
 }
 
 void Zeta_CircularArray_Write(void* ca_, void* pos_cursor_, size_t cnt,
-                              void const* src_, void* dst_cursor_) {
+                              void const* src, void* dst_cursor_) {
     Zeta_CircularArray* ca = ca_;
     Zeta_CircularArray_Cursor* pos_cursor = pos_cursor_;
 
@@ -239,7 +237,6 @@ void Zeta_CircularArray_Write(void* ca_, void* pos_cursor_, size_t cnt,
         return;
     }
 
-    unsigned char const* src = src_;
     ZETA_DebugAssert(src != NULL);
 
     void* data = ca->data;

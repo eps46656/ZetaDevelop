@@ -3,6 +3,7 @@
 #include "bin_tree.h"
 #include "debugger.h"
 #include "mem_check_utils.h"
+#include "ptr_utils.h"
 #include "rbtree.h"
 #include "utils.h"
 
@@ -21,12 +22,11 @@
 #endif
 
 #define GetCurTable_(ght) \
-    ((void**)__builtin_align_down(ght->cur_table, alignof(void*)))
+    ((void**)ZETA_ColorPtr_GetPtr(&ght->cur_table, alignof(void*)))
 
 #define GetNxtTable_(ght) ght->nxt_table
 
-#define GetState_(ght) \
-    ((unsigned char*)ght->cur_table - (unsigned char*)GetCurTable_(ght))
+#define GetState_(ght) ZETA_ColorPtr_GetColor(&ght->cur_table, alignof(void*))
 
 #define null_state 0
 #define cur_state 1
@@ -55,7 +55,7 @@ static void** AllocateTable_(Zeta_GenericHashTable* ght, size_t capacity) {
 
 static size_t GetBucketIdx_(unsigned long long hash_code,
                             size_t bucket_capacity) {
-    return Zeta_SimpleHash(hash_code) % bucket_capacity;
+    return Zeta_ULLHash(hash_code, 0) % bucket_capacity;
 }
 
 static void InsertNode_(Zeta_GenericHashTable* ght, void** root,
@@ -88,7 +88,8 @@ void Zeta_GenericHashTable_Init(void* ght_) {
     Zeta_GenericHashTable* ght = ght_;
     ZETA_DebugAssert(ght != NULL);
 
-    ght->cur_table = &ght->cur_table + null_state;
+    ZETA_ColorPtr_Set(&ght->cur_table, alignof(void*), &ght->cur_table,
+                      null_state);
     ght->nxt_table = NULL;
 
     ght->cur_table_cnt = 0;
@@ -324,7 +325,7 @@ void Zeta_GenericHashTable_Insert(void* ght_, void* node_) {
         }
     }
 
-    ght->cur_table = (unsigned char*)cur_table + state;
+    ZETA_ColorPtr_Set(&ght->cur_table, alignof(void*), cur_table, state);
     ght->nxt_table = nxt_table;
 
     ght->cur_table_cnt = cur_table_cnt;
@@ -386,7 +387,7 @@ RET:;
 
     TryDo_;
 
-    ght->cur_table = (unsigned char*)cur_table + state;
+    ZETA_ColorPtr_Set(&ght->cur_table, alignof(void*), cur_table, state);
     ght->nxt_table = nxt_table;
 
     ght->cur_table_cnt = cur_table_cnt;
@@ -417,33 +418,34 @@ unsigned long long Zeta_GenericHashTable_GetEffFactor(void* ght_) {
 
     unsigned long long total_height = 0;
 
-ZETA_TmpName: {
-    size_t mid = 0;
+    {
+        size_t mid = 0;
 
-    if (state == nxt_state) {
-        void** p = cur_table[-1];
+        if (state == nxt_state) {
+            void** p = cur_table[-1];
 
-        ZETA_DebugAssert(cur_table <= p && p < cur_table + cur_table_capacity);
+            ZETA_DebugAssert(cur_table <= p &&
+                             p < cur_table + cur_table_capacity);
 
-        mid = p - cur_table;
+            mid = p - cur_table;
 
-        for (size_t i = 1; i < mid; ++i) {
-            ZETA_DebugAssert(cur_table[i] == NULL);
+            for (size_t i = 1; i < mid; ++i) {
+                ZETA_DebugAssert(cur_table[i] == NULL);
+            }
+        }
+
+        for (size_t i = mid; i < cur_table_capacity; ++i) {
+            size_t tree_size = Zeta_BinTree_Count(btn_opr, cur_table[i]);
+
+            total_height +=
+                tree_size == 0
+                    ? 0
+                    : tree_size * ZETA_RoundIntDiv(
+                                      Zeta_FixedPointLog2(tree_size *
+                                                          ZETA_FixedPoint_Base),
+                                      ZETA_FixedPoint_Base);
         }
     }
-
-    for (size_t i = mid; i < cur_table_capacity; ++i) {
-        size_t tree_size = Zeta_BinTree_Count(btn_opr, cur_table[i]);
-
-        total_height +=
-            tree_size == 0
-                ? 0
-                : tree_size *
-                      ZETA_RoundIntDiv(
-                          Zeta_FixedPointLog2(tree_size * ZETA_FixedPoint_Base),
-                          ZETA_FixedPoint_Base);
-    }
-}
 
     if (state == nxt_state) {
         for (size_t i = 0; i < nxt_table_capacity; ++i) {
@@ -610,32 +612,33 @@ void Zeta_GenericHashTable_Sanitize(void* ght_, Zeta_MemRecorder* dst_table,
         }
     }
 
-ZETA_TmpName: {
-    size_t mid = 0;
+    {
+        size_t mid = 0;
 
-    if (state == nxt_state) {
-        void** p = cur_table[-1];
+        if (state == nxt_state) {
+            void** p = cur_table[-1];
 
-        ZETA_DebugAssert(cur_table <= p && p < cur_table + cur_table_capacity);
+            ZETA_DebugAssert(cur_table <= p &&
+                             p < cur_table + cur_table_capacity);
 
-        mid = p - cur_table;
+            mid = p - cur_table;
 
-        for (size_t i = 0; i < mid; ++i) {
-            ZETA_DebugAssert(cur_table[i] == NULL);
+            for (size_t i = 0; i < mid; ++i) {
+                ZETA_DebugAssert(cur_table[i] == NULL);
+            }
         }
+
+        size_t re_cur_table_cnt = 0;
+
+        for (size_t i = mid; i < cur_table_capacity; ++i) {
+            re_cur_table_cnt +=
+                SanitizeTree_(ght, dst_node, i, ght->cur_table_capacity,
+                              ght->cur_salt, cur_table[i])
+                    .cnt;
+        }
+
+        ZETA_DebugAssert(cur_table_cnt == re_cur_table_cnt);
     }
-
-    size_t re_cur_table_cnt = 0;
-
-    for (size_t i = mid; i < cur_table_capacity; ++i) {
-        re_cur_table_cnt +=
-            SanitizeTree_(ght, dst_node, i, ght->cur_table_capacity,
-                          ght->cur_salt, cur_table[i])
-                .cnt;
-    }
-
-    ZETA_DebugAssert(cur_table_cnt == re_cur_table_cnt);
-}
 
     if (state == cur_state) { return; }
 

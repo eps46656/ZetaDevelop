@@ -16,15 +16,15 @@ struct Zeta_CascadeAllocator {
     void* first_node;
 };
 
-void Zeta_CascadeAllocator_Init(void* fba);
+void Zeta_CascadeAllocator_Init(void* ca);
 
-size_t Zeta_CascadeAllocator_Query(void* fba, size_t size);
+size_t Zeta_CascadeAllocator_Query(void* ca, size_t size);
 
-size_t Zeta_CascadeAllocator_GetAlign(void* fba);
+size_t Zeta_CascadeAllocator_GetAlign(void* ca);
 
-void* Zeta_CascadeAllocator_Allocate(void* fba, size_t size);
+void* Zeta_CascadeAllocator_Allocate(void* ca, size_t size);
 
-void Zeta_CascadeAllocator_Deallocate(void* fba, void* ptr);
+void Zeta_CascadeAllocator_Deallocate(void* ca, void* ptr);
 
 void Zeta_CascadeAllocator_Check(void* ca);
 

@@ -19,16 +19,16 @@ ZETA_StaticAssert(alignof(Zeta_SlabAllocator_SlabHead) % alignof(uintptr_t) ==
 #define ZETA_SlabSize \
     (stride * units_per_slab + sizeof(Zeta_SlabAllocator_SlabHead))
 
-#define SlabUnitToSlabHead_(unit)                            \
-    ((Zeta_SlabAllocator_SlabHead*)((unsigned char*)(unit) + \
-                                    stride *                 \
-                                        (units_per_slab -    \
-                                         *((unsigned char*)(unit) + width))))
+#define SlabUnitToSlabHead_(unit)                         \
+    ((Zeta_SlabAllocator_SlabHead*)((unit) +              \
+                                    stride *              \
+                                        (units_per_slab - \
+                                         *(unsigned char*)((unit) + width))))
 
 #define SlabHeadToSlab_(slab_head) \
-    ((void*)((unsigned char*)(slab_head) - stride * units_per_slab))
+    ((void*)((void*)(slab_head) - stride * units_per_slab))
 
-#define ZETA_GetFirstChunkFromSlab(slab) ((unsigned char*)(slab))
+#define ZETA_GetFirstChunkFromSlab(slab) ((void*)(slab))
 
 static void LinkedListPushL_(Zeta_OrdLinkedListNode** head,
                              Zeta_OrdLinkedListNode* n) {
@@ -86,7 +86,7 @@ static bool_t ReleaseLastSlab_(Zeta_SlabAllocator* sa) {
         ZETA_MemberToStruct(Zeta_SlabAllocator_SlabHead, n, vacant_slab_n);
     void* vacant_slab = SlabHeadToSlab_(vacant_slab_head);
 
-    unsigned char* chunk = ZETA_GetFirstChunkFromSlab(vacant_slab);
+    void* chunk = ZETA_GetFirstChunkFromSlab(vacant_slab);
 
     for (size_t i = 0; i < units_per_slab; ++i, chunk += stride) {
         LinkedListExtract_(&sa->hot_slab_units_list, (void*)chunk);
@@ -202,8 +202,7 @@ void* Zeta_SlabAllocator_Allocate(void* sa_, size_t size) {
     void* slab =
         ZETA_Allocator_SafeAllocate(sa->allocator, sa->align, ZETA_SlabSize);
 
-    Zeta_SlabAllocator_SlabHead* slab_head =
-        (void*)((unsigned char*)slab + stride * units_per_slab);
+    Zeta_SlabAllocator_SlabHead* slab_head = slab + stride * units_per_slab;
 
     Zeta_OrdLinkedListNode_Init(&slab_head->n);
     LinkedListPushL_(&sa->occupied_slab_list, &slab_head->n);

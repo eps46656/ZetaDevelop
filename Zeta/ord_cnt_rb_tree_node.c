@@ -51,7 +51,7 @@ void Zeta_OrdCntRBTreeNode_SetP(void* context, void* n_, void* m) {
     ZETA_DebugAssert(n != NULL);
 
     ZETA_ColorPtr_SetPtr(&n->p, alignof(Zeta_OrdCntRBTreeNode),
-                         m == NULL ? (unsigned char*)n : (unsigned char*)m);
+                         m == NULL ? n : m);
 }
 
 void Zeta_OrdCntRBTreeNode_SetL(void* context, void* n_, void* m) {
