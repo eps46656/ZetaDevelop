@@ -294,7 +294,8 @@ unsigned long long Zeta_SimpleRandomRotate(unsigned long long* x) {
 }
 
 unsigned long long Zeta_GCD(unsigned long long x, unsigned long long y) {
-    if (x == 0 && y == 0) { return 1; }
+    if (x == 0) { return y == 0 ? 1 : y; }
+    if (y == 0) { return x; }
     while ((x %= y) != 0 && (y %= x) != 0) {}
     return x + y;
 }

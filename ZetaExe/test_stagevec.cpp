@@ -462,7 +462,7 @@ void main9() {
         SeqCntrUtils_DoRandomOperations<PODValue>(
             { seq_cntr_a, seq_cntr_b },
 
-            64,  // iter_cnt
+            256,  // iter_cnt
 
             16,  // read_max_op_size
             16,  // write_max_op_size
@@ -479,10 +479,13 @@ void main9() {
             16   // cursor_advance_r_op_size
         );
 
-        Zeta_StagingVector_WriteBack(seq_cntr_a->context,
-                                     ZETA_StagingVector_WriteBackStrategy_LR,
-                                     //
-                                     1, 1, 1, 1);
+        Zeta_StagingVector_WriteBack(
+            seq_cntr_a->context, ZETA_StagingVector_WriteBackStrategy_Random,
+            1,   // cost_coeff_read
+            2,   // cost_coeff_write
+            10,  // cost_coeff_insert
+            10   // cost_coeff_erase
+        );
 
         SeqCntrUtils_SyncCompare<PODValue>({ seq_cntr_a_origin, seq_cntr_b });
     }

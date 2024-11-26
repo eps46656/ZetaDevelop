@@ -7,7 +7,7 @@ import termcolor
 from typeguard import typechecked
 
 from config import ArchEnum, EnvEnum, ModeEnum, SysEnum, Target, VendorEnum
-from utils import FilterNotNone, GetRealPath, ToListCommand
+from utils import FilterNotNone, ToListCommand
 
 
 @typechecked
@@ -69,6 +69,7 @@ class LLVMCompilerConfig:
     verbose: bool
     target: Target
     mode: ModeEnum
+    base_dir: typing.Optional[typing.Iterable[str]]
     build_dir: str
     working_dirs: typing.Iterable[str]
     c_include_dirs: typing.Iterable[str]
@@ -84,6 +85,8 @@ class LLVMCompiler:
 
         self.mode = config.mode
         assert self.mode in ModeEnum
+
+        self.base_dir = config.base_dir
 
         self.build_dir = config.build_dir
 
@@ -130,6 +133,8 @@ class LLVMCompiler:
               for include_dir in self.c_include_dirs),
             f"-ferror-limit={self.error_limit}",
             # f"-frandomize-layout-seed={self.randomize_layout_seed}",
+
+            f"-ffile-prefix-map={self.base_dir}=.",
         ]
 
         self.cpp_to_obj_args = [
@@ -141,6 +146,8 @@ class LLVMCompiler:
               for include_dir in self.cpp_include_dirs),
             f"-ferror-limit={self.error_limit}",
             # f"-frandomize-layout-seed={self.randomize_layout_seed}",
+
+            f"-ffile-prefix-map={self.base_dir}=.",
         ]
 
         if self.mode == ModeEnum.DEBUG:
@@ -234,41 +241,10 @@ class LLVMCompiler:
                 "-flto",
             ]
 
-    def RunCommand_(self, *cmd):
-        cmd = ToListCommand(cmd)
-        PrintCommand(cmd)
-        subprocess.run(cmd, check=True)
-
-    def GetIncludes(self, src):
-        includes = subprocess.run(
-            ToListCommand(
-                "clang++",
-                "--trace-includes",
-                "-fshow-skipped-includes",
-                "-fsyntax-only",
-                (("--include-directory", include_dir)
-                 for include_dir in self.cpp_include_dirs),
-                src,
-            ),
-            check=True,
-            stdin=None,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-        ).stderr.decode("utf-8").replace("\r", "").split("\n")
-
-        ret = list()
-
-        for include in includes:
-            if not include or not include.startswith(". "):
-                continue
-
-            include = GetRealPath(include[2:])
-
-            if any(include.startswith(working_dir)
-                   for working_dir in self.working_dirs):
-                ret.append(include)
-
-        return ret
+    def RunCommand_(self, *cmd: typing.Iterable[typing.Optional[str | typing.Iterable]]):
+        list_cmd = ToListCommand(cmd)
+        PrintCommand(list_cmd)
+        subprocess.run(list_cmd, check=True)
 
     def c_to_obj(self, dst: str, src: str):
         os.makedirs(os.path.dirname(dst), exist_ok=True)
@@ -311,7 +287,7 @@ class LLVMCompiler:
             src,
         )
 
-    def ll_to_obj(self, dst, src):
+    def ll_to_obj(self, dst: str, src: str):
         self.RunCommand_(
             self.ll_to_obj_command,
             "-o", dst,
@@ -320,7 +296,7 @@ class LLVMCompiler:
             src,
         )
 
-    def to_exe(self, dst, srcs):
+    def to_exe(self, dst: str, srcs: typing.Iterable[str]):
         self.RunCommand_(
             self.to_exe_command,
             "-o", dst,

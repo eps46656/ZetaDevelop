@@ -26,6 +26,8 @@ def AddDeps(builder: Builder, ZetaBuildDir: str, verbose: bool, mode: ModeEnum):
 
         mode=mode,
 
+        base_dir=ZetaDevDir,
+
         build_dir=ZetaBuildDir,
 
         working_dirs=[

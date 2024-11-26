@@ -16,7 +16,7 @@ def GetMTime(path: str):
         return 0.0
 
 
-def SetMTime(path: str, mtime):
+def SetMTime(path: str, mtime: float):
     try:
         os.utime(path, (os.path.getmtime(path), mtime))
     except:

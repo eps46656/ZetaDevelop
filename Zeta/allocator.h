@@ -42,7 +42,7 @@ void Zeta_Allocator_Init(void* allocator);
                                                                            \
         void* tmp_ret;                                                     \
                                                                            \
-        if (size == 0) {                                                   \
+        if (tmp_size == 0) {                                               \
             tmp_ret = NULL;                                                \
         } else {                                                           \
             tmp_ret =                                                      \
