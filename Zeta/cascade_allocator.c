@@ -4,13 +4,13 @@
 #include "ord_linked_list_node.h"
 #include "utils.h"
 
-#if ZETA_IsDebug
+#if ZETA_EnableDebug
 
 #define Check_(ca) Zeta_CascadeAllocator_Check(ca)
 
 #else
 
-#define Check_(ca)
+#define Check_(ca) ZETA_Unused((ca))
 
 #endif
 
@@ -134,7 +134,7 @@ void Zeta_CascadeAllocator_Sanitize(void* ca_, Zeta_MemRecorder* dst) {
 
     ZETA_Unused(dst);
 
-#if ZETA_IsDebug
+#if ZETA_EnableIntegrityDebug && ZETA_EnableDeepAssert
     size_t align = ca->align;
 
     size_t node_size = ZETA_IntRoundUp(sizeof(Zeta_OrdLinkedListNode), align);

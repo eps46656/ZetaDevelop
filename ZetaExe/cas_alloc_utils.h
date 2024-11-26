@@ -3,7 +3,7 @@
 
 #include "std_allocator.h"
 
-#if ZETA_IsDebug
+#if ZETA_EnableDebug
 
 StdAllocator std_allocator_instance;
 Zeta_Allocator std_allocator;
@@ -18,7 +18,7 @@ unsigned char cas_mem[512 * 1024 * 1024];
 #endif
 
 void InitCasAllocator() {
-#if ZETA_IsDebug
+#if ZETA_EnableDebug
     // use standard malloc to be sanitized by asan
 
     StdAllocator_DeployAllocator(&std_allocator_instance, &std_allocator);

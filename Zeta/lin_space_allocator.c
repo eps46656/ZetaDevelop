@@ -5,13 +5,13 @@
 #include "rbtree.h"
 #include "utils.h"
 
-#if ZETA_IsDebug
+#if ZETA_EnableDebug
 
-#define CheckLSA_(lsa) Zeta_LinSpaceAllocator_Check((lsa))
+#define Check_(lsa) Zeta_LinSpaceAllocator_Check((lsa))
 
 #else
 
-#define CheckLSA_(lsa)
+#define Check_(lsa) ZETA_Unused((lsa))
 
 #endif
 
@@ -320,7 +320,7 @@ void Zeta_LinSpaceAllocator_Init(void* lsa_) {
 
 size_t Zeta_LinSpaceAllocator_Allocate(void* lsa_, size_t size) {
     Zeta_LinSpaceAllocator* lsa = lsa_;
-    CheckLSA_(lsa);
+    Check_(lsa);
 
     if (size == 0) { return ZETA_RangeMaxOf(size_t); }
 
@@ -364,7 +364,7 @@ size_t Zeta_LinSpaceAllocator_Allocate(void* lsa_, size_t size) {
 
 void Zeta_LinSpaceAllocator_Deallocate(void* lsa_, size_t idx) {
     Zeta_LinSpaceAllocator* lsa = lsa_;
-    CheckLSA_(lsa);
+    Check_(lsa);
 
     if (idx == ZETA_RangeMaxOf(size_t)) { return; }
 
@@ -420,7 +420,7 @@ void Zeta_LinSpaceAllocator_Deallocate(void* lsa_, size_t idx) {
 
 size_t Zeta_LinSpaceAllocator_GetVacantSizeL(void* lsa_) {
     Zeta_LinSpaceAllocator* lsa = lsa_;
-    CheckLSA_(lsa);
+    Check_(lsa);
 
     Zeta_LinSpaceAllocator_Node* n =
         Zeta_GetMostLink(NULL, NodeGetGL_, lsa->gt_root);
@@ -432,7 +432,7 @@ size_t Zeta_LinSpaceAllocator_GetVacantSizeL(void* lsa_) {
 
 size_t Zeta_LinSpaceAllocator_GetVacantSizeR(void* lsa_) {
     Zeta_LinSpaceAllocator* lsa = lsa_;
-    CheckLSA_(lsa);
+    Check_(lsa);
 
     Zeta_LinSpaceAllocator_Node* n =
         Zeta_GetMostLink(NULL, NodeGetGR_, lsa->gt_root);
@@ -444,7 +444,7 @@ size_t Zeta_LinSpaceAllocator_GetVacantSizeR(void* lsa_) {
 
 void Zeta_LinSpaceAllocator_ExtendL(void* lsa_, size_t cnt) {
     Zeta_LinSpaceAllocator* lsa = lsa_;
-    CheckLSA_(lsa);
+    Check_(lsa);
 
     if (cnt == 0) { return; }
 
@@ -479,7 +479,7 @@ void Zeta_LinSpaceAllocator_ExtendL(void* lsa_, size_t cnt) {
 
 void Zeta_LinSpaceAllocator_ExtendR(void* lsa_, size_t cnt) {
     Zeta_LinSpaceAllocator* lsa = lsa_;
-    CheckLSA_(lsa);
+    Check_(lsa);
 
     if (cnt == 0) { return; }
 
@@ -514,7 +514,7 @@ void Zeta_LinSpaceAllocator_ExtendR(void* lsa_, size_t cnt) {
 
 bool_t Zeta_LinSpaceAllocator_ShrinkL(void* lsa_, size_t cnt) {
     Zeta_LinSpaceAllocator* lsa = lsa_;
-    CheckLSA_(lsa);
+    Check_(lsa);
 
     Zeta_LinSpaceAllocator_Node* n =
         Zeta_GetMostLink(NULL, NodeGetGL_, lsa->gt_root);
@@ -547,7 +547,7 @@ bool_t Zeta_LinSpaceAllocator_ShrinkL(void* lsa_, size_t cnt) {
 
 bool_t Zeta_LinSpaceAllocator_ShrinkR(void* lsa_, size_t cnt) {
     Zeta_LinSpaceAllocator* lsa = lsa_;
-    CheckLSA_(lsa);
+    Check_(lsa);
 
     Zeta_LinSpaceAllocator_Node* n =
         Zeta_GetMostLink(NULL, NodeGetGR_, lsa->gt_root);
@@ -589,7 +589,7 @@ void Zeta_LinSpaceAllocator_Check(void* lsa_) {
     ZETA_DebugAssert(lsa->gt_root != NULL);
 }
 
-#if ZETA_IsDebug
+#if ZETA_EnableDebug
 
 static void CheckGT_(Zeta_MemRecorder* dst_gt_table, Zeta_MemRecorder* st_table,
                      Zeta_LinSpaceAllocator_Node* n) {
@@ -648,11 +648,11 @@ static void CheckST_(Zeta_MemRecorder* dst_st_table,
 
 void Zeta_LinSpaceAllocator_Sanitize(void* lsa_, Zeta_MemRecorder* dst_ns) {
     Zeta_LinSpaceAllocator* lsa = lsa_;
-    CheckLSA_(lsa);
+    Check_(lsa);
 
+#if !ZETA_EnableDebug
     ZETA_Unused(dst_ns);
-
-#if ZETA_IsDebug
+#else
     ZETA_DebugAssert(NodeGetGP_(NULL, lsa->gt_root) == NULL);
 
     ZETA_DebugAssert(lsa->st_root == NULL ||

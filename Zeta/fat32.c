@@ -37,19 +37,26 @@ dir
 
 */
 
-#if ZETA_IsDebug
+#if ZETA_EnableDebug
 
-#define CheckNodeVector_(nv) NodeVector_Check(nv)
-#define CheckNodeVectorCursor_(nv, cursor) NodeVector_Cursor_Check(nv, cursor)
+#define CheckNodeVector_(nv) NodeVector_Check((nv))
+#define CheckNodeVectorCursor_(nv, cursor) \
+    NodeVector_Cursor_Check((nv), (cursor))
 
-#define CheckManager_(manager) Zeta_FAT32_Manager_Check(manager)
+#define CheckManager_(manager) Zeta_FAT32_Manager_Check((manager))
 
 #else
 
-#define CheckNodeVector_(nv)
-#define CheckNodeVectorCursor_(nv, cursor)
+#define CheckNodeVector_(nv) ZETA_Unused((nv))
 
-#define CheckManager_(manager)
+#define CheckNodeVectorCursor_(nv, cursor) \
+    {                                      \
+        ZETA_Unused((nv));                 \
+        ZETA_Unused((cursor));             \
+    }                                      \
+    ZETA_StaticAssert(TRUE)
+
+#define CheckManager_(manager) ZETA_Unused((manager))
 
 #endif
 

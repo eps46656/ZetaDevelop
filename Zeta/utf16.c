@@ -73,8 +73,6 @@ Zeta_UTF16_EncodeRet Zeta_UTF16_Encode(byte_t* dst, size_t dst_size,
         byte_t* tmp_p = EncodeChar_(tmp, *src, Write);
 
         if (tmp_p == NULL) {
-            ZETA_DebugLogCurPos;
-
             return (Zeta_UTF16_EncodeRet){
                 .ret_code = ZETA_UTF16_RetCode_failed,
                 .nxt_dst = dst,
@@ -85,8 +83,6 @@ Zeta_UTF16_EncodeRet Zeta_UTF16_Encode(byte_t* dst, size_t dst_size,
         size_t tmp_size = tmp_p - tmp;
 
         if (dst_size < tmp_size) {
-            ZETA_DebugLogCurPos;
-
             return (Zeta_UTF16_EncodeRet){
                 .ret_code = ZETA_UTF16_RetCode_insufficient_dst,
                 .nxt_dst = dst,
@@ -121,8 +117,6 @@ static Zeta_UTF16_DecodeRet DecodeChar_(
     unichar_t x = Read(src, 2);
 
     if (0xFFFF < x) {
-        ZETA_DebugLogCurPos;
-
         return (Zeta_UTF16_DecodeRet){
             .ret_code = ZETA_UTF16_RetCode_failed,
             .nxt_dst = dst,
@@ -141,8 +135,6 @@ static Zeta_UTF16_DecodeRet DecodeChar_(
     }
 
     if (0xDBFF < x) {
-        ZETA_DebugLogCurPos;
-
         return (Zeta_UTF16_DecodeRet){
             .ret_code = ZETA_UTF16_RetCode_failed,
             .nxt_dst = dst,
@@ -161,8 +153,6 @@ static Zeta_UTF16_DecodeRet DecodeChar_(
     unichar_t y = Read(src + 2, 2);
 
     if (y < 0xDC00 || 0xDFFF < y) {
-        ZETA_DebugLogCurPos;
-
         return (Zeta_UTF16_DecodeRet){
             .ret_code = ZETA_UTF16_RetCode_failed,
             .nxt_dst = dst,
@@ -244,8 +234,6 @@ Zeta_UTF16_DecodeRet Zeta_UTF16_Decode(unichar_t* dst, size_t dst_size,
         src_size -= decode_ret.nxt_src - src;
         src = decode_ret.nxt_src;
     }
-
-    ZETA_DebugLogCurPos;
 
     return (Zeta_UTF16_DecodeRet){
         .ret_code = src_size == 0 ? ZETA_UTF16_RetCode_success

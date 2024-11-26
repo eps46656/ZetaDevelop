@@ -7,17 +7,22 @@
 #include "rbtree.h"
 #include "utils.h"
 
-#if ZETA_IsDebug
+#if ZETA_EnableDebug
 
-#define CheckGHT_(ght) Zeta_GenericHashTable_Check(ght)
+#define CheckCntr_(ght) Zeta_GenericHashTable_Check((ght))
 
-#define CheckGHTNode_(ght, node) Zeta_GenericHashTable_CheckNode(ght, node)
+#define CheckNode_(ght, node) Zeta_GenericHashTable_CheckNode((ght), (node))
 
 #else
 
-#define CheckGHT_(ght)
+#define CheckCntr_(ght) ZETA_Unused((ght))
 
-#define CheckGHTNode_(ght, node)
+#define CheckNode_(ght, node) \
+    {                         \
+        ZETA_Unused((ght));   \
+        ZETA_Unused((node));  \
+    }                         \
+    ZETA_StaticAssert(TRUE)
 
 #endif
 
@@ -112,7 +117,7 @@ void Zeta_GenericHashTable_Init(void* ght_) {
 
 void Zeta_GenericHashTable_Deinit(void* ght_) {
     Zeta_GenericHashTable* ght = ght_;
-    CheckGHT_(ght);
+    CheckCntr_(ght);
 
     void** cur_table = GetCurTable_(ght);
     void** nxt_table = GetNxtTable_(ght);
@@ -192,14 +197,14 @@ void Zeta_GenericHashTable_Deinit(void* ght_) {
 
 size_t Zeta_GenericHashTable_GetSize(void* ght_) {
     Zeta_GenericHashTable* ght = ght_;
-    CheckGHT_(ght);
+    CheckCntr_(ght);
 
     return ght->cur_table_cnt + ght->nxt_table_cnt;
 }
 
 void* Zeta_GenericHashTable_Find(void* ght_, void const* key) {
     Zeta_GenericHashTable* ght = ght_;
-    CheckGHT_(ght);
+    CheckCntr_(ght);
 
     int state = GetState_(ght);
 
@@ -263,7 +268,7 @@ void* Zeta_GenericHashTable_Find(void* ght_, void const* key) {
 
 void Zeta_GenericHashTable_Insert(void* ght_, void* node_) {
     Zeta_GenericHashTable* ght = ght_;
-    CheckGHT_(ght);
+    CheckCntr_(ght);
 
     Zeta_GenericHashTable_Node* node = node_;
     ZETA_DebugAssert(node != NULL);
@@ -337,7 +342,7 @@ void Zeta_GenericHashTable_Insert(void* ght_, void* node_) {
 
 void Zeta_GenericHashTable_Erase(void* ght_, void* node_) {
     Zeta_GenericHashTable* ght = ght_;
-    CheckGHT_(ght);
+    CheckCntr_(ght);
 
     Zeta_GenericHashTable_Node* node = node_;
     ZETA_DebugAssert(node != NULL);
@@ -399,7 +404,7 @@ RET:;
 
 unsigned long long Zeta_GenericHashTable_GetEffFactor(void* ght_) {
     Zeta_GenericHashTable* ght = ght_;
-    CheckGHT_(ght);
+    CheckCntr_(ght);
 
     int state = GetState_(ght);
 
@@ -518,7 +523,7 @@ void Zeta_GenericHashTable_Check(void* ght_) {
     ZETA_DebugAssert(ght->NodeKeyCompare != NULL);
 }
 
-#if ZETA_IsDebug
+#if ZETA_EnableDebug
 
 ZETA_DeclareStruct(SanitizeTreeRet);
 
@@ -589,12 +594,12 @@ static SanitizeTreeRet SanitizeTree_(Zeta_GenericHashTable* ght,
 void Zeta_GenericHashTable_Sanitize(void* ght_, Zeta_MemRecorder* dst_table,
                                     Zeta_MemRecorder* dst_node) {
     Zeta_GenericHashTable* ght = ght_;
-    CheckGHT_(ght);
+    CheckCntr_(ght);
 
+#if !ZETA_EnableDebug
     ZETA_Unused(dst_table);
     ZETA_Unused(dst_node);
-
-#if ZETA_IsDebug
+#else
     int state = GetState_(ght);
 
     void** cur_table = GetCurTable_(ght);
@@ -679,7 +684,7 @@ void Zeta_GenericHashTable_Sanitize(void* ght_, Zeta_MemRecorder* dst_table,
 
 void Zeta_GenericHashTable_CheckNode(void* ght_, void* node_) {
     Zeta_GenericHashTable* ght = ght_;
-    CheckGHT_(ght);
+    CheckCntr_(ght);
 
     Zeta_GenericHashTable_Node* node = node_;
     ZETA_DebugAssert(node != NULL);

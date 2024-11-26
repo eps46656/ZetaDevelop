@@ -119,8 +119,6 @@ void main1() {
 int main() {
     main1();
 
-    ZETA_PrintVar(ZETA_IsDebug);
-
     std::cout << "ok\n";
 
     return 0;

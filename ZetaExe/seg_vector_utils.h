@@ -78,6 +78,7 @@ void SegVector_Destroy(Zeta_SeqCntr* seq_cntr) {
 void SegVector_Sanitize(Zeta_SeqCntr const* seq_cntr) {
     if (seq_cntr->GetSize != Zeta_SegVector_GetSize) { return; }
 
+#if ZETA_EnableDebug
     SegVectorPack* pack{ ZETA_MemberToStruct(SegVectorPack, seg_vector,
                                              seq_cntr->context) };
 
@@ -93,4 +94,5 @@ void SegVector_Sanitize(Zeta_SeqCntr const* seq_cntr) {
 
     Zeta_MemRecorder_Destroy(seg);
     Zeta_MemRecorder_Destroy(data);
+#endif
 }

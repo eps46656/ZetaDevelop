@@ -1,23 +1,50 @@
-import os
+import dataclasses
+import enum
 import typing
 
 from typeguard import typechecked
 
 
-@typechecked
-def GetRealPath(path: str):
-    return os.path.realpath(path).replace("\\", "/")
+class ModeEnum(enum.Enum):
+    DEBUG = enum.auto(),
+    RELEASE = enum.auto(),
 
 
-@typechecked
-def GetDirPath(path: str):
-    return GetRealPath(os.path.dirname(path))
+class ArchEnum(enum.Enum):
+    X86_64 = enum.auto(),
+    ARM32 = enum.auto(),
+    ARM64 = enum.auto(),
+    RISCV32 = enum.auto(),
+    RISCV64 = enum.auto(),
 
 
-@typechecked
-def ToPath(path):
-    path = path.strip("\'\"")
-    return f"\'{path}\'"
+class VendorEnum(enum.Enum):
+    PC = enum.auto(),
+
+
+class SysEnum(enum.Enum):
+    LINUX = enum.auto(),
+    WINDOWS = enum.auto(),
+
+
+class EnvEnum(enum.Enum):
+    GNU = enum.auto(),
+    ELF = enum.auto(),
+    MSVC = enum.auto(),
+
+
+class ColorEnum(enum.Enum):
+    red = enum.auto(),
+    orange = enum.auto(),
+    yellow = enum.auto(),
+
+
+@dataclasses.dataclass
+class Target:
+    arch: ArchEnum
+    vendor: VendorEnum
+    sys: SysEnum
+    env: EnvEnum
 
 
 @typechecked
@@ -49,8 +76,8 @@ def SanitizeJsonStruct(x: typing.Optional[bool | int | float | str | list | dict
 
 
 @typechecked
-def ToListCommand(*cmd):
-    ret = list()
+def ToListCommand(*cmd: typing.Iterable[typing.Optional[str | typing.Iterable]]):
+    ret: list[str] = list()
 
     q = list(cmd)
 

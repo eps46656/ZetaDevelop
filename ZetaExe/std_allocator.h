@@ -21,7 +21,7 @@ struct StdAllocator {
 };
 
 StdAllocator::StdAllocator() {
-#if ZETA_IsDebug
+#if ZETA_EnableDebug
     this->mem_recorder = Zeta_MemRecorder_Create();
 #else
     this->mem_recorder = NULL;
@@ -29,7 +29,7 @@ StdAllocator::StdAllocator() {
 }
 
 StdAllocator::~StdAllocator() {
-#if ZETA_IsDebug
+#if ZETA_EnableDebug
     Zeta_MemRecorder_Destroy(this->mem_recorder);
 #endif
 }
@@ -52,7 +52,7 @@ void* StdAllocator_Allocate(void* sa_, size_t size) {
 
     void* ptr = std::malloc(size);
 
-#if ZETA_IsDebug
+#if ZETA_EnableDebug
     Zeta_MemRecorder_Record(sa->mem_recorder, ptr, size);
     sa->usage += size;
 #endif
@@ -66,7 +66,7 @@ void StdAllocator_Deallocate(void* sa_, void* ptr) {
 
     if (ptr == NULL) { return; }
 
-#if ZETA_IsDebug
+#if ZETA_EnableDebug
     ZETA_DebugAssert(Zeta_MemRecorder_Unrecord(sa->mem_recorder, ptr));
 #endif
 

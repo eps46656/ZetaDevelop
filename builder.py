@@ -1,4 +1,5 @@
 import os
+import pathlib
 import time
 import traceback
 import typing
@@ -9,14 +10,16 @@ from typeguard import typechecked
 from utils import FilterNotNone
 
 
-def GetMTime(path: str):
+@typechecked
+def GetMTime(path: object):
     try:
         return os.path.getmtime(path)
     except:
         return 0.0
 
 
-def SetMTime(path: str, mtime: float):
+@typechecked
+def SetMTime(path: object, mtime: float):
     try:
         os.utime(path, (os.path.getmtime(path), mtime))
     except:
@@ -105,7 +108,7 @@ def TPSort(adj_list: dict[object, set[object]],
 @typechecked
 class Builder:
     def __init__(self):
-        self.deps: dict[str, set[set]] = dict()
+        self.deps: dict[pathlib.Path, set[pathlib.Path]] = dict()
         # = {
         #       "unit 0": { "depended unit 00", "depended unit 01", ...},
         #       "unit 1": { "depended unit 10", "depended unit 01", ...},
@@ -113,7 +116,8 @@ class Builder:
         #       ...
         #   }
 
-        self.building_funcs: dict[str, typing.Callable[[], None]] = dict()
+        self.building_funcs: dict[pathlib.Path,
+                                  typing.Callable[[], None]] = dict()
         # = {
         #       "unit 0": building_func 0,
         #       "unit 1": building_func 1,
@@ -121,16 +125,23 @@ class Builder:
         #       ...
         #   }
 
-    def Add(self, unit: str, deps: typing.Optional[typing.Iterable[str]], building_func: typing.Optional[typing.Callable[[], None]] = None):
+    def Add(self, unit: object, deps: typing.Optional[typing.Iterable[object]], building_func: typing.Optional[typing.Callable[[], None]] = None):
+        unit = pathlib.Path(unit).resolve()
+
         assert unit not in self.deps, f"Duplicated unit {unit}."
 
-        self.deps[unit] = set() if deps is None else set(FilterNotNone(deps))
+        self.deps[unit] = set() if deps is None else \
+            {pathlib.Path(dep).resolve()
+             for dep in FilterNotNone(deps)}
+
         self.building_funcs[unit] = building_func
 
     def GetUnits(self):
         return set(self.deps.keys())
 
-    def GetDepUnits(self, target_unit: str):
+    def GetDepUnits(self, target_unit: object):
+        target_unit = pathlib.Path(target_unit).resolve()
+
         assert target_unit in self.deps, f"Unknown unit {target_unit}."
 
         return list(reversed(TPSort(self.deps, [target_unit])))
@@ -138,21 +149,23 @@ class Builder:
     def Check(self):
         for unit, deps in self.deps.items():
             for dep in deps:
-                assert dep in self.deps, f"Unknown unit {
-                    dep} depended by {unit}."
+                assert dep in self.deps, \
+                    f"Unknown unit {dep} depended by {unit}."
 
-    def Build(self, target_unit: str, rebuild: bool):
+    def Build(self, target_unit: object, rebuild: bool):
+        target_unit = pathlib.Path(target_unit).resolve()
+
         dep_units = self.GetDepUnits(target_unit)
 
         mtimes = {unit: GetMTime(unit) for unit in dep_units}
 
-        skipped_build_units: set[str] = set()
-        finished_build_units: set[str] = set()
+        skipped_build_units: set[pathlib.Path] = set()
+        finished_build_units: set[pathlib.Path] = set()
 
-        ready_build_units: set[str] = set()
+        ready_build_units: set[pathlib.Path] = set()
 
-        failed_build_units: set[str] = set()
-        unready_build_units: set[str] = set()
+        failed_build_units: set[pathlib.Path] = set()
+        unready_build_units: set[pathlib.Path] = set()
 
         ready_unit_cnt = 0
 

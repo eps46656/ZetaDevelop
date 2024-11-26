@@ -102,6 +102,7 @@ void StagingVector_Destroy(Zeta_SeqCntr* seq_cntr) {
 void StagingVector_Sanitize(Zeta_SeqCntr const* seq_cntr) {
     if (seq_cntr->GetSize != Zeta_StagingVector_GetSize) { return; }
 
+#if ZETA_EnableDebug
     StagingVectorPack* pack{ ZETA_MemberToStruct(
         StagingVectorPack, staging_vector, seq_cntr->context) };
 
@@ -118,4 +119,5 @@ void StagingVector_Sanitize(Zeta_SeqCntr const* seq_cntr) {
 
     Zeta_MemRecorder_Destroy(seg);
     Zeta_MemRecorder_Destroy(data);
+#endif
 }

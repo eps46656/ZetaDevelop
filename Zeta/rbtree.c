@@ -369,6 +369,8 @@ void* Zeta_RBTree_Extract(Zeta_BinTreeNodeOperator const* btn_opr, void* pos) {
     return root;
 }
 
+#if ZETA_EnableDebug
+
 static size_t Check_(Zeta_BinTreeNodeOperator const* btn_opr,
                      Zeta_MemRecorder* dst_mr, void* n) {
     if (n == NULL) { return 0; }
@@ -401,6 +403,8 @@ static size_t Check_(Zeta_BinTreeNodeOperator const* btn_opr,
     return lbh;
 }
 
+#endif
+
 void Zeta_RBTree_Check(Zeta_BinTreeNodeOperator const* btn_opr,
                        Zeta_MemRecorder* dst_mr, void* root) {
     ZETA_DebugAssert(btn_opr != NULL);
@@ -414,5 +418,9 @@ void Zeta_RBTree_Check(Zeta_BinTreeNodeOperator const* btn_opr,
     ZETA_DebugAssert(btn_opr->GetP(btn_opr->context, root) == NULL);
     ZETA_DebugAssert(btn_opr->GetColor(btn_opr->context, root) == Black);
 
+#if !ZETA_EnableDebug
+    ZETA_Unused(dst_mr);
+#else
     Check_(btn_opr, dst_mr, root);
+#endif
 }

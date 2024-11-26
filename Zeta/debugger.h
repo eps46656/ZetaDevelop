@@ -11,16 +11,6 @@ extern bool_t zeta_assert_stage;
 
 #define ZETA_Debug_ImmPrint FALSE
 
-#define ZETA_DebugLogCurPos                        \
-    Zeta_Debugger_InitPipe();                      \
-    if (ZETA_Debug_ImmPrint) { ZETA_PrintCurPos; } \
-    ZETA_LogCurPos(zeta_debug_pipe)
-
-#define ZETA_DebugLogVar(var)                        \
-    Zeta_Debugger_InitPipe();                        \
-    if (ZETA_Debug_ImmPrint) { ZETA_PrintVar(var); } \
-    ZETA_LogVar(zeta_debug_pipe, var)
-
 #define ZETA_Pause                                              \
     {                                                           \
         ZETA_PrintPos(__FILE__, __LINE__, __PRETTY_FUNCTION__); \
@@ -48,63 +38,66 @@ extern bool_t zeta_assert_stage;
 
 #endif
 
-#define ZETA_AssertVerbose(pipe, cond, callback, callback_context)             \
-    if (cond) {                                                                \
-    } else {                                                                   \
-        if (!zeta_assert_stage) {                                              \
-            zeta_assert_stage = TRUE;                                          \
-                                                                               \
-            ZETA_LogPos(pipe, __FILE__, __LINE__, __PRETTY_FUNCTION__, FALSE); \
-                                                                               \
-            printf("\tassert\t%s\n", ZETA_ToStr(cond));                        \
-                                                                               \
-            if (ZETA_ImmPrint) { fflush(stdout); }                             \
-                                                                               \
-            callback(callback_context);                                        \
-                                                                               \
-            printf("\a");                                                      \
-        }                                                                      \
-                                                                               \
-        ZETA_PrintStackTrace;                                                  \
-                                                                               \
-        exit(1);                                                               \
-    }                                                                          \
+#define ZETA_Assert(cond)                                     \
+    {                                                         \
+        Zeta_Debugger_InitPipe();                             \
+                                                              \
+        if (cond) {                                           \
+        } else {                                              \
+            if (!zeta_assert_stage) {                         \
+                zeta_assert_stage = TRUE;                     \
+                                                              \
+                ZETA_PrintCurPos;                             \
+                printf("\033[31massert\t%s\033[0m\n", #cond); \
+                fflush(stdout);                               \
+                                                              \
+                Zeta_Debugger_FlushPipe();                    \
+                                                              \
+                ZETA_PrintCurPos;                             \
+                printf("\033[31massert\t%s\033[0m\n", #cond); \
+                printf("\a");                                 \
+            }                                                 \
+                                                              \
+            ZETA_PrintStackTrace;                             \
+                                                              \
+            if (ZETA_ImmPrint) { fflush(stdout); }            \
+                                                              \
+            exit(1);                                          \
+        }                                                     \
+    }                                                         \
     ZETA_StaticAssert(TRUE)
-
-#if ZETA_IsDebug
-#define ZETA_DebugAssert(cond)                                      \
-    {                                                               \
-        Zeta_Debugger_InitPipe();                                   \
-                                                                    \
-        if (cond) {                                                 \
-        } else {                                                    \
-            if (!zeta_assert_stage) {                               \
-                zeta_assert_stage = TRUE;                           \
-                                                                    \
-                ZETA_PrintCurPos;                                   \
-                printf("\033[31mdebug assert\t%s\033[0m\n", #cond); \
-                fflush(stdout);                                     \
-                                                                    \
-                Zeta_Debugger_FlushPipe();                          \
-                                                                    \
-                ZETA_PrintCurPos;                                   \
-                printf("\033[31mdebug assert\t%s\033[0m\n", #cond); \
-                printf("\a");                                       \
-                fflush(stdout);                                     \
-            }                                                       \
-                                                                    \
-            ZETA_PrintStackTrace;                                   \
-                                                                    \
-            exit(1);                                                \
-        }                                                           \
-    }                                                               \
-    ZETA_StaticAssert(TRUE)
-
-#else
-#define ZETA_DebugAssert(cond)
-#endif
 
 #define ZETA_CheckAssert(cond) ZETA_DebugAssert(cond)
+
+#if ZETA_EnableArguDebug
+
+#define ZETA_ArugAssert(cond) ZETA_Assert((cond))
+
+#else
+
+#define ZETA_ArugAssert(cond) ZETA_Unused((cond))
+
+#endif
+
+#if ZETA_EnableIntegrityDebug
+
+#define ZETA_IntegrityAssert(cond) ZETA_Assert((cond))
+
+#else
+
+#define ZETA_IntegrityAssert(cond) ZETA_Unused((cond))
+
+#endif
+
+#if ZETA_EnableDebug
+
+#define ZETA_DebugAssert(cond) ZETA_Assert((cond))
+
+#else
+
+#define ZETA_DebugAssert(cond) ZETA_Unused((cond))
+
+#endif
 
 void Zeta_Debugger_InitPipe();
 

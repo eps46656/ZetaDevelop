@@ -3,18 +3,23 @@
 #include "debugger.h"
 #include "utils.h"
 
-#if ZETA_IsDebug
+#if ZETA_EnableDebug
 
-#define CheckDHT_(dht) Zeta_DynamicHashTable_Check(dht)
+#define CheckCntr_(dht) Zeta_DynamicHashTable_Check((dht))
 
-#define CheckDHTCursor_(dht, cursor) \
-    Zeta_DynamicHashTable_Cursor_Check(dht, cursor)
+#define CheckCursor_(dht, cursor) \
+    Zeta_DynamicHashTable_Cursor_Check((dht), (cursor))
 
 #else
 
-#define CheckDHT_(dht)
+#define CheckCntr_(dht) ZETA_Unused((dht))
 
-#define CheckDHTCursor_(dht, cursor)
+#define CheckCursor_(dht, cursor) \
+    {                             \
+        ZETA_Unused((dht));       \
+        ZETA_Unused((cursor));    \
+    }                             \
+    ZETA_StaticAssert(TRUE)
 
 #endif
 
@@ -107,7 +112,7 @@ void Zeta_DynamicHashTable_Init(void* dht_) {
 
 void Zeta_DynamicHashTable_Deinit(void* dht_) {
     Zeta_DynamicHashTable* dht = dht_;
-    CheckDHT_(dht);
+    CheckCntr_(dht);
 
     Zeta_GenericHashTable_Deinit(&dht->ght);
 
@@ -128,28 +133,28 @@ void Zeta_DynamicHashTable_Deinit(void* dht_) {
 
 size_t Zeta_DynamicHashTable_GetWidth(void* dht_) {
     Zeta_DynamicHashTable* dht = dht_;
-    CheckDHT_(dht);
+    CheckCntr_(dht);
 
     return dht->width;
 }
 
 size_t Zeta_DynamicHashTable_GetSize(void* dht_) {
     Zeta_DynamicHashTable* dht = dht_;
-    CheckDHT_(dht);
+    CheckCntr_(dht);
 
     return Zeta_GenericHashTable_GetSize(&dht->ght);
 }
 
 size_t Zeta_DynamicHashTable_GetCapacity(void* dht_) {
     Zeta_DynamicHashTable* dht = dht_;
-    CheckDHT_(dht);
+    CheckCntr_(dht);
 
     return ZETA_RangeMaxOf(size_t);
 }
 
 void Zeta_DynamicHashTable_GetLBCursor(void* dht_, void* dst_cursor_) {
     Zeta_DynamicHashTable* dht = dht_;
-    CheckDHT_(dht);
+    CheckCntr_(dht);
 
     Zeta_DynamicHashTable_Cursor* dst_cursor = dst_cursor_;
     ZETA_DebugAssert(dst_cursor != NULL);
@@ -160,7 +165,7 @@ void Zeta_DynamicHashTable_GetLBCursor(void* dht_, void* dst_cursor_) {
 
 void Zeta_DynamicHashTable_GetRBCursor(void* dht_, void* dst_cursor_) {
     Zeta_DynamicHashTable* dht = dht_;
-    CheckDHT_(dht);
+    CheckCntr_(dht);
 
     Zeta_DynamicHashTable_Cursor* dst_cursor = dst_cursor_;
     ZETA_DebugAssert(dst_cursor != NULL);
@@ -171,7 +176,7 @@ void Zeta_DynamicHashTable_GetRBCursor(void* dht_, void* dst_cursor_) {
 
 void* Zeta_DynamicHashTable_PeekL(void* dht_, void* dst_cursor_) {
     Zeta_DynamicHashTable* dht = dht_;
-    CheckDHT_(dht);
+    CheckCntr_(dht);
 
     Zeta_DynamicHashTable_Cursor* dst_cursor = dst_cursor_;
 
@@ -193,7 +198,7 @@ void* Zeta_DynamicHashTable_PeekL(void* dht_, void* dst_cursor_) {
 
 void* Zeta_DynamicHashTable_PeekR(void* dht_, void* dst_cursor_) {
     Zeta_DynamicHashTable* dht = dht_;
-    CheckDHT_(dht);
+    CheckCntr_(dht);
 
     Zeta_DynamicHashTable_Cursor* dst_cursor = dst_cursor_;
 
@@ -217,7 +222,7 @@ void* Zeta_DynamicHashTable_Refer(void* dht_, void const* pos_cursor_) {
     Zeta_DynamicHashTable* dht = dht_;
     Zeta_DynamicHashTable_Cursor const* pos_cursor = pos_cursor_;
 
-    CheckDHTCursor_(dht, pos_cursor);
+    CheckCursor_(dht, pos_cursor);
 
     return dht->lln == pos_cursor->lln
                ? NULL
@@ -229,7 +234,7 @@ void* Zeta_DynamicHashTable_Refer(void* dht_, void const* pos_cursor_) {
 void* Zeta_DynamicHashTable_Find(void* dht_, void const* key,
                                  void* dst_cursor_) {
     Zeta_DynamicHashTable* dht = dht_;
-    CheckDHT_(dht);
+    CheckCntr_(dht);
 
     Zeta_DynamicHashTable_Cursor* dst_cursor = dst_cursor_;
 
@@ -260,7 +265,7 @@ void* Zeta_DynamicHashTable_Find(void* dht_, void const* key,
 void* Zeta_DynamicHashTable_Insert(void* dht_, void const* elem,
                                    void* dst_cursor_) {
     Zeta_DynamicHashTable* dht = dht_;
-    CheckDHT_(dht);
+    CheckCntr_(dht);
 
     Zeta_DynamicHashTable_Cursor* dst_cursor = dst_cursor_;
 
@@ -294,7 +299,7 @@ void Zeta_DynamicHashTable_Erase(void* dht_, void* pos_cursor_) {
     Zeta_DynamicHashTable* dht = dht_;
     Zeta_DynamicHashTable_Cursor* pos_cursor = pos_cursor_;
 
-    CheckDHTCursor_(dht, pos_cursor);
+    CheckCursor_(dht, pos_cursor);
 
     ZETA_DebugAssert(dht->lln != pos_cursor->lln);
 
@@ -368,12 +373,12 @@ void Zeta_DynamicHashTable_Check(void* dht_) {
 void Zeta_DynamicHashTable_Sanitize(void* dht_, Zeta_MemRecorder* dst_table,
                                     Zeta_MemRecorder* dst_node) {
     Zeta_DynamicHashTable* dht = dht_;
-    CheckDHT_(dht);
+    CheckCntr_(dht);
 
+#if !ZETA_EnableDebug
     ZETA_Unused(dst_table);
     ZETA_Unused(dst_node);
-
-#if ZETA_IsDebug
+#else
     Zeta_MemRecorder* htn_records = Zeta_MemRecorder_Create();
 
     Zeta_GenericHashTable_Sanitize(&dht->ght, dst_table, htn_records);
@@ -407,8 +412,8 @@ bool_t Zeta_DynamicHashTable_Cursor_AreEqual(void* dht_, void const* cursor_a_,
     Zeta_DynamicHashTable_Cursor const* cursor_a = cursor_a_;
     Zeta_DynamicHashTable_Cursor const* cursor_b = cursor_b_;
 
-    CheckDHTCursor_(dht, cursor_a);
-    CheckDHTCursor_(dht, cursor_b);
+    CheckCursor_(dht, cursor_a);
+    CheckCursor_(dht, cursor_b);
 
     return cursor_a->lln == cursor_b->lln;
 }
@@ -417,7 +422,7 @@ void Zeta_DynamicHashTable_Cursor_StepL(void* dht_, void* cursor_) {
     Zeta_DynamicHashTable* dht = dht_;
     Zeta_DynamicHashTable_Cursor* cursor = cursor_;
 
-    CheckDHTCursor_(dht, cursor);
+    CheckCursor_(dht, cursor);
 
     cursor->lln = Zeta_OrdLinkedListNode_GetL(cursor->lln);
 }
@@ -426,14 +431,14 @@ void Zeta_DynamicHashTable_Cursor_StepR(void* dht_, void* cursor_) {
     Zeta_DynamicHashTable* dht = dht_;
     Zeta_DynamicHashTable_Cursor* cursor = cursor_;
 
-    CheckDHTCursor_(dht, cursor);
+    CheckCursor_(dht, cursor);
 
     cursor->lln = Zeta_OrdLinkedListNode_GetR(cursor->lln);
 }
 
 void Zeta_DynamicHashTable_Cursor_Check(void* dht_, void const* cursor_) {
     Zeta_DynamicHashTable* dht = dht_;
-    CheckDHT_(dht);
+    CheckCntr_(dht);
 
     Zeta_DynamicHashTable_Cursor const* cursor = cursor_;
     ZETA_DebugAssert(cursor != NULL);

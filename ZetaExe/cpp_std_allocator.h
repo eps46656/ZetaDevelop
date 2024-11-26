@@ -83,7 +83,7 @@ T* CppStdAllocator<T>::allocate(size_t size) {
 
     if (size != 48) { ZETA_PrintVar(size); }
 
-#if ZETA_IsDebug
+#if ZETA_EnableDebug
     bool_t b{ this->records_.insert({ ptr, size }).second };
     ZETA_DebugAssert(b);
 
@@ -100,7 +100,7 @@ void CppStdAllocator<T>::deallocate(T* ptr, size_t size) {
         return;
     }
 
-#if ZETA_IsDebug
+#if ZETA_EnableDebug
     auto iter{ this->records_.find(static_cast<void*>(ptr)) };
     ZETA_DebugAssert(iter != this->records_.end());
     ZETA_DebugAssert(size <= iter->second);

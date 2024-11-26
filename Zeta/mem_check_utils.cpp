@@ -1,15 +1,13 @@
 #include "mem_check_utils.h"
 
+#if ZETA_EnableDebug
+
 #include <stdio.h>
 
 #include <map>
 
 #include "debugger.h"
 #include "utils.h"
-
-#if !ZETA_IsDebug
-#error "mem_check_utils only used in debug mode."
-#endif
 
 struct Zeta_MemRecorder {
     std::map<unsigned char const*, size_t> records;
@@ -104,3 +102,5 @@ void Zeta_MemCheck_MatchRecords(Zeta_MemRecorder const* src_mem_recorder,
         // overflow: dst uses more than allocated memory.
     }
 }
+
+#endif

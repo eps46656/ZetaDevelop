@@ -116,6 +116,7 @@ void DynamicHashTable_Destroy(Zeta_AssocCntr* assoc_cntr) {
 void DynamicHashTable_Sanitize(Zeta_AssocCntr const* assoc_cntr) {
     if (assoc_cntr->GetSize != Zeta_DynamicHashTable_GetSize) { return; }
 
+#if ZETA_EnableDebug
     DynamicHashTablePack* pack{ ZETA_MemberToStruct(DynamicHashTablePack, dht,
                                                     assoc_cntr->context) };
 
@@ -131,4 +132,5 @@ void DynamicHashTable_Sanitize(Zeta_AssocCntr const* assoc_cntr) {
 
     Zeta_MemRecorder_Destroy(table_recorder);
     Zeta_MemRecorder_Destroy(node_recorder);
+#endif
 }

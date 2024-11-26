@@ -1,13 +1,14 @@
 import dataclasses
 import os
+import pathlib
 import subprocess
 import typing
 
 import termcolor
 from typeguard import typechecked
 
-from config import ArchEnum, EnvEnum, ModeEnum, SysEnum, Target, VendorEnum
-from utils import FilterNotNone, ToListCommand
+from utils import (ArchEnum, EnvEnum, FilterNotNone, ModeEnum, SysEnum, Target,
+                   ToListCommand, VendorEnum)
 
 
 @typechecked
@@ -67,13 +68,23 @@ def PrintCommand(cmd: typing.Iterable[str]):
 @dataclasses.dataclass
 class LLVMCompilerConfig:
     verbose: bool
+
+    build_dir: pathlib.Path
+
     target: Target
+
     mode: ModeEnum
+
     base_dir: typing.Optional[typing.Iterable[str]]
-    build_dir: str
-    working_dirs: typing.Iterable[str]
+
     c_include_dirs: typing.Iterable[str]
     cpp_include_dirs: typing.Iterable[str]
+
+    enable_argu_debug: bool
+    enable_integrity_debug: bool
+    enable_deep_debug: bool
+
+    enable_asan: bool
 
 
 @typechecked
@@ -89,8 +100,6 @@ class LLVMCompiler:
         self.base_dir = config.base_dir
 
         self.build_dir = config.build_dir
-
-        self.working_dirs = set(FilterNotNone(config.working_dirs))
 
         self.c_to_obj_command = None
         self.cpp_to_obj_command = None
@@ -124,6 +133,11 @@ class LLVMCompiler:
 
         self.address_sanitizer = True
 
+        self.enable_argu_debug = config.enable_argu_debug
+        self.enable_integrity_debug = config.enable_integrity_debug
+        self.enable_deep_debug = config.enable_deep_debug
+        self.enable_asan = config.enable_asan
+
         self.c_to_obj_args = [
             f"-v" if self.verbose else "",
             f"--target={self.clang_triple}",
@@ -135,6 +149,10 @@ class LLVMCompiler:
             # f"-frandomize-layout-seed={self.randomize_layout_seed}",
 
             f"-ffile-prefix-map={self.base_dir}=.",
+
+            "-Wall",
+            "-Wextra",
+            "-Werror",
         ]
 
         self.cpp_to_obj_args = [
@@ -148,59 +166,68 @@ class LLVMCompiler:
             # f"-frandomize-layout-seed={self.randomize_layout_seed}",
 
             f"-ffile-prefix-map={self.base_dir}=.",
+
+            "-Wall",
+            "-Wextra",
+            "-Werror",
         ]
 
+        if self.enable_argu_debug:
+            args = [
+                "-D ZETA_EnableArguDebug",
+            ]
+
+            self.c_to_obj_args.extend(args)
+            self.cpp_to_obj_args.extend(args)
+
+        if self.enable_integrity_debug:
+            args = [
+                "-D ZETA_EnableIntegrityDebug",
+            ]
+
+            self.c_to_obj_args.extend(args)
+            self.cpp_to_obj_args.extend(args)
+
+        if self.enable_deep_debug:
+            args = [
+                "-D ZETA_EnableDeepDebug",
+            ]
+
+            self.c_to_obj_args.extend(args)
+            self.cpp_to_obj_args.extend(args)
+
+        if self.enable_asan:
+            args = [
+                "-fno-omit-frame-pointer",
+                "-fno-optimize-sibling-calls",
+
+                # "-fprofile-instr-generate",
+                # "-fcoverage-mapping",
+
+                "-fsanitize=address" if self.address_sanitizer else "",
+                # "-fsanitize=undefined",
+                # "-fsanitize=memory",
+                # "-fsanitize-memory-track-origins",
+            ]
+
+            self.c_to_obj_args.extend(args)
+            self.cpp_to_obj_args.extend(args)
+
         if self.mode == ModeEnum.DEBUG:
-            self.c_to_obj_args += [
+            args = [
                 "-O1",
                 "-g",
-                "-D DEBUG",
-
-                "-Wall",
-                "-Wextra",
-                "-Werror",
-
-                "-fno-omit-frame-pointer",
-                "-fno-optimize-sibling-calls",
-
-                # "-fprofile-instr-generate",
-                # "-fcoverage-mapping",
-
-                "-fsanitize=address" if self.address_sanitizer else "",
-                # "-fsanitize=undefined",
-                # "-fsanitize=memory",
-                # "-fsanitize-memory-track-origins",
             ]
 
-            self.cpp_to_obj_args += [
-                "-O1",
-                "-g",
-                "-D DEBUG",
-
-                "-Wall",
-                "-Wextra",
-                "-Werror",
-
-                "-fno-omit-frame-pointer",
-                "-fno-optimize-sibling-calls",
-
-                # "-fprofile-instr-generate",
-                # "-fcoverage-mapping",
-
-                "-fsanitize=address" if self.address_sanitizer else "",
-                # "-fsanitize=undefined",
-                # "-fsanitize=memory",
-                # "-fsanitize-memory-track-origins",
-            ]
-
-        if self.mode == ModeEnum.RELEASE:
-            self.c_to_obj_args += [
+            self.c_to_obj_args.extend(args)
+            self.cpp_to_obj_args.extend(args)
+        elif self.mode == ModeEnum.RELEASE:
+            args = [
                 "-O3",
             ]
 
-            self.cpp_to_obj_args += [
-                "-O3",
-            ]
+            self.c_to_obj_args.extend(args)
+            self.cpp_to_obj_args.extend(args)
 
         self.ll_to_asm_args = [
             f"-march={GetLLCArch(self.target)}",
@@ -214,32 +241,36 @@ class LLVMCompiler:
             "--verbose" if self.verbose else "",
             f"--target={self.clang_triple}",
             "-m64",
-            "-lstdc++",
+            # "-lstdc++",
             # "-lm",
 
             # f"-frandomize-layout-seed={self.randomize_layout_seed}",
         ]
 
-        if self.mode == ModeEnum.DEBUG:
-            self.to_exe_args += [
-                "-O1",
-                "-g",
-                "-D DEBUG",
-
+        if self.enable_asan:
+            self.to_exe_args.extend([
                 "-fno-omit-frame-pointer",
                 "-fno-optimize-sibling-calls",
+
+                # "-fprofile-instr-generate",
+                # "-fcoverage-mapping",
 
                 "-fsanitize=address" if self.address_sanitizer else "",
                 # "-fsanitize=undefined",
                 # "-fsanitize=memory",
                 # "-fsanitize-memory-track-origins",
-            ]
+            ])
 
-        if self.mode == ModeEnum.RELEASE:
-            self.to_exe_args += [
+        if self.mode == ModeEnum.DEBUG:
+            self.to_exe_args.extend([
+                "-O1",
+                "-g",
+            ])
+        elif self.mode == ModeEnum.RELEASE:
+            self.to_exe_args.extend([
                 "-O3",
                 "-flto",
-            ]
+            ])
 
     def RunCommand_(self, *cmd: typing.Iterable[typing.Optional[str | typing.Iterable]]):
         list_cmd = ToListCommand(cmd)

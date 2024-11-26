@@ -4,18 +4,22 @@
 #include "debugger.h"
 #include "utils.h"
 
-#if ZETA_IsDebug
+#if ZETA_EnableDebug
 
-#define CheckDV_(dv) Zeta_DynamicVector_Check((dv))
+#define CheckCntr_(dv) Zeta_DynamicVector_Check((dv))
 
-#define CheckDVCursor_(dv, cursor) \
-    Zeta_DynamicVector_Cursor_Check((dv), (cursor))
+#define CheckCursor_(dv, cursor) Zeta_DynamicVector_Cursor_Check((dv), (cursor))
 
 #else
 
-#define CheckDV_(dv)
+#define CheckCntr_(dv) ZETA_Unused((dv))
 
-#define CheckDVCursor_(dv, cursor)
+#define CheckCursor_(dv, cursor) \
+    {                            \
+        ZETA_Unused((dv));       \
+        ZETA_Unused((cursor));   \
+    }                            \
+    ZETA_StaticAssert(TRUE)
 
 #endif
 
@@ -120,7 +124,7 @@ static Zeta_DynamicVector_Cursor Access_(Zeta_DynamicVector* dv, size_t idx) {
 
 static void* Push_(void* dv_, void* dst_cursor_, int dir, size_t cnt) {
     Zeta_DynamicVector* dv = dv_;
-    CheckDV_(dv);
+    CheckCntr_(dv);
 
     Zeta_DynamicVector_Cursor* dst_cursor = dst_cursor_;
 
@@ -288,7 +292,7 @@ RET:;
 
 static void Pop_(void* dv_, int dir, size_t cnt) {
     Zeta_DynamicVector* dv = dv_;
-    CheckDV_(dv);
+    CheckCntr_(dv);
 
     size_t seg_capacity = dv->seg_capacity;
 
@@ -499,7 +503,7 @@ void Zeta_DynamicVector_Init(void* dv_) {
 
 void Zeta_DynamicVector_Deinit(void* dv_) {
     Zeta_DynamicVector* dv = dv_;
-    CheckDV_(dv);
+    CheckCntr_(dv);
 
     Zeta_CircularArray cur_ca;
     cur_ca.data = dv->cur_data;
@@ -551,14 +555,14 @@ void Zeta_DynamicVector_Deinit(void* dv_) {
 
 size_t Zeta_DynamicVector_GetWidth(void* dv_) {
     Zeta_DynamicVector* dv = dv_;
-    CheckDV_(dv);
+    CheckCntr_(dv);
 
     return dv->width;
 }
 
 size_t Zeta_DynamicVector_GetSize(void* dv_) {
     Zeta_DynamicVector* dv = dv_;
-    CheckDV_(dv);
+    CheckCntr_(dv);
 
     return dv->size;
 }
@@ -567,35 +571,35 @@ void* Zeta_DynamicVector_Refer(void* dv_, void const* pos_cursor_) {
     Zeta_DynamicVector* dv = dv_;
     Zeta_DynamicVector_Cursor const* pos_cursor = pos_cursor_;
 
-    CheckDVCursor_(dv, pos_cursor);
+    CheckCursor_(dv, pos_cursor);
 
     return pos_cursor->ref;
 }
 
 void Zeta_DynamicVector_GetLBCursor(void* dv_, void* dst_cursor) {
     Zeta_DynamicVector* dv = dv_;
-    CheckDV_(dv);
+    CheckCntr_(dv);
 
     Zeta_DynamicVector_Access(dv, -1, dst_cursor, NULL);
 }
 
 void Zeta_DynamicVector_GetRBCursor(void* dv_, void* dst_cursor) {
     Zeta_DynamicVector* dv = dv_;
-    CheckDV_(dv);
+    CheckCntr_(dv);
 
     Zeta_DynamicVector_Access(dv, dv->size, dst_cursor, NULL);
 }
 
 void* Zeta_DynamicVector_PeekL(void* dv_, void* dst_cursor, void* dst_elem) {
     Zeta_DynamicVector* dv = dv_;
-    CheckDV_(dv);
+    CheckCntr_(dv);
 
     return Zeta_DynamicVector_Access(dv, 0, dst_cursor, dst_elem);
 }
 
 void* Zeta_DynamicVector_PeekR(void* dv_, void* dst_cursor, void* dst_elem) {
     Zeta_DynamicVector* dv = dv_;
-    CheckDV_(dv);
+    CheckCntr_(dv);
 
     return Zeta_DynamicVector_Access(dv, dv->size - 1, dst_cursor, dst_elem);
 }
@@ -603,7 +607,7 @@ void* Zeta_DynamicVector_PeekR(void* dv_, void* dst_cursor, void* dst_elem) {
 void* Zeta_DynamicVector_Access(void* dv_, size_t idx, void* dst_cursor_,
                                 void* dst_elem) {
     Zeta_DynamicVector* dv = dv_;
-    CheckDV_(dv);
+    CheckCntr_(dv);
 
     ZETA_DebugAssert(idx + 1 < dv->size + 2);
 
@@ -629,7 +633,7 @@ void* Zeta_DynamicVector_Access(void* dv_, size_t idx, void* dst_cursor_,
     Zeta_DynamicVector* dv = dv_;                                              \
     Zeta_DynamicVector_Cursor const* pos_cursor = pos_cursor_;                 \
                                                                                \
-    CheckDVCursor_(dv, pos_cursor);                                            \
+    CheckCursor_(dv, pos_cursor);                                              \
                                                                                \
     ZETA_DebugAssert(pos_cursor->idx <= dv->size);                             \
     ZETA_DebugAssert(cnt <= dv->size - pos_cursor->idx);                       \
@@ -717,7 +721,7 @@ void Zeta_DynamicVector_Read(void* dv_, void const* pos_cursor_, size_t cnt,
     Zeta_DynamicVector* dv = dv_;
     Zeta_DynamicVector_Cursor const* pos_cursor = pos_cursor_;
 
-    CheckDVCursor_(dv, pos_cursor);
+    CheckCursor_(dv, pos_cursor);
 
     ZETA_DebugAssert(pos_cursor->idx <= dv->size);
     ZETA_DebugAssert(cnt <= dv->size - pos_cursor->idx);
@@ -808,7 +812,7 @@ void Zeta_DynamicVector_Write(void* dv_, void* pos_cursor_, size_t cnt,
     Zeta_DynamicVector* dv = dv_;
     Zeta_DynamicVector_Cursor const* pos_cursor = pos_cursor_;
 
-    CheckDVCursor_(dv, pos_cursor);
+    CheckCursor_(dv, pos_cursor);
 
     ZETA_DebugAssert(pos_cursor->idx <= dv->size);
     ZETA_DebugAssert(cnt <= dv->size - pos_cursor->idx);
@@ -908,7 +912,7 @@ void Zeta_DynamicVector_PopR(void* dv, size_t cnt) { Pop_(dv, 1, cnt); }
 
 void Zeta_DynamicVector_EraseAll(void* dv_) {
     Zeta_DynamicVector* dv = dv_;
-    CheckDV_(dv);
+    CheckCntr_(dv);
 
     Pop_(dv, 0, dv->size);
 }
@@ -977,12 +981,12 @@ void Zeta_DynamicVector_Check(void* dv_) {
 void Zeta_DynamicVector_Sanitize(void* dv_, Zeta_MemRecorder* dst_data,
                                  Zeta_MemRecorder* dst_seg) {
     Zeta_DynamicVector* dv = dv_;
-    CheckDV_(dv);
+    CheckCntr_(dv);
 
+#if !ZETA_EnableDebug
     ZETA_Unused(dst_data);
     ZETA_Unused(dst_seg);
-
-#if ZETA_IsDebug
+#else
     if (dst_data != NULL) {
         if (dv->cur_data != NULL) {
             Zeta_MemRecorder_Record(dst_data, dv->cur_data,
@@ -1050,8 +1054,8 @@ bool_t Zeta_DynamicVector_Cursor_AreEqual(void* dv_, void const* cursor_a_,
     Zeta_DynamicVector_Cursor const* cursor_a = cursor_a_;
     Zeta_DynamicVector_Cursor const* cursor_b = cursor_b_;
 
-    CheckDVCursor_(dv, cursor_a);
-    CheckDVCursor_(dv, cursor_b);
+    CheckCursor_(dv, cursor_a);
+    CheckCursor_(dv, cursor_b);
 
     return cursor_a->idx == cursor_b->idx;
 }
@@ -1063,8 +1067,8 @@ int Zeta_DynamicVector_Cursor_Compare(void* dv_, void const* cursor_a_,
     Zeta_DynamicVector_Cursor const* cursor_a = cursor_a_;
     Zeta_DynamicVector_Cursor const* cursor_b = cursor_b_;
 
-    CheckDVCursor_(dv, cursor_a);
-    CheckDVCursor_(dv, cursor_b);
+    CheckCursor_(dv, cursor_a);
+    CheckCursor_(dv, cursor_b);
 
     return ZETA_ThreeWayCompare(cursor_a->idx + 1, cursor_b->idx + 1);
 }
@@ -1076,8 +1080,8 @@ size_t Zeta_DynamicVector_Cursor_GetDist(void* dv_, void const* cursor_a_,
     Zeta_DynamicVector_Cursor const* cursor_a = cursor_a_;
     Zeta_DynamicVector_Cursor const* cursor_b = cursor_b_;
 
-    CheckDVCursor_(dv, cursor_a);
-    CheckDVCursor_(dv, cursor_b);
+    CheckCursor_(dv, cursor_a);
+    CheckCursor_(dv, cursor_b);
 
     return cursor_b->idx - cursor_a->idx;
 }
@@ -1085,7 +1089,7 @@ size_t Zeta_DynamicVector_Cursor_GetDist(void* dv_, void const* cursor_a_,
 size_t Zeta_DynamicVector_Cursor_GetIdx(void* dv_, void const* cursor_) {
     Zeta_DynamicVector* dv = dv_;
     Zeta_DynamicVector_Cursor const* cursor = cursor_;
-    CheckDVCursor_(dv, cursor);
+    CheckCursor_(dv, cursor);
 
     return cursor->idx;
 }
@@ -1101,7 +1105,7 @@ void Zeta_DynamicVector_Cursor_StepR(void* dv, void* cursor) {
 void Zeta_DynamicVector_Cursor_AdvanceL(void* dv_, void* cursor_, size_t step) {
     Zeta_DynamicVector* dv = dv_;
     Zeta_DynamicVector_Cursor* cursor = cursor_;
-    CheckDVCursor_(dv, cursor);
+    CheckCursor_(dv, cursor);
 
     if (step == 0) { return; }
 
@@ -1114,7 +1118,7 @@ void Zeta_DynamicVector_Cursor_AdvanceR(void* dv_, void* cursor_, size_t step) {
     Zeta_DynamicVector* dv = dv_;
     Zeta_DynamicVector_Cursor* cursor = cursor_;
 
-    CheckDVCursor_(dv, cursor);
+    CheckCursor_(dv, cursor);
 
     if (step == 0) { return; }
 
@@ -1125,7 +1129,7 @@ void Zeta_DynamicVector_Cursor_AdvanceR(void* dv_, void* cursor_, size_t step) {
 
 void Zeta_DynamicVector_Cursor_Check(void* dv_, void const* cursor_) {
     Zeta_DynamicVector* dv = dv_;
-    CheckDV_(dv);
+    CheckCntr_(dv);
 
     Zeta_DynamicVector_Cursor const* cursor = cursor_;
     ZETA_DebugAssert(cursor != NULL);
@@ -1140,7 +1144,7 @@ void Zeta_DynamicVector_Cursor_Check(void* dv_, void const* cursor_) {
 
 void Zeta_DynamicVector_DeploySeqCntr(void* dv_, Zeta_SeqCntr* seq_cntr) {
     Zeta_DynamicVector* dv = dv_;
-    CheckDV_(dv);
+    CheckCntr_(dv);
 
     ZETA_DebugAssert(seq_cntr != NULL);
 

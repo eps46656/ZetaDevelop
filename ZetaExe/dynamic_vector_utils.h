@@ -84,6 +84,8 @@ void DynamicVector_Destroy(Zeta_SeqCntr* seq_cntr) {
 void DynamicVector_Sanitize(Zeta_SeqCntr const* seq_cntr) {
     if (seq_cntr->GetSize != Zeta_DynamicVector_GetSize) { return; }
 
+#if !ZETA_EnableDebug
+#else
     DynamicVectorPack* pack{ ZETA_MemberToStruct(DynamicVectorPack, dynamic_vec,
                                                  seq_cntr->context) };
 
@@ -100,4 +102,5 @@ void DynamicVector_Sanitize(Zeta_SeqCntr const* seq_cntr) {
 
     Zeta_MemRecorder_Destroy(data);
     Zeta_MemRecorder_Destroy(seg);
+#endif
 }

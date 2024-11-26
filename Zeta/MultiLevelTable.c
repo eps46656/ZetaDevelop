@@ -109,7 +109,7 @@ size_t Zeta_MultiLevelTable_GetCapacity(void* mlt_) {
 }
 
 void** Zeta_MultiLevelTable_Access(void* mlt_, size_t const* idxes) {
-    if (ZETA_IsDebug) { CheckIdxes_(mlt_, idxes); }
+    if (ZETA_EnableArguDebug) { CheckIdxes_(mlt_, idxes); }
 
     Zeta_MultiLevelTable* mlt = mlt_;
     int level = mlt->level;
@@ -154,7 +154,7 @@ void** Zeta_MultiLevelTable_FindLast(void* mlt_, size_t* idxes) {
 
 void** Zeta_MultiLevelTable_FindPrev(void* mlt_, size_t* idxes,
                                      bool_t included) {
-    if (ZETA_IsDebug) { CheckIdxes_(mlt_, idxes); }
+    if (ZETA_EnableArguDebug) { CheckIdxes_(mlt_, idxes); }
 
     Zeta_MultiLevelTable* mlt = mlt_;
     int level = mlt->level;
@@ -233,7 +233,7 @@ L1:;
 
 void** Zeta_MultiLevelTable_FindNext(void* mlt_, size_t* idxes,
                                      bool_t included) {
-    if (ZETA_IsDebug) { CheckIdxes_(mlt_, idxes); }
+    if (ZETA_EnableArguDebug) { CheckIdxes_(mlt_, idxes); }
 
     Zeta_MultiLevelTable* mlt = mlt_;
     int level = mlt->level;
@@ -324,7 +324,7 @@ static Zeta_MultiLevelTable_Node* AllocateNode_(
 }
 
 void** Zeta_MultiLevelTable_Insert(void* mlt_, size_t* idxes) {
-    if (ZETA_IsDebug) { CheckIdxes_(mlt_, idxes); }
+    if (ZETA_EnableArguDebug) { CheckIdxes_(mlt_, idxes); }
 
     Zeta_MultiLevelTable* mlt = mlt_;
     int level = mlt->level;
@@ -370,7 +370,7 @@ void** Zeta_MultiLevelTable_Insert(void* mlt_, size_t* idxes) {
 }
 
 void Zeta_MultiLevelTable_Erase(void* mlt_, size_t* idxes) {
-    if (ZETA_IsDebug) { CheckIdxes_(mlt_, idxes); }
+    if (ZETA_EnableArguDebug) { CheckIdxes_(mlt_, idxes); }
 
     Zeta_MultiLevelTable* mlt = mlt_;
     int level = mlt->level;

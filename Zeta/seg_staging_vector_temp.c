@@ -11,7 +11,7 @@
 #include "seg_utils.h"
 #include "utils.h"
 
-#if ZETA_IsDebug
+#if ZETA_EnableDebug
 
 #define CheckCntr_(cntr) Cntr_(Check)((cntr))
 
@@ -19,9 +19,14 @@
 
 #else
 
-#define CheckCntr_(cntr)
+#define CheckCntr_(cntr) ZETA_Unused((cntr));
 
-#define CheckCursor_(cntr, cursor)
+#define CheckCursor_(cntr, cursor) \
+    {                              \
+        ZETA_Unused((cntr));       \
+        ZETA_Unused((cursor));     \
+    }                              \
+    ZETA_StaticAssert(TRUE)
 
 #endif
 
@@ -1138,8 +1143,6 @@ void Cntr_(Write)(void* cntr_, void* pos_cursor_, size_t cnt, void const* src,
             src += width * cnt_b;
 
             if (seg_idx == avg_seg_size) {
-                ZETA_DebugLogCurPos;
-
                 Zeta_BinTree_SetSize(btn_opr, n, avg_seg_size);
 
                 l_n = n;
@@ -1177,8 +1180,6 @@ void Cntr_(Write)(void* cntr_, void* pos_cursor_, size_t cnt, void const* src,
             src += width * cnt_b;
 
             if (seg_idx < new_seg->dat.size) {
-                ZETA_DebugLogCurPos;
-
                 Zeta_BinTree_SetSize(btn_opr, n, seg->ref.size);
 
                 n = &new_seg->n;
@@ -1186,8 +1187,6 @@ void Cntr_(Write)(void* cntr_, void* pos_cursor_, size_t cnt, void const* src,
                 ZETA_CheckAssert(cnt == 0);
 
             } else {
-                ZETA_DebugLogCurPos;
-
                 Zeta_BinTree_SetSize(btn_opr, &new_seg->n, new_seg->dat.size);
 
                 l_n = &new_seg->n;
@@ -2092,22 +2091,16 @@ void Cntr_(Erase)(void* cntr_, void* pos_cursor_, size_t cnt) {
 
 #if STAGING
     if (GetNColor_(m_n) == ref_color && 0 < seg_idx) {
-        ZETA_DebugLogCurPos;
-
         m_seg = NToSeg_(m_n);
 
         size_t ref_beg = m_seg->ref.beg;
         size_t ref_size = m_seg->ref.size;
 
         if (ref_size - seg_idx <= cnt) {
-            ZETA_DebugLogCurPos;
-
             m_seg->ref.size = seg_idx;
             cnt -= ref_size - seg_idx;
             m_n = Zeta_BinTree_StepR(btn_opr, m_n);
         } else {
-            ZETA_DebugLogCurPos;
-
             Cntr_(Seg)* pre_m_seg = AllocateRefSeg_(cntr);
             cntr->root =
                 Zeta_RBTree_Insert(btn_opr, l_n, &m_seg->n, &pre_m_seg->n);
@@ -2124,8 +2117,6 @@ void Cntr_(Erase)(void* cntr_, void* pos_cursor_, size_t cnt) {
         }
 
         seg_idx = 0;
-
-        ZETA_DebugLogCurPos;
     }
 #endif
 
@@ -3536,6 +3527,8 @@ void Cntr_(Check)(void* cntr_) {
     ZETA_DebugAssert(cntr->data_allocator->Deallocate != NULL);
 }
 
+#if ZETA_EnableDebug
+
 ZETA_DeclareStruct(SanitizeRet);
 
 struct SanitizeRet {
@@ -3726,12 +3719,19 @@ static SanitizeRet Sanitize_(Cntr* cntr, Zeta_MemRecorder* dst_seg,
     return ret;
 }
 
+#endif
+
 void Cntr_(Sanitize)(void* cntr_, Zeta_MemRecorder* dst_seg,
                      Zeta_MemRecorder* dst_data) {
     Cntr* cntr = cntr_;
     CheckCntr_(cntr);
 
+#if !ZETA_EnableDebug
+    ZETA_Unused(dst_seg);
+    ZETA_Unused(dst_data);
+#else
     Sanitize_(cntr, dst_seg, dst_data, cntr->root);
+#endif
 }
 
 static void PrintState_(Cntr* cntr, void* n) {
@@ -3973,8 +3973,6 @@ void Cntr_(Cursor_AdvanceR)(void* cntr_, void* cursor_, size_t step) {
 }
 
 void Cntr_(Cursor_Check)(void* cntr_, void const* cursor_) {
-    if (!ZETA_IsDebug) { return; }
-
     Cntr* cntr = cntr_;
     CheckCntr_(cntr);
 

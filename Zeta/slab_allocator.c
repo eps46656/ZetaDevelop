@@ -6,16 +6,6 @@
 ZETA_StaticAssert(alignof(Zeta_SlabAllocator_SlabHead) % alignof(uintptr_t) ==
                   0);
 
-#if ZETA_IsDebug
-
-#define CheckSlabAllocator_(sa)
-
-#else
-
-#define CheckSlabAllocator_(sa)
-
-#endif
-
 #define ZETA_SlabSize \
     (stride * units_per_slab + sizeof(Zeta_SlabAllocator_SlabHead))
 
@@ -272,6 +262,7 @@ void Zeta_SlabAllocator_Check(void* sa_, Zeta_MemRecorder* dst_used_records,
     ZETA_DebugAssert(dst_used_records != NULL);
     ZETA_DebugAssert(dst_released_records != NULL);
 
+#if ZETA_EnableDebug
     size_t width = sa->width;
     size_t stride = width + sizeof(unsigned char);
     size_t units_per_slab = sa->units_per_slab;
@@ -374,6 +365,7 @@ void Zeta_SlabAllocator_Check(void* sa_, Zeta_MemRecorder* dst_used_records,
 
     Zeta_MemRecorder_Destroy(vacant_unit);
     Zeta_MemRecorder_Destroy(occupied_unit);
+#endif
 }
 
 void Zeta_SlabAllocator_DeployAllocator(void* sa_, Zeta_Allocator* dst) {

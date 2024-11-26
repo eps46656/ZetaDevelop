@@ -20,13 +20,19 @@
 
 #define ZETA_StaticAssert(cond) _Static_assert(cond, "")
 
-#if !defined(ZETA_IsDebug)
-#if defined(DEBUG)
-#define ZETA_IsDebug 1
-#else
-#define ZETA_IsDebug 0
+#if !defined(ZETA_EnableArguDebug)
+#define ZETA_EnableArguDebug 0
 #endif
+
+#if !defined(ZETA_EnableIntegrityDebug)
+#define ZETA_EnableIntegrityDebug 0
 #endif
+
+#if !defined(ZETA_EnableDeepDebug)
+#define ZETA_EnableDeepDebug 0
+#endif
+
+#define ZETA_EnableDebug (ZETA_EnableArguDebug || ZETA_EnableIntegrityDebug)
 
 typedef unsigned char byte_t;
 
@@ -446,34 +452,34 @@ y-1   0   1     y-2
         printf("\t%24s = ", ZETA_ToStr(var));                   \
                                                                 \
         printf(_Generic((var),                                  \
-               bool_t: "%c\n",                                  \
+                   bool_t: "%c\n",                              \
                                                                 \
-               char: "%c\n",                                    \
-               unsigned char: "%X\n",                           \
-               signed char: "%c\n",                             \
+                   char: "%c\n",                                \
+                   unsigned char: "%X\n",                       \
+                   signed char: "%c\n",                         \
                                                                 \
-               short: "%i\n",                                   \
-               unsigned short: "%u\n",                          \
+                   short: "%i\n",                               \
+                   unsigned short: "%u\n",                      \
                                                                 \
-               int: "%i\n",                                     \
-               unsigned: "%u\n",                                \
+                   int: "%i\n",                                 \
+                   unsigned: "%u\n",                            \
                                                                 \
-               long: "%li\n",                                   \
-               unsigned long: "%lu\n",                          \
+                   long: "%li\n",                               \
+                   unsigned long: "%lu\n",                      \
                                                                 \
-               long long: "%lli\n",                             \
-               unsigned long long: "%llu\n",                    \
+                   long long: "%lli\n",                         \
+                   unsigned long long: "%llu\n",                \
                                                                 \
-               float: "%g\n",                                   \
+                   float: "%g\n",                               \
                                                                 \
-               double: "%g\n",                                  \
-               long double: "%g\n",                             \
+                   double: "%g\n",                              \
+                   long double: "%g\n",                         \
                                                                 \
-               void*: "%p\n",                                   \
-               const void*: "%p\n",                             \
+                   void*: "%p\n",                               \
+                   const void*: "%p\n",                         \
                                                                 \
-               char*: "%s\n",                                   \
-               const char*: "%s\n"),                            \
+                   char*: "%s\n",                               \
+                   const char*: "%s\n"),                        \
                (var));                                          \
                                                                 \
         if (ZETA_ImmPrint) { fflush(stdout); }                  \
