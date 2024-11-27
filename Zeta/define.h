@@ -15,24 +15,11 @@
 #define TRUE ((bool_t)(0 == 0))
 #define FALSE ((bool_t)(0 != 0))
 
-#define NEG FALSE
-#define POS TRUE
-
 #define ZETA_StaticAssert(cond) _Static_assert(cond, "")
 
-#if !defined(ZETA_EnableArguDebug)
-#define ZETA_EnableArguDebug 0
+#if !defined(ZETA_EnableDebug)
+#define ZETA_EnableDebug 0
 #endif
-
-#if !defined(ZETA_EnableIntegrityDebug)
-#define ZETA_EnableIntegrityDebug 0
-#endif
-
-#if !defined(ZETA_EnableDeepDebug)
-#define ZETA_EnableDeepDebug 0
-#endif
-
-#define ZETA_EnableDebug (ZETA_EnableArguDebug || ZETA_EnableIntegrityDebug)
 
 typedef unsigned char byte_t;
 

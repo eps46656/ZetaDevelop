@@ -67,27 +67,7 @@ extern bool_t zeta_assert_stage;
     }                                                         \
     ZETA_StaticAssert(TRUE)
 
-#define ZETA_CheckAssert(cond) ZETA_DebugAssert(cond)
-
-#if ZETA_EnableArguDebug
-
-#define ZETA_ArugAssert(cond) ZETA_Assert((cond))
-
-#else
-
-#define ZETA_ArugAssert(cond) ZETA_Unused((cond))
-
-#endif
-
-#if ZETA_EnableIntegrityDebug
-
-#define ZETA_IntegrityAssert(cond) ZETA_Assert((cond))
-
-#else
-
-#define ZETA_IntegrityAssert(cond) ZETA_Unused((cond))
-
-#endif
+#define ZETA_CheckAssert(cond) ZETA_Assert(cond)
 
 #if ZETA_EnableDebug
 

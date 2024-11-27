@@ -132,9 +132,9 @@ void Zeta_CascadeAllocator_Sanitize(void* ca_, Zeta_MemRecorder* dst) {
     Zeta_CascadeAllocator* ca = ca_;
     Check_(ca);
 
+#if !(ZETA_EnableIntegrityDebug && ZETA_EnableDeepDebug)
     ZETA_Unused(dst);
-
-#if ZETA_EnableIntegrityDebug && ZETA_EnableDeepAssert
+#else
     size_t align = ca->align;
 
     size_t node_size = ZETA_IntRoundUp(sizeof(Zeta_OrdLinkedListNode), align);

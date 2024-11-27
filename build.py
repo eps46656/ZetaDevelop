@@ -46,9 +46,7 @@ zeta_debug_config = Zeta.Config(
 
     mode=ModeEnum.DEBUG,
 
-    enable_argu_debug=True,
-    enable_integrity_debug=True,
-    enable_deep_debug=True,
+    enable_debug=True,
     enable_asan=True,
 
     c_include_dirs=[],
@@ -64,9 +62,7 @@ zeta_exe_debug_config = ZetaExe.Config(
 
     mode=ModeEnum.DEBUG,
 
-    enable_argu_debug=True,
-    enable_integrity_debug=True,
-    enable_deep_debug=True,
+    enable_debug=True,
     enable_asan=True,
 
     c_include_dirs=[
@@ -90,9 +86,7 @@ zeta_release_config = Zeta.Config(
 
     mode=ModeEnum.RELEASE,
 
-    enable_argu_debug=False,
-    enable_integrity_debug=False,
-    enable_deep_debug=False,
+    enable_debug=False,
     enable_asan=False,
 
     c_include_dirs=[],
@@ -108,9 +102,8 @@ zeta_exe_release_config = ZetaExe.Config(
 
     mode=ModeEnum.RELEASE,
 
-    enable_argu_debug=False,
-    enable_integrity_debug=False,
-    enable_deep_debug=False,
+    enable_debug=False,
+
     enable_asan=False,
 
     c_include_dirs=[
@@ -188,19 +181,13 @@ def main():
 
     target = args.target
 
-    print(f"{target=}")
-
     target = target.replace(
         "?zeta_build_dir",
         str(config.zeta_config.build_dir))
 
-    print(f"{target=}")
-
     target = target.replace(
         "?zeta_exe_build_dir",
         str(config.zeta_exe_config.build_dir))
-
-    print(f"{target=}")
 
     target = pathlib.Path(target)
 

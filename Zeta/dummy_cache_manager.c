@@ -1,5 +1,6 @@
-#include "debugger.h"
 #include "dummy_cache_manager.h"
+
+#include "debugger.h"
 
 void Zeta_DummyCacheManager_Init(void* dcm_) {
     Zeta_DummyCacheManager* dcm = dcm_;

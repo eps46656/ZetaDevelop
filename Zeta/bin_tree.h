@@ -78,4 +78,6 @@ void Zeta_BinTree_AdvanceR(void** dst_n, size_t* dst_tail_idx,
 void Zeta_BinTree_GetAccSize(size_t* dst_l_acc_size, size_t* dst_r_acc_size,
                              Zeta_BinTreeNodeOperator const* btn_opr, void* n);
 
+void Zeta_BinTree_Check(Zeta_BinTreeNodeOperator const* btn_opr, void* root);
+
 ZETA_ExternC_End;

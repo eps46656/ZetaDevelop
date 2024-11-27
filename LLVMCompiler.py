@@ -69,20 +69,18 @@ def PrintCommand(cmd: typing.Iterable[str]):
 class LLVMCompilerConfig:
     verbose: bool
 
-    build_dir: pathlib.Path
+    build_dir: object
 
     target: Target
 
     mode: ModeEnum
 
-    base_dir: typing.Optional[typing.Iterable[str]]
+    base_dir: typing.Optional[object]
 
-    c_include_dirs: typing.Iterable[str]
-    cpp_include_dirs: typing.Iterable[str]
+    c_include_dirs: typing.Iterable[object]
+    cpp_include_dirs: typing.Iterable[object]
 
-    enable_argu_debug: bool
-    enable_integrity_debug: bool
-    enable_deep_debug: bool
+    enable_debug: bool
 
     enable_asan: bool
 
@@ -99,7 +97,7 @@ class LLVMCompiler:
 
         self.base_dir = config.base_dir
 
-        self.build_dir = config.build_dir
+        self.build_dir = pathlib.Path(config.build_dir)
 
         self.c_to_obj_command = None
         self.cpp_to_obj_command = None
@@ -122,8 +120,8 @@ class LLVMCompiler:
             self.opt_ll_command = "opt-18"
             self.to_exe_command = "clang-18"
 
-        self.c_include_dirs = config.c_include_dirs
-        self.cpp_include_dirs = config.cpp_include_dirs
+        self.c_include_dirs = map(pathlib.Path, config.c_include_dirs)
+        self.cpp_include_dirs = map(pathlib.Path, config.cpp_include_dirs)
 
         self.randomize_layout_seed = 13493037705
 
@@ -133,9 +131,6 @@ class LLVMCompiler:
 
         self.address_sanitizer = True
 
-        self.enable_argu_debug = config.enable_argu_debug
-        self.enable_integrity_debug = config.enable_integrity_debug
-        self.enable_deep_debug = config.enable_deep_debug
         self.enable_asan = config.enable_asan
 
         self.c_to_obj_args = [
@@ -148,6 +143,7 @@ class LLVMCompiler:
             f"-ferror-limit={self.error_limit}",
             # f"-frandomize-layout-seed={self.randomize_layout_seed}",
 
+            f"" if self.base_dir is None else
             f"-ffile-prefix-map={self.base_dir}=.",
 
             "-Wall",
@@ -165,36 +161,13 @@ class LLVMCompiler:
             f"-ferror-limit={self.error_limit}",
             # f"-frandomize-layout-seed={self.randomize_layout_seed}",
 
+            f"" if self.base_dir is None else
             f"-ffile-prefix-map={self.base_dir}=.",
 
             "-Wall",
             "-Wextra",
             "-Werror",
         ]
-
-        if self.enable_argu_debug:
-            args = [
-                "-D ZETA_EnableArguDebug",
-            ]
-
-            self.c_to_obj_args.extend(args)
-            self.cpp_to_obj_args.extend(args)
-
-        if self.enable_integrity_debug:
-            args = [
-                "-D ZETA_EnableIntegrityDebug",
-            ]
-
-            self.c_to_obj_args.extend(args)
-            self.cpp_to_obj_args.extend(args)
-
-        if self.enable_deep_debug:
-            args = [
-                "-D ZETA_EnableDeepDebug",
-            ]
-
-            self.c_to_obj_args.extend(args)
-            self.cpp_to_obj_args.extend(args)
 
         if self.enable_asan:
             args = [
@@ -277,8 +250,11 @@ class LLVMCompiler:
         PrintCommand(list_cmd)
         subprocess.run(list_cmd, check=True)
 
-    def c_to_obj(self, dst: str, src: str):
-        os.makedirs(os.path.dirname(dst), exist_ok=True)
+    def c_to_obj(self, dst: object, src: object):
+        dst = pathlib.Path(dst)
+        src = pathlib.Path(src)
+
+        os.makedirs(dst.parents[0], exist_ok=True)
 
         self.RunCommand_(
             self.c_to_obj_command,
@@ -288,8 +264,11 @@ class LLVMCompiler:
             src,
         )
 
-    def cpp_to_obj(self, dst: str, src: str):
-        os.makedirs(os.path.dirname(dst), exist_ok=True)
+    def cpp_to_obj(self, dst: object, src: object):
+        dst = pathlib.Path(dst)
+        src = pathlib.Path(src)
+
+        os.makedirs(dst.parents[0], exist_ok=True)
 
         self.RunCommand_(
             self.cpp_to_obj_command,
@@ -299,8 +278,11 @@ class LLVMCompiler:
             src,
         )
 
-    def asm_to_obj(self, dst: str, src: str):
-        os.makedirs(os.path.dirname(dst), exist_ok=True)
+    def asm_to_obj(self, dst: object, src: object):
+        dst = pathlib.Path(dst)
+        src = pathlib.Path(src)
+
+        os.makedirs(dst.parents[0], exist_ok=True)
 
         self.RunCommand_(
             self.c_to_obj_command,
@@ -309,7 +291,10 @@ class LLVMCompiler:
             src,
         )
 
-    def ll_to_asm(self, dst: str, src: str):
+    def ll_to_asm(self, dst: object, src: object):
+        dst = pathlib.Path(dst)
+        src = pathlib.Path(src)
+
         self.RunCommand_(
             self.ll_to_obj_command,
             "-o", dst,
@@ -318,7 +303,10 @@ class LLVMCompiler:
             src,
         )
 
-    def ll_to_obj(self, dst: str, src: str):
+    def ll_to_obj(self, dst: object, src: object):
+        dst = pathlib.Path(dst)
+        src = pathlib.Path(src)
+
         self.RunCommand_(
             self.ll_to_obj_command,
             "-o", dst,
@@ -327,7 +315,10 @@ class LLVMCompiler:
             src,
         )
 
-    def to_exe(self, dst: str, srcs: typing.Iterable[str]):
+    def to_exe(self, dst: object, srcs: typing.Iterable[object]):
+        dst = pathlib.Path(dst)
+        srcs = map(pathlib.Path, srcs)
+
         self.RunCommand_(
             self.to_exe_command,
             "-o", dst,

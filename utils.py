@@ -1,6 +1,7 @@
 import dataclasses
 import enum
 import typing
+import pathlib
 
 from typeguard import typechecked
 
@@ -87,8 +88,8 @@ def ToListCommand(*cmd: typing.Iterable[typing.Optional[str | typing.Iterable]])
         if not x:
             continue
 
-        if isinstance(x, str):
-            ret.append(x)
+        if not hasattr(x, "__iter__") or isinstance(x, str):
+            ret.append(str(x))
         else:
             q.extend(x)
 

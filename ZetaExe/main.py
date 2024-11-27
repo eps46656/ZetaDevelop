@@ -1,5 +1,6 @@
 import dataclasses
 import pathlib
+import typing
 
 from typeguard import typechecked
 
@@ -15,22 +16,21 @@ DIR = FILE.parents[0]
 class Config:
     verbose: bool
 
-    build_dir: pathlib.Path
+    build_dir: object
 
     target: Target
 
     mode: ModeEnum
-    enable_argu_debug: bool
-    enable_integrity_debug: bool
-    enable_deep_debug: bool
+
+    enable_debug: bool
 
     enable_asan: bool
 
-    c_include_dirs: list[pathlib.Path]
-    cpp_include_dirs: list[pathlib.Path]
+    c_include_dirs: typing.Iterable[object]
+    cpp_include_dirs: typing.Iterable[object]
 
-    zeta_dir: pathlib.Path
-    zeta_build_dir: pathlib.Path
+    zeta_dir: object
+    zeta_build_dir: object
 
 
 @typechecked
@@ -54,18 +54,16 @@ def AddDeps(builder: Builder, config: Config):
             f"{config.zeta_dir}",
         },
 
-        enable_argu_debug=config.enable_argu_debug,
-        enable_integrity_debug=config.enable_integrity_debug,
-        enable_deep_debug=config.enable_deep_debug,
+        enable_debug=config.enable_debug,
 
         enable_asan=config.enable_asan,
     ))
 
-    zeta_dir = config.zeta_dir
+    zeta_dir = pathlib.Path(config.zeta_dir)
     zeta_exe_dir = DIR
 
-    zeta_build_dir = config.zeta_build_dir
-    zeta_exe_build_dir = config.build_dir
+    zeta_build_dir = pathlib.Path(config.zeta_build_dir)
+    zeta_exe_build_dir = pathlib.Path(config.build_dir)
 
     # --------------------------------------------------------------------------
 
