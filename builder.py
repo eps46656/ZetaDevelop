@@ -7,8 +7,6 @@ import typing
 import termcolor
 from typeguard import typechecked
 
-from utils import FilterNotNone
-
 
 @typechecked
 def GetMTime(path: object):
@@ -128,16 +126,18 @@ class Builder:
     def Add(self, unit: object, deps: typing.Optional[typing.Iterable[object]], building_func: typing.Optional[typing.Callable[[], None]] = None):
         unit = pathlib.Path(unit).resolve()
 
-        assert unit not in self.deps, f"Duplicated unit {unit}."
+        ds = (pathlib.Path(dep).resolve()
+              for dep in ([] if deps is None else deps) if dep is not None)
 
-        self.deps[unit] = set() if deps is None else \
-            {pathlib.Path(dep).resolve()
-             for dep in FilterNotNone(deps)}
-
-        self.building_funcs[unit] = building_func
+        if unit in self.deps:
+            assert building_func is None, "Conflict building function."
+            self.deps[unit].update(ds)
+        else:
+            self.deps[unit] = set(ds)
+            self.building_funcs[unit] = building_func
 
     def GetUnits(self):
-        return set(self.deps.keys())
+        return self.deps.keys()
 
     def GetDepUnits(self, target_unit: object):
         target_unit = pathlib.Path(target_unit).resolve()

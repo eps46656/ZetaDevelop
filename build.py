@@ -175,7 +175,10 @@ def main():
     Zeta.AddDeps(builder, config.zeta_config)
     ZetaExe.AddDeps(builder, config.zeta_exe_config)
 
-    builder.Add("all", builder.GetUnits(), None)
+    for unit in builder.GetUnits():
+        builder.Add(unit, [FILE], None)
+
+    builder.Add(FILE, None, None)
 
     builder.Check()
 

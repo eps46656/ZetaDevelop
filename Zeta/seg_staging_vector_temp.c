@@ -3310,9 +3310,13 @@ static void WriteBack_Random_(Cntr* cntr, unsigned long long cost_coeff_read,
     acc_arr[ref_segs_cnt + 1] = acc_arr[ref_segs_cnt] + (size - prv_dst_end) -
                                 (origin_size - prv_ref_end);
 
+#if ZETA_EnableDebug
     unsigned long long* dp_best_cost = ZETA_Allocator_SafeAllocate(
         zeta_cas_allocator, alignof(unsigned long long),
         sizeof(unsigned long long) * (ref_segs_cnt + 2));
+
+    dp_best_cost[0] = 0;
+#endif
 
     unsigned long long* dp_cost = ZETA_Allocator_SafeAllocate(
         zeta_cas_allocator, alignof(unsigned long long),
@@ -3322,10 +3326,10 @@ static void WriteBack_Random_(Cntr* cntr, unsigned long long cost_coeff_read,
         ZETA_Allocator_SafeAllocate(zeta_cas_allocator, alignof(size_t),
                                     sizeof(size_t) * (ref_segs_cnt + 2));
 
-    dp_best_cost[0] = 0;
     dp_cost[0] = 0;
     dp_prv[0] = ZETA_RangeMaxOf(size_t);
 
+#if ZETA_EnableDebug
     for (size_t i = 1; i <= ref_segs_cnt + 1; ++i) {
         unsigned long long ans_cost = ZETA_ULLONG_MAX;
 
@@ -3344,6 +3348,7 @@ static void WriteBack_Random_(Cntr* cntr, unsigned long long cost_coeff_read,
 
         dp_best_cost[i] = ans_cost;
     }
+#endif
 
     for (size_t i = 1; i <= ref_segs_cnt + 1; ++i) {
         unsigned long long ans_cost = ZETA_ULLONG_MAX;
@@ -3369,12 +3374,14 @@ static void WriteBack_Random_(Cntr* cntr, unsigned long long cost_coeff_read,
         dp_prv[i] = ans_prv;
     }
 
+#if ZETA_EnableDebug
     {
-        double best_cost = dp_best_cost[ref_segs_cnt + 1];
-        double better_cost = dp_cost[ref_segs_cnt + 1];
+        unsigned long long best_cost = dp_best_cost[ref_segs_cnt + 1];
+        unsigned long long better_cost = dp_cost[ref_segs_cnt + 1];
 
-        ZETA_PrintVar((unsigned long long)(best_cost / better_cost * 100));
+        ZETA_DebugAssert(best_cost <= 512 || better_cost <= best_cost * 2);
     }
+#endif
 
     void* origin_cursor = ZETA_SeqCntr_AllocaCursor(origin);
 
@@ -3451,6 +3458,11 @@ static void WriteBack_Random_(Cntr* cntr, unsigned long long cost_coeff_read,
     ZETA_Allocator_Deallocate(zeta_cas_allocator, ref_wb_segs - 1);
     ZETA_Allocator_Deallocate(zeta_cas_allocator, acc_arr);
     ZETA_Allocator_Deallocate(zeta_cas_allocator, acc_brr);
+
+#if ZETA_EnableDebug
+    ZETA_Allocator_Deallocate(zeta_cas_allocator, dp_best_cost);
+#endif
+
     ZETA_Allocator_Deallocate(zeta_cas_allocator, dp_cost);
     ZETA_Allocator_Deallocate(zeta_cas_allocator, dp_prv);
 

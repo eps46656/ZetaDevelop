@@ -131,6 +131,8 @@ class LLVMCompiler:
 
         self.address_sanitizer = True
 
+        self.enable_debug = config.enable_debug
+
         self.enable_asan = config.enable_asan
 
         self.c_to_obj_args = [
@@ -169,6 +171,15 @@ class LLVMCompiler:
             "-Werror",
         ]
 
+        if self.enable_debug:
+            args = [
+                "-g",
+                "-DZETA_EnableDebug=1",
+            ]
+
+            self.c_to_obj_args.extend(args)
+            self.cpp_to_obj_args.extend(args)
+
         if self.enable_asan:
             args = [
                 "-fno-omit-frame-pointer",
@@ -189,7 +200,6 @@ class LLVMCompiler:
         if self.mode == ModeEnum.DEBUG:
             args = [
                 "-O1",
-                "-g",
             ]
 
             self.c_to_obj_args.extend(args)
