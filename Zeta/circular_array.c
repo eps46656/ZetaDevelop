@@ -610,7 +610,7 @@ void Zeta_CircularArray_Check(void* ca_) {
     ZETA_DebugAssert(0 < width);
     ZETA_DebugAssert(offset == 0 || offset < capacity);
     ZETA_DebugAssert(size <= capacity);
-    ZETA_DebugAssert(capacity <= ZETA_CircularArray_max_capacity);
+    ZETA_DebugAssert(capacity <= ZETA_max_capacity);
 
     if (data == NULL) { ZETA_DebugAssert(capacity == 0); }
 }

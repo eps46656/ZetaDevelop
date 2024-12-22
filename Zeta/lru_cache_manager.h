@@ -2,15 +2,20 @@
 
 #include "allocator.h"
 #include "cache_manager.h"
+#include "generic_hash_table.h"
 #include "ord_bin_tree_node.h"
 #include "ord_linked_list_node.h"
+#include "ord_rb_linked_list_node.h"
 #include "ord_rb_tree_node.h"
 #include "seq_cntr.h"
 
 ZETA_ExternC_Beg;
 
+#define ZETA_LRUCachaManager_max_cn_cnts (ZETA_RangeMaxOf(unsigned))
+
 ZETA_DeclareStruct(Zeta_LRUCacheManager);
 ZETA_DeclareStruct(Zeta_LRUCacheManager_SNode);
+ZETA_DeclareStruct(Zeta_LRUCacheManager_CXNodeBase);
 ZETA_DeclareStruct(Zeta_LRUCacheManager_CNode);
 ZETA_DeclareStruct(Zeta_LRUCacheManager_XNode);
 
@@ -18,72 +23,57 @@ ZETA_DeclareStruct(Zeta_LRUCacheManager_XNode);
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 
+#define Zeta_LRUCacheManager_SNode_color (1)
+#define Zeta_LRUCacheManager_CNode_color (2)
+#define Zeta_LRUCacheManager_XNode_color (3)
+
 struct Zeta_LRUCacheManager_SNode {
-    Zeta_OrdLinkedListNode sl_node;
+    Zeta_OrdRBLinkedListNode lh;
+    // p: color
 
-    unsigned max_al_cnt;
-    unsigned al_cnt;
+    unsigned cn_cnt;
+    unsigned max_cn_cnt;
+};
 
-    Zeta_OrdLinkedListNode al_head;
+struct Zeta_LRUCacheManager_CXNodeBase {
+    Zeta_GenericHashTable_Node ghtn;
 
-    Zeta_OrdRBTreeNode* at_root;
+    Zeta_OrdRBLinkedListNode ln;
+    // p: color
+
+    size_t blk_num;
 };
 
 struct Zeta_LRUCacheManager_CNode {
-    size_t blk_num;
+    Zeta_LRUCacheManager_CXNodeBase base;
+
     void* frame;
 
-    bool_t refered;
+    unsigned ref_cnt;
     bool_t dirty;
-
-    Zeta_OrdRBTreeNode ct_node;
-
-    /*
-        if refered:
-            cl_node links to other c_node
-            bl_head must be empty.
-        else:
-            cl_node does not link to other c_node
-            bl_head must be not empty.
-    */
-    union {
-        Zeta_OrdLinkedListNode bl_head;
-        Zeta_OrdLinkedListNode cl_node;
-    };
 };
 
 struct Zeta_LRUCacheManager_XNode {
-    Zeta_OrdRBTreeNode at_node;
-    // in blk_num order
+    Zeta_LRUCacheManager_CXNodeBase base;
 
-    Zeta_OrdLinkedListNode al_node;
-    // in lru order
-
-    Zeta_OrdLinkedListNode bl_node;
-    // to next x_node which also ref to same c_node
-
-    Zeta_LRUCacheManager_SNode* s_node;
-    Zeta_LRUCacheManager_CNode* c_node;
+    Zeta_LRUCacheManager_SNode* sn;
+    Zeta_LRUCacheManager_CNode* cn;
 };
 
 struct Zeta_LRUCacheManager {
-    size_t c_node_cnt;
-    size_t max_c_node_cnt;
+    size_t cn_cnt;
+    size_t max_cn_cnt;
 
     Zeta_SeqCntr* origin;
 
-    Zeta_Allocator* s_node_allocator;
-    Zeta_Allocator* c_node_allocator;
-    Zeta_Allocator* x_node_allocator;
+    Zeta_Allocator* sn_allocator;
+    Zeta_Allocator* cn_allocator;
+    Zeta_Allocator* xn_allocator;
     Zeta_Allocator* frame_allocator;
 
-    Zeta_OrdLinkedListNode* norm_sl_head;
+    Zeta_GenericHashTable ght;
 
-    Zeta_OrdLinkedListNode* over_sl_head;
-
-    Zeta_OrdRBTreeNode* ct_root;
-
-    Zeta_OrdLinkedListNode cl_head;
+    Zeta_OrdRBLinkedListNode* cold_cl;
 };
 
 // -----------------------------------------------------------------------------

@@ -26,24 +26,25 @@ constexpr bool IsInteger() {
            std::is_same<Int, signed long long>();      //
 }
 
-template <typename Int, typename Range>
-Int GetRandomInt(Range lb, Range rb) {
+template <typename RetInt, typename RangeInt>
+RetInt GetRandomInt(RangeInt lb, RangeInt rb) {
     static std::uniform_int_distribution<unsigned long long> ll_generator{
         0, ZETA_RangeMaxOf(unsigned long long)
     };
 
-    ZETA_StaticAssert(IsInteger<Int>());
-    ZETA_StaticAssert(IsInteger<Range>());
+    ZETA_StaticAssert(IsInteger<RetInt>());
+    ZETA_StaticAssert(IsInteger<RangeInt>());
 
-    return static_cast<Int>(
-        lb + static_cast<Range>(ll_generator(RandomEngine()) %
-                                (static_cast<unsigned long long>(rb) -
-                                 static_cast<unsigned long long>(lb))));
+    return static_cast<RetInt>(
+        lb + static_cast<RangeInt>(ll_generator(RandomEngine()) %
+                                   (static_cast<unsigned long long>(rb) -
+                                    static_cast<unsigned long long>(lb))));
 }
 
-template <typename Int>
-Int GetRandom() {
-    return GetRandomInt<Int>(ZETA_RangeMinOf(Int), ZETA_RangeMaxOf(Int));
+template <typename RetInt>
+RetInt GetRandom() {
+    return GetRandomInt<RetInt>(ZETA_RangeMinOf(RetInt),
+                                ZETA_RangeMaxOf(RetInt));
 }
 
 template <typename Value, typename Iterator>

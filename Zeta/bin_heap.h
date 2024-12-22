@@ -19,4 +19,9 @@ void Zeta_BinHeap_Pop(void* data, size_t width, size_t stride, size_t size,
                       int (*Compare)(void* cmp_context, void const* x,
                                      void const* y));
 
+void Zeta_BinHeap_Adjust(void* data, size_t width, size_t stride, size_t idx,
+                         size_t size, void* cmp_context,
+                         int (*Compare)(void* cmp_context, void const* x,
+                                        void const* y));
+
 ZETA_ExternC_End;

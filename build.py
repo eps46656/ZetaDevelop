@@ -9,7 +9,7 @@ import termcolor
 import Zeta
 import ZetaExe
 from Builder import Builder
-from utils import ArchEnum, EnvEnum, ModeEnum, SysEnum, Target, VendorEnum
+from utils import ArchEnum, EnvEnum, SysEnum, Target, VendorEnum
 
 FILE = pathlib.Path(__file__).absolute()
 DIR = FILE.parents[0]
@@ -44,13 +44,17 @@ zeta_debug_config = Zeta.Config(
 
     target=target,
 
-    mode=ModeEnum.DEBUG,
+    c_standard="c2x",
+    cpp_standard="c++17",
+
+    c_include_dirs=[],
+    cpp_include_dirs=[],
 
     enable_debug=True,
     enable_asan=True,
 
-    c_include_dirs=[],
-    cpp_include_dirs=[],
+    opt_type=0,
+    link_time_opt=False,
 )
 
 zeta_exe_debug_config = ZetaExe.Config(
@@ -58,23 +62,22 @@ zeta_exe_debug_config = ZetaExe.Config(
 
     build_dir=zeta_develop_dir / "ZetaExeDebugBuild",
 
+    zeta_dir=zeta_develop_dir / "Zeta",
+    zeta_build_dir=zeta_debug_config.build_dir,
+
     target=target,
 
-    mode=ModeEnum.DEBUG,
+    c_standard="c2x",
+    cpp_standard="c++17",
+
+    c_include_dirs=[zeta_dir],
+    cpp_include_dirs=[zeta_dir],
 
     enable_debug=True,
     enable_asan=True,
 
-    c_include_dirs=[
-        zeta_dir,
-    ],
-
-    cpp_include_dirs=[
-        zeta_dir,
-    ],
-
-    zeta_dir=zeta_develop_dir / "Zeta",
-    zeta_build_dir=zeta_debug_config.build_dir,
+    opt_type=0,
+    link_time_opt=False,
 )
 
 zeta_release_config = Zeta.Config(
@@ -84,13 +87,17 @@ zeta_release_config = Zeta.Config(
 
     target=target,
 
-    mode=ModeEnum.RELEASE,
+    c_standard="c2x",
+    cpp_standard="c++17",
+
+    c_include_dirs=[],
+    cpp_include_dirs=[],
 
     enable_debug=False,
     enable_asan=False,
 
-    c_include_dirs=[],
-    cpp_include_dirs=[],
+    opt_type=3,
+    link_time_opt=True,
 )
 
 zeta_exe_release_config = ZetaExe.Config(
@@ -98,24 +105,22 @@ zeta_exe_release_config = ZetaExe.Config(
 
     build_dir=zeta_develop_dir / "ZetaExeReleaseBuild",
 
-    target=target,
-
-    mode=ModeEnum.RELEASE,
-
-    enable_debug=False,
-
-    enable_asan=False,
-
-    c_include_dirs=[
-        zeta_dir,
-    ],
-
-    cpp_include_dirs=[
-        zeta_dir,
-    ],
-
     zeta_dir=zeta_develop_dir / "Zeta",
     zeta_build_dir=zeta_release_config.build_dir,
+
+    target=target,
+
+    c_standard="c2x",
+    cpp_standard="c++17",
+
+    c_include_dirs=[zeta_dir],
+    cpp_include_dirs=[zeta_dir],
+
+    enable_debug=False,
+    enable_asan=False,
+
+    opt_type=3,
+    link_time_opt=True,
 )
 
 
@@ -145,10 +150,6 @@ def main():
                         dest="target",
                         action="store",
                         required=True)
-
-    parser.add_argument("--verbose",
-                        dest="verbose",
-                        action="store_true")
 
     parser.add_argument("--config",
                         dest="config",
@@ -182,15 +183,15 @@ def main():
 
     builder.Check()
 
+    target_replace_table = {
+        "?zeta_build_dir": str(config.zeta_config.build_dir),
+        "?zeta_exe_build_dir": str(config.zeta_exe_config.build_dir),
+    }
+
     target = args.target
 
-    target = target.replace(
-        "?zeta_build_dir",
-        str(config.zeta_config.build_dir))
-
-    target = target.replace(
-        "?zeta_exe_build_dir",
-        str(config.zeta_exe_config.build_dir))
+    for k, l in target_replace_table.items():
+        target = target.replace(k, l)
 
     target = pathlib.Path(target)
 

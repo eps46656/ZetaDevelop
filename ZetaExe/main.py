@@ -6,7 +6,7 @@ from typeguard import typechecked
 
 from Builder import Builder
 from LLVMCompiler import LLVMCompiler, LLVMCompilerConfig
-from utils import ModeEnum, Target
+from utils import Target
 
 FILE = pathlib.Path(__file__).absolute()
 DIR = FILE.parents[0]
@@ -18,19 +18,22 @@ class Config:
 
     build_dir: object
 
+    zeta_dir: object
+    zeta_build_dir: object
+
     target: Target
 
-    mode: ModeEnum
-
-    enable_debug: bool
-
-    enable_asan: bool
+    c_standard: str
+    cpp_standard: str
 
     c_include_dirs: typing.Iterable[object]
     cpp_include_dirs: typing.Iterable[object]
 
-    zeta_dir: object
-    zeta_build_dir: object
+    enable_debug: bool
+    enable_asan: bool
+
+    opt_type: str
+    link_time_opt: bool
 
 
 @typechecked
@@ -40,23 +43,21 @@ def AddDeps(builder: Builder, config: Config):
 
         target=config.target,
 
-        mode=config.mode,
-
         base_dir=DIR.parents[0],
 
         build_dir=config.build_dir,
 
-        c_include_dirs={
-            f"{config.zeta_dir}",
-        },
+        c_standard=config.c_standard,
+        cpp_standard=config.cpp_standard,
 
-        cpp_include_dirs={
-            f"{config.zeta_dir}",
-        },
+        c_include_dirs=[f"{config.zeta_dir}"],
+        cpp_include_dirs=[f"{config.zeta_dir}"],
 
         enable_debug=config.enable_debug,
-
         enable_asan=config.enable_asan,
+
+        opt_type=config.opt_type,
+        link_time_opt=config.link_time_opt,
     ))
 
     zeta_dir = pathlib.Path(config.zeta_dir)
@@ -91,7 +92,7 @@ def AddDeps(builder: Builder, config: Config):
         f"{zeta_exe_dir}/ChainingMLTScheduler.h",
         {
             f"{FILE}",
-            f"{zeta_dir}/MultiLevelTable.h",
+            f"{zeta_dir}/multi_level_table.h",
             f"{zeta_dir}/ord_linked_list_node.h",
             f"{zeta_exe_dir}/zeta_pool_allocator.h",
         },
@@ -259,7 +260,7 @@ def AddDeps(builder: Builder, config: Config):
         {
             f"{FILE}",
             f"{zeta_dir}/bin_heap.h",
-            f"{zeta_dir}/ord_cnt_rb_tree_node.h"
+            f"{zeta_dir}/ord_cnt_rb_tree_node.h",
         },
         None
     )
@@ -384,7 +385,7 @@ def AddDeps(builder: Builder, config: Config):
         f"{zeta_exe_build_dir}/test_2.o",
         {
             f"{FILE}",
-            f"{zeta_exe_dir}/test_2.c"
+            f"{zeta_exe_dir}/test_2.c",
         },
         lambda: compiler.c_to_obj(
             f"{zeta_exe_build_dir}/test_2.o",
@@ -401,7 +402,7 @@ def AddDeps(builder: Builder, config: Config):
             f"{zeta_build_dir}/logger.o",
             f"{zeta_build_dir}/io.o",
             f"{zeta_build_dir}/utils.o",
-            f"{zeta_exe_build_dir}/test_2.o"
+            f"{zeta_exe_build_dir}/test_2.o",
         },
         lambda: compiler.to_exe(
             f"{zeta_exe_build_dir}/test_2.exe",
@@ -420,8 +421,7 @@ def AddDeps(builder: Builder, config: Config):
         f"{zeta_exe_dir}/test_3.c",
         {
             f"{FILE}",
-
-            f"{zeta_dir}/utils.h"
+            f"{zeta_dir}/utils.h",
         },
         None
     )
@@ -430,7 +430,7 @@ def AddDeps(builder: Builder, config: Config):
         f"{zeta_exe_build_dir}/test_3.o",
         {
             f"{FILE}",
-            f"{zeta_exe_dir}/test_3.c"
+            f"{zeta_exe_dir}/test_3.c",
         },
         lambda: compiler.c_to_obj(
             f"{zeta_exe_build_dir}/test_3.o",
@@ -442,7 +442,7 @@ def AddDeps(builder: Builder, config: Config):
         f"{zeta_exe_build_dir}/test_3.exe",
         {
             f"{FILE}",
-            f"{zeta_exe_build_dir}/test_3.o"
+            f"{zeta_exe_build_dir}/test_3.o",
         },
         lambda: compiler.to_exe(
             f"{zeta_exe_build_dir}/test_3.exe",
@@ -477,7 +477,6 @@ def AddDeps(builder: Builder, config: Config):
         f"{zeta_exe_build_dir}/test_datetime.exe",
         {
             f"{FILE}",
-
             f"{zeta_build_dir}/datetime.o",
 
             f"{zeta_exe_build_dir}/test_datetime.o",
@@ -496,7 +495,6 @@ def AddDeps(builder: Builder, config: Config):
         f"{zeta_exe_dir}/test_dht.cpp",
         {
             f"{FILE}",
-
             f"{zeta_dir}/debug_deque.h",
             f"{zeta_dir}/debugger.h",
             f"{zeta_dir}/mem_check_utils.h",
@@ -546,7 +544,6 @@ def AddDeps(builder: Builder, config: Config):
         },
         lambda: compiler.to_exe(
             f"{zeta_exe_build_dir}/test_dht.exe",
-
             {
                 f"{zeta_build_dir}/assoc_cntr.o",
                 f"{zeta_build_dir}/bin_tree.o",
@@ -622,13 +619,11 @@ def AddDeps(builder: Builder, config: Config):
         f"{zeta_exe_build_dir}/test_jump.exe",
         {
             f"{FILE}",
-
             f"{zeta_build_dir}/debug_str_pipe.o",
             f"{zeta_build_dir}/debugger.o",
             f"{zeta_build_dir}/io.o",
             f"{zeta_build_dir}/jump.o",
             f"{zeta_build_dir}/logger.o",
-
             f"{zeta_exe_build_dir}/test_jump.o",
         },
         lambda: compiler.to_exe(
@@ -639,7 +634,6 @@ def AddDeps(builder: Builder, config: Config):
                 f"{zeta_build_dir}/io.o",
                 f"{zeta_build_dir}/jump.o",
                 f"{zeta_build_dir}/logger.o",
-
                 f"{zeta_exe_build_dir}/test_jump.o",
             }
         )
@@ -672,7 +666,6 @@ def AddDeps(builder: Builder, config: Config):
         f"{zeta_exe_build_dir}/test_tree_alloc.exe",
         {
             f"{FILE}",
-
             f"{zeta_build_dir}/allocator.o",
             f"{zeta_build_dir}/assoc_cntr.o",
             f"{zeta_build_dir}/bin_tree.o",
@@ -688,7 +681,6 @@ def AddDeps(builder: Builder, config: Config):
             f"{zeta_build_dir}/rbtree.o",
             f"{zeta_build_dir}/tree_allocator.o",
             f"{zeta_build_dir}/utils.o",
-
             f"{zeta_exe_build_dir}/test_tree_alloc.o",
         },
         lambda: compiler.to_exe(
@@ -709,7 +701,6 @@ def AddDeps(builder: Builder, config: Config):
                 f"{zeta_build_dir}/rbtree.o",
                 f"{zeta_build_dir}/tree_allocator.o",
                 f"{zeta_build_dir}/utils.o",
-
                 f"{zeta_exe_build_dir}/test_tree_alloc.o",
             }
         )
@@ -722,7 +713,7 @@ def AddDeps(builder: Builder, config: Config):
             f"{zeta_dir}/disk_info.h",
             f"{zeta_dir}/disk_part_gpt.h",
             f"{zeta_dir}/disk_part_mbt.h",
-            f"{zeta_dir}/define.h"
+            f"{zeta_dir}/define.h",
         },
         None
     )
@@ -731,7 +722,6 @@ def AddDeps(builder: Builder, config: Config):
         f"{zeta_exe_dir}/test_utf8.c",
         {
             f"{FILE}",
-
             f"{zeta_dir}/debugger.h",
             f"{zeta_dir}/utf8.h",
         },
@@ -742,12 +732,9 @@ def AddDeps(builder: Builder, config: Config):
         f"{zeta_exe_build_dir}/test_utf8.o",
         {
             f"{FILE}",
-
             f"{zeta_exe_dir}/test_utf8.c",
-
             f"{zeta_dir}/utf8.h",
         },
-
         lambda: compiler.cpp_to_obj(
             f"{zeta_exe_build_dir}/test_utf8.o",
             f"{zeta_exe_dir}/test_utf8.c",
@@ -758,14 +745,12 @@ def AddDeps(builder: Builder, config: Config):
         f"{zeta_exe_build_dir}/test_utf8.exe",
         {
             f"{FILE}",
-
             f"{zeta_build_dir}/debugger.o",
             f"{zeta_build_dir}/debug_str_pipe.o",
             f"{zeta_build_dir}/logger.o",
             f"{zeta_build_dir}/io.o",
             f"{zeta_build_dir}/utf8.o",
             f"{zeta_build_dir}/utils.o",
-
             f"{zeta_exe_build_dir}/test_utf8.o",
         },
         lambda: compiler.to_exe(
@@ -777,7 +762,6 @@ def AddDeps(builder: Builder, config: Config):
                 f"{zeta_build_dir}/io.o",
                 f"{zeta_build_dir}/utf8.o",
                 f"{zeta_build_dir}/utils.o",
-
                 f"{zeta_exe_build_dir}/test_utf8.o",
             }
         )
@@ -787,7 +771,6 @@ def AddDeps(builder: Builder, config: Config):
         f"{zeta_exe_dir}/test_utf16.c",
         {
             f"{FILE}",
-
             f"{zeta_dir}/debugger.h",
             f"{zeta_dir}/utf16.h",
         },
@@ -798,12 +781,9 @@ def AddDeps(builder: Builder, config: Config):
         f"{zeta_exe_build_dir}/test_utf16.o",
         {
             f"{FILE}",
-
             f"{zeta_exe_dir}/test_utf16.c",
-
             f"{zeta_dir}/utf16.h",
         },
-
         lambda: compiler.cpp_to_obj(
             f"{zeta_exe_build_dir}/test_utf16.o",
             f"{zeta_exe_dir}/test_utf16.c",
@@ -814,14 +794,12 @@ def AddDeps(builder: Builder, config: Config):
         f"{zeta_exe_build_dir}/test_utf16.exe",
         {
             f"{FILE}",
-
             f"{zeta_build_dir}/debugger.o",
             f"{zeta_build_dir}/debug_str_pipe.o",
             f"{zeta_build_dir}/logger.o",
             f"{zeta_build_dir}/io.o",
             f"{zeta_build_dir}/utf16.o",
             f"{zeta_build_dir}/utils.o",
-
             f"{zeta_exe_build_dir}/test_utf16.o",
         },
         lambda: compiler.to_exe(
@@ -833,7 +811,6 @@ def AddDeps(builder: Builder, config: Config):
                 f"{zeta_build_dir}/io.o",
                 f"{zeta_build_dir}/utf16.o",
                 f"{zeta_build_dir}/utils.o",
-
                 f"{zeta_exe_build_dir}/test_utf16.o",
             }
         )
@@ -844,7 +821,7 @@ def AddDeps(builder: Builder, config: Config):
         {
             f"{FILE}",
             f"{zeta_dir}/seg_vector.h",
-            f"{zeta_exe_dir}/std_allocator.h"
+            f"{zeta_exe_dir}/std_allocator.h",
         },
         None
     )
@@ -865,7 +842,6 @@ def AddDeps(builder: Builder, config: Config):
         f"{zeta_exe_build_dir}/test_segvec.exe",
         {
             f"{FILE}",
-
             f"{zeta_build_dir}/seg_vector.o",
             f"{zeta_build_dir}/bin_tree.o",
             f"{zeta_build_dir}/circular_array.o",
@@ -874,7 +850,6 @@ def AddDeps(builder: Builder, config: Config):
             f"{zeta_build_dir}/rbtree.o",
             f"{zeta_build_dir}/ord_cnt_rb_tree_node.o",
             f"{zeta_build_dir}/utils.o",
-
             f"{zeta_exe_build_dir}/test_segvec.o",
         },
         lambda: compiler.to_exe(
@@ -888,7 +863,6 @@ def AddDeps(builder: Builder, config: Config):
                 f"{zeta_build_dir}/rbtree.o",
                 f"{zeta_build_dir}/ord_cnt_rb_tree_node.o",
                 f"{zeta_build_dir}/utils.o",
-
                 f"{zeta_exe_build_dir}/test_segvec.o",
             }
         )
@@ -899,7 +873,7 @@ def AddDeps(builder: Builder, config: Config):
         {
             f"{FILE}",
             f"{zeta_dir}/seg_vector.h",
-            f"{zeta_exe_dir}/std_allocator.h"
+            f"{zeta_exe_dir}/std_allocator.h",
         },
         None
     )
@@ -920,7 +894,6 @@ def AddDeps(builder: Builder, config: Config):
         f"{zeta_exe_build_dir}/test_segvec2.exe",
         {
             f"{FILE}",
-
             f"{zeta_build_dir}/bin_tree.o",
             f"{zeta_build_dir}/circular_array.o",
             f"{zeta_build_dir}/debug_deque.o",
@@ -929,7 +902,6 @@ def AddDeps(builder: Builder, config: Config):
             f"{zeta_build_dir}/rbtree.o",
             f"{zeta_build_dir}/seg_vector.o",
             f"{zeta_build_dir}/utils.o",
-
             f"{zeta_exe_build_dir}/test_segvec2.o",
         },
         lambda: compiler.to_exe(
@@ -943,7 +915,6 @@ def AddDeps(builder: Builder, config: Config):
                 f"{zeta_build_dir}/rbtree.o",
                 f"{zeta_build_dir}/seg_vector.o",
                 f"{zeta_build_dir}/utils.o",
-
                 f"{zeta_exe_build_dir}/test_segvec2.o",
             }
         )
@@ -954,7 +925,7 @@ def AddDeps(builder: Builder, config: Config):
         {
             f"{FILE}",
             f"{zeta_dir}/seg_vector.h",
-            f"{zeta_exe_dir}/std_allocator.h"
+            f"{zeta_exe_dir}/std_allocator.h",
         },
         None
     )
@@ -975,7 +946,6 @@ def AddDeps(builder: Builder, config: Config):
         f"{zeta_exe_build_dir}/test_segvec_speed.exe",
         {
             f"{FILE}",
-
             f"{zeta_build_dir}/seg_vector.o",
             f"{zeta_build_dir}/bin_tree.o",
             f"{zeta_build_dir}/circular_array.o",
@@ -984,7 +954,6 @@ def AddDeps(builder: Builder, config: Config):
             f"{zeta_build_dir}/rbtree.o",
             f"{zeta_build_dir}/ord_cnt_rb_tree_node.o",
             f"{zeta_build_dir}/utils.o",
-
             f"{zeta_exe_build_dir}/test_segvec_speed.o",
         },
         lambda: compiler.to_exe(
@@ -998,7 +967,6 @@ def AddDeps(builder: Builder, config: Config):
                 f"{zeta_build_dir}/rbtree.o",
                 f"{zeta_build_dir}/ord_cnt_rb_tree_node.o",
                 f"{zeta_build_dir}/utils.o",
-
                 f"{zeta_exe_build_dir}/test_segvec_speed.o",
             }
         )
@@ -1009,7 +977,7 @@ def AddDeps(builder: Builder, config: Config):
         {
             f"{FILE}",
             f"{zeta_dir}/seg_vector.h",
-            f"{zeta_exe_dir}/std_allocator.h"
+            f"{zeta_exe_dir}/std_allocator.h",
         },
         None
     )
@@ -1030,7 +998,6 @@ def AddDeps(builder: Builder, config: Config):
         f"{zeta_exe_build_dir}/test_segvec2_speed.exe",
         {
             f"{FILE}",
-
             f"{zeta_build_dir}/seg_vector.o",
             f"{zeta_build_dir}/bin_tree.o",
             f"{zeta_build_dir}/circular_array.o",
@@ -1038,7 +1005,6 @@ def AddDeps(builder: Builder, config: Config):
             f"{zeta_build_dir}/rbtree.o",
             f"{zeta_build_dir}/ord_cnt_rb_tree_node.o",
             f"{zeta_build_dir}/utils.o",
-
             f"{zeta_exe_build_dir}/test_segvec2_speed.o",
         },
         lambda: compiler.to_exe(
@@ -1051,7 +1017,6 @@ def AddDeps(builder: Builder, config: Config):
                 f"{zeta_build_dir}/rbtree.o",
                 f"{zeta_build_dir}/ord_cnt_rb_tree_node.o",
                 f"{zeta_build_dir}/utils.o",
-
                 f"{zeta_exe_build_dir}/test_segvec2_speed.o",
             }
         )
@@ -1064,7 +1029,7 @@ def AddDeps(builder: Builder, config: Config):
             f"{zeta_dir}/debug_deque.h",
             f"{zeta_dir}/circular_array.h",
             f"{zeta_dir}/seg_vector.h",
-            f"{zeta_exe_dir}/std_allocator.h"
+            f"{zeta_exe_dir}/std_allocator.h",
         },
         None
     )
@@ -1085,7 +1050,6 @@ def AddDeps(builder: Builder, config: Config):
         f"{zeta_exe_build_dir}/test_seqcntr.exe",
         {
             f"{FILE}",
-
             f"{zeta_build_dir}/bin_tree.o",
             f"{zeta_build_dir}/circular_array.o",
             f"{zeta_build_dir}/debug_deque.o",
@@ -1094,7 +1058,6 @@ def AddDeps(builder: Builder, config: Config):
             f"{zeta_build_dir}/ord_cnt_rb_tree_node.o",
             f"{zeta_build_dir}/seg_vector.o",
             f"{zeta_build_dir}/utils.o",
-
             f"{zeta_exe_build_dir}/test_seqcntr.o",
         },
         lambda: compiler.to_exe(
@@ -1108,7 +1071,6 @@ def AddDeps(builder: Builder, config: Config):
                 f"{zeta_build_dir}/ord_cnt_rb_tree_node.o",
                 f"{zeta_build_dir}/seg_vector.o",
                 f"{zeta_build_dir}/utils.o",
-
                 f"{zeta_exe_build_dir}/test_seqcntr.o",
             }
         )
@@ -1197,7 +1159,6 @@ def AddDeps(builder: Builder, config: Config):
         },
         lambda: compiler.to_exe(
             f"{zeta_exe_build_dir}/test_stagevec.exe",
-
             {
                 f"{zeta_build_dir}/algorithm.o",
                 f"{zeta_build_dir}/allocator.o",
@@ -1285,7 +1246,6 @@ def AddDeps(builder: Builder, config: Config):
         },
         lambda: compiler.to_exe(
             f"{zeta_exe_build_dir}/test_stagevec_speed.exe",
-
             {
                 f"{zeta_build_dir}/bin_tree.o",
                 f"{zeta_build_dir}/circular_array.o",
@@ -1338,8 +1298,7 @@ def AddDeps(builder: Builder, config: Config):
         f"{zeta_exe_dir}/test_kmp.cpp",
         {
             f"{FILE}",
-
-            f"{zeta_dir}/define.h"
+            f"{zeta_dir}/define.h",
         },
         None
     )
@@ -1348,7 +1307,7 @@ def AddDeps(builder: Builder, config: Config):
         f"{zeta_exe_build_dir}/test_kmp.o",
         {
             f"{FILE}",
-            f"{zeta_exe_dir}/test_kmp.cpp"
+            f"{zeta_exe_dir}/test_kmp.cpp",
         },
         lambda: compiler.cpp_to_obj(
             f"{zeta_exe_build_dir}/test_kmp.o",
@@ -1360,11 +1319,15 @@ def AddDeps(builder: Builder, config: Config):
         f"{zeta_exe_build_dir}/test_kmp.exe",
         {
             f"{FILE}",
-            f"{zeta_exe_build_dir}/test_kmp.o"
+            f"{zeta_build_dir}/debug_str_pipe.o",
+            f"{zeta_build_dir}/debugger.o",
+            f"{zeta_exe_build_dir}/test_kmp.o",
         },
         lambda: compiler.to_exe(
             f"{zeta_exe_build_dir}/test_kmp.exe",
             {
+                f"{zeta_build_dir}/debug_str_pipe.o",
+                f"{zeta_build_dir}/debugger.o",
                 f"{zeta_exe_build_dir}/test_kmp.o",
             }
         )
@@ -1430,25 +1393,21 @@ def AddDeps(builder: Builder, config: Config):
         f"{zeta_exe_build_dir}/test_log.exe",
         {
             f"{FILE}",
-
             f"{zeta_build_dir}/debug_str_pipe.o",
             f"{zeta_build_dir}/debugger.o",
             f"{zeta_build_dir}/logger.o",
             f"{zeta_build_dir}/io.o",
             f"{zeta_build_dir}/utils.o",
-
             f"{zeta_exe_build_dir}/test_log.o",
         },
         lambda: compiler.to_exe(
             f"{zeta_exe_build_dir}/test_log.exe",
-
             {
                 f"{zeta_build_dir}/debug_str_pipe.o",
                 f"{zeta_build_dir}/debugger.o",
                 f"{zeta_build_dir}/logger.o",
                 f"{zeta_build_dir}/io.o",
                 f"{zeta_build_dir}/utils.o",
-
                 f"{zeta_exe_build_dir}/test_log.o",
             }
         )
@@ -1493,7 +1452,6 @@ def AddDeps(builder: Builder, config: Config):
         f"{zeta_exe_build_dir}/test_lrucm.exe",
         {
             f"{FILE}",
-
             f"{zeta_build_dir}/allocator.o",
             f"{zeta_build_dir}/bin_tree.o",
             f"{zeta_build_dir}/block_vector.o",
@@ -1506,7 +1464,6 @@ def AddDeps(builder: Builder, config: Config):
             f"{zeta_build_dir}/ord_rb_tree_node.o",
             f"{zeta_build_dir}/rbtree.o",
             f"{zeta_build_dir}/utils.o",
-
             f"{zeta_exe_build_dir}/test_lrucm.o",
         },
         lambda: compiler.to_exe(
@@ -1524,7 +1481,6 @@ def AddDeps(builder: Builder, config: Config):
                 f"{zeta_build_dir}/ord_rb_tree_node.o",
                 f"{zeta_build_dir}/rbtree.o",
                 f"{zeta_build_dir}/utils.o",
-
                 f"{zeta_exe_build_dir}/test_lrucm.o",
             }
         )
@@ -1537,6 +1493,51 @@ def AddDeps(builder: Builder, config: Config):
             f"{zeta_dir}/utils.h",
         },
         None
+    )
+
+    builder.Add(
+        f"{zeta_exe_dir}/test_seg_tree.cpp",
+        {
+            f"{FILE}",
+            f"{zeta_dir}/seg_tree.h",
+        },
+        None
+    )
+
+    builder.Add(
+        f"{zeta_exe_build_dir}/test_seg_tree.o",
+        {
+            f"{FILE}",
+            f"{zeta_exe_dir}/test_seg_tree.cpp",
+        },
+        lambda: compiler.cpp_to_obj(
+            f"{zeta_exe_build_dir}/test_seg_tree.o",
+            f"{zeta_exe_dir}/test_seg_tree.cpp",
+        )
+    )
+
+    builder.Add(
+        f"{zeta_exe_build_dir}/test_seg_tree.exe",
+        {
+            f"{FILE}",
+            f"{zeta_build_dir}/debug_str_pipe.o",
+            f"{zeta_build_dir}/debugger.o",
+            f"{zeta_build_dir}/io.o",
+            f"{zeta_build_dir}/seg_tree.o",
+            f"{zeta_build_dir}/utils.o",
+            f"{zeta_exe_build_dir}/test_seg_tree.o",
+        },
+        lambda: compiler.to_exe(
+            f"{zeta_exe_build_dir}/test_seg_tree.exe",
+            {
+                f"{zeta_build_dir}/debug_str_pipe.o",
+                f"{zeta_build_dir}/debugger.o",
+                f"{zeta_build_dir}/io.o",
+                f"{zeta_build_dir}/seg_tree.o",
+                f"{zeta_build_dir}/utils.o",
+                f"{zeta_exe_build_dir}/test_seg_tree.o",
+            }
+        )
     )
 
     builder.Add(
@@ -1569,7 +1570,6 @@ def AddDeps(builder: Builder, config: Config):
         f"{zeta_exe_build_dir}/test_sort.exe",
         {
             f"{FILE}",
-
             f"{zeta_build_dir}/algorithm.o",
             f"{zeta_build_dir}/allocator.o",
             f"{zeta_build_dir}/cascade_allocator.o",
@@ -1580,9 +1580,7 @@ def AddDeps(builder: Builder, config: Config):
             f"{zeta_build_dir}/memory.o",
             f"{zeta_build_dir}/ord_linked_list_node.o",
             f"{zeta_build_dir}/utils.o",
-
             f"{zeta_exe_build_dir}/timer.o",
-
             f"{zeta_exe_build_dir}/test_sort.o",
         },
         lambda: compiler.to_exe(
@@ -1598,9 +1596,7 @@ def AddDeps(builder: Builder, config: Config):
                 f"{zeta_build_dir}/memory.o",
                 f"{zeta_build_dir}/ord_linked_list_node.o",
                 f"{zeta_build_dir}/utils.o",
-
                 f"{zeta_exe_build_dir}/timer.o",
-
                 f"{zeta_exe_build_dir}/test_sort.o",
             }
         )
@@ -1641,14 +1637,12 @@ def AddDeps(builder: Builder, config: Config):
         f"{zeta_exe_build_dir}/test_slaballoc.exe",
         {
             f"{FILE}",
-
             f"{zeta_build_dir}/allocator.o",
             f"{zeta_build_dir}/debug_hash_table.o",
             f"{zeta_build_dir}/ord_linked_list_node.o",
             f"{zeta_build_dir}/ord_rb_linked_list_node.o",
             f"{zeta_build_dir}/Slaballocator.o",
             f"{zeta_build_dir}/utils.o",
-
             f"{zeta_exe_build_dir}/test_slaballoc.o",
         },
         lambda: compiler.to_exe(
@@ -1660,7 +1654,6 @@ def AddDeps(builder: Builder, config: Config):
                 f"{zeta_build_dir}/ord_rb_linked_list_node.o",
                 f"{zeta_build_dir}/Slaballocator.o",
                 f"{zeta_build_dir}/utils.o",
-
                 f"{zeta_exe_build_dir}/test_slaballoc.o",
             }
         )
@@ -1694,7 +1687,6 @@ def AddDeps(builder: Builder, config: Config):
         f"{zeta_exe_build_dir}/test_lin_space_allocator.exe",
         {
             f"{FILE}",
-
             f"{zeta_build_dir}/allocator.o",
             f"{zeta_build_dir}/bin_tree.o",
             f"{zeta_build_dir}/debug_str_pipe.o",
@@ -1705,12 +1697,10 @@ def AddDeps(builder: Builder, config: Config):
             f"{zeta_build_dir}/mem_check_utils.o",
             f"{zeta_build_dir}/rbtree.o",
             f"{zeta_build_dir}/utils.o",
-
             f"{zeta_exe_build_dir}/test_lin_space_allocator.o",
         },
         lambda: compiler.to_exe(
             f"{zeta_exe_build_dir}/test_lin_space_allocator.exe",
-
             {
                 f"{zeta_build_dir}/allocator.o",
                 f"{zeta_build_dir}/bin_tree.o",
@@ -1722,7 +1712,6 @@ def AddDeps(builder: Builder, config: Config):
                 f"{zeta_build_dir}/mem_check_utils.o",
                 f"{zeta_build_dir}/rbtree.o",
                 f"{zeta_build_dir}/utils.o",
-
                 f"{zeta_exe_build_dir}/test_lin_space_allocator.o",
             }
         )
@@ -1732,7 +1721,7 @@ def AddDeps(builder: Builder, config: Config):
         f"{zeta_exe_dir}/test_mlv.cpp",
         {
             f"{FILE}",
-            f"{zeta_dir}/MultiLevelTable.h",
+            f"{zeta_dir}/multi_level_table.h",
             f"{zeta_exe_dir}/std_allocator.h",
         },
         None
@@ -1742,7 +1731,7 @@ def AddDeps(builder: Builder, config: Config):
         f"{zeta_exe_build_dir}/test_mlv.o",
         {
             f"{FILE}",
-            f"{zeta_dir}/MultiLevelTable.h",
+            f"{zeta_dir}/multi_level_table.h",
             f"{zeta_exe_dir}/std_allocator.h",
             f"{zeta_exe_dir}/test_mlv.cpp",
         },
@@ -1756,23 +1745,19 @@ def AddDeps(builder: Builder, config: Config):
         f"{zeta_exe_build_dir}/test_mlv.exe",
         {
             f"{FILE}",
-
             f"{zeta_build_dir}/allocator.o",
             f"{zeta_build_dir}/debug_hash_table.o",
-            f"{zeta_build_dir}/MultiLevelTable.o",
+            f"{zeta_build_dir}/multi_level_table.o",
             f"{zeta_build_dir}/utils.o",
-
             f"{zeta_exe_build_dir}/test_mlv.o",
         },
         lambda: compiler.to_exe(
             f"{zeta_exe_build_dir}/test_mlv.exe",
-
             {
                 f"{zeta_build_dir}/allocator.o",
                 f"{zeta_build_dir}/debug_hash_table.o",
-                f"{zeta_build_dir}/MultiLevelTable.o",
+                f"{zeta_build_dir}/multi_level_table.o",
                 f"{zeta_build_dir}/utils.o",
-
                 f"{zeta_exe_build_dir}/test_mlv.o",
             }
         )
@@ -1782,9 +1767,10 @@ def AddDeps(builder: Builder, config: Config):
         f"{zeta_exe_dir}/test_mlt.cpp",
         {
             f"{FILE}",
-            f"{zeta_dir}/MultiLevelTable.h",
-            f"{zeta_exe_dir}/cpp_std_allocator.h",
-            f"{zeta_exe_dir}/zeta_pool_allocator.h",
+            f"{zeta_dir}/multi_level_table.h",
+            f"{zeta_exe_dir}/random.h",
+            f"{zeta_exe_dir}/std_allocator.h",
+            f"{zeta_exe_dir}/timer.h",
         },
         None
     )
@@ -1793,8 +1779,6 @@ def AddDeps(builder: Builder, config: Config):
         f"{zeta_exe_build_dir}/test_mlt.o",
         {
             f"{FILE}",
-            f"{zeta_dir}/MultiLevelTable.h",
-            f"{zeta_exe_dir}/std_allocator.h",
             f"{zeta_exe_dir}/test_mlt.cpp",
         },
         lambda: compiler.cpp_to_obj(
@@ -1807,25 +1791,33 @@ def AddDeps(builder: Builder, config: Config):
         f"{zeta_exe_build_dir}/test_mlt.exe",
         {
             f"{FILE}",
-
             f"{zeta_build_dir}/allocator.o",
-            f"{zeta_build_dir}/debug_hash_table.o",
-            f"{zeta_build_dir}/MultiLevelTable.o",
+            f"{zeta_build_dir}/debug_str_pipe.o",
+            f"{zeta_build_dir}/debugger.o",
+            f"{zeta_build_dir}/io.o",
+            f"{zeta_build_dir}/logger.o",
+            f"{zeta_build_dir}/mem_check_utils.o",
+            f"{zeta_build_dir}/mem_check_utils.o",
+            f"{zeta_build_dir}/multi_level_table.o",
             f"{zeta_build_dir}/ord_linked_list_node.o",
             f"{zeta_build_dir}/utils.o",
-
+            f"{zeta_exe_build_dir}/timer.o",
             f"{zeta_exe_build_dir}/test_mlt.o",
         },
         lambda: compiler.to_exe(
             f"{zeta_exe_build_dir}/test_mlt.exe",
-
             {
                 f"{zeta_build_dir}/allocator.o",
-                f"{zeta_build_dir}/debug_hash_table.o",
-                f"{zeta_build_dir}/MultiLevelTable.o",
+                f"{zeta_build_dir}/debug_str_pipe.o",
+                f"{zeta_build_dir}/debugger.o",
+                f"{zeta_build_dir}/io.o",
+                f"{zeta_build_dir}/logger.o",
+                f"{zeta_build_dir}/mem_check_utils.o",
+                f"{zeta_build_dir}/mem_check_utils.o",
+                f"{zeta_build_dir}/multi_level_table.o",
                 f"{zeta_build_dir}/ord_linked_list_node.o",
                 f"{zeta_build_dir}/utils.o",
-
+                f"{zeta_exe_build_dir}/timer.o",
                 f"{zeta_exe_build_dir}/test_mlt.o",
             }
         )
@@ -1844,7 +1836,7 @@ def AddDeps(builder: Builder, config: Config):
         f"{zeta_exe_dir}/test_o1sh.cpp",
         {
             f"{FILE}",
-            f"{zeta_dir}/MultiLevelTable.h",
+            f"{zeta_dir}/multi_level_table.h",
             f"{zeta_exe_dir}/std_allocator.h",
         },
         None
@@ -1930,7 +1922,6 @@ def AddDeps(builder: Builder, config: Config):
         },
         lambda: compiler.to_exe(
             f"{zeta_exe_build_dir}/test_qsort.exe",
-
             {
                 f"{zeta_build_dir}/algorithm.o",
                 f"{zeta_build_dir}/debugger.o",
@@ -1957,7 +1948,7 @@ def AddDeps(builder: Builder, config: Config):
         f"{zeta_exe_build_dir}/test_scheduler.o",
         {
             f"{FILE}",
-            f"{zeta_dir}/MultiLevelTable.h",
+            f"{zeta_dir}/multi_level_table.h",
             f"{zeta_exe_dir}/std_allocator.h",
             f"{zeta_exe_dir}/test_scheduler.cpp",
         },
@@ -1971,25 +1962,21 @@ def AddDeps(builder: Builder, config: Config):
         f"{zeta_exe_build_dir}/test_scheduler.exe",
         {
             f"{FILE}",
-
             f"{zeta_build_dir}/allocator.o",
             f"{zeta_build_dir}/debug_hash_table.o",
-            f"{zeta_build_dir}/MultiLevelTable.o",
+            f"{zeta_build_dir}/multi_level_table.o",
             f"{zeta_build_dir}/ord_linked_list_node.o",
             f"{zeta_build_dir}/utils.o",
-
             f"{zeta_exe_build_dir}/test_scheduler.o",
         },
         lambda: compiler.to_exe(
             f"{zeta_exe_build_dir}/test_scheduler.exe",
-
             {
                 f"{zeta_build_dir}/allocator.o",
                 f"{zeta_build_dir}/debug_hash_table.o",
-                f"{zeta_build_dir}/MultiLevelTable.o",
+                f"{zeta_build_dir}/multi_level_table.o",
                 f"{zeta_build_dir}/ord_linked_list_node.o",
                 f"{zeta_build_dir}/utils.o",
-
                 f"{zeta_exe_build_dir}/test_scheduler.o",
             }
         )
@@ -2031,7 +2018,6 @@ def AddDeps(builder: Builder, config: Config):
         f"{zeta_exe_build_dir}/test_cas_alloc.exe",
         {
             f"{FILE}",
-
             f"{zeta_build_dir}/allocator.o",
             f"{zeta_build_dir}/cascade_allocator.o",
             f"{zeta_build_dir}/debug_str_pipe.o",
@@ -2041,12 +2027,10 @@ def AddDeps(builder: Builder, config: Config):
             f"{zeta_build_dir}/mem_check_utils.o",
             f"{zeta_build_dir}/ord_linked_list_node.o",
             f"{zeta_build_dir}/utils.o",
-
             f"{zeta_exe_build_dir}/test_cas_alloc.o",
         },
         lambda: compiler.to_exe(
             f"{zeta_exe_build_dir}/test_cas_alloc.exe",
-
             {
                 f"{zeta_build_dir}/allocator.o",
                 f"{zeta_build_dir}/cascade_allocator.o",
@@ -2057,7 +2041,6 @@ def AddDeps(builder: Builder, config: Config):
                 f"{zeta_build_dir}/mem_check_utils.o",
                 f"{zeta_build_dir}/ord_linked_list_node.o",
                 f"{zeta_build_dir}/utils.o",
-
                 f"{zeta_exe_build_dir}/test_cas_alloc.o",
             }
         )
@@ -2092,7 +2075,6 @@ def AddDeps(builder: Builder, config: Config):
         f"{zeta_exe_build_dir}/test_cntrbt.exe",
         {
             f"{FILE}",
-
             f"{zeta_build_dir}/bin_tree.o",
             f"{zeta_build_dir}/debug_str_pipe.o",
             f"{zeta_build_dir}/debugger.o",
@@ -2103,12 +2085,10 @@ def AddDeps(builder: Builder, config: Config):
             f"{zeta_build_dir}/ord_cnt_rb_tree_node.o",
             f"{zeta_build_dir}/rbtree.o",
             f"{zeta_build_dir}/utils.o",
-
             f"{zeta_exe_build_dir}/test_cntrbt.o",
         },
         lambda: compiler.to_exe(
             f"{zeta_exe_build_dir}/test_cntrbt.exe",
-
             {
                 f"{zeta_build_dir}/bin_tree.o",
                 f"{zeta_build_dir}/debug_str_pipe.o",
@@ -2120,7 +2100,6 @@ def AddDeps(builder: Builder, config: Config):
                 f"{zeta_build_dir}/ord_cnt_rb_tree_node.o",
                 f"{zeta_build_dir}/rbtree.o",
                 f"{zeta_build_dir}/utils.o",
-
                 f"{zeta_exe_build_dir}/test_cntrbt.o",
             }
         )

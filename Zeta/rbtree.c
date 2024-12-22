@@ -415,8 +415,8 @@ void Zeta_RBTree_Check(Zeta_BinTreeNodeOperator const* btn_opr,
 
     if (root == NULL) { return; }
 
-    ZETA_DebugAssert(btn_opr->GetP(btn_opr->context, root) == NULL);
-    ZETA_DebugAssert(btn_opr->GetColor(btn_opr->context, root) == Black);
+    ZETA_DebugAssert(ZETA_CallMemberFunc(btn_opr, GetP, root) == NULL);
+    ZETA_DebugAssert(ZETA_CallMemberFunc(btn_opr, GetColor, root) == Black);
 
 #if !ZETA_EnableDebug
     ZETA_Unused(dst_mr);

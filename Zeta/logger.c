@@ -1,14 +1,15 @@
 #include "logger.h"
 
+#include "debugger.h"
 #include "pipe.h"
 
 void Zeta_Logger_LogUDec_(Zeta_Pipe* pipe, void* ptr_) {
     void* ptr = *((void**)ptr_);
 
-    pipe->Write(pipe->context, 2, "0x");
+    ZETA_CallMemberFunc(pipe, Write, 2, "0x");
 
     Zeta_Pipe_WriteUInt(pipe, ZETA_PtrToAddr(ptr), FALSE, 16, ZETA_io_r_just,
-                        ZETA_CeilIntDiv(ZETA_WidthOf(uintptr_t), 4), '0');
+                        ZETA_UnsafeCeilIntDiv(ZETA_WidthOf(uintptr_t), 4), '0');
 }
 
 void Zeta_Logger_LogBool_(Zeta_Pipe* pipe, void const* ptr) {
@@ -73,7 +74,7 @@ void Zeta_Logger_LogSLLong_(Zeta_Pipe* pipe, void const* ptr) {
 }
 
 void Zeta_Logger_LogPtr_(Zeta_Pipe* pipe, void const* ptr) {
-    pipe->Write(pipe->context, 2, "0x");
+    ZETA_CallMemberFunc(pipe, Write, 2, "0x");
 
     Zeta_Pipe_WriteUInt(pipe, ZETA_PtrToAddr(*((void* const*)ptr)), FALSE, 16,
                         ZETA_io_r_just, ZETA_LogVar_varval_just_width - 2, '0');

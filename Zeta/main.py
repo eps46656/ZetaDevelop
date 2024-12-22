@@ -6,7 +6,7 @@ from typeguard import typechecked
 
 from Builder import Builder
 from LLVMCompiler import LLVMCompiler, LLVMCompilerConfig
-from utils import ModeEnum, Target
+from utils import Target
 
 FILE = pathlib.Path(__file__).absolute()
 DIR = FILE.parents[0]
@@ -20,14 +20,17 @@ class Config:
 
     target: Target
 
-    mode: ModeEnum
-
-    enable_debug: bool
-
-    enable_asan: bool
+    c_standard: str
+    cpp_standard: str
 
     c_include_dirs: typing.Iterable[object]
     cpp_include_dirs: typing.Iterable[object]
+
+    enable_debug: bool
+    enable_asan: bool
+
+    opt_type: str
+    link_time_opt: bool
 
 
 @typechecked
@@ -39,16 +42,19 @@ def AddDeps(builder: Builder, config: Config):
 
         target=config.target,
 
-        mode=config.mode,
-
         base_dir=DIR.parents[0],
+
+        c_standard=config.c_standard,
+        cpp_standard=config.cpp_standard,
 
         c_include_dirs=[],
         cpp_include_dirs=[],
 
         enable_debug=config.enable_debug,
-
         enable_asan=config.enable_asan,
+
+        opt_type=config.opt_type,
+        link_time_opt=config.link_time_opt,
     ))
 
     zeta_dir = DIR
@@ -219,7 +225,6 @@ def AddDeps(builder: Builder, config: Config):
         f"{zeta_dir}/block_vector.h",
         {
             f"{FILE}",
-
             f"{zeta_dir}/define.h",
         },
         None
@@ -772,7 +777,6 @@ def AddDeps(builder: Builder, config: Config):
         f"{zeta_dir}/dynamic_hash_table.c",
         {
             f"{FILE}",
-
             f"{zeta_dir}/dynamic_hash_table.h",
             f"{zeta_dir}/debugger.h",
             f"{zeta_dir}/utils.h",
@@ -909,7 +913,6 @@ def AddDeps(builder: Builder, config: Config):
         {
             f"{FILE}",
             f"{zeta_dir}/Groupbin_heap.h",
-
             f"{zeta_dir}/debugger.h",
             f"{zeta_dir}/utils.h",
         },
@@ -1024,7 +1027,6 @@ def AddDeps(builder: Builder, config: Config):
         f"{zeta_dir}/jump.h",
         {
             f"{FILE}",
-
             f"{zeta_dir}/define.h",
         },
         None
@@ -1122,7 +1124,6 @@ def AddDeps(builder: Builder, config: Config):
         f"{zeta_dir}/lru_cache_manager.h",
         {
             f"{FILE}",
-
             f"{zeta_dir}/allocator.h",
             f"{zeta_dir}/block_vector.h",
             f"{zeta_dir}/cache_manager.h",
@@ -1137,9 +1138,7 @@ def AddDeps(builder: Builder, config: Config):
         f"{zeta_dir}/lru_cache_manager.c",
         {
             f"{FILE}",
-
             f"{zeta_dir}/lru_cache_manager.h",
-
             f"{zeta_dir}/debugger.h",
             f"{zeta_dir}/rbtree.h",
             f"{zeta_dir}/utils.h",
@@ -1222,7 +1221,39 @@ def AddDeps(builder: Builder, config: Config):
     )
 
     builder.Add(
-        f"{zeta_dir}/Ordallocator.h",
+        f"{zeta_dir}/multi_level_table.h",
+        {
+            f"{FILE}",
+            f"{zeta_dir}/allocator.h",
+            f"{zeta_dir}/mem_check_utils.h",
+        },
+        None
+    )
+
+    builder.Add(
+        f"{zeta_dir}/multi_level_table.c",
+        {
+            f"{FILE}",
+            f"{zeta_dir}/multi_level_table.h",
+            f"{zeta_dir}/debugger.h",
+        },
+        None
+    )
+
+    builder.Add(
+        f"{zeta_build_dir}/multi_level_table.o",
+        {
+            f"{FILE}",
+            f"{zeta_dir}/multi_level_table.c"
+        },
+        lambda: compiler.c_to_obj(
+            f"{zeta_build_dir}/multi_level_table.o",
+            f"{zeta_dir}/multi_level_table.c"
+        )
+    )
+
+    builder.Add(
+        f"{zeta_dir}/ord_allocator.h",
         {
             f"{FILE}",
             f"{zeta_dir}/allocator.h",
@@ -1250,7 +1281,6 @@ def AddDeps(builder: Builder, config: Config):
         f"{zeta_dir}/ord_bin_tree_node.h",
         {
             f"{FILE}",
-
             f"{zeta_dir}/bin_tree.h",
         },
         None
@@ -1260,7 +1290,6 @@ def AddDeps(builder: Builder, config: Config):
         f"{zeta_dir}/ord_bin_tree_node.c",
         {
             f"{FILE}",
-
             f"{zeta_dir}/ord_bin_tree_node.h",
         },
         None
@@ -1663,6 +1692,37 @@ def AddDeps(builder: Builder, config: Config):
         lambda: compiler.c_to_obj(
             f"{zeta_build_dir}/seg_vector.o",
             f"{zeta_dir}/seg_vector.c",
+        )
+    )
+
+    builder.Add(
+        f"{zeta_dir}/seg_tree.h",
+        {
+            f"{FILE}",
+            f"{zeta_dir}/define.h",
+        },
+        None
+    )
+
+    builder.Add(
+        f"{zeta_dir}/seg_tree.c",
+        {
+            f"{FILE}",
+            f"{zeta_dir}/seg_tree.h",
+            f"{zeta_dir}/debugger.h",
+        },
+        None
+    )
+
+    builder.Add(
+        f"{zeta_build_dir}/seg_tree.o",
+        {
+            f"{FILE}",
+            f"{zeta_dir}/seg_tree.c",
+        },
+        lambda: compiler.c_to_obj(
+            f"{zeta_build_dir}/seg_tree.o",
+            f"{zeta_dir}/seg_tree.c",
         )
     )
 

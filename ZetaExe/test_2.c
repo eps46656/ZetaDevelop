@@ -4,7 +4,7 @@
 void main1() {
     ZETA_PrintCurPos;
 
-    double base = ZETA_2Power(ZETA_FixedPoint_BaseOrder);
+    double base = 1ULL << ZETA_FixedPoint_BaseOrder;
 
     double max_k_err = 0;
 
@@ -33,7 +33,7 @@ void main1() {
 void main2() {
     ZETA_PrintCurPos;
 
-    double base = ZETA_2Power(ZETA_FixedPoint_BaseOrder);
+    double base = 1ULL << ZETA_FixedPoint_BaseOrder;
 
     double max_k_err = 0;
 
@@ -62,7 +62,7 @@ void main2() {
 void main3() {
     ZETA_PrintCurPos;
 
-    double base = ZETA_2Power(ZETA_FixedPoint_BaseOrder);
+    double base = 1ULL << ZETA_FixedPoint_BaseOrder;
 
     double max_k_err = 0;
 

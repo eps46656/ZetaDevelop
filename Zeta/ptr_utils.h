@@ -146,3 +146,5 @@
     ZETA_RelColorPtr_SetColor_(ZETA_TmpName, ZETA_TmpName, ZETA_TmpName,       \
                                ZETA_TmpName, (rel_color_ptr), (align), (base), \
                                (color))
+
+// -----------------------------------------------------------------------------

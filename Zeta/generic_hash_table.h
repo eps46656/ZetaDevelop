@@ -66,4 +66,6 @@ void Zeta_GenericHashTable_Sanitize(void* ght, Zeta_MemRecorder* dst_table,
 
 void Zeta_GenericHashTable_CheckNode(void* ght, void* node);
 
+void Zeta_GenericHashTable_Node_Init(void* ghtn);
+
 ZETA_ExternC_End;

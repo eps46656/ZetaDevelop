@@ -715,3 +715,10 @@ void Zeta_GenericHashTable_CheckNode(void* ght_, void* node_) {
 
     ZETA_DebugAssert(nxt_table[nxt_bucket_idx] == root);
 }
+
+void Zeta_GenericHashTable_Node_Init(void* node_) {
+    Zeta_GenericHashTable_Node* node = node_;
+    ZETA_DebugAssert(node != NULL);
+
+    Zeta_OrdRBTreeNode_Init(NULL, &node->n);
+}

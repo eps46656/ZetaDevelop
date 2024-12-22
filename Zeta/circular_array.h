@@ -4,8 +4,6 @@
 
 ZETA_ExternC_Beg;
 
-#define ZETA_CircularArray_max_capacity ZETA_GetMaxMod(size_t)
-
 ZETA_DeclareStruct(Zeta_CircularArray);
 ZETA_DeclareStruct(Zeta_CircularArray_Cursor);
 
@@ -25,47 +23,107 @@ struct Zeta_CircularArray_Cursor {
 
 void Zeta_CircularArray_Init(void* ca);
 
+/**
+ * @copydoc Zeta_SeqCntr::Deinit
+ */
 void Zeta_CircularArray_Deinit(void* ca);
 
+/**
+ * @copydoc Zeta_SeqCntr::GetWidth
+ */
 size_t Zeta_CircularArray_GetWidth(void* ca);
 
+/**
+ * @copydoc Zeta_SeqCntr::GetOffset
+ */
 size_t Zeta_CircularArray_GetOffset(void* ca);
 
+/**
+ * @copydoc Zeta_SeqCntr::GetSize
+ */
 size_t Zeta_CircularArray_GetSize(void* ca);
 
+/**
+ * @copydoc Zeta_SeqCntr::GetCapacity
+ */
 size_t Zeta_CircularArray_GetCapacity(void* ca);
 
+/**
+ * @copydoc Zeta_SeqCntr::GetLBCursor
+ */
 void Zeta_CircularArray_GetLBCursor(void* ca, void* dst_cursor);
 
+/**
+ * @copydoc Zeta_SeqCntr::GetRBCursor
+ */
 void Zeta_CircularArray_GetRBCursor(void* ca, void* dst_cursor);
 
+/**
+ * @copydoc Zeta_SeqCntr::PeekL
+ */
 void* Zeta_CircularArray_PeekL(void* ca, void* dst_cursor, void* dst_elem);
 
+/**
+ * @copydoc Zeta_SeqCntr::PeekR
+ */
 void* Zeta_CircularArray_PeekR(void* ca, void* dst_cursor, void* dst_elem);
 
+/**
+ * @copydoc Zeta_SeqCntr::Access
+ */
 void* Zeta_CircularArray_Access(void* ca, size_t idx, void* dst_cursor,
                                 void* dst_elem);
 
+/**
+ * @copydoc Zeta_SeqCntr::Refer
+ */
 void* Zeta_CircularArray_Refer(void* ca, void const* pos_cursor);
 
+/**
+ * @copydoc Zeta_SeqCntr::Read
+ */
 void Zeta_CircularArray_Read(void* ca, void const* pos_cursor, size_t cnt,
                              void* dst, void* dst_cursor);
 
+/**
+ * @copydoc Zeta_SeqCntr::Write
+ */
 void Zeta_CircularArray_Write(void* ca, void* pos_cursor, size_t cnt,
                               void const* src, void* dst_cursor);
 
+/**
+ * @copydoc Zeta_SeqCntr::PushL
+ */
 void* Zeta_CircularArray_PushL(void* ca, size_t cnt, void* dst_cursor);
 
+/**
+ * @copydoc Zeta_SeqCntr::PushR
+ */
 void* Zeta_CircularArray_PushR(void* ca, size_t cnt, void* dst_cursor);
 
+/**
+ * @copydoc Zeta_SeqCntr::Insert
+ */
 void* Zeta_CircularArray_Insert(void* ca, void* pos_cursor, size_t cnt);
 
+/**
+ * @copydoc Zeta_SeqCntr::PopL
+ */
 void Zeta_CircularArray_PopL(void* ca, size_t cnt);
 
+/**
+ * @copydoc Zeta_SeqCntr::PopR
+ */
 void Zeta_CircularArray_PopR(void* ca, size_t cnt);
 
+/**
+ * @copydoc Zeta_SeqCntr::Erase
+ */
 void Zeta_CircularArray_Erase(void* ca, void* pos_cursor, size_t cnt);
 
+/**
+ * @copydoc Zeta_SeqCntr::EraseAll
+ */
 void Zeta_CircularArray_EraseAll(void* ca);
 
 size_t Zeta_CircularArray_GetLongestContPred(void* ca, size_t idx);
@@ -81,23 +139,40 @@ void Zeta_CircularArray_AssignFromSeqCntr(void* ca, void* ca_cursor,
 
 void Zeta_CircularArray_Check(void* ca);
 
+/**
+ * @copydoc Zeta_SeqCntr::Cursor_AreEqual
+ */
 bool_t Zeta_CircularArray_Cursor_AreEqual(void* ca, void const* cursor_a,
                                           void const* cursor_b);
-
+/**
+ * @copydoc Zeta_SeqCntr::Cursor_Compare
+ */
 int Zeta_CircularArray_Cursor_Compare(void* ca, void const* cursor_a,
                                       void const* cursor_b);
-
+/**
+ * @copydoc Zeta_SeqCntr::Cursor_GetDist
+ */
 size_t Zeta_CircularArray_Cursor_GetDist(void* ca, void const* cursor_a,
                                          void const* cursor_b);
-
+/**
+ * @copydoc Zeta_SeqCntr::Cursor_GetIdx
+ */
 size_t Zeta_CircularArray_Cursor_GetIdx(void* ca, void const* cursor);
-
+/**
+ * @copydoc Zeta_SeqCntr::Cursor_StepL
+ */
 void Zeta_CircularArray_Cursor_StepL(void* ca, void* cursor);
-
+/**
+ * @copydoc Zeta_SeqCntr::Cursor_StepR
+ */
 void Zeta_CircularArray_Cursor_StepR(void* ca, void* cursor);
-
+/**
+ * @copydoc Zeta_SeqCntr::Cursor_AdvanceL
+ */
 void Zeta_CircularArray_Cursor_AdvanceL(void* ca, void* cursor, size_t step);
-
+/**
+ * @copydoc Zeta_SeqCntr::Cursor_AdvanceR
+ */
 void Zeta_CircularArray_Cursor_AdvanceR(void* ca, void* cursor, size_t step);
 
 void Zeta_CircularArray_Cursor_Check(void* ca, void const* cursor);

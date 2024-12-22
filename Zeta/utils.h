@@ -193,6 +193,8 @@ byte_t const* Zeta_ReadStr(byte_t const* src, size_t src_size);
 
 unsigned long long Zeta_ULLHash(unsigned long long x, unsigned long long salt);
 
+unsigned long long Zeta_LLHash(long long x, unsigned long long salt);
+
 unsigned long long Zeta_SimpleRandom(unsigned long long x);
 
 unsigned long long Zeta_SimpleRandomRotate(unsigned long long* x);

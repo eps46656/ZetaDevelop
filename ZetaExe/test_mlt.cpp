@@ -1,399 +1,278 @@
-#include <chrono>
-#include <deque>
+#include <multi_level_table.h>
+
 #include <map>
-#include <random>
-#include <set>
-#include <unordered_map>
-#include <vector>
 
-#include "../Zeta/MultiLevelTable.h"
-#include "../Zeta/ord_linked_list_node.h"
-#include "cpp_std_allocator.h"
-#include "pool_allocator.h"
+#include "random.h"
+#include "std_allocator.h"
+#include "timer.h"
 
-size_t time_ring{ (size_t)1 << 32 };
-size_t tasks_num{ (size_t)1 << 8 };
-
-std::mt19937_64 rand_en;
-
-size_t min_priority_stride{ 1 };
-size_t max_priority_stride{ (size_t)1 << 30 };
-
-std::uniform_int_distribution<size_t> time_generator{ 0, time_ring - 1 };
-
-std::uniform_int_distribution<size_t> time_stride_generator{
-    min_priority_stride, max_priority_stride
-};
-
-// -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
-
-size_t GetIdx(Zeta_MultiLevelTable* mlt, size_t const* idxes) {
-    size_t idx = idxes[0];
-
-    for (int level_i = 1; level_i < mlt->level; ++level_i) {
-        idx = idx * mlt->branch_nums[level_i] + idxes[level_i];
-    }
-
-    return idx;
-}
-
-void GetIdxes(Zeta_MultiLevelTable* mlt, size_t* dst, size_t idx) {
-    size_t origin_idx = idx;
-
-    for (int level_i = mlt->level - 1; 0 <= level_i; --level_i) {
-        dst[level_i] = idx % mlt->branch_nums[level_i];
-        idx /= mlt->branch_nums[level_i];
-    }
-
-    ZETA_DebugAssert(origin_idx == GetIdx(mlt, dst));
-}
-
-// -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
-
-struct MLTTaskNode {
-    size_t id;
-    Zeta_OrdLinkedListNode n;
-};
-
-class MLTScheduler {
-public:
-    size_t time_capacity;
-    size_t tasks_num;
-
-    std::vector<MLTTaskNode> task_nodes;
-
-    ZetaPoolAllocator mlt_node_allocator_;
-    Zeta_Allocator mlt_node_allocator;
+struct ZetaMap {
+    StdAllocator node_allocator_;
+    Zeta_Allocator node_allocator;
 
     Zeta_MultiLevelTable mlt;
 
-    size_t cur_time_idxes[ZETA_MultiLevelTable_max_level];
-    void** cur_ele;
+    ZetaMap() {
+        ZETA_PrintCurPos;
 
-    MLTScheduler(size_t time_capacity, size_t tasks_num);
+        int level{ 8 };
 
-    void PushTask(size_t time, size_t task_id);
+        this->mlt.level = level;
 
-    std::pair<size_t, size_t> PopTask();
-};
+        ZETA_PrintCurPos;
 
-MLTScheduler::MLTScheduler(size_t time_capacity, size_t tasks_num)
-    : time_capacity{ time_capacity }, tasks_num{ tasks_num } {
-    this->task_nodes.resize(this->tasks_num);
-
-    for (size_t task_id{ 0 }; task_id < this->tasks_num; ++task_id) {
-        this->task_nodes[task_id].id = task_id;
-
-        Zeta_OrdLinkedListNode_Init(&this->task_nodes[task_id].n);
-    }
-
-    size_t needed_capacity{ this->time_capacity };
-
-    int level = 0;
-
-    for (; 1 < needed_capacity;
-         needed_capacity /= ZETA_MultiLevelTable_max_branch_num, ++level) {
-        this->mlt.branch_nums[level] = ZETA_MultiLevelTable_max_branch_num;
-    }
-
-    this->mlt.level = level;
-
-    ZETA_PrintVar(this->mlt.level);
-
-    this->mlt_node_allocator_.size = 512 + 8;
-    this->mlt_node_allocator_.max_buffered_ptrs_num = tasks_num * level;
-
-    Zeta_Allocator_Init(&this->mlt_node_allocator);
-
-    ZetaPoolAllocator_DeployAllocator(&this->mlt_node_allocator_,
-                                      &this->mlt_node_allocator);
-
-    this->mlt.node_allocator = &this->mlt_node_allocator;
-
-    Zeta_MultiLevelTable_Init(&this->mlt);
-
-    for (int level_i{ 0 }; level_i < level; ++level_i) {
-        this->cur_time_idxes[level_i] = 0;
-    }
-
-    this->cur_ele = NULL;
-}
-
-void MLTScheduler::PushTask(size_t time, size_t task_id) {
-    size_t idxes[ZETA_MultiLevelTable_max_level];
-    GetIdxes(&this->mlt, idxes, time);
-
-    size_t old_size{ Zeta_MultiLevelTable_GetSize(&this->mlt) };
-
-    void** ele{ Zeta_MultiLevelTable_Insert(&this->mlt, idxes) };
-
-    size_t new_size{ Zeta_MultiLevelTable_GetSize(&this->mlt) };
-
-    if (old_size == new_size && *ele != NULL) {
-        Zeta_OrdLinkedListNode_InsertL(*ele, &this->task_nodes[task_id].n);
-    } else {
-        *ele = &this->task_nodes[task_id].n;
-    }
-}
-
-std::pair<size_t, size_t> MLTScheduler::PopTask() {
-    for (;;) {
-        if (this->cur_ele == NULL) {
-            this->cur_ele = Zeta_MultiLevelTable_FindNext(
-                &this->mlt, this->cur_time_idxes, TRUE);
-
-            if (this->cur_ele == NULL) { return { 0, this->tasks_num }; }
+        for (int level_i{ 0 }; level_i < level; ++level_i) {
+            this->mlt.branch_nums[level_i] =
+                ZETA_MultiLevelTable_max_branch_num;
         }
 
-        if (*this->cur_ele != NULL) { break; }
+        ZETA_PrintCurPos;
 
-        Zeta_MultiLevelTable_Erase(&this->mlt, this->cur_time_idxes);
+        StdAllocator_DeployAllocator(&this->node_allocator_,
+                                     &this->node_allocator);
 
-        this->cur_ele = Zeta_MultiLevelTable_FindNext(
-            &this->mlt, this->cur_time_idxes, TRUE);
+        this->mlt.node_allocator = &this->node_allocator;
+
+        Zeta_MultiLevelTable_Init(&this->mlt);
+
+        ZETA_PrintCurPos;
+
+        this->Sanitize();
     }
 
-    MLTTaskNode* task_node{ ZETA_MemberToStruct(MLTTaskNode, n,
-                                                *this->cur_ele) };
+    void SetIdxes_(size_t idx, size_t* dst_idxes) {
+        int level = this->mlt.level;
 
-    void* nxt_ele{ Zeta_OrdLinkedListNode_GetR(*this->cur_ele) };
-
-    if (*this->cur_ele == nxt_ele) {
-        *this->cur_ele = NULL;
-    } else {
-        Zeta_OrdLinkedListNode_Extract(*this->cur_ele);
-        *this->cur_ele = nxt_ele;
+        for (int level_i{ level - 1 }; 0 <= level_i; --level_i) {
+            dst_idxes[level_i] = idx % this->mlt.branch_nums[level_i];
+            idx /= this->mlt.branch_nums[level_i];
+        }
     }
 
-    return { GetIdx(&this->mlt, this->cur_time_idxes), task_node->id };
-}
+    size_t GetIdx_(size_t* idxes) {
+        int level = this->mlt.level;
 
-// -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
+        size_t idx = 0;
 
-class RBTScheduler {
-public:
-    using rbt_t = std::map<size_t, void*, std::less<size_t>,
-                           CppStdAllocator<std::pair<const size_t, void*>>>;
-
-    size_t time_capacity;
-    size_t tasks_num;
-
-    std::vector<MLTTaskNode> task_nodes;
-
-    rbt_t rbt;
-
-    rbt_t::iterator cur_iter;
-
-    RBTScheduler(size_t time_capacity, size_t tasks_num);
-
-    void PushTask(size_t time, size_t task_id);
-
-    std::pair<size_t, size_t> PopTask();
-};
-
-RBTScheduler::RBTScheduler(size_t time_capacity, size_t tasks_num)
-    : time_capacity{ time_capacity },
-      tasks_num{ tasks_num },
-      rbt{ CppStdAllocator<std::pair<const size_t, void*>>{ 48,
-                                                            tasks_num + 4 } } {
-    this->task_nodes.resize(this->tasks_num);
-
-    for (size_t task_id{ 0 }; task_id < this->tasks_num; ++task_id) {
-        this->task_nodes[task_id].id = task_id;
-
-        Zeta_OrdLinkedListNode_Init(&this->task_nodes[task_id].n);
-    }
-
-    this->cur_iter = this->rbt.end();
-}
-
-void RBTScheduler::PushTask(size_t time, size_t task_id) {
-    auto iter_b{ this->rbt.insert({ time, NULL }) };
-
-    auto iter{ iter_b.first };
-
-    if (iter_b.second) {
-        iter->second = &this->task_nodes[task_id].n;
-    } else {
-        Zeta_OrdLinkedListNode_InsertL(iter->second,
-                                       &this->task_nodes[task_id].n);
-    }
-}
-
-std::pair<size_t, size_t> RBTScheduler::PopTask() {
-    for (;;) {
-        if (this->cur_iter == this->rbt.end()) {
-            this->cur_iter = this->rbt.begin();
-
-            if (this->cur_iter == this->rbt.end()) {
-                return { 0, this->tasks_num };
-            }
+        for (int level_i{ 0 }; level_i < level; ++level_i) {
+            idx = idx * this->mlt.branch_nums[level_i] + idxes[level_i];
         }
 
-        if (this->cur_iter->second != NULL) { break; }
-
-        this->cur_iter = this->rbt.erase(this->cur_iter);
+        return idx;
     }
 
-    void* ele = this->cur_iter->second;
-    MLTTaskNode* task_node{ ZETA_MemberToStruct(MLTTaskNode, n, ele) };
+    void Sanitize() {
+        Zeta_MemRecorder* node = Zeta_MemRecorder_Create();
 
-    std::pair<size_t, size_t> ret{ this->cur_iter->first, task_node->id };
+        Zeta_MultiLevelTable_Sanitize(&this->mlt, node);
 
-    void* nxt_ele{ Zeta_OrdLinkedListNode_GetR(ele) };
+        Zeta_MemCheck_MatchRecords(this->node_allocator_.mem_recorder, node);
 
-    if (ele == nxt_ele) {
-        this->cur_iter->second = NULL;
-    } else {
-        Zeta_OrdLinkedListNode_Extract(ele);
-        this->cur_iter->second = nxt_ele;
+        Zeta_MemRecorder_Destroy(node);
     }
 
-    return ret;
+    size_t GetSize() { return Zeta_MultiLevelTable_GetSize(&this->mlt); }
+
+    size_t GetCapacity() {
+        return Zeta_MultiLevelTable_GetCapacity(&this->mlt);
+    }
+
+    void* Access(size_t idx) {
+        void** n = Zeta_MultiLevelTable_Access(&this->mlt, idx);
+
+        this->Sanitize();
+
+        return n == NULL ? NULL : *n;
+    }
+
+    void Insert(size_t idx, void* val) {
+        size_t idxes[ZETA_MultiLevelTable_max_level];
+
+        this->SetIdxes_(idx, idxes);
+
+        void** n = Zeta_MultiLevelTable_Insert(&this->mlt, idxes);
+
+        ZETA_DebugAssert(n != NULL);
+
+        *n = val;
+
+        this->Sanitize();
+    }
+
+    void Erase(size_t idx) {
+        size_t idxes[ZETA_MultiLevelTable_max_level];
+
+        this->SetIdxes_(idx, idxes);
+
+        Zeta_MultiLevelTable_Erase(&this->mlt, idxes);
+
+        this->Sanitize();
+    }
+
+    size_t FindPrev(size_t idx) {
+        void** n = Zeta_MultiLevelTable_FindPrev(&this->mlt, &idx);
+        ZETA_Unused(n);
+
+        this->Sanitize();
+
+        return idx;
+    }
+
+    size_t FindNext(size_t idx) {
+        void** n = Zeta_MultiLevelTable_FindNext(&this->mlt, &idx);
+        ZETA_Unused(n);
+
+        this->Sanitize();
+
+        return idx;
+    }
+};
+
+struct StdMap {
+    std::map<size_t, void*> m;
+
+    size_t GetSize() { return this->m.size(); }
+
+    void* Access(size_t idx) {
+        auto iter{ this->m.find(idx) };
+        return iter == m.end() ? NULL : iter->second;
+    }
+
+    void Insert(size_t idx, void* val) { this->m[idx] = val; }
+
+    void Erase(size_t idx) { this->m.erase(idx); }
+
+    size_t FindPrev(size_t idx) {
+        auto iter{ this->m.upper_bound(idx) };
+        return iter == this->m.begin() ? -1 : std::prev(iter)->first;
+    }
+
+    size_t FindNext(size_t idx) {
+        auto iter{ this->m.lower_bound(idx) };
+        return iter == this->m.end() ? -1 : iter->first;
+    }
+};
+
+char base;
+
+void SyncAccess(ZetaMap& zeta_map, StdMap& std_map) {
+    size_t capacity{ zeta_map.GetCapacity() };
+
+    size_t idx{ GetRandomInt<size_t, size_t>(0, capacity - 1) };
+
+    ZETA_DebugAssert(zeta_map.Access(idx) == std_map.Access(idx));
 }
 
-// -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
+void SyncInsert(ZetaMap& zeta_map, StdMap& std_map) {
+    size_t capacity{ zeta_map.GetCapacity() };
+
+    size_t idx{ GetRandomInt<size_t, size_t>(0, capacity - 1) };
+
+    void* val{ &base + GetRandomInt<size_t, size_t>(0, 1024 * 1024) };
+
+    zeta_map.Insert(idx, val);
+    ZETA_DebugAssert(zeta_map.Access(idx) == val);
+
+    std_map.Insert(idx, val);
+    ZETA_DebugAssert(std_map.Access(idx) == val);
+}
+
+void SyncErase(ZetaMap& zeta_map, StdMap& std_map) {
+    size_t capacity{ zeta_map.GetCapacity() };
+
+    size_t idx{ GetRandomInt<size_t, size_t>(0, capacity - 1) };
+
+    zeta_map.Erase(idx);
+    ZETA_DebugAssert(zeta_map.Access(idx) == NULL);
+
+    std_map.Erase(idx);
+    ZETA_DebugAssert(std_map.Access(idx) == NULL);
+}
+
+void SyncFindPrev(ZetaMap& zeta_map, StdMap& std_map) {
+    size_t capacity{ zeta_map.GetCapacity() };
+
+    size_t idx{ GetRandomInt<size_t, size_t>(0, capacity - 1) };
+
+    size_t zeta_map_prv_idx{ zeta_map.FindPrev(idx) };
+
+    size_t std_map_prv_idx{ std_map.FindPrev(idx) };
+
+    ZETA_DebugAssert(zeta_map_prv_idx == std_map_prv_idx);
+
+    ZETA_DebugAssert(zeta_map.Access(zeta_map_prv_idx) ==
+                     std_map.Access(std_map_prv_idx));
+}
+
+void SyncFindNext(ZetaMap& zeta_map, StdMap& std_map) {
+    size_t capacity{ zeta_map.GetCapacity() };
+
+    size_t idx{ GetRandomInt<size_t, size_t>(0, capacity - 1) };
+
+    size_t zeta_map_prv_idx{ zeta_map.FindNext(idx) };
+
+    size_t std_map_prv_idx{ std_map.FindNext(idx) };
+
+    ZETA_DebugAssert(zeta_map_prv_idx == std_map_prv_idx);
+
+    ZETA_DebugAssert(zeta_map.Access(zeta_map_prv_idx) ==
+                     std_map.Access(std_map_prv_idx));
+}
+
+#define FOR_LOOP_(tmp_end, var, beg, end) \
+    for (auto var = (beg), tmp_end = (end); var != tmp_end; ++var)
+
+#define FOR_LOOP(var, beg, end) FOR_LOOP_(ZETA_TmpName, var, (beg), (end))
 
 void main1() {
-    ZETA_PrintPos;
+    unsigned random_seed = time(NULL);
+    unsigned fixed_seed = 1729615114;
 
-    time_t seed = time(NULL);
+    unsigned seed = random_seed;
+    // unsigned seed = fixed_seed;
+
+    ZETA_PrintCurPos;
+
+    ZETA_PrintVar(random_seed);
+    ZETA_PrintVar(fixed_seed);
     ZETA_PrintVar(seed);
 
-    rand_en.seed(seed);
+    RandomEngine().seed(seed);
 
-    MLTScheduler mlt_scheduler{ time_ring, tasks_num };
-    RBTScheduler set_scheduler{ time_ring, tasks_num };
+    ZetaMap zeta_map;
+    StdMap std_map;
 
-    for (size_t task_id{ 0 }; task_id < tasks_num; ++task_id) {
-        size_t time = time_generator(rand_en);
-
-        mlt_scheduler.PushTask(time, task_id);
-        set_scheduler.PushTask(time, task_id);
+    FOR_LOOP(insert_i, 0, 1024) {
+        ZETA_PrintVar(insert_i);
+        SyncInsert(zeta_map, std_map);
     }
 
-    std::chrono::steady_clock::time_point begin =
-        std::chrono::steady_clock::now();
+    FOR_LOOP(test_i, 0, 16) {
+        ZETA_PrintVar(test_i);
 
-    for (size_t s{ 0 }; s < 16 * 1024 * 1024; ++s) {
-        std::pair<size_t, size_t> mlt_p{ mlt_scheduler.PopTask() };
-        std::pair<size_t, size_t> set_p{ set_scheduler.PopTask() };
+        FOR_LOOP(ZETA_TmpName, 0, 1024) { SyncInsert(zeta_map, std_map); }
 
-        ZETA_DebugAssert(mlt_p.first == set_p.first);
-        ZETA_DebugAssert(mlt_p.second == set_p.second);
+        FOR_LOOP(ZETA_TmpName, 0, 1024) { SyncErase(zeta_map, std_map); }
 
-        size_t nxt_time{ mlt_p.first };
-        size_t nxt_task_id{ mlt_p.second };
+        FOR_LOOP(ZETA_TmpName, 0, 1024) { SyncFindPrev(zeta_map, std_map); }
 
-        // printf("%llu %llu\n", nxt_time, nxt_task_id);
-
-        ZETA_DebugAssert(nxt_task_id != tasks_num);
-
-        size_t time_stride{ time_stride_generator(rand_en) };
-
-        nxt_time = (nxt_time + time_stride) % time_ring;
-
-        mlt_scheduler.PushTask(nxt_time, nxt_task_id);
-        set_scheduler.PushTask(nxt_time, nxt_task_id);
+        FOR_LOOP(ZETA_TmpName, 0, 1024) { SyncFindNext(zeta_map, std_map); }
     }
-
-    std::chrono::steady_clock::time_point end =
-        std::chrono::steady_clock::now();
-
-    std::cout << "Time difference = "
-              << std::chrono::duration_cast<std::chrono::milliseconds>(end -
-                                                                       begin)
-                     .count()
-              << "[ms]\n";
-}
-
-void main2() {
-    time_t seed = time(NULL);
-    ZETA_PrintVar(seed);
-
-    rand_en.seed(seed);
-
-    // MLTScheduler scheduler{ time_ring, tasks_num };
-    RBTScheduler scheduler{ time_ring, tasks_num };
-
-    for (size_t task_id{ 0 }; task_id < tasks_num; ++task_id) {
-        size_t time = time_stride_generator(rand_en);
-
-        scheduler.PushTask(time, task_id);
-    }
-
-    size_t hash_code{ 0 };
-
-    size_t pre_scheduling_num{ 1 * 1024 * 1024 };
-    size_t scheduling_num{ 16 * 1024 * 1024 };
-
-    std::deque<size_t> time_strides;
-
-    for (size_t s{ 0 }; s < scheduling_num; ++s) {
-        time_strides.push_back(time_stride_generator(rand_en));
-    }
-
-    for (size_t s{ 0 }; s < pre_scheduling_num; ++s) {
-        std::pair<size_t, size_t> p{ scheduler.PopTask() };
-
-        size_t nxt_time{ p.first };
-        size_t nxt_task_id{ p.second };
-
-        hash_code = hash_code * 23 + nxt_time;
-
-        ZETA_DebugAssert(nxt_task_id != tasks_num);
-
-        size_t time_stride{ time_strides.front() };
-        time_strides.pop_front();
-
-        nxt_time = (nxt_time + time_stride) % time_ring;
-
-        scheduler.PushTask(nxt_time, nxt_task_id);
-    }
-
-    std::chrono::steady_clock::time_point begin =
-        std::chrono::steady_clock::now();
-
-    for (size_t s{ 0 }; s < scheduling_num; ++s) {
-        std::pair<size_t, size_t> p{ scheduler.PopTask() };
-
-        size_t nxt_time{ p.first };
-        size_t nxt_task_id{ p.second };
-
-        hash_code = hash_code * 23 + nxt_time;
-
-        ZETA_DebugAssert(nxt_task_id != tasks_num);
-
-        size_t time_stride{ time_strides.front() };
-        time_strides.pop_front();
-
-        nxt_time = (nxt_time + time_stride) % time_ring;
-
-        scheduler.PushTask(nxt_time, nxt_task_id);
-    }
-
-    ZETA_PrintVar(hash_code);
-
-    std::chrono::steady_clock::time_point end =
-        std::chrono::steady_clock::now();
-
-    std::cout << "Time difference = "
-              << std::chrono::duration_cast<std::chrono::milliseconds>(end -
-                                                                       begin)
-                     .count()
-              << "[ms]\n";
 }
 
 int main() {
-    main2();
-    printf("ok\n");
+    unsigned long long beg_time{ GetTime() };
+    ZETA_PrintVar(beg_time);
+
+    main1();
+
+    ZETA_PrintVar(beg_time);
+
+    unsigned long long end_time{ GetTime() };
+    ZETA_PrintVar(end_time);
+
+    unsigned long long duration{ end_time - beg_time };
+    ZETA_PrintVar(duration);
+
     return 0;
 }

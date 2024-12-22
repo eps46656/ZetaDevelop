@@ -99,12 +99,15 @@
 
 #define SetNColor_(n, c) SetNColor__(ZETA_TmpName, (n), (c))
 
-#define GetAvgCnt_(x)                                                   \
-    ({                                                                  \
-        size_t x_ = (x);                                                \
-        size_t seg_cnt = ZETA_CeilIntDiv(x_, seg_capacity);             \
-        (x_ + Zeta_SimpleRandomRotate(&rand_seed) % seg_cnt) / seg_cnt; \
+#define GetAvgCnt__(tmp_x, tmp_seg_cnt, x)                               \
+    ({                                                                   \
+        size_t tmp_x = (x);                                              \
+        size_t tmp_seg_cnt = ZETA_UnsafeCeilIntDiv(tmp_x, seg_capacity); \
+        (tmp_x + Zeta_SimpleRandomRotate(&rand_seed) % tmp_seg_cnt) /    \
+            tmp_seg_cnt;                                                 \
     })
+
+#define GetAvgCnt_(x) GetAvgCnt__(ZETA_TmpName, ZETA_TmpName, (x))
 
 static void InitTree_(Cntr* cntr) {
     Zeta_BinTreeNodeOperator const* btn_opr = TreeNodeOpr;
@@ -675,7 +678,7 @@ size_t Cntr_(GetCapacity)(void* cntr_) {
     Cntr* cntr = cntr_;
     CheckCntr_(cntr);
 
-    return ZETA_RangeMaxOf(size_t);
+    return ZETA_max_capacity;
 }
 
 void Cntr_(GetLBCursor)(void* cntr_, void* dst_cursor_) {
@@ -1075,7 +1078,7 @@ void Cntr_(Write)(void* cntr_, void* pos_cursor_, size_t cnt, void const* src,
 
         size_t seg_size = seg->ref.size;
 
-        size_t seg_cnt = ZETA_CeilIntDiv(seg_size, seg_capacity);
+        size_t seg_cnt = ZETA_UnsafeCeilIntDiv(seg_size, seg_capacity);
 
         size_t k = (seg_idx * seg_cnt + seg_cnt - 1) / seg_size;
 
@@ -1381,6 +1384,8 @@ void* Cntr_(Insert)(void* cntr_, void* pos_cursor_, size_t cnt) {
     Cntr_(Cursor_Check)(cntr, pos_cursor);
 
     if (cnt == 0) { return pos_cursor->ref; }
+
+    ZETA_DebugAssert(Cntr_(GetSize)(cntr) + cnt <= ZETA_max_capacity);
 
     Zeta_BinTreeNodeOperator const* btn_opr = TreeNodeOpr;
 

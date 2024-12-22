@@ -1,7 +1,7 @@
 #pragma once
 
 #include "allocator.h"
-#include "debug_hash_table.h"
+#include "mem_check_utils.h"
 
 ZETA_ExternC_Beg;
 
@@ -13,7 +13,8 @@ ZETA_DeclareStruct(Zeta_MultiLevelTable_Node);
  */
 #define ZETA_MultiLevelTable_max_level 12
 
-#define ZETA_MultiLevelTable_max_branch_num ZETA_WidthOf(unsigned short)
+#define ZETA_MultiLevelTable_min_branch_num (2)
+#define ZETA_MultiLevelTable_max_branch_num ZETA_ULLONG_WIDTH
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
@@ -22,6 +23,11 @@ ZETA_DeclareStruct(Zeta_MultiLevelTable_Node);
 struct Zeta_MultiLevelTable {
     int level;
     unsigned short branch_nums[ZETA_MultiLevelTable_max_level];
+
+    size_t tree_sizes[ZETA_MultiLevelTable_max_level];
+    /*
+        tree_sizes[i] = mul(branch_nums[i:])
+    */
 
     size_t size;
 
@@ -81,26 +87,23 @@ size_t Zeta_MultiLevelTable_GetCapacity(void* mlt);
  * @return The reference of target entry. If the it is not inserted, return
  * NULL.
  */
-void** Zeta_MultiLevelTable_Access(void* mlt, size_t const* idxes);
+void** Zeta_MultiLevelTable_Access(void* mlt, size_t idx);
 
-void** Zeta_MultiLevelTable_FindFirst(void* mlt, size_t* idxes);
+void** Zeta_MultiLevelTable_FindFirst(void* mlt, size_t* idx);
 
-void** Zeta_MultiLevelTable_FindLast(void* mlt, size_t* idxes);
+void** Zeta_MultiLevelTable_FindLast(void* mlt, size_t* dst_idx);
 
-void** Zeta_MultiLevelTable_FindPrev(void* mlt, size_t* idxes, bool_t included);
+void** Zeta_MultiLevelTable_FindPrev(void* mlt, size_t* dst_idx);
 
 /**
- * @brief Find the next inserted element after idxes pointing.
+ * @brief Find the next entry after idx pointing.
  *
  * @param mlt The target mlt.
- * @param idxes The indexes of beginning of searching range in each level. If
- * the element is found, they will be set as the indexes of the element,
- * otherwise they will be set to 0.
- * @param included Indicates wheather idxes is included in the searching range.
+ * @param idx The beginning index of searching, inclusivly.
  *
  * @return The reference of target entry.
  */
-void** Zeta_MultiLevelTable_FindNext(void* mlt, size_t* idxes, bool_t included);
+void** Zeta_MultiLevelTable_FindNext(void* mlt, size_t* idx);
 
 /**
  * @brief Insert a new entry at idxes then return its reference. If
@@ -130,6 +133,10 @@ void Zeta_MultiLevelTable_Erase(void* mlt, size_t* idxes);
  */
 void Zeta_MultiLevelTable_EraseAll(void* mlt);
 
-void Zeta_MultiLevelTable_Check(void* mlt, Zeta_DebugHashTable* dst_node);
+void Zeta_MultiLevelTable_Check(void* mlt);
+
+void Zeta_MultiLevelTable_CheckIdxes(void* mlt, size_t const* idxes);
+
+void Zeta_MultiLevelTable_Sanitize(void* mlt, Zeta_MemRecorder* dst_node);
 
 ZETA_ExternC_End;

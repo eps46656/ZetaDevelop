@@ -282,24 +282,26 @@ typedef unsigned _BitInt(ZETA_WidthOf(unsigned long long)) ULLBitInt_t;
 
 #define ZETA_InRangeOf(val, type) ZETA_InRangeOf_(ZETA_TmpName, (val), type)
 
-#define ZETA_2Power(x) ((ULLBitInt_t)(1) << (x))
+#define ZETA_MaxModOf(type) (ZETA_RangeMaxOf(type) / 4)
 
-#define ZETA_Is2Power(x) (__builtin_popcountll(x) == 1)
+#define ZETA_max_capacity ZETA_MaxModOf(size_t)
 
-#define ZETA_FloorLog2_(tmp_x, x)                                         \
-    ({                                                                    \
-        ZETA_AutoVar(tmp_x, x);                                           \
-        tmp_x == 0 ? -1 : ZETA_ULLONG_WIDTH - 1 - __builtin_clzll(tmp_x); \
+#define ZETA_IsPower2(x) (__builtin_popcountll(x) == 1)
+
+#define ZETA_FloorLog2_(tmp_x, x)                       \
+    ({                                                  \
+        ZETA_AutoVar(tmp_x, x);                         \
+        ZETA_DebugAssert(0 < tmp_x);                    \
+        ZETA_ULLONG_WIDTH - 1 - __builtin_clzll(tmp_x); \
     })
 
 #define ZETA_FloorLog2(x) ZETA_FloorLog2_(ZETA_TmpName, (x))
 
-#define ZETA_CeilLog2_(tmp_x, x)                                  \
-    ({                                                            \
-        ZETA_AutoVar(tmp_x, x);                                   \
-        tmp_x == 0 ? -1                                           \
-                   : ZETA_ULLONG_WIDTH - __builtin_clzll(tmp_x) - \
-                         (__builtin_popcountll(tmp_x) == 1);      \
+#define ZETA_CeilLog2_(tmp_x, x)                        \
+    ({                                                  \
+        ZETA_AutoVar(tmp_x, x);                         \
+        ZETA_DebugAssert(0 <= tmp_x);                   \
+        tmp_x <= 1 ? 0 : ZETA_FloorLog2(tmp_x - 1) + 1; \
     })
 
 #define ZETA_CeilLog2(x) ZETA_CeilLog2_(ZETA_TmpName, (x))
@@ -352,8 +354,6 @@ typedef unsigned _BitInt(ZETA_WidthOf(unsigned long long)) ULLBitInt_t;
 #define ZETA_Swap(x, y) \
     ZETA_Swap_(ZETA_TmpName, ZETA_TmpName, (x), (y), ZETA_TmpName)
 
-#define ZETA_GetMaxMod(type) (ZETA_RangeMaxOf(type) / 2 + 1)
-
 ZETA_StaticAssert(ZETA_RangeMinOf(byte_t) <= 0);
 
 ZETA_StaticAssert(255 <= ZETA_RangeMaxOf(byte_t));
@@ -366,11 +366,21 @@ ZETA_StaticAssert(255 <= ZETA_RangeMaxOf(byte_t));
 
 #define ZETA_ModAddInv(x, y) ZETA_ModAddInv_(ZETA_TmpName, (x), (y))
 
-#define ZETA_CeilIntDiv_(tmp_x, tmp_y, x, y) \
-    ({                                       \
-        ZETA_AutoVar(tmp_x, x);              \
-        ZETA_AutoVar(tmp_y, y);              \
-        (tmp_x + tmp_y - 1) / tmp_y;         \
+#define ZETA_UnsafeCeilIntDiv_(tmp_x, tmp_y, x, y) \
+    ({                                             \
+        ZETA_AutoVar(tmp_x, x);                    \
+        ZETA_AutoVar(tmp_y, y);                    \
+        (tmp_x + tmp_y - 1) / tmp_y;               \
+    })
+
+#define ZETA_UnsafeCeilIntDiv(x, y) \
+    ZETA_UnsafeCeilIntDiv_(ZETA_TmpName, ZETA_TmpName, (x), (y))
+
+#define ZETA_CeilIntDiv_(tmp_x, tmp_y, x, y)      \
+    ({                                            \
+        ZETA_AutoVar(tmp_x, x);                   \
+        ZETA_AutoVar(tmp_y, y);                   \
+        tmp_x == 0 ? 0 : (tmp_x - 1) / tmp_y + 1; \
     })
 
 #define ZETA_CeilIntDiv(x, y) \
@@ -403,18 +413,9 @@ ZETA_StaticAssert(255 <= ZETA_RangeMaxOf(byte_t));
 
 #define ZETA_IntRoundUp(x, y) ZETA_IntRoundUp_(ZETA_TmpName, (x), (y))
 
-/*
-
-  0   1   2 ... y-1
-  0 y-1 y-2 ...   1
-
-y-1   0   1     y-2
-
-*/
-
 #define ZETA_FixedPoint_BaseOrder (ZETA_ULLONG_WIDTH * 3 / 8)
 
-#define ZETA_FixedPoint_Base ZETA_2Power(ZETA_FixedPoint_BaseOrder)
+#define ZETA_FixedPoint_Base (1ULL << ZETA_FixedPoint_BaseOrder)
 
 #define ZETA_AreOverlapped(a_beg, a_end, b_beg, b_end) \
     (((b_beg) < (a_end)) && ((a_beg) < (b_end)))

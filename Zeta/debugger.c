@@ -31,7 +31,7 @@ void Zeta_Debugger_FlushPipe() {
     unsigned char c;
 
     while (!zeta_debug_pipe->IsEmpty(zeta_debug_pipe->context)) {
-        zeta_debug_pipe->Read(zeta_debug_pipe->context, 1, &c);
+        ZETA_CallMemberFunc(zeta_debug_pipe, Read, 1, &c);
         printf("%c", c);
     }
 }
