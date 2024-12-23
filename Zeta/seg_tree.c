@@ -104,7 +104,7 @@ size_t Zeta_SegTree_Del(void* st_, size_t idx, size_t del) {
 
     if (del == 0) { return old_val; }
 
-    ZETA_CheckAssert(old_val + del <= ZETA_RangeMaxOf(size_t) / 2);
+    ZETA_CheckAssert(old_val + del <= ZETA_SIZE_MAX / 2);
 
     size_t cur_n = n;
     size_t* cur_data = data;

@@ -304,7 +304,7 @@ void Zeta_SlabAllocator_Check(void* sa_, Zeta_MemRecorder* dst_used_records,
                 ZETA_DebugAssert(i == *(chunk + width));
 
                 if (Zeta_MemRecorder_GetRecordSize(vacant_unit, chunk) ==
-                    ZETA_RangeMaxOf(size_t)) {
+                    ZETA_SIZE_MAX) {
                     Zeta_MemRecorder_Record(occupied_unit, chunk, width);
                     Zeta_MemRecorder_Record(dst_released_records, chunk, width);
                     ++check_occupied_units_cnt;
@@ -343,9 +343,8 @@ void Zeta_SlabAllocator_Check(void* sa_, Zeta_MemRecorder* dst_used_records,
 
             for (size_t i = 0; i < units_per_slab; ++i, chunk += stride) {
                 ZETA_DebugAssert(i == *(chunk + width));
-                ZETA_DebugAssert(
-                    Zeta_MemRecorder_GetRecordSize(vacant_unit, chunk) !=
-                    ZETA_RangeMaxOf(size_t));
+                ZETA_DebugAssert(Zeta_MemRecorder_GetRecordSize(
+                                     vacant_unit, chunk) != ZETA_SIZE_MAX);
             }
 
             check_vacant_units_cnt += units_per_slab;

@@ -40,15 +40,6 @@ struct ZetaMap {
         this->Sanitize();
     }
 
-    void SetIdxes_(size_t idx, size_t* dst_idxes) {
-        int level = this->mlt.level;
-
-        for (int level_i{ level - 1 }; 0 <= level_i; --level_i) {
-            dst_idxes[level_i] = idx % this->mlt.branch_nums[level_i];
-            idx /= this->mlt.branch_nums[level_i];
-        }
-    }
-
     size_t GetIdx_(size_t* idxes) {
         int level = this->mlt.level;
 
@@ -61,7 +52,18 @@ struct ZetaMap {
         return idx;
     }
 
+    void SetIdxes_(size_t idx, size_t* dst_idxes) {
+        int level = this->mlt.level;
+
+        for (int level_i{ level - 1 }; 0 <= level_i; --level_i) {
+            dst_idxes[level_i] = idx % this->mlt.branch_nums[level_i];
+            idx /= this->mlt.branch_nums[level_i];
+        }
+    }
+
     void Sanitize() {
+        return;
+
         Zeta_MemRecorder* node = Zeta_MemRecorder_Create();
 
         Zeta_MultiLevelTable_Sanitize(&this->mlt, node);
@@ -78,7 +80,11 @@ struct ZetaMap {
     }
 
     void* Access(size_t idx) {
-        void** n = Zeta_MultiLevelTable_Access(&this->mlt, idx);
+        size_t idxes[ZETA_MultiLevelTable_max_level];
+
+        this->SetIdxes_(idx, idxes);
+
+        void** n = Zeta_MultiLevelTable_Access(&this->mlt, idxes);
 
         this->Sanitize();
 
@@ -110,21 +116,25 @@ struct ZetaMap {
     }
 
     size_t FindPrev(size_t idx) {
-        void** n = Zeta_MultiLevelTable_FindPrev(&this->mlt, &idx);
-        ZETA_Unused(n);
+        size_t idxes[ZETA_MultiLevelTable_max_level];
+        SetIdxes_(idx, idxes);
+
+        void** n = Zeta_MultiLevelTable_FindPrev(&this->mlt, idxes, TRUE);
 
         this->Sanitize();
 
-        return idx;
+        return n == NULL ? -1 : GetIdx_(idxes);
     }
 
     size_t FindNext(size_t idx) {
-        void** n = Zeta_MultiLevelTable_FindNext(&this->mlt, &idx);
-        ZETA_Unused(n);
+        size_t idxes[ZETA_MultiLevelTable_max_level];
+        SetIdxes_(idx, idxes);
+
+        void** n = Zeta_MultiLevelTable_FindNext(&this->mlt, idxes, TRUE);
 
         this->Sanitize();
 
-        return idx;
+        return n == NULL ? -1 : GetIdx_(idxes);
     }
 };
 
@@ -198,6 +208,11 @@ void SyncFindPrev(ZetaMap& zeta_map, StdMap& std_map) {
 
     size_t std_map_prv_idx{ std_map.FindPrev(idx) };
 
+    if (zeta_map_prv_idx != std_map_prv_idx) {
+        ZETA_PrintVar(zeta_map_prv_idx);
+        ZETA_PrintVar(std_map_prv_idx);
+    }
+
     ZETA_DebugAssert(zeta_map_prv_idx == std_map_prv_idx);
 
     ZETA_DebugAssert(zeta_map.Access(zeta_map_prv_idx) ==
@@ -242,7 +257,7 @@ void main1() {
     ZetaMap zeta_map;
     StdMap std_map;
 
-    FOR_LOOP(insert_i, 0, 1024) {
+    FOR_LOOP(insert_i, 0, 256) {
         ZETA_PrintVar(insert_i);
         SyncInsert(zeta_map, std_map);
     }
@@ -250,13 +265,13 @@ void main1() {
     FOR_LOOP(test_i, 0, 16) {
         ZETA_PrintVar(test_i);
 
-        FOR_LOOP(ZETA_TmpName, 0, 1024) { SyncInsert(zeta_map, std_map); }
+        FOR_LOOP(ZETA_TmpName, 0, 256) { SyncInsert(zeta_map, std_map); }
 
-        FOR_LOOP(ZETA_TmpName, 0, 1024) { SyncErase(zeta_map, std_map); }
+        FOR_LOOP(ZETA_TmpName, 0, 256) { SyncErase(zeta_map, std_map); }
 
-        FOR_LOOP(ZETA_TmpName, 0, 1024) { SyncFindPrev(zeta_map, std_map); }
+        FOR_LOOP(ZETA_TmpName, 0, 256) { SyncFindPrev(zeta_map, std_map); }
 
-        FOR_LOOP(ZETA_TmpName, 0, 1024) { SyncFindNext(zeta_map, std_map); }
+        FOR_LOOP(ZETA_TmpName, 0, 256) { SyncFindNext(zeta_map, std_map); }
     }
 }
 

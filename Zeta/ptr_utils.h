@@ -2,7 +2,7 @@
 
 #include "debugger.h"
 
-// -----------------------------------------------------------------------------
+ZETA_ExternC_Beg;
 
 #define ZETA_ColorPtr_GetPtr(color_ptr, align) \
     __builtin_align_down((void*)(*(color_ptr)), (align))
@@ -147,4 +147,4 @@
                                ZETA_TmpName, (rel_color_ptr), (align), (base), \
                                (color))
 
-// -----------------------------------------------------------------------------
+ZETA_ExternC_End;

@@ -2830,7 +2830,7 @@ static inline ToWBSegRet ToWBSeg_(Cntr* cntr, TreeNode* n, WBSeg* dst) {
         } else {
             ++ret.dat_segs_cnt;
 
-            dst->beg = ZETA_RangeMaxOf(size_t);
+            dst->beg = ZETA_SIZE_MAX;
             dst->size = seg->dat.size;
             dst->data = seg->dat.data;
             dst->offset = seg->dat.offset;
@@ -2842,9 +2842,8 @@ static inline ToWBSegRet ToWBSeg_(Cntr* cntr, TreeNode* n, WBSeg* dst) {
 
         dst->dst_idx = prv->dst_idx + prv->size;
 
-        dst->acc_ref = prv->beg == ZETA_RangeMaxOf(size_t)
-                           ? prv->acc_ref
-                           : prv->beg + prv->size;
+        dst->acc_ref =
+            prv->beg == ZETA_SIZE_MAX ? prv->acc_ref : prv->beg + prv->size;
 
         ++dst;
 
@@ -2867,7 +2866,7 @@ static inline void WriteWBSeg_(Cntr* cntr, Zeta_SeqCntr* ca_seq_cntr,
 
     for (;;) {
         if (segs_cnt == 1) {
-            if (wb_segs->beg == ZETA_RangeMaxOf(size_t)) {
+            if (wb_segs->beg == ZETA_SIZE_MAX) {
                 Zeta_CircularArray* ca = ca_seq_cntr->context;
                 ca->data = wb_segs->data;
                 ca->offset = wb_segs->offset;
@@ -3074,7 +3073,7 @@ static void WriteBack_LR_(Cntr* cntr, int write_back_strategy,
                 size_t cur_del_l_cnt = 0;
                 size_t cur_del_r_cnt = size - origin_size;
 
-                if (cur_offset <= ZETA_RangeMaxOf(size_t) / 2) {
+                if (cur_offset <= ZETA_SIZE_MAX / 2) {
                     cur_del_l_cnt -= cur_offset;
                     cur_del_r_cnt += cur_offset;
                 } else {
@@ -3085,13 +3084,13 @@ static void WriteBack_LR_(Cntr* cntr, int write_back_strategy,
                 unsigned long long cur_cost =
                     -((cost_coeff_read + cost_coeff_write) * offset_pair->cnt);
 
-                if (cur_del_l_cnt <= ZETA_RangeMaxOf(size_t) / 2) {
+                if (cur_del_l_cnt <= ZETA_SIZE_MAX / 2) {
                     cur_cost += cost_coeff_insert * cur_del_l_cnt;
                 } else {
                     cur_cost += cost_coeff_erase * -cur_del_l_cnt;
                 }
 
-                if (cur_del_r_cnt <= ZETA_RangeMaxOf(size_t) / 2) {
+                if (cur_del_r_cnt <= ZETA_SIZE_MAX / 2) {
                     cur_cost += cost_coeff_insert * cur_del_r_cnt;
                 } else {
                     cur_cost += cost_coeff_erase * -cur_del_r_cnt;
@@ -3120,7 +3119,7 @@ static void WriteBack_LR_(Cntr* cntr, int write_back_strategy,
     size_t push_r_cnt;
     size_t pop_r_cnt;
 
-    if (del_l_cnt <= ZETA_RangeMaxOf(size_t) / 2) {
+    if (del_l_cnt <= ZETA_SIZE_MAX / 2) {
         push_l_cnt = del_l_cnt;
         pop_l_cnt = 0;
     } else {
@@ -3128,7 +3127,7 @@ static void WriteBack_LR_(Cntr* cntr, int write_back_strategy,
         pop_l_cnt = -del_l_cnt;
     }
 
-    if (del_r_cnt <= ZETA_RangeMaxOf(size_t) / 2) {
+    if (del_r_cnt <= ZETA_SIZE_MAX / 2) {
         push_r_cnt = del_r_cnt;
         pop_r_cnt = 0;
     } else {
@@ -3214,7 +3213,7 @@ static void WriteBack_Random_(Cntr* cntr, unsigned long long cost_coeff_read,
         size_t check_dat_segs_cnt = 0;
 
         for (size_t i = 0; i < segs_cnt; ++i) {
-            if (wb_segs[i].beg == ZETA_RangeMaxOf(size_t)) {
+            if (wb_segs[i].beg == ZETA_SIZE_MAX) {
                 ++check_dat_segs_cnt;
             } else {
                 ++check_ref_segs_cnt;
@@ -3278,9 +3277,7 @@ static void WriteBack_Random_(Cntr* cntr, unsigned long long cost_coeff_read,
 
         WBSeg* wb_seg = wb_segs + i;
 
-        if (wb_seg->beg != ZETA_RangeMaxOf(size_t)) {
-            ref_wb_segs[j++] = wb_seg;
-        }
+        if (wb_seg->beg != ZETA_SIZE_MAX) { ref_wb_segs[j++] = wb_seg; }
     }
 
     size_t* acc_arr =
@@ -3332,7 +3329,7 @@ static void WriteBack_Random_(Cntr* cntr, unsigned long long cost_coeff_read,
                                     sizeof(size_t) * (ref_segs_cnt + 2));
 
     dp_cost[0] = 0;
-    dp_prv[0] = ZETA_RangeMaxOf(size_t);
+    dp_prv[0] = ZETA_SIZE_MAX;
 
 #if ZETA_EnableDebug
     for (size_t i = 1; i <= ref_segs_cnt + 1; ++i) {
@@ -3343,9 +3340,8 @@ static void WriteBack_Random_(Cntr* cntr, unsigned long long cost_coeff_read,
 
             unsigned long long cur_cost =
                 dp_best_cost[j] +
-                (sum_arr <= ZETA_RangeMaxOf(size_t) / 2
-                     ? cost_coeff_erase * sum_arr
-                     : cost_coeff_insert * -sum_arr) +
+                (sum_arr <= ZETA_SIZE_MAX / 2 ? cost_coeff_erase * sum_arr
+                                              : cost_coeff_insert * -sum_arr) +
                 acc_brr[i - 1] - acc_brr[j];
 
             if (cur_cost < ans_cost) { ans_cost = cur_cost; }
@@ -3364,9 +3360,8 @@ static void WriteBack_Random_(Cntr* cntr, unsigned long long cost_coeff_read,
 
             unsigned long long cur_cost =
                 dp_cost[j] +
-                (sum_arr <= ZETA_RangeMaxOf(size_t) / 2
-                     ? cost_coeff_erase * sum_arr
-                     : cost_coeff_insert * -sum_arr) +
+                (sum_arr <= ZETA_SIZE_MAX / 2 ? cost_coeff_erase * sum_arr
+                                              : cost_coeff_insert * -sum_arr) +
                 acc_brr[i - 1] - acc_brr[j];
 
             if (cur_cost < ans_cost) {
@@ -3416,7 +3411,7 @@ static void WriteBack_Random_(Cntr* cntr, unsigned long long cost_coeff_read,
             for (size_t i = 0; i < segs_cnt_; ++i) {
                 check_dst_size += segs_[i].size;
 
-                if (segs_[i].beg == ZETA_RangeMaxOf(size_t)) { continue; }
+                if (segs_[i].beg == ZETA_SIZE_MAX) { continue; }
 
                 check_cost += cost_coeff_read_write * segs_[i].size;
             }

@@ -23,7 +23,7 @@ static void Pipe_WriteInt_(Zeta_Pipe* pipe, unsigned long long val,
     void (*Write)(void* context, size_t cnt, void const* data) = pipe->Write;
     ZETA_DebugAssert(Write != NULL);
 
-    unsigned char buffer[ZETA_WidthOf(unsigned long long)];
+    unsigned char buffer[ZETA_ULLONG_WIDTH];
     unsigned char* buffer_i = &buffer[0];
 
     if (val == 0) {

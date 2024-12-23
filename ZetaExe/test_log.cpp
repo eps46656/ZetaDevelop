@@ -29,8 +29,7 @@ void main1() {
 
     for (unsigned long long test_i = 0; test_i < test_num; ++test_i) {
         unsigned long long base = randint(2, 32);
-        unsigned long long val =
-            randint(2, ZETA_RangeMaxOf(unsigned long long) / 64);
+        unsigned long long val = randint(2, ZETA_ULLONG_MAX / 64);
 
         unsigned long long exp = Zeta_FloorLog(val, base);
 
@@ -63,8 +62,7 @@ void main2() {
 
     for (unsigned long long test_i = 0; test_i < test_num; ++test_i) {
         unsigned long long base = randint(2, 32);
-        unsigned long long val =
-            randint(2, ZETA_RangeMaxOf(unsigned long long) / 64);
+        unsigned long long val = randint(2, ZETA_ULLONG_MAX / 64);
 
         unsigned long long exp = Zeta_CeilLog(val, base);
 
@@ -94,8 +92,7 @@ void main3() {
 
     for (unsigned long long test_i = 0; test_i < test_num; ++test_i) {
         unsigned long long base = 2;
-        unsigned long long val =
-            randint(2, ZETA_RangeMaxOf(unsigned long long));
+        unsigned long long val = randint(2, ZETA_ULLONG_MAX);
 
         unsigned long long exp1 = ZETA_FloorLog2(val);
 
@@ -127,8 +124,7 @@ void main4() {
     unsigned long long test_num = 1000 * 1000;
 
     for (unsigned long long test_i = 0; test_i < test_num; ++test_i) {
-        unsigned long long val =
-            randint(1, ZETA_RangeMaxOf(unsigned long long) / (1024 * 1024));
+        unsigned long long val = randint(1, ZETA_ULLONG_MAX / (1024 * 1024));
 
         ZETA_PrintCurPos;
 
@@ -159,8 +155,7 @@ void main5() {
     unsigned long long test_num = 1000 * 1000;
 
     for (unsigned long long test_i = 0; test_i < test_num; ++test_i) {
-        unsigned long long val =
-            randint(0, ZETA_RangeMaxOf(unsigned long long) / (1024 * 1024));
+        unsigned long long val = randint(0, ZETA_ULLONG_MAX / (1024 * 1024));
 
         ZETA_PrintCurPos;
 

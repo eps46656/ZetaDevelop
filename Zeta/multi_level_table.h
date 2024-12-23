@@ -24,11 +24,6 @@ struct Zeta_MultiLevelTable {
     int level;
     unsigned short branch_nums[ZETA_MultiLevelTable_max_level];
 
-    size_t tree_sizes[ZETA_MultiLevelTable_max_level];
-    /*
-        tree_sizes[i] = mul(branch_nums[i:])
-    */
-
     size_t size;
 
     Zeta_MultiLevelTable_Node* root;
@@ -87,23 +82,31 @@ size_t Zeta_MultiLevelTable_GetCapacity(void* mlt);
  * @return The reference of target entry. If the it is not inserted, return
  * NULL.
  */
-void** Zeta_MultiLevelTable_Access(void* mlt, size_t idx);
+void** Zeta_MultiLevelTable_Access(void* mlt, size_t* idxes);
 
-void** Zeta_MultiLevelTable_FindFirst(void* mlt, size_t* idx);
+void** Zeta_MultiLevelTable_FindFirst(void* mlt, size_t* dst_idxes);
 
-void** Zeta_MultiLevelTable_FindLast(void* mlt, size_t* dst_idx);
-
-void** Zeta_MultiLevelTable_FindPrev(void* mlt, size_t* dst_idx);
+void** Zeta_MultiLevelTable_FindLast(void* mlt, size_t* dst_idxes);
 
 /**
- * @brief Find the next entry after idx pointing.
+ * @brief Find the first entry before idx.
  *
  * @param mlt The target mlt.
  * @param idx The beginning index of searching, inclusivly.
  *
  * @return The reference of target entry.
  */
-void** Zeta_MultiLevelTable_FindNext(void* mlt, size_t* idx);
+void** Zeta_MultiLevelTable_FindPrev(void* mlt, size_t* idxes, bool_t included);
+
+/**
+ * @brief Find the first entry after idx.
+ *
+ * @param mlt The target mlt.
+ * @param idx The beginning index of searching, inclusivly.
+ *
+ * @return The reference of target entry.
+ */
+void** Zeta_MultiLevelTable_FindNext(void* mlt, size_t* idxes, bool_t included);
 
 /**
  * @brief Insert a new entry at idxes then return its reference. If

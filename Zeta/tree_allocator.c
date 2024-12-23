@@ -331,7 +331,7 @@ void Zeta_TreeAllocator_Sanitize(void* ta_, Zeta_MemRecorder* dst_recorder) {
     Zeta_MemRecorder* vacant_head_recorder = Zeta_MemRecorder_Create();
 
     GetVacantHead_(vacant_head_recorder, SNToHead_(ta->sn_root), 0,
-                   ZETA_RangeMaxOf(size_t));
+                   ZETA_SIZE_MAX);
 
     for (Zeta_OrdRBLinkedListNode* hn_i = &beg_head->hn;
          hn_i != &end_head->hn;) {

@@ -69,7 +69,7 @@ void main1() {
                 size_t idx = LinSpaceAllocator_Allocate(&lin_space_allocator,
                                                         GetRandomInt(0, K));
 
-                if (idx != ZETA_RangeMaxOf(size_t)) { idxes.push_back(idx); }
+                if (idx != ZETA_SIZE_MAX) { idxes.push_back(idx); }
             }
 
             RangeLoop(size_t, ZETA_TmpName, 0, 1024, 1) {

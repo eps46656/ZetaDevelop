@@ -322,11 +322,11 @@ size_t Zeta_LinSpaceAllocator_Allocate(void* lsa_, size_t size) {
     Zeta_LinSpaceAllocator* lsa = lsa_;
     Check_(lsa);
 
-    if (size == 0) { return ZETA_RangeMaxOf(size_t); }
+    if (size == 0) { return ZETA_SIZE_MAX; }
 
     Zeta_LinSpaceAllocator_Node* nm = FindNiceNode_(lsa, size);
 
-    if (nm == NULL) { return ZETA_RangeMaxOf(size_t); }
+    if (nm == NULL) { return ZETA_SIZE_MAX; }
 
     size_t nm_size = Zeta_BinTree_GetSize(&gt_opr, nm);
 
@@ -366,7 +366,7 @@ void Zeta_LinSpaceAllocator_Deallocate(void* lsa_, size_t idx) {
     Zeta_LinSpaceAllocator* lsa = lsa_;
     Check_(lsa);
 
-    if (idx == ZETA_RangeMaxOf(size_t)) { return; }
+    if (idx == ZETA_SIZE_MAX) { return; }
 
     Zeta_LinSpaceAllocator_Node* nm = FindNodeFromIdx_(lsa, idx);
 
@@ -483,7 +483,7 @@ void Zeta_LinSpaceAllocator_ExtendR(void* lsa_, size_t cnt) {
 
     if (cnt == 0) { return; }
 
-    ZETA_DebugAssert(cnt <= ZETA_RangeMaxOf(size_t) - lsa->end);
+    ZETA_DebugAssert(cnt <= ZETA_SIZE_MAX - lsa->end);
 
     lsa->end += cnt;
 

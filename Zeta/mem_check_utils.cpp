@@ -33,8 +33,7 @@ size_t Zeta_MemRecorder_GetRecordSize(Zeta_MemRecorder* mem_recorder,
 
     auto iter{ mem_recorder->records.find(ptr) };
 
-    return iter == mem_recorder->records.end() ? ZETA_RangeMaxOf(size_t)
-                                               : iter->second;
+    return iter == mem_recorder->records.end() ? ZETA_SIZE_MAX : iter->second;
 }
 
 bool_t Zeta_MemRecorder_IsRecorded(Zeta_MemRecorder* mem_recorder,

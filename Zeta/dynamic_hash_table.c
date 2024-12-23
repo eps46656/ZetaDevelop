@@ -149,7 +149,7 @@ size_t Zeta_DynamicHashTable_GetCapacity(void* dht_) {
     Zeta_DynamicHashTable* dht = dht_;
     CheckCntr_(dht);
 
-    return ZETA_RangeMaxOf(size_t);
+    return ZETA_SIZE_MAX;
 }
 
 void Zeta_DynamicHashTable_GetLBCursor(void* dht_, void* dst_cursor_) {

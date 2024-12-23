@@ -320,7 +320,7 @@ unsigned long long Zeta_Power(unsigned long long base, unsigned long long exp) {
 unsigned long long Zeta_GetMulMod(unsigned long long x, unsigned long long y,
                                   unsigned long long mod) {
     ZETA_DebugAssert(0 < mod);
-    ZETA_DebugAssert(mod <= ZETA_MaxModOf(unsigned long long));
+    ZETA_DebugAssert(mod <= ZETA_ULLONG_MAX);
 
     x %= mod;
     y %= mod;
@@ -343,7 +343,7 @@ unsigned long long Zeta_PowerMod(unsigned long long base,
                                  unsigned long long exp,
                                  unsigned long long mod) {
     ZETA_DebugAssert(0 < mod);
-    ZETA_DebugAssert(mod <= ZETA_MaxModOf(unsigned long long));
+    ZETA_DebugAssert(mod <= ZETA_ULLONG_MAX);
 
     ZETA_DebugAssert(base != 0 || exp != 0);
 

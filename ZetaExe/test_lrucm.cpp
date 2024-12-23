@@ -14,8 +14,7 @@
 
 std::mt19937_64 en;
 std::uniform_int_distribution<size_t> size_generator{ 16, 2 * 1024 };
-std::uniform_int_distribution<size_t> idx_generator{ 0,
-                                                     ZETA_RangeMaxOf(size_t) };
+std::uniform_int_distribution<size_t> idx_generator{ 0, ZETA_SIZE_MAX };
 
 Zeta_DummyBlockVector dummy_blk_vec_a;
 Zeta_DummyBlockVector dummy_blk_vec_b;

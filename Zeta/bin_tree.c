@@ -259,8 +259,7 @@ static void EraseAll_A_(Zeta_BinTreeNodeOperator const* btn_opr, void* n,
     ZETA_DebugAssert(GetL != NULL);
     ZETA_DebugAssert(GetR != NULL);
 
-    size_t buffer_capacity =
-        ZETA_GetMaxOf(24, ZETA_WidthOf(unsigned long long) * 3 / 4);
+    size_t buffer_capacity = ZETA_GetMaxOf(24, ZETA_ULLONG_WIDTH * 3 / 4);
 
     void* buffer[buffer_capacity];
     size_t buffer_i = 0;

@@ -19,8 +19,7 @@ std::map<size_t, size_t> req_ptr_size_hm;
 
 std::mt19937_64 en;
 std::uniform_int_distribution<size_t> size_generator{ 16, 2 * 1024 };
-std::uniform_int_distribution<size_t> idx_generator{ 0,
-                                                     ZETA_RangeMaxOf(size_t) };
+std::uniform_int_distribution<size_t> idx_generator{ 0, ZETA_SIZE_MAX };
 
 void* MyAlloc(size_t size) {
     if (size == 0) { return NULL; }

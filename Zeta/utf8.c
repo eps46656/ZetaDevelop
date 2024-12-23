@@ -38,7 +38,7 @@ size_t Zeta_UTF8_GetEncodeSize(unichar_t const* src, size_t src_size) {
 
     for (; 0 < src_size--; ++src) {
         byte_t* tmp_p = EncodeChar_(tmp, *src);
-        if (tmp_p == NULL) { return ZETA_RangeMaxOf(size_t); }
+        if (tmp_p == NULL) { return ZETA_SIZE_MAX; }
         ret += tmp_p - tmp;
     }
 
@@ -187,7 +187,7 @@ size_t Zeta_UTF8_GetDecodeSize(byte_t const* src, size_t src_size) {
         }
 
         if (decode_ret.ret_code == ZETA_UTF8_RetCode_failed) {
-            return ZETA_RangeMaxOf(size_t);
+            return ZETA_SIZE_MAX;
         }
 
         src_size -= decode_ret.nxt_src - src;

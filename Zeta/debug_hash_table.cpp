@@ -98,7 +98,7 @@ size_t Zeta_DebugHashTable_GetCapacity(void* debug_ht_) {
     hash_table_t* hash_table = (hash_table_t*)debug_ht->hash_table;
     ZETA_DebugAssert(hash_table != NULL);
 
-    return ZETA_RangeMaxOf(size_t);
+    return ZETA_SIZE_MAX;
 }
 
 void Zeta_DebugHashTable_GetRBCursor(void* debug_ht_, void* dst_cursor_) {

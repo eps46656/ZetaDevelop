@@ -28,9 +28,7 @@ constexpr bool IsInteger() {
 
 template <typename RetInt, typename RangeInt>
 RetInt GetRandomInt(RangeInt lb, RangeInt rb) {
-    static std::uniform_int_distribution<unsigned long long> ll_generator{
-        0, ZETA_RangeMaxOf(unsigned long long)
-    };
+    static std::uniform_int_distribution<unsigned long long> ll_generator;
 
     ZETA_StaticAssert(IsInteger<RetInt>());
     ZETA_StaticAssert(IsInteger<RangeInt>());

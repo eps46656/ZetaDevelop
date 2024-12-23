@@ -4,10 +4,8 @@
 #include "../Zeta/utils.h"
 
 std::mt19937_64 en;
-std::uniform_int_distribution<size_t> size_generator{ 0,
-                                                      ZETA_RangeMaxOf(size_t) };
-std::uniform_int_distribution<size_t> val_generator{ 0,
-                                                     ZETA_RangeMaxOf(size_t) };
+std::uniform_int_distribution<size_t> size_generator{ 0, ZETA_SIZE_MAX };
+std::uniform_int_distribution<size_t> val_generator{ 0, ZETA_SIZE_MAX };
 
 int GetLSB(size_t x) {
     if (x == 0) { return -1; }

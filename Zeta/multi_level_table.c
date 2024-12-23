@@ -16,25 +16,6 @@
 
 #endif
 
-static size_t GetIdx_(int level, unsigned short* branch_nums,
-                      size_t const* idxes) {
-    size_t ret = 0;
-
-    for (int level_i = 0; level_i < level; ++level_i) {
-        ret = ret * branch_nums[level_i] + idxes[level_i];
-    }
-
-    return ret;
-}
-
-static void SetIdxes_(int level, unsigned short* branch_nums, size_t idx,
-                      size_t* dst_idxes) {
-    for (int level_i = level - 1; 0 <= level_i; --level_i) {
-        dst_idxes[level_i] = idx % branch_nums[level_i];
-        idx /= branch_nums[level_i];
-    }
-}
-
 #define TestHot_(hot, idx) (((hot) >> (idx)) % 2 != 0)
 
 static int FindPrevHot_(unsigned long long hot, size_t idx) {
@@ -74,26 +55,6 @@ void Zeta_MultiLevelTable_Init(void* mlt_) {
         ZETA_DebugAssert(branch_num <= ZETA_MultiLevelTable_max_branch_num);
     }
 
-    size_t* tree_sizes = mlt->tree_sizes;
-
-    tree_sizes[level - 1] = branch_nums[level - 1];
-
-    bool_t overflowed = FALSE;
-
-    for (int level_i = level - 2; 0 <= level_i; --level_i) {
-        unsigned long long cur_tree_size;
-
-        if (overflowed ||
-            __builtin_umulll_overflow(tree_sizes[level_i + 1],
-                                      branch_nums[level_i], &cur_tree_size) ||
-            ZETA_RangeMaxOf(size_t) < cur_tree_size) {
-            overflowed = TRUE;
-            tree_sizes[level_i] = 0;
-        } else {
-            tree_sizes[level_i] = cur_tree_size;
-        }
-    }
-
     mlt->size = 0;
 
     mlt->root = NULL;
@@ -121,92 +82,118 @@ size_t Zeta_MultiLevelTable_GetCapacity(void* mlt_) {
     Zeta_MultiLevelTable* mlt = mlt_;
     CheckCntr_(mlt);
 
-    return mlt->tree_sizes[0] == 0 ? ZETA_RangeMaxOf(size_t)
-                                   : mlt->tree_sizes[0];
+    size_t ret = 1;
+
+    int level = mlt->level;
+    unsigned short* branch_nums = mlt->branch_nums;
+
+    for (int level_i = 0; level_i < level; ++level_i) {
+        if (__builtin_umulll_overflow(ret, branch_nums[level_i], &ret)) {
+            return ZETA_SIZE_MAX;
+        }
+    }
+
+    return ret;
 }
 
-void** Zeta_MultiLevelTable_Access(void* mlt_, size_t idx) {
+void** Zeta_MultiLevelTable_Access(void* mlt_, size_t* idxes) {
     Zeta_MultiLevelTable* mlt = mlt_;
     CheckCntr_(mlt);
 
-    ZETA_DebugAssert(idx < Zeta_MultiLevelTable_GetCapacity(mlt));
-
     int level = mlt->level;
-
-    size_t* tree_sizes = mlt->tree_sizes;
 
     Zeta_MultiLevelTable_Node* node = mlt->root;
 
     if (node == NULL) { return NULL; }
 
     for (int level_i = 0; level_i < level - 1; ++level_i) {
-        size_t sub_tree_size = tree_sizes[level_i + 1];
+        size_t cur_idx = idxes[level_i];
+        if (!TestHot_(node->hot, cur_idx)) { return NULL; }
+        node = node->ptrs[cur_idx];
+    }
 
-        if (sub_tree_size == 0) {
-            if (!TestHot_(node->hot, 0)) { return NULL; }
+    size_t last_idx = idxes[level - 1];
 
-            node = node->ptrs[0];
-        } else {
-            size_t cur_idx = idx / sub_tree_size;
+    return TestHot_(node->hot, last_idx) ? node->ptrs + last_idx : NULL;
+}
 
-            if (!TestHot_(node->hot, cur_idx)) { return NULL; }
+void** Zeta_MultiLevelTable_FindFirst(void* mlt_, size_t* dst_idxes) {
+    Zeta_MultiLevelTable* mlt = mlt_;
+    CheckCntr_(mlt);
 
-            node = node->ptrs[cur_idx];
-            idx %= sub_tree_size;
+    int level = mlt->level;
+
+    size_t idxes[ZETA_MultiLevelTable_max_level];
+
+    for (int level_i = 0; level_i < level; ++level_i) { idxes[level_i] = 0; }
+
+    void** ret = Zeta_MultiLevelTable_FindNext(mlt, idxes, TRUE);
+
+    if (dst_idxes != NULL) {
+        for (int level_i = 0; level_i < level; ++level_i) {
+            dst_idxes[level_i] = idxes[level_i];
         }
     }
 
-    return TestHot_(node->hot, idx) ? node->ptrs + idx : NULL;
-}
-
-void** Zeta_MultiLevelTable_FindFirst(void* mlt_, size_t* dst_idx) {
-    Zeta_MultiLevelTable* mlt = mlt_;
-    CheckCntr_(mlt);
-
-    size_t idx = 0;
-
-    void** ret = Zeta_MultiLevelTable_FindNext(mlt, &idx);
-
-    if (dst_idx != NULL) { *dst_idx = idx; }
-
     return ret;
 }
 
-void** Zeta_MultiLevelTable_FindLast(void* mlt_, size_t* dst_idx) {
+void** Zeta_MultiLevelTable_FindLast(void* mlt_, size_t* dst_idxes) {
     Zeta_MultiLevelTable* mlt = mlt_;
     CheckCntr_(mlt);
-
-    size_t idx = Zeta_MultiLevelTable_GetCapacity(mlt);
-
-    void** ret = Zeta_MultiLevelTable_FindPrev(mlt, &idx);
-
-    if (dst_idx != NULL) { *dst_idx = idx; }
-
-    return ret;
-}
-
-void** Zeta_MultiLevelTable_FindPrev(void* mlt_, size_t* idx_) {
-    Zeta_MultiLevelTable* mlt = mlt_;
-    CheckCntr_(mlt);
-
-    ZETA_DebugAssert(idx_ != NULL);
-
-    size_t idx = *idx_;
-
-    ZETA_DebugAssert(1 + idx < Zeta_MultiLevelTable_GetCapacity(mlt) + 2);
 
     int level = mlt->level;
     unsigned short* branch_nums = mlt->branch_nums;
 
-    Zeta_MultiLevelTable_Node* root = mlt->root;
+    size_t idxes[ZETA_MultiLevelTable_max_level];
 
-    if (root == NULL) {
-        *idx_ = -1;
+    for (int level_i = 0; level_i < level; ++level_i) {
+        idxes[level_i] = branch_nums[level_i] - 1;
+    }
+
+    void** ret = Zeta_MultiLevelTable_FindPrev(mlt, idxes, TRUE);
+
+    if (dst_idxes != NULL) {
+        for (int level_i = 0; level_i < level; ++level_i) {
+            dst_idxes[level_i] = idxes[level_i];
+        }
+    }
+
+    return ret;
+}
+
+void** Zeta_MultiLevelTable_FindPrev(void* mlt_, size_t* idxes,
+                                     bool_t included) {
+    Zeta_MultiLevelTable* mlt = mlt_;
+    CheckIdxes_(mlt, idxes);
+
+    int level = mlt->level;
+    unsigned short* branch_nums = mlt->branch_nums;
+
+    if (!included) {
+        for (int level_i = level - 1; 0 <= level_i; --level_i) {
+            if (0 < idxes[level_i]) {
+                --idxes[level_i];
+                goto L1;
+            }
+
+            idxes[level_i] = branch_nums[level_i] - 1;
+        }
+
         return NULL;
     }
 
-    size_t idxes[ZETA_MultiLevelTable_max_level];
-    SetIdxes_(level, branch_nums, idx, idxes);
+L1:;
+
+    Zeta_MultiLevelTable_Node* root = mlt->root;
+
+    if (root == NULL) {
+        for (int level_i = 0; level_i < level; ++level_i) {
+            idxes[level_i] = branch_nums[level_i] - 1;
+        }
+
+        return NULL;
+    }
 
     Zeta_MultiLevelTable_Node* nodes[ZETA_MultiLevelTable_max_level];
 
@@ -235,7 +222,10 @@ void** Zeta_MultiLevelTable_FindPrev(void* mlt_, size_t* idx_) {
     }
 
     if (level_i == -1) {
-        *idx_ = -1;
+        for (int level_i = 0; level_i < level; ++level_i) {
+            idxes[level_i] = branch_nums[level_i] - 1;
+        }
+
         return NULL;
     }
 
@@ -246,33 +236,38 @@ void** Zeta_MultiLevelTable_FindPrev(void* mlt_, size_t* idx_) {
         idxes[level_i] = FindPrevHot_(node->hot, branch_nums[level_i] - 1);
     }
 
-    *idx_ = GetIdx_(level, branch_nums, idxes);
-
     return (nodes[level - 1])->ptrs + idxes[level - 1];
 }
 
-void** Zeta_MultiLevelTable_FindNext(void* mlt_, size_t* idx_) {
+void** Zeta_MultiLevelTable_FindNext(void* mlt_, size_t* idxes,
+                                     bool_t included) {
     Zeta_MultiLevelTable* mlt = mlt_;
-    CheckCntr_(mlt);
-
-    ZETA_DebugAssert(idx_ != NULL);
-
-    size_t idx = *idx_;
-
-    ZETA_DebugAssert(1 + idx < Zeta_MultiLevelTable_GetCapacity(mlt) + 2);
+    CheckIdxes_(mlt, idxes);
 
     int level = mlt->level;
     unsigned short* branch_nums = mlt->branch_nums;
 
-    Zeta_MultiLevelTable_Node* root = mlt->root;
+    if (!included) {
+        for (int level_i = level - 1; 0 <= level_i; --level_i) {
+            ++idxes[level_i];
+            if (idxes[level_i] < branch_nums[level_i]) { goto L1; }
+            idxes[level_i] = 0;
+        }
 
-    if (root == NULL) {
-        *idx_ = -1;
         return NULL;
     }
 
-    size_t idxes[ZETA_MultiLevelTable_max_level];
-    SetIdxes_(level, branch_nums, idx, idxes);
+L1:;
+
+    Zeta_MultiLevelTable_Node* root = mlt->root;
+
+    if (root == NULL) {
+        for (int level_i = 0; level_i < level; ++level_i) {
+            idxes[level_i] = 0;
+        }
+
+        return NULL;
+    }
 
     Zeta_MultiLevelTable_Node* nodes[ZETA_MultiLevelTable_max_level];
 
@@ -301,7 +296,10 @@ void** Zeta_MultiLevelTable_FindNext(void* mlt_, size_t* idx_) {
     }
 
     if (level_i == -1) {
-        *idx_ = -1;
+        for (int level_i = 0; level_i < level; ++level_i) {
+            idxes[level_i] = 0;
+        }
+
         return NULL;
     }
 
@@ -311,8 +309,6 @@ void** Zeta_MultiLevelTable_FindNext(void* mlt_, size_t* idx_) {
         nodes[level_i] = node;
         idxes[level_i] = FindNextHot_(node->hot, 0);
     }
-
-    *idx_ = GetIdx_(level, branch_nums, idxes);
 
     return nodes[level - 1]->ptrs + idxes[level - 1];
 }
