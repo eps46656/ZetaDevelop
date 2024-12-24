@@ -16,6 +16,11 @@ struct Zeta_SeqCntr {
     void* context;
 
     /**
+     * @brief The const context of the container.
+     */
+    void const* const_context;
+
+    /**
      * @brief The number of bytes occupied by cursor.
      */
     size_t cursor_size;
@@ -34,7 +39,7 @@ struct Zeta_SeqCntr {
      *
      * @param context The context of the container.
      */
-    size_t (*GetWidth)(void* context);
+    size_t (*GetWidth)(void const* context);
 
     /**
      * @brief The number of element in the container. Concrete container should
@@ -42,7 +47,7 @@ struct Zeta_SeqCntr {
      *
      * @param context The context of the container.
      */
-    size_t (*GetSize)(void* context);
+    size_t (*GetSize)(void const* context);
 
     /**
      * @brief The maximum number of element can be contained by the container.
@@ -50,7 +55,7 @@ struct Zeta_SeqCntr {
      *
      * @param context The context of the container.
      */
-    size_t (*GetCapacity)(void* context);
+    size_t (*GetCapacity)(void const* context);
 
     /**
      * @brief Get the left cursor. Concrete container can implement this
@@ -59,7 +64,7 @@ struct Zeta_SeqCntr {
      * @param context The context of the container.
      * @param dst_cursor The destination of returned cursor.
      */
-    void (*GetLBCursor)(void* context, void* dst_cursor);
+    void (*GetLBCursor)(void const* context, void* dst_cursor);
 
     /**
      * @brief Get the right cursor. Concrete container should implement this
@@ -68,7 +73,7 @@ struct Zeta_SeqCntr {
      * @param context The context of the container.
      * @param dst_cursor The destination of returned cursor.
      */
-    void (*GetRBCursor)(void* context, void* dst_cursor);
+    void (*GetRBCursor)(void const* context, void* dst_cursor);
 
     /**
      * @brief Peek the left-most element. Concrete container can implement this
@@ -135,8 +140,8 @@ struct Zeta_SeqCntr {
      * @param dst_cursor Optional. The destination of returned cursor pointing
      *                   right next of last read elements.
      */
-    void (*Read)(void* context, void const* pos_cursor, size_t cnt, void* dst,
-                 void* dst_cursor);
+    void (*Read)(void const* context, void const* pos_cursor, size_t cnt,
+                 void* dst, void* dst_cursor);
 
     /**
      * @brief Write \p cnt elements from cursor. Concrete container should
@@ -242,7 +247,7 @@ struct Zeta_SeqCntr {
      *
      * @return If \p cursor_a and \p cursor_b point to the same position.
      */
-    bool_t (*Cursor_AreEqual)(void* context, void const* cursor_a,
+    bool_t (*Cursor_AreEqual)(void const* context, void const* cursor_a,
                               void const* cursor_b);
 
     /**
@@ -257,7 +262,7 @@ struct Zeta_SeqCntr {
      *         if \p cursor_a is to the right of \p cursor_b. Zero, if
      *         \p cursor_a and \p cursor_b point to the same position.
      */
-    int (*Cursor_Compare)(void* context, void const* cursor_a,
+    int (*Cursor_Compare)(void const* context, void const* cursor_a,
                           void const* cursor_b);
 
     /**
@@ -270,7 +275,7 @@ struct Zeta_SeqCntr {
      *
      * @return The distance from \p cursor_a to \p cursor_b.
      */
-    size_t (*Cursor_GetDist)(void* context, void const* cursor_a,
+    size_t (*Cursor_GetDist)(void const* context, void const* cursor_a,
                              void const* cursor_b);
 
     /**
@@ -282,7 +287,7 @@ struct Zeta_SeqCntr {
      *
      * @return The index pointed by \p cursor.
      */
-    size_t (*Cursor_GetIdx)(void* context, void const* cursor);
+    size_t (*Cursor_GetIdx)(void const* context, void const* cursor);
 
     /**
      * @brief Step \p cursor left. Concrete container can implement this
@@ -291,7 +296,7 @@ struct Zeta_SeqCntr {
      * @param context The context of the container.
      * @param cursor The target cursor.
      */
-    void (*Cursor_StepL)(void* context, void* cursor);
+    void (*Cursor_StepL)(void const* context, void* cursor);
 
     /**
      * @brief Step \p cursor right. Concrete container should implement this
@@ -300,7 +305,7 @@ struct Zeta_SeqCntr {
      * @param context The context of the container.
      * @param cursor The target cursor.
      */
-    void (*Cursor_StepR)(void* context, void* cursor);
+    void (*Cursor_StepR)(void const* context, void* cursor);
 
     /**
      * @brief Advance cursor left \p step. Concrete container can implement
@@ -310,7 +315,7 @@ struct Zeta_SeqCntr {
      * @param cursor The target cursor.
      * @param step The number of steps to advance cursor.
      */
-    void (*Cursor_AdvanceL)(void* context, void* cursor, size_t step);
+    void (*Cursor_AdvanceL)(void const* context, void* cursor, size_t step);
 
     /**
      * @brief Advance \p cursor right \p step. Concrete container can implement
@@ -320,7 +325,7 @@ struct Zeta_SeqCntr {
      * @param cursor The target cursor.
      * @param step The number of steps to advance cursor.
      */
-    void (*Cursor_AdvanceR)(void* context, void* cursor, size_t step);
+    void (*Cursor_AdvanceR)(void const* context, void* cursor, size_t step);
 };
 
 #define ZETA_SeqCntr_AllocaCursor(seq_cntr)                     \
@@ -332,38 +337,59 @@ struct Zeta_SeqCntr {
     ZETA_CallMemberFunc((Zeta_SeqCntr*)ZETA_ToVoidPtr(seq_cntr), member_func, \
                         __VA_ARGS__)
 
+#define ZETA_SeqCntr_CallConst_(seq_cntr, member_func, ...)           \
+    ZETA_CallConstMemberFunc((Zeta_SeqCntr*)ZETA_ToVoidPtr(seq_cntr), \
+                             member_func, __VA_ARGS__)
+
 #define ZETA_SeqCntr_Deinit(seq_cntr) ZETA_SeqCntr_Call_((seq_cntr), Deinit)
 
-#define ZETA_SeqCntr_GetWidth(seq_cntr) ZETA_SeqCntr_Call_((seq_cntr), GetWidth)
+#define ZETA_SeqCntr_GetWidth(seq_cntr) \
+    ZETA_SeqCntr_CallConst_((seq_cntr), GetWidth)
 
-#define ZETA_SeqCntr_GetSize(seq_cntr) ZETA_SeqCntr_Call_((seq_cntr), GetSize)
+#define ZETA_SeqCntr_GetSize(seq_cntr) \
+    ZETA_SeqCntr_CallConst_((seq_cntr), GetSize)
 
 #define ZETA_SeqCntr_GetCapacity(seq_cntr) \
-    ZETA_SeqCntr_Call_((seq_cntr), GetCapacity)
+    ZETA_SeqCntr_CallConst_((seq_cntr), GetCapacity)
 
-#define ZETA_SeqCntr_GetLBCursor(seq_cntr, dst_cursor)         \
-    ZETA_SeqCntr_Call_((seq_cntr), GetLBCursor, (dst_cursor)); \
+#define ZETA_SeqCntr_GetLBCursor(seq_cntr, dst_cursor)              \
+    ZETA_SeqCntr_CallConst_((seq_cntr), GetLBCursor, (dst_cursor)); \
     ZETA_StaticAssert(TRUE)
 
-#define ZETA_SeqCntr_GetRBCursor(seq_cntr, dst_cursor)         \
-    ZETA_SeqCntr_Call_((seq_cntr), GetRBCursor, (dst_cursor)); \
+#define ZETA_SeqCntr_GetRBCursor(seq_cntr, dst_cursor)              \
+    ZETA_SeqCntr_CallConst_((seq_cntr), GetRBCursor, (dst_cursor)); \
     ZETA_StaticAssert(TRUE)
 
 #define ZETA_SeqCntr_PeekL(seq_cntr, dst_cursor, dst_elem) \
     ZETA_SeqCntr_Call_((seq_cntr), PeekL, (dst_cursor), (dst_elem))
 
+#define ZETA_SeqCntr_ConstPeekL(seq_cntr, dst_cursor, dst_elem)       \
+    ((void const*)ZETA_SeqCntr_Call_((seq_cntr), PeekL, (dst_cursor), \
+                                     (dst_elem)))
+
 #define ZETA_SeqCntr_PeekR(seq_cntr, dst_cursor, dst_elem) \
     ZETA_SeqCntr_Call_((seq_cntr), PeekR, (dst_cursor), (dst_elem))
+
+#define ZETA_SeqCntr_ConstPeekR(seq_cntr, dst_cursor, dst_elem)       \
+    ((void const*)ZETA_SeqCntr_Call_((seq_cntr), PeekR, (dst_cursor), \
+                                     (dst_elem)))
 
 #define ZETA_SeqCntr_Access(seq_cntr, idx, dst_cursor, dst_elem) \
     ZETA_SeqCntr_Call_((seq_cntr), Access, (idx), (dst_cursor), (dst_elem))
 
+#define ZETA_SeqCntr_ConstAccess(seq_cntr, idx, dst_cursor, dst_elem)         \
+    ((void const*)ZETA_SeqCntr_Call_((seq_cntr), Access, (idx), (dst_cursor), \
+                                     (dst_elem)))
+
 #define ZETA_SeqCntr_Refer(seq_cntr, pos_cursor) \
     ZETA_SeqCntr_Call_((seq_cntr), Refer, (pos_cursor))
 
-#define ZETA_SeqCntr_Read(seq_cntr, pos_cursor, cnt, dst, dst_cursor) \
-    ZETA_SeqCntr_Call_((seq_cntr), Read, (pos_cursor), (cnt), (dst),  \
-                       (dst_cursor))
+#define ZETA_SeqCntr_ConstRefer(seq_cntr, pos_cursor) \
+    ((void const*)ZETA_SeqCntr_Call_((seq_cntr), Refer, (pos_cursor)))
+
+#define ZETA_SeqCntr_Read(seq_cntr, pos_cursor, cnt, dst, dst_cursor)     \
+    ZETA_SeqCntr_CallConst_((seq_cntr), Read, (pos_cursor), (cnt), (dst), \
+                            (dst_cursor))
 
 #define ZETA_SeqCntr_Write(seq_cntr, pos_cursor, cnt, src, dst_cursor) \
     ZETA_SeqCntr_Call_((seq_cntr), Write, (pos_cursor), (cnt), (src),  \
@@ -395,28 +421,28 @@ struct Zeta_SeqCntr {
     ZETA_StaticAssert(TRUE)
 
 #define ZETA_SeqCntr_Cursor_AreEqual(seq_cntr, cursor_a, cursor_b) \
-    ZETA_SeqCntr_Call_((seq_cntr), Cursor_AreEqual, (cursor_a), (cursor_b))
+    ZETA_SeqCntr_CallConst_((seq_cntr), Cursor_AreEqual, (cursor_a), (cursor_b))
 
 #define ZETA_SeqCntr_Cursor_Compare(seq_cntr, cursor_a, cursor_b) \
-    ZETA_SeqCntr_Call_((seq_cntr), Cursor_Compare, (cursor_a), (cursor_b))
+    ZETA_SeqCntr_CallConst_((seq_cntr), Cursor_Compare, (cursor_a), (cursor_b))
 
 #define ZETA_SeqCntr_Cursor_GetDist(seq_cntr, cursor_a, cursor_b) \
-    ZETA_SeqCntr_Call_((seq_cntr), Cursor_GetDist, (cursor_a), (cursor_b))
+    ZETA_SeqCntr_CallConst_((seq_cntr), Cursor_GetDist, (cursor_a), (cursor_b))
 
 #define ZETA_SeqCntr_Cursor_GetIdx(seq_cntr, cursor) \
-    ZETA_SeqCntr_Call_((seq_cntr), Cursor_GetIdx, (cursor))
+    ZETA_SeqCntr_CallConst_((seq_cntr), Cursor_GetIdx, (cursor))
 
 #define ZETA_SeqCntr_Cursor_StepL(seq_cntr, cursor) \
-    ZETA_SeqCntr_Call_((seq_cntr), Cursor_StepL, (cursor))
+    ZETA_SeqCntr_CallConst_((seq_cntr), Cursor_StepL, (cursor))
 
 #define ZETA_SeqCntr_Cursor_StepR(seq_cntr, cursor) \
-    ZETA_SeqCntr_Call_((seq_cntr), Cursor_StepR, (cursor))
+    ZETA_SeqCntr_CallConst_((seq_cntr), Cursor_StepR, (cursor))
 
 #define ZETA_SeqCntr_Cursor_AdvanceL(seq_cntr, cursor, step) \
-    ZETA_SeqCntr_Call_((seq_cntr), Cursor_AdvanceL, (cursor), (step))
+    ZETA_SeqCntr_CallConst_((seq_cntr), Cursor_AdvanceL, (cursor), (step))
 
 #define ZETA_SeqCntr_Cursor_AdvanceR(seq_cntr, cursor, step) \
-    ZETA_SeqCntr_Call_((seq_cntr), Cursor_AdvanceR, (cursor), (step))
+    ZETA_SeqCntr_CallConst_((seq_cntr), Cursor_AdvanceR, (cursor), (step))
 
 /**
  * @brief Initialize the fields of interface with NULL.
@@ -457,5 +483,8 @@ void Zeta_SeqCntr_RangeAssign(Zeta_SeqCntr* dst_seq_cntr,
  */
 void Zeta_SeqCntr_Assign(Zeta_SeqCntr* dst_seq_cntr,
                          Zeta_SeqCntr* src_seq_cntr);
+
+void* Zeta_SeqCntr_NaiveInsert(Zeta_SeqCntr* seq_cntr, void* pos_cursor,
+                               size_t cnt);
 
 ZETA_ExternC_End;

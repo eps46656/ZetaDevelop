@@ -90,7 +90,7 @@ struct Cntr_(Seg) {
 };
 
 struct Cntr_(Cursor) {
-    void* cntr;
+    void const* cntr;
     size_t idx;
     void* n;
     size_t seg_idx;
@@ -114,27 +114,27 @@ void Cntr_(Deinit)(void* cntr);
 /**
  * @copydoc Zeta_SeqCntr::GetWidth
  */
-size_t Cntr_(GetWidth)(void* cntr);
+size_t Cntr_(GetWidth)(void const* cntr);
 
 /**
  * @copydoc Zeta_SeqCntr::GetSize
  */
-size_t Cntr_(GetSize)(void* cntr);
+size_t Cntr_(GetSize)(void const* cntr);
 
 /**
  * @copydoc Zeta_SeqCntr::GetCapacity
  */
-size_t Cntr_(GetCapacity)(void* cntr);
+size_t Cntr_(GetCapacity)(void const* cntr);
 
 /**
  * @copydoc Zeta_SeqCntr::GetLBCursor
  */
-void Cntr_(GetLBCursor)(void* cntr, void* dst_cursor);
+void Cntr_(GetLBCursor)(void const* cntr, void* dst_cursor);
 
 /**
  * @copydoc Zeta_SeqCntr::GetRBCursor
  */
-void Cntr_(GetRBCursor)(void* cntr, void* dst_cursor);
+void Cntr_(GetRBCursor)(void const* cntr, void* dst_cursor);
 
 void* ZETA_Concat(Cntr,
                   _FindFirst)(void* cntr, void* dst_cursor, void* dst_elem,
@@ -168,8 +168,8 @@ void Cntr_(BinSearch)(void* cntr, void* elem_key_cmp_context,
 /**
  * @copydoc Zeta_SeqCntr::Read
  */
-void Cntr_(Read)(void* cntr, void const* pos_cursor, size_t cnt, void* dst,
-                 void* dst_cursor);
+void Cntr_(Read)(void const* cntr, void const* pos_cursor, size_t cnt,
+                 void* dst, void* dst_cursor);
 
 /**
  * @copydoc Zeta_SeqCntr::Write
@@ -226,7 +226,7 @@ void Cntr_(WriteBack)(void* cntr, int write_back_strategy,
                       unsigned long long cost_coeff_insert,
                       unsigned long long cost_coeff_erase);
 
-void Cntr_(Check)(void* cntr);
+void Cntr_(Check)(void const* cntr);
 
 void Cntr_(Sanitize)(void* cntr, Zeta_MemRecorder* dst_seg,
                      Zeta_MemRecorder* dst_data);
@@ -238,47 +238,47 @@ Cntr_(Stats) ZETA_Concat(Cntr, GetStats)(void* cntr);
 /**
  * @copydoc Zeta_SeqCntr::Cursor_AreEqual
  */
-bool_t Cntr_(Cursor_AreEqual)(void* cntr, void const* cursor_a,
+bool_t Cntr_(Cursor_AreEqual)(void const* cntr, void const* cursor_a,
                               void const* cursor_b);
 
 /**
  * @copydoc Zeta_SeqCntr::Cursor_Compare
  */
-int Cntr_(Cursor_Compare)(void* cntr, void const* cursor_a,
+int Cntr_(Cursor_Compare)(void const* cntr, void const* cursor_a,
                           void const* cursor_b);
 
 /**
  * @copydoc Zeta_SeqCntr::Cursor_GetDist
  */
-size_t Cntr_(Cursor_GetDist)(void* cntr, void const* cursor_a,
+size_t Cntr_(Cursor_GetDist)(void const* cntr, void const* cursor_a,
                              void const* cursor_b);
 
 /**
  * @copydoc Zeta_SeqCntr::Cursor_GetIdx
  */
-size_t Cntr_(Cursor_GetIdx)(void* cntr, void const* cursor);
+size_t Cntr_(Cursor_GetIdx)(void const* cntr, void const* cursor);
 
 /**
  * @copydoc Zeta_SeqCntr::Cursor_StepL
  */
-void Cntr_(Cursor_StepL)(void* cntr, void* cursor);
+void Cntr_(Cursor_StepL)(void const* cntr, void* cursor);
 
 /**
  * @copydoc Zeta_SeqCntr::Cursor_StepR
  */
-void Cntr_(Cursor_StepR)(void* cntr, void* cursor);
+void Cntr_(Cursor_StepR)(void const* cntr, void* cursor);
 
 /**
  * @copydoc Zeta_SeqCntr::Cursor_AdvanceL
  */
-void Cntr_(Cursor_AdvanceL)(void* cntr, void* cursor, size_t step);
+void Cntr_(Cursor_AdvanceL)(void const* cntr, void* cursor, size_t step);
 
 /**
  * @copydoc Zeta_SeqCntr::Cursor_AdvanceR
  */
-void Cntr_(Cursor_AdvanceR)(void* cntr, void* cursor, size_t step);
+void Cntr_(Cursor_AdvanceR)(void const* cntr, void* cursor, size_t step);
 
-void Cntr_(Cursor_Check)(void* cntr, void const* cursor);
+void Cntr_(Cursor_Check)(void const* cntr, void const* cursor);
 
 void Cntr_(DeploySeqCntr)(void* cntr, Zeta_SeqCntr* seq_cntr);
 

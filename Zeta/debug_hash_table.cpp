@@ -46,7 +46,7 @@ struct PackCompare {
 
 typedef std::unordered_multiset<Pack, PackHash, PackCompare> hash_table_t;
 
-void Zeta_DebugHashTable_Init(void* debug_ht_) {
+extern "C" void Zeta_DebugHashTable_Init(void* debug_ht_) {
     Zeta_DebugHashTable* debug_ht = (Zeta_DebugHashTable*)debug_ht_;
     ZETA_DebugAssert(debug_ht != NULL);
 
@@ -62,7 +62,7 @@ void Zeta_DebugHashTable_Init(void* debug_ht_) {
     ZETA_DebugAssert(debug_ht->ElemKeyCompare != NULL);
 }
 
-void Zeta_DebugHashTable_Deinit(void* debug_ht_) {
+extern "C" void Zeta_DebugHashTable_Deinit(void* debug_ht_) {
     Zeta_DebugHashTable* debug_ht = (Zeta_DebugHashTable*)debug_ht_;
     ZETA_DebugAssert(debug_ht != NULL);
 
@@ -74,15 +74,15 @@ void Zeta_DebugHashTable_Deinit(void* debug_ht_) {
     debug_ht->hash_table = NULL;
 }
 
-size_t Zeta_DebugHashTable_GetWidth(void* debug_ht_) {
-    Zeta_DebugHashTable* debug_ht = (Zeta_DebugHashTable*)debug_ht_;
+extern "C" size_t Zeta_DebugHashTable_GetWidth(void const* debug_ht_) {
+    Zeta_DebugHashTable const* debug_ht = (Zeta_DebugHashTable const*)debug_ht_;
     ZETA_DebugAssert(debug_ht != NULL);
 
     return debug_ht->width;
 }
 
-size_t Zeta_DebugHashTable_GetSize(void* debug_ht_) {
-    Zeta_DebugHashTable* debug_ht = (Zeta_DebugHashTable*)debug_ht_;
+extern "C" size_t Zeta_DebugHashTable_GetSize(void const* debug_ht_) {
+    Zeta_DebugHashTable const* debug_ht = (Zeta_DebugHashTable const*)debug_ht_;
     ZETA_DebugAssert(debug_ht != NULL);
 
     hash_table_t* hash_table = (hash_table_t*)debug_ht->hash_table;
@@ -91,8 +91,8 @@ size_t Zeta_DebugHashTable_GetSize(void* debug_ht_) {
     return hash_table->size();
 }
 
-size_t Zeta_DebugHashTable_GetCapacity(void* debug_ht_) {
-    Zeta_DebugHashTable* debug_ht = (Zeta_DebugHashTable*)debug_ht_;
+extern "C" size_t Zeta_DebugHashTable_GetCapacity(void const* debug_ht_) {
+    Zeta_DebugHashTable const* debug_ht = (Zeta_DebugHashTable const*)debug_ht_;
     ZETA_DebugAssert(debug_ht != NULL);
 
     hash_table_t* hash_table = (hash_table_t*)debug_ht->hash_table;
@@ -101,8 +101,9 @@ size_t Zeta_DebugHashTable_GetCapacity(void* debug_ht_) {
     return ZETA_SIZE_MAX;
 }
 
-void Zeta_DebugHashTable_GetRBCursor(void* debug_ht_, void* dst_cursor_) {
-    Zeta_DebugHashTable* debug_ht = (Zeta_DebugHashTable*)debug_ht_;
+extern "C" void Zeta_DebugHashTable_GetRBCursor(void const* debug_ht_,
+                                                void* dst_cursor_) {
+    Zeta_DebugHashTable const* debug_ht = (Zeta_DebugHashTable const*)debug_ht_;
     ZETA_DebugAssert(debug_ht != NULL);
 
     hash_table_t* hash_table = (hash_table_t*)debug_ht->hash_table;
@@ -114,7 +115,7 @@ void Zeta_DebugHashTable_GetRBCursor(void* debug_ht_, void* dst_cursor_) {
     new (dst_cursor) hash_table_t::iterator{ hash_table->end() };
 }
 
-void* Zeta_DebugHashTable_PeekL(void* debug_ht_, void* dst_cursor_) {
+extern "C" void* Zeta_DebugHashTable_PeekL(void* debug_ht_, void* dst_cursor_) {
     Zeta_DebugHashTable* debug_ht = (Zeta_DebugHashTable*)debug_ht_;
     ZETA_DebugAssert(debug_ht != NULL);
 
@@ -131,7 +132,8 @@ void* Zeta_DebugHashTable_PeekL(void* debug_ht_, void* dst_cursor_) {
     return const_cast<void*>(iter->ptr);
 }
 
-void* Zeta_DebugHashTable_Refer(void* debug_ht_, void const* pos_cursor_) {
+extern "C" void* Zeta_DebugHashTable_Refer(void* debug_ht_,
+                                           void const* pos_cursor_) {
     Zeta_DebugHashTable* debug_ht = (Zeta_DebugHashTable*)debug_ht_;
     ZETA_DebugAssert(debug_ht != NULL);
 
@@ -144,8 +146,8 @@ void* Zeta_DebugHashTable_Refer(void* debug_ht_, void const* pos_cursor_) {
     return const_cast<void*>((*pos_cursor)->ptr);
 }
 
-void* Zeta_DebugHashTable_Find(void* debug_ht_, void const* key,
-                               void* dst_cursor_) {
+extern "C" void* Zeta_DebugHashTable_Find(void* debug_ht_, void const* key,
+                                          void* dst_cursor_) {
     Zeta_DebugHashTable* debug_ht = (Zeta_DebugHashTable*)debug_ht_;
     ZETA_DebugAssert(debug_ht != NULL);
 
@@ -163,8 +165,8 @@ void* Zeta_DebugHashTable_Find(void* debug_ht_, void const* key,
     return iter == hash_table->end() ? NULL : const_cast<void*>(iter->ptr);
 }
 
-void* Zeta_DebugHashTable_Insert(void* debug_ht_, void const* elem,
-                                 void* dst_cursor_) {
+extern "C" void* Zeta_DebugHashTable_Insert(void* debug_ht_, void const* elem,
+                                            void* dst_cursor_) {
     Zeta_DebugHashTable* debug_ht = (Zeta_DebugHashTable*)debug_ht_;
     ZETA_DebugAssert(debug_ht != NULL);
 
@@ -183,7 +185,7 @@ void* Zeta_DebugHashTable_Insert(void* debug_ht_, void const* elem,
     return const_cast<void*>(iter->ptr);
 }
 
-void Zeta_DebugHashTable_Erase(void* debug_ht_, void* pos_cursor_) {
+extern "C" void Zeta_DebugHashTable_Erase(void* debug_ht_, void* pos_cursor_) {
     Zeta_DebugHashTable* debug_ht = (Zeta_DebugHashTable*)debug_ht_;
     ZETA_DebugAssert(debug_ht != NULL);
 
@@ -200,7 +202,7 @@ void Zeta_DebugHashTable_Erase(void* debug_ht_, void* pos_cursor_) {
     hash_table->erase(*pos_cursor);
 }
 
-void Zeta_DebugHashTable_EraseAll(void* debug_ht_) {
+extern "C" void Zeta_DebugHashTable_EraseAll(void* debug_ht_) {
     Zeta_DebugHashTable* debug_ht = (Zeta_DebugHashTable*)debug_ht_;
     ZETA_DebugAssert(debug_ht != NULL);
 
@@ -210,10 +212,10 @@ void Zeta_DebugHashTable_EraseAll(void* debug_ht_) {
     hash_table->clear();
 }
 
-bool_t Zeta_DebugHashTable_Cursor_AreEqual(void* debug_ht_,
-                                           void const* cursor_a_,
-                                           void const* cursor_b_) {
-    Zeta_DebugHashTable* debug_ht = (Zeta_DebugHashTable*)debug_ht_;
+extern "C" bool_t Zeta_DebugHashTable_Cursor_AreEqual(void const* debug_ht_,
+                                                      void const* cursor_a_,
+                                                      void const* cursor_b_) {
+    Zeta_DebugHashTable const* debug_ht = (Zeta_DebugHashTable const*)debug_ht_;
     ZETA_DebugAssert(debug_ht != NULL);
 
     hash_table_t* hash_table = (hash_table_t*)debug_ht->hash_table;
@@ -228,8 +230,9 @@ bool_t Zeta_DebugHashTable_Cursor_AreEqual(void* debug_ht_,
     return *cursor_a == *cursor_b;
 }
 
-void Zeta_DebugHashTable_Cursor_StepL(void* debug_ht_, void* cursor_) {
-    Zeta_DebugHashTable* debug_ht = (Zeta_DebugHashTable*)debug_ht_;
+extern "C" void Zeta_DebugHashTable_Cursor_StepL(void const* debug_ht_,
+                                                 void* cursor_) {
+    Zeta_DebugHashTable const* debug_ht = (Zeta_DebugHashTable const*)debug_ht_;
     ZETA_DebugAssert(debug_ht != NULL);
 
     hash_table_t* hash_table = (hash_table_t*)debug_ht->hash_table;
@@ -241,8 +244,9 @@ void Zeta_DebugHashTable_Cursor_StepL(void* debug_ht_, void* cursor_) {
     --(*cursor);
 }
 
-void Zeta_DebugHashTable_Cursor_StepR(void* debug_ht_, void* cursor_) {
-    Zeta_DebugHashTable* debug_ht = (Zeta_DebugHashTable*)debug_ht_;
+extern "C" void Zeta_DebugHashTable_Cursor_StepR(void const* debug_ht_,
+                                                 void* cursor_) {
+    Zeta_DebugHashTable const* debug_ht = (Zeta_DebugHashTable const*)debug_ht_;
     ZETA_DebugAssert(debug_ht != NULL);
 
     hash_table_t* hash_table = (hash_table_t*)debug_ht->hash_table;
@@ -254,8 +258,8 @@ void Zeta_DebugHashTable_Cursor_StepR(void* debug_ht_, void* cursor_) {
     ++(*cursor);
 }
 
-void Zeta_DebugHashTable_DeployAssocCntr(void* debug_ht_,
-                                         Zeta_AssocCntr* assoc_cntr) {
+extern "C" void Zeta_DebugHashTable_DeployAssocCntr(
+    void* debug_ht_, Zeta_AssocCntr* assoc_cntr) {
     Zeta_DebugHashTable* debug_ht = (Zeta_DebugHashTable*)debug_ht_;
     ZETA_DebugAssert(debug_ht != NULL);
 

@@ -660,29 +660,29 @@ void Cntr_(Deinit)(void* cntr_) {
     ZETA_Allocator_Deallocate(cntr->seg_allocator, cntr->rb);
 }
 
-size_t Cntr_(GetWidth)(void* cntr_) {
-    Cntr* cntr = cntr_;
+size_t Cntr_(GetWidth)(void const* cntr_) {
+    Cntr const* cntr = cntr_;
     CheckCntr_(cntr);
 
     return GetWidth_(cntr);
 }
 
-size_t Cntr_(GetSize)(void* cntr_) {
-    Cntr* cntr = cntr_;
+size_t Cntr_(GetSize)(void const* cntr_) {
+    Cntr const* cntr = cntr_;
     CheckCntr_(cntr);
 
     return ZETA_Concat(TreeNode, _GetAccSize)(NULL, cntr->root) - 2;
 }
 
-size_t Cntr_(GetCapacity)(void* cntr_) {
-    Cntr* cntr = cntr_;
+size_t Cntr_(GetCapacity)(void const* cntr_) {
+    Cntr const* cntr = cntr_;
     CheckCntr_(cntr);
 
     return ZETA_max_capacity;
 }
 
-void Cntr_(GetLBCursor)(void* cntr_, void* dst_cursor_) {
-    Cntr* cntr = cntr_;
+void Cntr_(GetLBCursor)(void const* cntr_, void* dst_cursor_) {
+    Cntr const* cntr = cntr_;
     CheckCntr_(cntr);
 
     Cntr_(Cursor)* dst_cursor = dst_cursor_;
@@ -696,8 +696,8 @@ void Cntr_(GetLBCursor)(void* cntr_, void* dst_cursor_) {
     dst_cursor->ref = NULL;
 }
 
-void Cntr_(GetRBCursor)(void* cntr_, void* dst_cursor_) {
-    Cntr* cntr = cntr_;
+void Cntr_(GetRBCursor)(void const* cntr_, void* dst_cursor_) {
+    Cntr const* cntr = cntr_;
     CheckCntr_(cntr);
 
     Cntr_(Cursor)* dst_cursor = dst_cursor_;
@@ -905,9 +905,9 @@ void* Cntr_(Refer)(void* cntr_, void const* pos_cursor_) {
     return pos_cursor->ref;
 }
 
-void Cntr_(Read)(void* cntr_, void const* pos_cursor_, size_t cnt, void* dst,
-                 void* dst_cursor_) {
-    Cntr* cntr = cntr_;
+void Cntr_(Read)(void const* cntr_, void const* pos_cursor_, size_t cnt,
+                 void* dst, void* dst_cursor_) {
+    Cntr const* cntr = cntr_;
     Cntr_(Cursor) const* pos_cursor = pos_cursor_;
     Cntr_(Cursor_Check)(cntr, pos_cursor);
 
@@ -3507,8 +3507,8 @@ void Cntr_(WriteBack)(void* cntr_, int write_back_strategy,
 
 #endif
 
-void Cntr_(Check)(void* cntr_) {
-    Cntr* cntr = cntr_;
+void Cntr_(Check)(void const* cntr_) {
+    Cntr const* cntr = cntr_;
     ZETA_DebugAssert(cntr != NULL);
 
 #if STAGING
@@ -3522,9 +3522,11 @@ void Cntr_(Check)(void* cntr_) {
 #endif
 
     size_t width = GetWidth_(cntr);
-
     ZETA_DebugAssert(0 < width);
-    ZETA_DebugAssert(cntr->seg_capacity <= ZETA_RangeMaxOf(unsigned short));
+
+    size_t seg_capacity = cntr->seg_capacity;
+    ZETA_DebugAssert(0 < seg_capacity);
+    ZETA_DebugAssert(seg_capacity <= ZETA_RangeMaxOf(unsigned short));
 
     ZETA_DebugAssert(cntr->seg_allocator != NULL);
     ZETA_DebugAssert(cntr->seg_allocator->GetAlign != NULL);
@@ -3821,9 +3823,9 @@ Cntr_(Stats) Cntr_(GetStats)(void* cntr_) {
     return GetStats_(cntr, cntr->root);
 }
 
-bool_t Cntr_(Cursor_AreEqual)(void* cntr_, void const* cursor_a_,
+bool_t Cntr_(Cursor_AreEqual)(void const* cntr_, void const* cursor_a_,
                               void const* cursor_b_) {
-    Cntr* cntr = cntr_;
+    Cntr const* cntr = cntr_;
 
     Cntr_(Cursor) const* cursor_a = cursor_a_;
     Cntr_(Cursor) const* cursor_b = cursor_b_;
@@ -3834,9 +3836,9 @@ bool_t Cntr_(Cursor_AreEqual)(void* cntr_, void const* cursor_a_,
     return cursor_a->idx == cursor_b->idx;
 }
 
-int Cntr_(Cursor_Compare)(void* cntr_, void const* cursor_a_,
+int Cntr_(Cursor_Compare)(void const* cntr_, void const* cursor_a_,
                           void const* cursor_b_) {
-    Cntr* cntr = cntr_;
+    Cntr const* cntr = cntr_;
 
     Cntr_(Cursor) const* cursor_a = cursor_a_;
     Cntr_(Cursor) const* cursor_b = cursor_b_;
@@ -3847,9 +3849,9 @@ int Cntr_(Cursor_Compare)(void* cntr_, void const* cursor_a_,
     return ZETA_ThreeWayCompare(cursor_a->idx + 1, cursor_b->idx + 1);
 }
 
-size_t Cntr_(Cursor_GetDist)(void* cntr_, void const* cursor_a_,
+size_t Cntr_(Cursor_GetDist)(void const* cntr_, void const* cursor_a_,
                              void const* cursor_b_) {
-    Cntr* cntr = cntr_;
+    Cntr const* cntr = cntr_;
 
     Cntr_(Cursor) const* cursor_a = cursor_a_;
     Cntr_(Cursor) const* cursor_b = cursor_b_;
@@ -3860,24 +3862,24 @@ size_t Cntr_(Cursor_GetDist)(void* cntr_, void const* cursor_a_,
     return cursor_b->idx - cursor_a->idx;
 }
 
-size_t Cntr_(Cursor_GetIdx)(void* cntr_, void const* cursor_) {
-    Cntr* cntr = cntr_;
+size_t Cntr_(Cursor_GetIdx)(void const* cntr_, void const* cursor_) {
+    Cntr const* cntr = cntr_;
     Cntr_(Cursor) const* cursor = cursor_;
     CheckCursor_(cntr, cursor);
 
     return cursor->idx;
 }
 
-void Cntr_(Cursor_StepL)(void* cntr, void* cursor) {
+void Cntr_(Cursor_StepL)(void const* cntr, void* cursor) {
     Cntr_(Cursor_AdvanceL)(cntr, cursor, 1);
 }
 
-void Cntr_(Cursor_StepR)(void* cntr, void* cursor) {
+void Cntr_(Cursor_StepR)(void const* cntr, void* cursor) {
     Cntr_(Cursor_AdvanceR)(cntr, cursor, 1);
 }
 
-void Cntr_(Cursor_AdvanceL)(void* cntr_, void* cursor_, size_t step) {
-    Cntr* cntr = cntr_;
+void Cntr_(Cursor_AdvanceL)(void const* cntr_, void* cursor_, size_t step) {
+    Cntr const* cntr = cntr_;
     Cntr_(Cursor)* cursor = cursor_;
     CheckCursor_(cntr, cursor);
 
@@ -3938,8 +3940,8 @@ void Cntr_(Cursor_AdvanceL)(void* cntr_, void* cursor_, size_t step) {
     cursor->ref = Zeta_CircularArray_Access(&ca, cursor->seg_idx, NULL, NULL);
 }
 
-void Cntr_(Cursor_AdvanceR)(void* cntr_, void* cursor_, size_t step) {
-    Cntr* cntr = cntr_;
+void Cntr_(Cursor_AdvanceR)(void const* cntr_, void* cursor_, size_t step) {
+    Cntr const* cntr = cntr_;
     Cntr_(Cursor)* cursor = cursor_;
     CheckCursor_(cntr, cursor);
 
@@ -3984,15 +3986,15 @@ void Cntr_(Cursor_AdvanceR)(void* cntr_, void* cursor_, size_t step) {
     cursor->ref = Zeta_CircularArray_Access(&ca, cursor->seg_idx, NULL, NULL);
 }
 
-void Cntr_(Cursor_Check)(void* cntr_, void const* cursor_) {
-    Cntr* cntr = cntr_;
+void Cntr_(Cursor_Check)(void const* cntr_, void const* cursor_) {
+    Cntr const* cntr = cntr_;
     CheckCntr_(cntr);
 
     Cntr_(Cursor) const* cursor = cursor_;
     ZETA_DebugAssert(cursor != NULL);
 
     Cntr_(Cursor) re_cursor;
-    Cntr_(Access)(cntr, cursor->idx, &re_cursor, NULL);
+    Cntr_(Access)((void*)cntr, cursor->idx, &re_cursor, NULL);
 
     ZETA_DebugAssert(re_cursor.cntr == cursor->cntr);
     ZETA_DebugAssert(re_cursor.idx == cursor->idx);

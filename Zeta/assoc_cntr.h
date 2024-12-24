@@ -16,6 +16,11 @@ struct Zeta_AssocCntr {
     void* context;
 
     /**
+     * @brief The const context of the container.
+     */
+    void const* const_context;
+
+    /**
      * @brief The number of bytes occupied by cursor.
      */
     size_t cursor_size;
@@ -26,7 +31,7 @@ struct Zeta_AssocCntr {
      *
      * @param context The context of the container.
      */
-    size_t (*GetWidth)(void* context);
+    size_t (*GetWidth)(void const* context);
 
     /**
      * @brief The number of element in the container. Concrete container should
@@ -34,7 +39,7 @@ struct Zeta_AssocCntr {
      *
      * @param context The context of the container.
      */
-    size_t (*GetSize)(void* context);
+    size_t (*GetSize)(void const* context);
 
     /**
      * @brief The maximum number of element can be contained by the container.
@@ -42,7 +47,7 @@ struct Zeta_AssocCntr {
      *
      * @param context The context of the container.
      */
-    size_t (*GetCapacity)(void* context);
+    size_t (*GetCapacity)(void const* context);
 
     /**
      * @brief Get the left cursor. Concrete container can implement this
@@ -51,7 +56,7 @@ struct Zeta_AssocCntr {
      * @param context The context of the container.
      * @param dst_cursor The destination of returned cursor.
      */
-    void (*GetLBCursor)(void* context, void* dst_cursor);
+    void (*GetLBCursor)(void const* context, void* dst_cursor);
 
     /**
      * @brief Get the right cursor. Concrete container should implement this
@@ -60,7 +65,7 @@ struct Zeta_AssocCntr {
      * @param context The context of the container.
      * @param dst_cursor The destination of returned cursor.
      */
-    void (*GetRBCursor)(void* context, void* dst_cursor);
+    void (*GetRBCursor)(void const* context, void* dst_cursor);
 
     /**
      * @brief Peek the left-most element. Concrete container can implement this
@@ -124,7 +129,7 @@ struct Zeta_AssocCntr {
      *
      * @return If \p cursor_a and \p cursor_b point to the same position.
      */
-    bool_t (*Cursor_AreEqual)(void* context, void const* cursor_a,
+    bool_t (*Cursor_AreEqual)(void const* context, void const* cursor_a,
                               void const* cursor_b);
 
     /**
@@ -139,7 +144,7 @@ struct Zeta_AssocCntr {
      *         if \p cursor_a is to the right of \p cursor_b. Zero, if
      *         \p cursor_a and \p cursor_b point to the same position.
      */
-    int (*Cursor_Compare)(void* context, void const* cursor_a,
+    int (*Cursor_Compare)(void const* context, void const* cursor_a,
                           void const* cursor_b);
 
     /**
@@ -152,7 +157,7 @@ struct Zeta_AssocCntr {
      *
      * @return The distance from \p cursor_a to \p cursor_b.
      */
-    size_t (*Cursor_GetDist)(void* context, void const* cursor_a,
+    size_t (*Cursor_GetDist)(void const* context, void const* cursor_a,
                              void const* cursor_b);
 
     /**
@@ -164,7 +169,7 @@ struct Zeta_AssocCntr {
      *
      * @return The index pointed by \p cursor.
      */
-    size_t (*Cursor_GetIdx)(void* context, void const* cursor);
+    size_t (*Cursor_GetIdx)(void const* context, void const* cursor);
 
     /**
      * @brief Step \p cursor left. Concrete container can implement this
@@ -173,7 +178,7 @@ struct Zeta_AssocCntr {
      * @param context The context of the container.
      * @param cursor The target cursor.
      */
-    void (*Cursor_StepL)(void* context, void* cursor);
+    void (*Cursor_StepL)(void const* context, void* cursor);
 
     /**
      * @brief Step \p cursor right. Concrete container should implement this
@@ -182,7 +187,7 @@ struct Zeta_AssocCntr {
      * @param context The context of the container.
      * @param cursor The target cursor.
      */
-    void (*Cursor_StepR)(void* context, void* cursor);
+    void (*Cursor_StepR)(void const* context, void* cursor);
 
     /**
      * @brief Advance cursor left \p step. Concrete container can implement
@@ -192,7 +197,7 @@ struct Zeta_AssocCntr {
      * @param cursor The target cursor.
      * @param step The number of steps to advance cursor.
      */
-    void (*Cursor_AdvanceL)(void* context, void* cursor, size_t step);
+    void (*Cursor_AdvanceL)(void const* context, void* cursor, size_t step);
 
     /**
      * @brief Advance \p cursor right \p step. Concrete container can implement
@@ -202,7 +207,7 @@ struct Zeta_AssocCntr {
      * @param cursor The target cursor.
      * @param step The number of steps to advance cursor.
      */
-    void (*Cursor_AdvanceR)(void* context, void* cursor, size_t step);
+    void (*Cursor_AdvanceR)(void const* context, void* cursor, size_t step);
 };
 
 void Zeta_AssocCntr_Init(Zeta_AssocCntr* assoc_cntr);
@@ -216,34 +221,50 @@ void Zeta_AssocCntr_Init(Zeta_AssocCntr* assoc_cntr);
     ZETA_CallMemberFunc((Zeta_AssocCntr*)ZETA_ToVoidPtr(assoc_cntr), \
                         member_func, __VA_ARGS__)
 
+#define ZETA_AssocCntr_CallConst_(assoc_cntr, member_func, ...)           \
+    ZETA_CallConstMemberFunc((Zeta_AssocCntr*)ZETA_ToVoidPtr(assoc_cntr), \
+                             member_func, __VA_ARGS__)
+
 #define ZETA_AssocCntr_GetWidth(assoc_cntr) \
-    ZETA_AssocCntr_Call_((assoc_cntr), GetWidth)
+    ZETA_AssocCntr_CallConst_((assoc_cntr), GetWidth)
 
 #define ZETA_AssocCntr_GetSize(assoc_cntr) \
-    ZETA_AssocCntr_Call_((assoc_cntr), GetSize)
+    ZETA_AssocCntr_CallConst_((assoc_cntr), GetSize)
 
 #define ZETA_AssocCntr_GetCapacity(assoc_cntr) \
-    ZETA_AssocCntr_Call_((assoc_cntr), GetCapacity)
+    ZETA_AssocCntr_CallConst_((assoc_cntr), GetCapacity)
 
-#define ZETA_AssocCntr_GetLBCursor(assoc_cntr, dst_cursor)         \
-    ZETA_AssocCntr_Call_((assoc_cntr), GetLBCursor, (dst_cursor)); \
+#define ZETA_AssocCntr_GetLBCursor(assoc_cntr, dst_cursor)              \
+    ZETA_AssocCntr_CallConst_((assoc_cntr), GetLBCursor, (dst_cursor)); \
     ZETA_StaticAssert(TRUE)
 
-#define ZETA_AssocCntr_GetRBCursor(assoc_cntr, dst_cursor)         \
-    ZETA_AssocCntr_Call_((assoc_cntr), GetRBCursor, (dst_cursor)); \
+#define ZETA_AssocCntr_GetRBCursor(assoc_cntr, dst_cursor)              \
+    ZETA_AssocCntr_CallConst_((assoc_cntr), GetRBCursor, (dst_cursor)); \
     ZETA_StaticAssert(TRUE)
 
 #define ZETA_AssocCntr_PeekL(assoc_cntr, dst_cursor) \
     ZETA_AssocCntr_Call_((assoc_cntr), PeekL, (dst_cursor))
 
+#define ZETA_AssocCntr_ConstPeekL(assoc_cntr, dst_cursor) \
+    ZETA_AssocCntr_CallConst_((assoc_cntr), PeekL, (dst_cursor))
+
 #define ZETA_AssocCntr_PeekR(assoc_cntr, dst_cursor) \
     ZETA_AssocCntr_Call_((assoc_cntr), PeekR, (dst_cursor))
+
+#define ZETA_AssocCntr_ConstPeekR(assoc_cntr, dst_cursor) \
+    ZETA_AssocCntr_CallConst_((assoc_cntr), PeekR, (dst_cursor))
 
 #define ZETA_AssocCntr_Refer(assoc_cntr, pos_cursor) \
     ZETA_AssocCntr_Call_((assoc_cntr), Refer, (pos_cursor))
 
+#define ZETA_AssocCntr_ConstRefer(assoc_cntr, pos_cursor) \
+    ZETA_AssocCntr_CallConst_((assoc_cntr), Refer, (pos_cursor))
+
 #define ZETA_AssocCntr_Find(assoc_cntr, key, dst_cursor) \
     ZETA_AssocCntr_Call_((assoc_cntr), Find, (key), (dst_cursor))
+
+#define ZETA_AssocCntr_ConstFind(assoc_cntr, key, dst_cursor) \
+    ZETA_AssocCntr_CallConst_((assoc_cntr), Find, (key), (dst_cursor))
 
 #define ZETA_AssocCntr_Insert(assoc_cntr, elem, dst_cursor) \
     ZETA_AssocCntr_Call_((assoc_cntr), Insert, (elem), (dst_cursor))
@@ -256,28 +277,31 @@ void Zeta_AssocCntr_Init(Zeta_AssocCntr* assoc_cntr);
     ZETA_AssocCntr_Call_((assoc_cntr), EraseAll); \
     ZETA_StaticAssert(TRUE)
 
-#define ZETA_AssocCntr_Cursor_AreEqual(assoc_cntr, cursor_a, cursor_b) \
-    ZETA_AssocCntr_Call_((assoc_cntr), Cursor_AreEqual, (cursor_a), (cursor_b))
+#define ZETA_AssocCntr_Cursor_AreEqual(assoc_cntr, cursor_a, cursor_b)   \
+    ZETA_AssocCntr_CallConst_((assoc_cntr), Cursor_AreEqual, (cursor_a), \
+                              (cursor_b))
 
-#define ZETA_AssocCntr_Cursor_Compare(assoc_cntr, cursor_a, cursor_b) \
-    ZETA_AssocCntr_Call_((assoc_cntr), Cursor_Compare, (cursor_a), (cursor_b))
+#define ZETA_AssocCntr_Cursor_Compare(assoc_cntr, cursor_a, cursor_b)   \
+    ZETA_AssocCntr_CallConst_((assoc_cntr), Cursor_Compare, (cursor_a), \
+                              (cursor_b))
 
-#define ZETA_AssocCntr_Cursor_GetDist(assoc_cntr, cursor_a, cursor_b) \
-    ZETA_AssocCntr_Call_((assoc_cntr), Cursor_GetDist, (cursor_a), (cursor_b))
+#define ZETA_AssocCntr_Cursor_GetDist(assoc_cntr, cursor_a, cursor_b)   \
+    ZETA_AssocCntr_CallConst_((assoc_cntr), Cursor_GetDist, (cursor_a), \
+                              (cursor_b))
 
 #define ZETA_AssocCntr_Cursor_GetIdx(assoc_cntr, cursor) \
-    ZETA_AssocCntr_Call_((assoc_cntr), Cursor_GetIdx, (cursor))
+    ZETA_AssocCntr_CallConst_((assoc_cntr), Cursor_GetIdx, (cursor))
 
 #define ZETA_AssocCntr_Cursor_StepL(assoc_cntr, cursor) \
-    ZETA_AssocCntr_Call_((assoc_cntr), Cursor_StepL, (cursor))
+    ZETA_AssocCntr_CallConst_((assoc_cntr), Cursor_StepL, (cursor))
 
 #define ZETA_AssocCntr_Cursor_StepR(assoc_cntr, cursor) \
-    ZETA_AssocCntr_Call_((assoc_cntr), Cursor_StepR, (cursor))
+    ZETA_AssocCntr_CallConst_((assoc_cntr), Cursor_StepR, (cursor))
 
 #define ZETA_AssocCntr_Cursor_AdvanceL(assoc_cntr, cursor, idx) \
-    ZETA_AssocCntr_Call_((assoc_cntr), Cursor_AdvanceL, (cursor), (idx))
+    ZETA_AssocCntr_CallConst_((assoc_cntr), Cursor_AdvanceL, (cursor), (idx))
 
 #define ZETA_AssocCntr_Cursor_AdvanceR(assoc_cntr, cursor, idx) \
-    ZETA_AssocCntr_Call_((assoc_cntr), Cursor_AdvanceR, (cursor), (idx))
+    ZETA_AssocCntr_CallConst_((assoc_cntr), Cursor_AdvanceR, (cursor), (idx))
 
 ZETA_ExternC_End;

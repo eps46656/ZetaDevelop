@@ -195,8 +195,8 @@ void Zeta_GenericHashTable_Deinit(void* ght_) {
     }                                                                       \
     ZETA_StaticAssert(TRUE)
 
-size_t Zeta_GenericHashTable_GetSize(void* ght_) {
-    Zeta_GenericHashTable* ght = ght_;
+size_t Zeta_GenericHashTable_GetSize(void const* ght_) {
+    Zeta_GenericHashTable const* ght = ght_;
     CheckCntr_(ght);
 
     return ght->cur_table_cnt + ght->nxt_table_cnt;
@@ -402,8 +402,8 @@ RET:;
     ght->nxt_table_capacity = nxt_table_capacity;
 }
 
-unsigned long long Zeta_GenericHashTable_GetEffFactor(void* ght_) {
-    Zeta_GenericHashTable* ght = ght_;
+unsigned long long Zeta_GenericHashTable_GetEffFactor(void const* ght_) {
+    Zeta_GenericHashTable const* ght = ght_;
     CheckCntr_(ght);
 
     int state = GetState_(ght);
@@ -470,8 +470,8 @@ unsigned long long Zeta_GenericHashTable_GetEffFactor(void* ght_) {
            (cur_table_cnt + nxt_table_cnt);
 }
 
-void Zeta_GenericHashTable_Check(void* ght_) {
-    Zeta_GenericHashTable* ght = ght_;
+void Zeta_GenericHashTable_Check(void const* ght_) {
+    Zeta_GenericHashTable const* ght = ght_;
     ZETA_DebugAssert(ght != NULL);
 
     int state = GetState_(ght);
@@ -682,8 +682,8 @@ void Zeta_GenericHashTable_Sanitize(void* ght_, Zeta_MemRecorder* dst_table,
 #endif
 }
 
-void Zeta_GenericHashTable_CheckNode(void* ght_, void* node_) {
-    Zeta_GenericHashTable* ght = ght_;
+void Zeta_GenericHashTable_CheckNode(void const* ght_, void* node_) {
+    Zeta_GenericHashTable const* ght = ght_;
     CheckCntr_(ght);
 
     Zeta_GenericHashTable_Node* node = node_;

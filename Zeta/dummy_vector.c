@@ -21,31 +21,31 @@
 
 #endif
 
-size_t Zeta_DummyVector_GetWidth(void* dv_) {
-    Zeta_DummyVector* dv = dv_;
+size_t Zeta_DummyVector_GetWidth(void const* dv_) {
+    Zeta_DummyVector const* dv = dv_;
 
     CheckCntr_(dv);
 
     return dv->width;
 }
 
-size_t Zeta_DummyVector_GetSize(void* dv) {
+size_t Zeta_DummyVector_GetSize(void const* dv) {
     CheckCntr_(dv);
     return 0;
 }
 
-size_t Zeta_DummyVector_GetCapacity(void* dv) {
+size_t Zeta_DummyVector_GetCapacity(void const* dv) {
     CheckCntr_(dv);
     return 0;
 }
 
-void Zeta_DummyVector_GetLBCursor(void* dv, void* dst_cursor) {
+void Zeta_DummyVector_GetLBCursor(void const* dv, void* dst_cursor) {
     CheckCntr_(dv);
     ZETA_DebugAssert(dst_cursor != NULL);
     *(size_t*)dst_cursor = -1;
 }
 
-void Zeta_DummyVector_GetRBCursor(void* dv, void* dst_cursor) {
+void Zeta_DummyVector_GetRBCursor(void const* dv, void* dst_cursor) {
     CheckCntr_(dv);
     ZETA_DebugAssert(dst_cursor != NULL);
     *(size_t*)dst_cursor = 0;
@@ -84,7 +84,7 @@ void* Zeta_DummyVector_Refer(void* dv, void const* pos_cursor) {
     return NULL;
 }
 
-void Zeta_DummyVector_Read(void* dv, void const* pos_cursor, size_t cnt,
+void Zeta_DummyVector_Read(void const* dv, void const* pos_cursor, size_t cnt,
                            void* dst, void* dst_cursor) {
     CheckCursor_(dv, pos_cursor);
     ZETA_DebugAssert(cnt == 0);
@@ -100,14 +100,14 @@ void Zeta_DummyVector_Write(void* dv, void const* pos_cursor, size_t cnt,
     ZETA_Unused(dst_cursor);
 }
 
-void Zeta_DummyVector_Check(void* dv_) {
-    Zeta_DummyVector* dv = dv_;
+void Zeta_DummyVector_Check(void const* dv_) {
+    Zeta_DummyVector const* dv = dv_;
     ZETA_DebugAssert(dv != NULL);
 
     ZETA_DebugAssert(0 < dv->width);
 }
 
-bool_t Zeta_DummyVector_Cursor_AreEqual(void* dv, void const* cursor_a_,
+bool_t Zeta_DummyVector_Cursor_AreEqual(void const* dv, void const* cursor_a_,
                                         void const* cursor_b_) {
     size_t const* cursor_a = cursor_a_;
     size_t const* cursor_b = cursor_b_;
@@ -118,7 +118,7 @@ bool_t Zeta_DummyVector_Cursor_AreEqual(void* dv, void const* cursor_a_,
     return *cursor_a == *cursor_b;
 }
 
-int Zeta_DummyVector_Cursor_Compare(void* dv, void const* cursor_a_,
+int Zeta_DummyVector_Cursor_Compare(void const* dv, void const* cursor_a_,
                                     void const* cursor_b_) {
     size_t const* cursor_a = cursor_a_;
     size_t const* cursor_b = cursor_b_;
@@ -129,7 +129,7 @@ int Zeta_DummyVector_Cursor_Compare(void* dv, void const* cursor_a_,
     return ZETA_ThreeWayCompare(*cursor_a + 1, *cursor_b + 1);
 }
 
-size_t Zeta_DummyVector_Cursor_GetDist(void* dv, void const* cursor_a_,
+size_t Zeta_DummyVector_Cursor_GetDist(void const* dv, void const* cursor_a_,
                                        void const* cursor_b_) {
     size_t const* cursor_a = cursor_a_;
     size_t const* cursor_b = cursor_b_;
@@ -140,22 +140,23 @@ size_t Zeta_DummyVector_Cursor_GetDist(void* dv, void const* cursor_a_,
     return *cursor_b - *cursor_a;
 }
 
-size_t Zeta_DummyVector_Cursor_GetIdx(void* dv, void const* cursor_) {
+size_t Zeta_DummyVector_Cursor_GetIdx(void const* dv, void const* cursor_) {
     size_t const* cursor = cursor_;
     CheckCursor_(dv, cursor);
 
     return *cursor;
 }
 
-void Zeta_DummyVector_Cursor_StepL(void* dv, void* cursor) {
+void Zeta_DummyVector_Cursor_StepL(void const* dv, void* cursor) {
     Zeta_DummyVector_Cursor_AdvanceL(dv, cursor, 1);
 }
 
-void Zeta_DummyVector_Cursor_StepR(void* dv, void* cursor) {
+void Zeta_DummyVector_Cursor_StepR(void const* dv, void* cursor) {
     Zeta_DummyVector_Cursor_AdvanceR(dv, cursor, 1);
 }
 
-void Zeta_DummyVector_Cursor_AdvanceL(void* dv, void* cursor_, size_t step) {
+void Zeta_DummyVector_Cursor_AdvanceL(void const* dv, void* cursor_,
+                                      size_t step) {
     size_t* cursor = cursor_;
     CheckCursor_(dv, cursor);
 
@@ -164,7 +165,8 @@ void Zeta_DummyVector_Cursor_AdvanceL(void* dv, void* cursor_, size_t step) {
     *cursor -= step;
 }
 
-void Zeta_DummyVector_Cursor_AdvanceR(void* dv, void* cursor_, size_t step) {
+void Zeta_DummyVector_Cursor_AdvanceR(void const* dv, void* cursor_,
+                                      size_t step) {
     size_t* cursor = cursor_;
     CheckCursor_(dv, cursor);
 
@@ -173,7 +175,7 @@ void Zeta_DummyVector_Cursor_AdvanceR(void* dv, void* cursor_, size_t step) {
     *cursor += step;
 }
 
-void Zeta_DummyVector_Cursor_Check(void* dv, void const* cursor) {
+void Zeta_DummyVector_Cursor_Check(void const* dv, void const* cursor) {
     CheckCntr_(dv);
     ZETA_Unused(cursor);
 }

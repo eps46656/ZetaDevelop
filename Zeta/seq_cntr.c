@@ -178,3 +178,41 @@ void Zeta_SeqCntr_Assign(Zeta_SeqCntr* dst_seq_cntr,
 
     Zeta_SeqCntr_RangeAssign(dst_seq_cntr, src_seq_cntr, 0, 0, src_size);
 }
+
+void* Zeta_SeqCntr_NaiveInsert(Zeta_SeqCntr* seq_cntr, void* pos_cursor,
+                               size_t cnt) {
+    if (cnt == 0) { return ZETA_SeqCntr_Refer(seq_cntr, pos_cursor); }
+
+    bool_t push_l_en = seq_cntr->PushL != NULL;
+    bool_t push_r_en = seq_cntr->PushL != NULL;
+
+    ZETA_DebugAssert(push_l_en || push_r_en);
+
+    size_t size = ZETA_SeqCntr_GetSize(seq_cntr);
+
+    size_t l_size = ZETA_SeqCntr_Cursor_GetIdx(seq_cntr, pos_cursor);
+    size_t r_size = size - l_size;
+
+    void* dst_cursor = ZETA_SeqCntr_AllocaCursor(seq_cntr);
+
+    if (!push_l_en) { goto PUSH_R; }
+    if (!push_r_en) { goto PUSH_L; }
+
+    if (l_size < r_size) {
+        goto PUSH_L;
+    } else {
+        goto PUSH_R;
+    }
+
+PUSH_L: {
+    ZETA_SeqCntr_PushL(seq_cntr, cnt, dst_cursor);
+    Zeta_SeqCntr_RangeAssign(seq_cntr, seq_cntr, 0, cnt + l_size, l_size);
+    return ZETA_SeqCntr_Access(seq_cntr, cnt + l_size, pos_cursor, NULL);
+}
+
+PUSH_R: {
+    ZETA_SeqCntr_PushR(seq_cntr, cnt, dst_cursor);
+    Zeta_SeqCntr_RangeAssign(seq_cntr, seq_cntr, size, l_size, r_size);
+    return ZETA_SeqCntr_Access(seq_cntr, l_size, pos_cursor, NULL);
+}
+}

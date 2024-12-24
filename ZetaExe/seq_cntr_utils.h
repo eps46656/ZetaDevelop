@@ -24,14 +24,14 @@ Value* SeqCntrUtils_GetBuffer_B(size_t size) {
 }
 
 auto& SeqCntrUtils_GetSanitizeFuncs() {
-    static std::unordered_map<size_t (*)(void* constext),
+    static std::unordered_map<size_t (*)(void const* constext),
                               void (*)(Zeta_SeqCntr const* seq_cntr)>
         instance;
     return instance;
 }
 
 void SeqCntrUtils_AddSanitizeFunc(
-    size_t (*GetWidth)(void* context),
+    size_t (*GetWidth)(void const* context),
     void (*Sanitize)(Zeta_SeqCntr const* seq_cntr)) {
     auto& map{ SeqCntrUtils_GetSanitizeFuncs() };
 
@@ -51,13 +51,13 @@ void SeqCntrUtils_Sanitize(Zeta_SeqCntr const* seq_cntr) {
 }
 
 auto& SeqCntrUtils_GetDestroyFuncs() {
-    static std::unordered_map<size_t (*)(void* constext),
+    static std::unordered_map<size_t (*)(void const* constext),
                               void (*)(Zeta_SeqCntr* seq_cntr)>
         instance;
     return instance;
 }
 
-void SeqCntrUtils_AddDestroyFunc(size_t (*GetWidth)(void* context),
+void SeqCntrUtils_AddDestroyFunc(size_t (*GetWidth)(void const* context),
                                  void (*Destroy)(Zeta_SeqCntr* seq_cntr)) {
     auto& map{ SeqCntrUtils_GetDestroyFuncs() };
 

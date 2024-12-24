@@ -1221,6 +1221,38 @@ def AddDeps(builder: Builder, config: Config):
     )
 
     builder.Add(
+        f"{zeta_dir}/multi_level_circular_array.h",
+        {
+            f"{FILE}",
+            f"{zeta_dir}/allocator.h",
+            f"{zeta_dir}/mem_check_utils.h",
+        },
+        None
+    )
+
+    builder.Add(
+        f"{zeta_dir}/multi_level_circular_array.c",
+        {
+            f"{FILE}",
+            f"{zeta_dir}/multi_level_circular_array.h",
+            f"{zeta_dir}/debugger.h",
+        },
+        None
+    )
+
+    builder.Add(
+        f"{zeta_build_dir}/multi_level_circular_array.o",
+        {
+            f"{FILE}",
+            f"{zeta_dir}/multi_level_circular_array.c"
+        },
+        lambda: compiler.c_to_obj(
+            f"{zeta_build_dir}/multi_level_circular_array.o",
+            f"{zeta_dir}/multi_level_circular_array.c"
+        )
+    )
+
+    builder.Add(
         f"{zeta_dir}/multi_level_table.h",
         {
             f"{FILE}",

@@ -131,29 +131,29 @@ void Zeta_DynamicHashTable_Deinit(void* dht_) {
     ZETA_Allocator_Deallocate(dht->node_allocator, dht->lln);
 }
 
-size_t Zeta_DynamicHashTable_GetWidth(void* dht_) {
-    Zeta_DynamicHashTable* dht = dht_;
+size_t Zeta_DynamicHashTable_GetWidth(void const* dht_) {
+    Zeta_DynamicHashTable const* dht = dht_;
     CheckCntr_(dht);
 
     return dht->width;
 }
 
-size_t Zeta_DynamicHashTable_GetSize(void* dht_) {
-    Zeta_DynamicHashTable* dht = dht_;
+size_t Zeta_DynamicHashTable_GetSize(void const* dht_) {
+    Zeta_DynamicHashTable const* dht = dht_;
     CheckCntr_(dht);
 
     return Zeta_GenericHashTable_GetSize(&dht->ght);
 }
 
-size_t Zeta_DynamicHashTable_GetCapacity(void* dht_) {
-    Zeta_DynamicHashTable* dht = dht_;
+size_t Zeta_DynamicHashTable_GetCapacity(void const* dht_) {
+    Zeta_DynamicHashTable const* dht = dht_;
     CheckCntr_(dht);
 
     return ZETA_SIZE_MAX;
 }
 
-void Zeta_DynamicHashTable_GetLBCursor(void* dht_, void* dst_cursor_) {
-    Zeta_DynamicHashTable* dht = dht_;
+void Zeta_DynamicHashTable_GetLBCursor(void const* dht_, void* dst_cursor_) {
+    Zeta_DynamicHashTable const* dht = dht_;
     CheckCntr_(dht);
 
     Zeta_DynamicHashTable_Cursor* dst_cursor = dst_cursor_;
@@ -163,8 +163,8 @@ void Zeta_DynamicHashTable_GetLBCursor(void* dht_, void* dst_cursor_) {
     dst_cursor->lln = dht->lln;
 }
 
-void Zeta_DynamicHashTable_GetRBCursor(void* dht_, void* dst_cursor_) {
-    Zeta_DynamicHashTable* dht = dht_;
+void Zeta_DynamicHashTable_GetRBCursor(void const* dht_, void* dst_cursor_) {
+    Zeta_DynamicHashTable const* dht = dht_;
     CheckCntr_(dht);
 
     Zeta_DynamicHashTable_Cursor* dst_cursor = dst_cursor_;
@@ -343,8 +343,8 @@ unsigned long long Zeta_DynamicHashTable_GetEffFactor(void* dht_) {
     return Zeta_GenericHashTable_GetEffFactor(&dht->ght);
 }
 
-void Zeta_DynamicHashTable_Check(void* dht_) {
-    Zeta_DynamicHashTable* dht = dht_;
+void Zeta_DynamicHashTable_Check(void const* dht_) {
+    Zeta_DynamicHashTable const* dht = dht_;
     ZETA_DebugAssert(dht != NULL);
 
     size_t width = dht->width;
@@ -405,9 +405,10 @@ void Zeta_DynamicHashTable_Sanitize(void* dht_, Zeta_MemRecorder* dst_table,
 #endif
 }
 
-bool_t Zeta_DynamicHashTable_Cursor_AreEqual(void* dht_, void const* cursor_a_,
+bool_t Zeta_DynamicHashTable_Cursor_AreEqual(void const* dht_,
+                                             void const* cursor_a_,
                                              void const* cursor_b_) {
-    Zeta_DynamicHashTable* dht = dht_;
+    Zeta_DynamicHashTable const* dht = dht_;
 
     Zeta_DynamicHashTable_Cursor const* cursor_a = cursor_a_;
     Zeta_DynamicHashTable_Cursor const* cursor_b = cursor_b_;
@@ -418,8 +419,8 @@ bool_t Zeta_DynamicHashTable_Cursor_AreEqual(void* dht_, void const* cursor_a_,
     return cursor_a->lln == cursor_b->lln;
 }
 
-void Zeta_DynamicHashTable_Cursor_StepL(void* dht_, void* cursor_) {
-    Zeta_DynamicHashTable* dht = dht_;
+void Zeta_DynamicHashTable_Cursor_StepL(void const* dht_, void* cursor_) {
+    Zeta_DynamicHashTable const* dht = dht_;
     Zeta_DynamicHashTable_Cursor* cursor = cursor_;
 
     CheckCursor_(dht, cursor);
@@ -427,8 +428,8 @@ void Zeta_DynamicHashTable_Cursor_StepL(void* dht_, void* cursor_) {
     cursor->lln = Zeta_OrdLinkedListNode_GetL(cursor->lln);
 }
 
-void Zeta_DynamicHashTable_Cursor_StepR(void* dht_, void* cursor_) {
-    Zeta_DynamicHashTable* dht = dht_;
+void Zeta_DynamicHashTable_Cursor_StepR(void const* dht_, void* cursor_) {
+    Zeta_DynamicHashTable const* dht = dht_;
     Zeta_DynamicHashTable_Cursor* cursor = cursor_;
 
     CheckCursor_(dht, cursor);
@@ -436,8 +437,8 @@ void Zeta_DynamicHashTable_Cursor_StepR(void* dht_, void* cursor_) {
     cursor->lln = Zeta_OrdLinkedListNode_GetR(cursor->lln);
 }
 
-void Zeta_DynamicHashTable_Cursor_Check(void* dht_, void const* cursor_) {
-    Zeta_DynamicHashTable* dht = dht_;
+void Zeta_DynamicHashTable_Cursor_Check(void const* dht_, void const* cursor_) {
+    Zeta_DynamicHashTable const* dht = dht_;
     CheckCntr_(dht);
 
     Zeta_DynamicHashTable_Cursor const* cursor = cursor_;

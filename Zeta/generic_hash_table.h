@@ -47,7 +47,7 @@ void Zeta_GenericHashTable_Init(void* ght);
 
 void Zeta_GenericHashTable_Deinit(void* ght);
 
-size_t Zeta_GenericHashTable_GetSize(void* ght);
+size_t Zeta_GenericHashTable_GetSize(void const* ght);
 
 void* Zeta_GenericHashTable_Find(void* ght, void const* key);
 
@@ -57,14 +57,14 @@ void Zeta_GenericHashTable_Erase(void* ght, void* node);
 
 void Zeta_GenericHashTable_EraseAll(void* ght);
 
-unsigned long long Zeta_GenericHashTable_GetEffFactor(void* ght);
+unsigned long long Zeta_GenericHashTable_GetEffFactor(void const* ght);
 
-void Zeta_GenericHashTable_Check(void* ght);
+void Zeta_GenericHashTable_Check(void const* ght);
 
 void Zeta_GenericHashTable_Sanitize(void* ght, Zeta_MemRecorder* dst_table,
                                     Zeta_MemRecorder* dst_node);
 
-void Zeta_GenericHashTable_CheckNode(void* ght, void* node);
+void Zeta_GenericHashTable_CheckNode(void const* ght, void* node);
 
 void Zeta_GenericHashTable_Node_Init(void* ghtn);
 

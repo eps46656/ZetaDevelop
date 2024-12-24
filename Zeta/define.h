@@ -490,8 +490,24 @@ ZETA_StaticAssert(255 <= ZETA_RangeMaxOf(byte_t));
                               __VA_ARGS__)                            \
     })
 
+#define ZETA_CallConstMemberFunc_(tmp_obj, tmp_context, tmp_const_context, \
+                                  obj, member_func, ...)                   \
+    ({                                                                     \
+        ZETA_AutoVar(tmp_obj, (obj));                                      \
+        void* tmp_context = tmp_obj->context;                              \
+        void const* tmp_const_context = tmp_obj->const_context;            \
+        ZETA_CallMemberFunc__(                                             \
+            tmp_obj, member_func,                                          \
+            tmp_const_context == NULL ? tmp_context : tmp_const_context,   \
+            __VA_ARGS__)                                                   \
+    })
+
 #define ZETA_CallMemberFunc(obj, member_func, ...) \
     ZETA_CallMemberFunc_(ZETA_TmpName, obj, member_func, __VA_ARGS__)
+
+#define ZETA_CallConstMemberFunc(obj, member_func, ...)                      \
+    ZETA_CallConstMemberFunc_(ZETA_TmpName, ZETA_TmpName, ZETA_TmpName, obj, \
+                              member_func, __VA_ARGS__)
 
 #define ZETA_LittleEndian (0)
 #define ZETA_BigEndian (1)

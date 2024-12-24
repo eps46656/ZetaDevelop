@@ -22,7 +22,7 @@ ZETA_DeclareStruct(Zeta_MultiLevelTable_Node);
 
 struct Zeta_MultiLevelTable {
     int level;
-    unsigned short branch_nums[ZETA_MultiLevelTable_max_level];
+    unsigned short const* branch_nums;
 
     size_t size;
 
@@ -127,7 +127,7 @@ void** Zeta_MultiLevelTable_Insert(void* mlt, size_t* idxes);
  *
  * @return The reference of target entry.
  */
-void Zeta_MultiLevelTable_Erase(void* mlt, size_t* idxes);
+void* Zeta_MultiLevelTable_Erase(void* mlt, size_t* idxes);
 
 /**
  * @brief Erase all existed entries.

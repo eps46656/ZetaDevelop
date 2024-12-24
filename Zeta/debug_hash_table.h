@@ -35,15 +35,15 @@ void Zeta_DebugHashTable_Init(void* debug_ht);
 
 void Zeta_DebugHashTable_Deinit(void* debug_ht);
 
-size_t Zeta_DebugHashTable_GetWidth(void* debug_ht);
+size_t Zeta_DebugHashTable_GetWidth(void const* debug_ht);
 
-size_t Zeta_DebugHashTable_GetSize(void* debug_ht);
+size_t Zeta_DebugHashTable_GetSize(void const* debug_ht);
 
-size_t Zeta_DebugHashTable_GetCapacity(void* debug_ht);
+size_t Zeta_DebugHashTable_GetCapacity(void const* debug_ht);
 
 // void Zeta_DebugHashTable_GetLBCursor(void* debug_ht, void* dst_cursor);
 
-void Zeta_DebugHashTable_GetRBCursor(void* debug_ht, void* dst_cursor);
+void Zeta_DebugHashTable_GetRBCursor(void const* debug_ht, void* dst_cursor);
 
 void* Zeta_DebugHashTable_PeekL(void* debug_ht, void* dst_cursor);
 
@@ -61,7 +61,8 @@ void Zeta_DebugHashTable_Erase(void* debug_ht, void* pos_cursor);
 
 void Zeta_DebugHashTable_EraseAll(void* debug_ht);
 
-bool_t Zeta_DebugHashTable_Cursor_AreEqual(void* debug_ht, void const* cursor_a,
+bool_t Zeta_DebugHashTable_Cursor_AreEqual(void const* debug_ht,
+                                           void const* cursor_a,
                                            void const* cursor_b);
 
 /*
@@ -76,9 +77,9 @@ size_t Zeta_DebugHashTable_Cursor_GetDist(void* debug_ht, void const* cursor_a,
 
 // size_t Zeta_DebugHashTable_Cursor_GetIdx(void* debug_ht, void const* cursor);
 
-void Zeta_DebugHashTable_Cursor_StepL(void* debug_ht, void* cursor);
+void Zeta_DebugHashTable_Cursor_StepL(void const* debug_ht, void* cursor);
 
-void Zeta_DebugHashTable_Cursor_StepR(void* debug_ht, void* cursor);
+void Zeta_DebugHashTable_Cursor_StepR(void const* debug_ht, void* cursor);
 
 /* void Zeta_DebugHashTable_Cursor_AdvanceL(void* debug_ht, void* cursor,
                                        size_t step); */
