@@ -41,13 +41,13 @@ size_t Zeta_DummyVector_GetCapacity(void const* dv) {
 
 void Zeta_DummyVector_GetLBCursor(void const* dv, void* dst_cursor) {
     CheckCntr_(dv);
-    ZETA_DebugAssert(dst_cursor != NULL);
+    if (dst_cursor == NULL) { return; }
     *(size_t*)dst_cursor = -1;
 }
 
 void Zeta_DummyVector_GetRBCursor(void const* dv, void* dst_cursor) {
     CheckCntr_(dv);
-    ZETA_DebugAssert(dst_cursor != NULL);
+    if (dst_cursor == NULL) { return; }
     *(size_t*)dst_cursor = 0;
 }
 
@@ -187,6 +187,8 @@ void Zeta_DummyVector_DeploySeqCntr(void* dv_, Zeta_SeqCntr* seq_cntr) {
     Zeta_SeqCntr_Init(seq_cntr);
 
     seq_cntr->context = dv;
+
+    seq_cntr->const_context = dv;
 
     seq_cntr->cursor_size = sizeof(size_t);
 

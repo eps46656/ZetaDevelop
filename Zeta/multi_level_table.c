@@ -407,7 +407,10 @@ void* Zeta_MultiLevelTable_Erase(void* mlt_, size_t* idxes) {
 static void EraseAll_(int level, unsigned short const* branch_nums,
                       Zeta_MultiLevelTable_Node* node,
                       Zeta_Allocator* node_allocator) {
-    if (level == 0) { ZETA_Allocator_Deallocate(node_allocator, node); }
+    if (level == 0) {
+        ZETA_Allocator_Deallocate(node_allocator, node);
+        return;
+    }
 
     size_t branch_num = branch_nums[level];
 
@@ -467,12 +470,12 @@ void Zeta_MultiLevelTable_CheckIdxes(void* mlt_, size_t const* idxes) {
     }
 }
 
-static size_t Sanitize_(Zeta_MemRecorder* dst_node, int level,
+static size_t Sanitize_(Zeta_MemRecorder* dst_node, int level_i,
                         unsigned short const* branch_nums,
                         Zeta_MultiLevelTable_Node* node) {
     ZETA_DebugAssert(node->hot != 0);
 
-    size_t branch_num = branch_nums[level];
+    size_t branch_num = branch_nums[level_i];
 
     if (dst_node != NULL) {
         Zeta_MemRecorder_Record(
@@ -480,7 +483,7 @@ static size_t Sanitize_(Zeta_MemRecorder* dst_node, int level,
             offsetof(Zeta_MultiLevelTable_Node, ptrs[branch_num]));
     }
 
-    if (level == 1) {
+    if (level_i == 0) {
         size_t size = 0;
 
         for (size_t idx = 0; idx < branch_num; ++idx) {
@@ -499,7 +502,7 @@ static size_t Sanitize_(Zeta_MemRecorder* dst_node, int level,
 
         ZETA_DebugAssert(TestHot_(node->hot, idx));
 
-        size += Sanitize_(dst_node, level - 1, branch_nums, node->ptrs[idx]);
+        size += Sanitize_(dst_node, level_i - 1, branch_nums, node->ptrs[idx]);
 
         ++idx;
     }

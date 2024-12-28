@@ -478,6 +478,8 @@ static void NodeVector_DeploySeqCntr(void* nv_, Zeta_SeqCntr* seq_cntr) {
 
     seq_cntr->context = nv;
 
+    seq_cntr->const_context = nv;
+
     seq_cntr->GetWidth = NodeVector_GetWidth;
 
     seq_cntr->GetWidth = NodeVector_GetWidth;

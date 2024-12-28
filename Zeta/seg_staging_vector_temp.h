@@ -228,7 +228,7 @@ void Cntr_(WriteBack)(void* cntr, int write_back_strategy,
 
 void Cntr_(Check)(void const* cntr);
 
-void Cntr_(Sanitize)(void* cntr, Zeta_MemRecorder* dst_seg,
+void Cntr_(Sanitize)(void const* cntr, Zeta_MemRecorder* dst_seg,
                      Zeta_MemRecorder* dst_data);
 
 void Cntr_(PrintState)(void* cntr);

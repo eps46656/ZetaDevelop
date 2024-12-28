@@ -157,7 +157,8 @@ void Zeta_DynamicHashTable_GetLBCursor(void const* dht_, void* dst_cursor_) {
     CheckCntr_(dht);
 
     Zeta_DynamicHashTable_Cursor* dst_cursor = dst_cursor_;
-    ZETA_DebugAssert(dst_cursor != NULL);
+
+    if (dst_cursor == NULL) { return; }
 
     dst_cursor->dht = dht;
     dst_cursor->lln = dht->lln;
@@ -168,7 +169,8 @@ void Zeta_DynamicHashTable_GetRBCursor(void const* dht_, void* dst_cursor_) {
     CheckCntr_(dht);
 
     Zeta_DynamicHashTable_Cursor* dst_cursor = dst_cursor_;
-    ZETA_DebugAssert(dst_cursor != NULL);
+
+    if (dst_cursor == NULL) { return; }
 
     dst_cursor->dht = dht;
     dst_cursor->lln = dht->lln;

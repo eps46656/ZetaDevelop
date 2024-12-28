@@ -110,7 +110,8 @@ extern "C" void Zeta_DebugHashTable_GetRBCursor(void const* debug_ht_,
     ZETA_DebugAssert(hash_table != NULL);
 
     hash_table_t::iterator* dst_cursor = (hash_table_t::iterator*)dst_cursor_;
-    ZETA_DebugAssert(dst_cursor != NULL);
+
+    if (dst_cursor == NULL) { return; }
 
     new (dst_cursor) hash_table_t::iterator{ hash_table->end() };
 }
@@ -123,7 +124,6 @@ extern "C" void* Zeta_DebugHashTable_PeekL(void* debug_ht_, void* dst_cursor_) {
     ZETA_DebugAssert(hash_table != NULL);
 
     hash_table_t::iterator* dst_cursor = (hash_table_t::iterator*)dst_cursor_;
-    ZETA_DebugAssert(dst_cursor != NULL);
 
     auto iter{ hash_table->begin() };
 

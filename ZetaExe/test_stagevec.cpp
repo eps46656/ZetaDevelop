@@ -15,6 +15,7 @@
 #include "circular_array_utils.h"
 #include "debug_deque_utils.h"
 #include "dynamic_vector_utils.h"
+#include "multi_level_circular_array_utils.h"
 #include "pod_value.h"
 #include "random.h"
 #include "seg_vector_utils.h"
@@ -364,7 +365,7 @@ void main7() {
 
 void main8() {
     unsigned random_seed = time(NULL);
-    unsigned fixed_seed = 1729615114;
+    unsigned fixed_seed = 1735397939;
 
     unsigned seed = random_seed;
     // unsigned seed = fixed_seed;
@@ -385,20 +386,21 @@ void main8() {
 
     Zeta_SeqCntr* seq_cntr_a{ DebugDeque_Create<PODValue>() };
 
-    Zeta_SeqCntr* seq_cntr_b{ SegVector_Create<PODValue>(7) };
+    // Zeta_SeqCntr* seq_cntr_b{ SegVector_Create<PODValue>(7) };
+    Zeta_SeqCntr* seq_cntr_b{ MultiLevelCircularArray_Create<PODValue>(7) };
 
     size_t max_op_size = 1024;
 
-    for (size_t _ = 0; _ < 1; ++_) {
+    for (size_t _ = 0; _ < 16; ++_) {
         ZETA_PrintVar(_);
 
-        Zeta_SeqCntr_Assign(seq_cntr_a, seq_cntr_a_origin);
-        Zeta_SeqCntr_Assign(seq_cntr_b, seq_cntr_a_origin);
+        // Zeta_SeqCntr_Assign(seq_cntr_a, seq_cntr_a_origin);
+        // Zeta_SeqCntr_Assign(seq_cntr_b, seq_cntr_a_origin);
 
         SeqCntrUtils_DoRandomOperations<PODValue>(
             { seq_cntr_a, seq_cntr_b },
 
-            16,  // iter_cnt
+            256,  // iter_cnt
 
             max_op_size,  // read_max_op_size
             max_op_size,  // write_max_op_size
@@ -505,7 +507,7 @@ int main() {
 
     unsigned long long beg_time{ GetTime() };
 
-    main9();
+    main8();
 
     unsigned long long end_time{ GetTime() };
 

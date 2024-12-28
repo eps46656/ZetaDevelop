@@ -1,13 +1,15 @@
 #include "allocator.h"
 #include "multi_level_table.h"
+#include "ord_linked_list_node.h"
 #include "seq_cntr.h"
 
 ZETA_ExternC_Beg;
 
 ZETA_DeclareStruct(Zeta_MultiLevelCircularArray);
+ZETA_DeclareStruct(Zeta_MultiLevelCircularArray_Seg);
 ZETA_DeclareStruct(Zeta_MultiLevelCircularArray_Cursor);
 
-#define ZETA_MultiLevelCircularArray_max_seg_capacity (64)
+#define ZETA_MultiLevelCircularArray_max_seg_capacity (8)
 
 #define ZETA_MultiLevelCircularArray_branch_num \
     ZETA_MultiLevelTable_max_branch_num
@@ -18,6 +20,7 @@ struct Zeta_MultiLevelCircularArray {
     size_t seg_capacity;
 
     size_t offset;
+
     size_t size;
 
     int level;
@@ -26,13 +29,26 @@ struct Zeta_MultiLevelCircularArray {
 
     void* root;
 
+    Zeta_MultiLevelCircularArray_Seg* seg_head;
+
     Zeta_Allocator* node_allocator;
     Zeta_Allocator* seg_allocator;
 };
 
+struct Zeta_MultiLevelCircularArray_Seg {
+    Zeta_OrdLinkedListNode ln;
+
+    unsigned char data[] __attribute__((aligned(alignof(max_align_t))));
+};
+
 struct Zeta_MultiLevelCircularArray_Cursor {
     Zeta_MultiLevelCircularArray const* mlca;
+
     size_t idx;
+
+    Zeta_MultiLevelCircularArray_Seg* seg;
+    size_t seg_slot_idx;
+
     void* elem;
 };
 
@@ -108,6 +124,12 @@ void Zeta_MultiLevelCircularArray_Write(void* mlca, void* pos_cursor,
                                         void* dst_cursor);
 
 /**
+ * @copydoc Zeta_SeqCntr::Write
+ */
+void Zeta_MultiLevelCircularArray_RangeAssign(void* mlca, void* dst_cursor,
+                                              void* src_cursor, size_t cnt);
+
+/**
  * @copydoc Zeta_SeqCntr::PushL
  */
 void* Zeta_MultiLevelCircularArray_PushL(void* mlca, size_t cnt,
@@ -148,12 +170,17 @@ void Zeta_MultiLevelCircularArray_EraseAll(void* mlca);
 
 void Zeta_MultiLevelCircularArray_Check(void const* mlca);
 
+void Zeta_MultiLevelCircularArray_Sanitize(void const* mlca,
+                                           Zeta_MemRecorder* dst_node_allocator,
+                                           Zeta_MemRecorder* dst_seg_allocator);
+
 /**
  * @copydoc Zeta_SeqCntr::Cursor_AreEqual
  */
 bool_t Zeta_MultiLevelCircularArray_Cursor_AreEqual(void const* mlca,
                                                     void const* cursor_a,
                                                     void const* cursor_b);
+
 /**
  * @copydoc Zeta_SeqCntr::Cursor_Compare
  */
@@ -175,10 +202,12 @@ size_t Zeta_MultiLevelCircularArray_Cursor_GetIdx(void const* mlca,
  * @copydoc Zeta_SeqCntr::Cursor_StepL
  */
 void Zeta_MultiLevelCircularArray_Cursor_StepL(void const* mlca, void* cursor);
+
 /**
  * @copydoc Zeta_SeqCntr::Cursor_StepR
  */
 void Zeta_MultiLevelCircularArray_Cursor_StepR(void const* mlca, void* cursor);
+
 /**
  * @copydoc Zeta_SeqCntr::Cursor_AdvanceL
  */

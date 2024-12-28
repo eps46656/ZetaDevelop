@@ -36,7 +36,7 @@ RetInt GetRandomInt(RangeInt lb, RangeInt rb) {
     return static_cast<RetInt>(
         lb + static_cast<RangeInt>(ll_generator(RandomEngine()) %
                                    (static_cast<unsigned long long>(rb) -
-                                    static_cast<unsigned long long>(lb))));
+                                    static_cast<unsigned long long>(lb) + 1)));
 }
 
 template <typename RetInt>

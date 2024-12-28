@@ -71,7 +71,8 @@ void Zeta_CircularArray_GetLBCursor(void const* ca_, void* dst_cursor_) {
     CheckCntr_(ca);
 
     Zeta_CircularArray_Cursor* dst_cursor = dst_cursor_;
-    ZETA_DebugAssert(dst_cursor != NULL);
+
+    if (dst_cursor == NULL) { return; }
 
     dst_cursor->ca = ca;
     dst_cursor->idx = -1;
@@ -83,7 +84,8 @@ void Zeta_CircularArray_GetRBCursor(void const* ca_, void* dst_cursor_) {
     CheckCntr_(ca);
 
     Zeta_CircularArray_Cursor* dst_cursor = dst_cursor_;
-    ZETA_DebugAssert(dst_cursor != NULL);
+
+    if (dst_cursor == NULL) { return; }
 
     dst_cursor->ca = ca;
     dst_cursor->idx = ca->size;
@@ -339,8 +341,7 @@ void* Zeta_CircularArray_Insert(void* ca_, void* pos_cursor_, size_t cnt) {
 
     size_t idx = pos_cursor->idx;
 
-    ZETA_DebugAssert(idx <= size);
-    ZETA_DebugAssert(cnt <= capacity - size);
+    ZETA_SeqCntr_CheckInsertable(idx, cnt, size, capacity);
 
     size_t l_size = idx;
     size_t r_size = size - idx;
@@ -401,8 +402,7 @@ void Zeta_CircularArray_Erase(void* ca_, void* pos_cursor_, size_t cnt) {
 
     size_t idx = pos_cursor->idx;
 
-    ZETA_DebugAssert(idx <= size);
-    ZETA_DebugAssert(cnt <= size - idx);
+    ZETA_SeqCntr_CheckErasable(idx, cnt, size);
 
     if (cnt == 0) { return; }
 
@@ -734,6 +734,8 @@ void Zeta_CircularArray_DeploySeqCntr(void* ca_, Zeta_SeqCntr* seq_cntr) {
     Zeta_SeqCntr_Init(seq_cntr);
 
     seq_cntr->context = ca;
+
+    seq_cntr->const_context = ca;
 
     seq_cntr->cursor_size = sizeof(Zeta_CircularArray_Cursor);
 

@@ -444,6 +444,45 @@ struct Zeta_SeqCntr {
 #define ZETA_SeqCntr_Cursor_AdvanceR(seq_cntr, cursor, step) \
     ZETA_SeqCntr_CallConst_((seq_cntr), Cursor_AdvanceR, (cursor), (step))
 
+// -----------------------------------------------------------------------------
+
+#define ZETA_SeqCntr_CheckInsertable_(tmp_idx, tmp_cnt, tmp_size,             \
+                                      tmp_capacity, idx, cnt, size, capacity) \
+    {                                                                         \
+        size_t tmp_idx = (size_t)(idx);                                       \
+        size_t tmp_cnt = (size_t)(cnt);                                       \
+        size_t tmp_size = (size_t)(size);                                     \
+        size_t tmp_capacity = (size_t)(capacity);                             \
+                                                                              \
+        ZETA_DebugAssert(tmp_idx <= tmp_size);                                \
+        ZETA_DebugAssert(tmp_size <= tmp_capacity);                           \
+        ZETA_DebugAssert(tmp_cnt <= tmp_capacity - tmp_size);                 \
+    }                                                                         \
+    ZETA_StaticAssert(TRUE)
+
+#define ZETA_SeqCntr_CheckInsertable(idx, cnt, size, capacity)              \
+    ZETA_SeqCntr_CheckInsertable_(ZETA_TmpName, ZETA_TmpName, ZETA_TmpName, \
+                                  ZETA_TmpName, (idx), (cnt), (size),       \
+                                  (capacity))
+
+#define ZETA_SeqCntr_CheckErasable_(tmp_idx, tmp_cnt, tmp_size, idx, cnt, \
+                                    size)                                 \
+    {                                                                     \
+        size_t tmp_idx = (size_t)(idx);                                   \
+        size_t tmp_cnt = (size_t)(cnt);                                   \
+        size_t tmp_size = (size_t)(size);                                 \
+                                                                          \
+        ZETA_DebugAssert(tmp_idx <= tmp_size);                            \
+        ZETA_DebugAssert(tmp_cnt <= tmp_size - tmp_idx);                  \
+    }                                                                     \
+    ZETA_StaticAssert(TRUE)
+
+#define ZETA_SeqCntr_CheckErasable(idx, cnt, size)                        \
+    ZETA_SeqCntr_CheckErasable_(ZETA_TmpName, ZETA_TmpName, ZETA_TmpName, \
+                                (idx), (cnt), (size))
+
+// -----------------------------------------------------------------------------
+
 /**
  * @brief Initialize the fields of interface with NULL.
  */
@@ -484,7 +523,6 @@ void Zeta_SeqCntr_RangeAssign(Zeta_SeqCntr* dst_seq_cntr,
 void Zeta_SeqCntr_Assign(Zeta_SeqCntr* dst_seq_cntr,
                          Zeta_SeqCntr* src_seq_cntr);
 
-void* Zeta_SeqCntr_NaiveInsert(Zeta_SeqCntr* seq_cntr, void* pos_cursor,
-                               size_t cnt);
+void Zeta_SeqCntr_NaiveInsert(Zeta_SeqCntr* seq_cntr, size_t idx, size_t cnt);
 
 ZETA_ExternC_End;

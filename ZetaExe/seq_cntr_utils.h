@@ -407,7 +407,7 @@ void SeqCntrUtils_SyncRandomRead(const std::vector<Zeta_SeqCntr*>& seq_cntrs,
     size_t size{ SeqCntrUtils_SyncGetSize(seq_cntrs) };
 
     size_t idx{ GetRandomInt<size_t, size_t>(0, size) };
-    size_t cnt{ GetRandomInt<size_t, size_t>(0, max_op_size) };
+    size_t cnt{ GetRandomInt<size_t, size_t>(0, std::min(max_op_size, size)) };
 
     Value* buffer_a{ SeqCntrUtils_GetBuffer_A<Value>(cnt) };
     Value* buffer_b{ SeqCntrUtils_GetBuffer_B<Value>(cnt) };
@@ -433,7 +433,7 @@ void SeqCntrUtils_SyncRandomWrite(const std::vector<Zeta_SeqCntr*>& seq_cntrs,
     size_t size{ SeqCntrUtils_SyncGetSize(seq_cntrs) };
 
     size_t idx{ GetRandomInt<size_t, size_t>(0, size) };
-    size_t cnt{ GetRandomInt<size_t, size_t>(0, max_op_size) };
+    size_t cnt{ GetRandomInt<size_t, size_t>(0, std::min(max_op_size, size)) };
 
     Value* buffer_a{ SeqCntrUtils_GetBuffer_A<Value>(cnt) };
     Value* buffer_b{ SeqCntrUtils_GetBuffer_B<Value>(cnt) };
@@ -536,7 +536,7 @@ void SeqCntrUtils_SyncRandomErase(const std::vector<Zeta_SeqCntr*>& seq_cntrs,
     size_t size{ SeqCntrUtils_SyncGetSize(seq_cntrs) };
 
     size_t idx{ GetRandomInt<size_t, size_t>(0, size) };
-    size_t cnt{ GetRandomInt<size_t, size_t>(0, max_op_size) };
+    size_t cnt{ GetRandomInt<size_t, size_t>(0, std::min(max_op_size, size)) };
 
     for (auto seq_cntr : seq_cntrs) { SeqCntrUtils_Erase(seq_cntr, idx, cnt); }
 }

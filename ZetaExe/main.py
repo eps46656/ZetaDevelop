@@ -1087,6 +1087,7 @@ def AddDeps(builder: Builder, config: Config):
             f"{zeta_exe_dir}/circular_array_utils.h",
             f"{zeta_exe_dir}/debug_deque_utils.h",
             f"{zeta_exe_dir}/dynamic_vector_utils.h",
+            f"{zeta_exe_dir}/multi_level_circular_array_utils.h",
             f"{zeta_exe_dir}/pod_value.h",
             f"{zeta_exe_dir}/random.h",
             f"{zeta_exe_dir}/seg_vector_utils.h",
@@ -1143,6 +1144,8 @@ def AddDeps(builder: Builder, config: Config):
             f"{zeta_build_dir}/logger.o",
             f"{zeta_build_dir}/mem_check_utils.o",
             f"{zeta_build_dir}/memory.o",
+            f"{zeta_build_dir}/multi_level_circular_array.o",
+            f"{zeta_build_dir}/multi_level_table.o",
             f"{zeta_build_dir}/ord_cnt_3rb_tree_node.o",
             f"{zeta_build_dir}/ord_cnt_rb_tree_node.o",
             f"{zeta_build_dir}/ord_linked_list_node.o",
@@ -1178,6 +1181,8 @@ def AddDeps(builder: Builder, config: Config):
                 f"{zeta_build_dir}/logger.o",
                 f"{zeta_build_dir}/mem_check_utils.o",
                 f"{zeta_build_dir}/memory.o",
+                f"{zeta_build_dir}/multi_level_circular_array.o",
+                f"{zeta_build_dir}/multi_level_table.o",
                 f"{zeta_build_dir}/ord_cnt_3rb_tree_node.o",
                 f"{zeta_build_dir}/ord_cnt_rb_tree_node.o",
                 f"{zeta_build_dir}/ord_linked_list_node.o",
@@ -2204,6 +2209,35 @@ def AddDeps(builder: Builder, config: Config):
         lambda: compiler.cpp_to_obj(
             f"{zeta_exe_build_dir}/pod_value.o",
             f"{zeta_exe_dir}/pod_value.cpp",
+        )
+    )
+
+    builder.Add(
+        f"{zeta_exe_dir}/multi_level_circular_array_utils.h",
+        {
+            f"{FILE}",
+        },
+        None
+    )
+
+    builder.Add(
+        f"{zeta_exe_dir}/multi_level_circular_array_utils.cpp",
+        {
+            f"{FILE}",
+            f"{zeta_exe_dir}/multi_level_circular_array_utils.h",
+        },
+        None
+    )
+
+    builder.Add(
+        f"{zeta_exe_build_dir}/multi_level_circular_array_utils.o",
+        {
+            f"{FILE}",
+            f"{zeta_exe_dir}/multi_level_circular_array_utils.h",
+        },
+        lambda: compiler.cpp_to_obj(
+            f"{zeta_exe_build_dir}/multi_level_circular_array_utils.o",
+            f"{zeta_exe_dir}/multi_level_circular_array_utils.cpp",
         )
     )
 

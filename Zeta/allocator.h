@@ -37,9 +37,6 @@ void Zeta_Allocator_Init(void* allocator);
                                                                               \
         ZETA_DebugAssert(0 < tmp_align);                                      \
                                                                               \
-        ZETA_DebugAssert(tmp_allocator != NULL);                              \
-        ZETA_DebugAssert(tmp_allocator->Allocate != NULL);                    \
-                                                                              \
         void* tmp_ret;                                                        \
                                                                               \
         if (tmp_size == 0) {                                                  \

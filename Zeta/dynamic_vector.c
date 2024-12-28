@@ -1155,6 +1155,8 @@ void Zeta_DynamicVector_DeploySeqCntr(void* dv_, Zeta_SeqCntr* seq_cntr) {
 
     seq_cntr->context = dv;
 
+    seq_cntr->const_context = dv;
+
     seq_cntr->cursor_size = sizeof(Zeta_DynamicVector_Cursor);
 
     seq_cntr->GetWidth = Zeta_DynamicVector_GetWidth;

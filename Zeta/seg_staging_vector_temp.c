@@ -935,10 +935,14 @@ void Cntr_(Read)(void const* cntr_, void const* pos_cursor_, size_t cnt,
     size_t seg_capacity = cntr->seg_capacity;
     size_t size = Cntr_(GetSize)(cntr);
 
-    size_t end = pos_cursor->idx + cnt;
-    ZETA_DebugAssert(end <= size);
+    size_t idx = pos_cursor->idx;
 
-    ZETA_DebugAssert(dst);
+    ZETA_DebugAssert(idx <= size);
+    ZETA_DebugAssert(cnt <= size - idx);
+
+    size_t end = idx + cnt;
+
+    ZETA_DebugAssert(dst != NULL);
 
     void* n = pos_cursor->n;
     Cntr_(Seg) * seg;
@@ -1049,8 +1053,12 @@ void Cntr_(Write)(void* cntr_, void* pos_cursor_, size_t cnt, void const* src,
     size_t seg_capacity = cntr->seg_capacity;
     size_t size = Cntr_(GetSize)(cntr);
 
-    size_t end = pos_cursor->idx + cnt;
-    ZETA_DebugAssert(end <= size);
+    size_t idx = pos_cursor->idx;
+
+    ZETA_DebugAssert(idx <= size);
+    ZETA_DebugAssert(cnt <= size - idx);
+
+    size_t end = idx + cnt;
 
     ZETA_DebugAssert(src != NULL);
 
@@ -1385,7 +1393,8 @@ void* Cntr_(Insert)(void* cntr_, void* pos_cursor_, size_t cnt) {
 
     if (cnt == 0) { return pos_cursor->ref; }
 
-    ZETA_DebugAssert(Cntr_(GetSize)(cntr) + cnt <= ZETA_max_capacity);
+    ZETA_SeqCntr_CheckInsertable(pos_cursor->idx, cnt, Cntr_(GetSize)(cntr),
+                                 Cntr_(GetCapacity)(cntr));
 
     Zeta_BinTreeNodeOperator const* btn_opr = TreeNodeOpr;
 
@@ -2075,8 +2084,7 @@ void Cntr_(Erase)(void* cntr_, void* pos_cursor_, size_t cnt) {
     size_t seg_capacity = cntr->seg_capacity;
     size_t size = Cntr_(GetSize)(cntr);
 
-    ZETA_DebugAssert(pos_cursor->idx <= size);
-    ZETA_DebugAssert(pos_cursor->idx + cnt <= size);
+    ZETA_SeqCntr_CheckErasable(pos_cursor->idx, cnt, size);
 
     void* m_n = pos_cursor->n;
     size_t seg_idx = pos_cursor->seg_idx;
@@ -3551,7 +3559,7 @@ struct SanitizeRet {
     size_t ref_end;
 };
 
-static SanitizeRet Sanitize_(Cntr* cntr, Zeta_MemRecorder* dst_seg,
+static SanitizeRet Sanitize_(Cntr const* cntr, Zeta_MemRecorder* dst_seg,
                              Zeta_MemRecorder* dst_data, void* n) {
     Zeta_BinTreeNodeOperator const* btn_opr = TreeNodeOpr;
 
@@ -3735,9 +3743,9 @@ static SanitizeRet Sanitize_(Cntr* cntr, Zeta_MemRecorder* dst_seg,
 
 #endif
 
-void Cntr_(Sanitize)(void* cntr_, Zeta_MemRecorder* dst_seg,
+void Cntr_(Sanitize)(void const* cntr_, Zeta_MemRecorder* dst_seg,
                      Zeta_MemRecorder* dst_data) {
-    Cntr* cntr = cntr_;
+    Cntr const* cntr = cntr_;
     CheckCntr_(cntr);
 
 #if !ZETA_EnableDebug
@@ -4010,6 +4018,8 @@ void Cntr_(DeploySeqCntr)(void* cntr_, Zeta_SeqCntr* seq_cntr) {
     Zeta_SeqCntr_Init(seq_cntr);
 
     seq_cntr->context = cntr;
+
+    seq_cntr->const_context = cntr;
 
     seq_cntr->cursor_size = sizeof(Cntr_(Cursor));
 

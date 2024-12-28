@@ -59,7 +59,8 @@ extern "C" void Zeta_DebugDeque_GetLBCursor(void const* dd_,
     Zeta_DebugDeque_Check(dd);
 
     size_t* dst_cursor = (size_t*)dst_cursor_;
-    ZETA_DebugAssert(dst_cursor != NULL);
+
+    if (dst_cursor == NULL) { return; }
 
     *dst_cursor = (size_t)(-1);
 }
@@ -72,7 +73,8 @@ extern "C" void Zeta_DebugDeque_GetRBCursor(void const* dd_,
     std::deque<void*>* deque = (std::deque<void*>*)dd->deque;
 
     size_t* dst_cursor = (size_t*)dst_cursor_;
-    ZETA_DebugAssert(dst_cursor != NULL);
+
+    if (dst_cursor == NULL) { return; }
 
     *dst_cursor = deque->size();
 }
@@ -452,6 +454,8 @@ extern "C" void Zeta_DebugDeque_DeploySeqCntr(void* dd_,
     Zeta_SeqCntr_Init(seq_cntr);
 
     seq_cntr->context = dd;
+
+    seq_cntr->const_context = dd;
 
     seq_cntr->cursor_size = sizeof(size_t);
 

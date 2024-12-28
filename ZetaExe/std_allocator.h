@@ -77,6 +77,8 @@ void StdAllocator_DeployAllocator(void* sa_, Zeta_Allocator* dst) {
     StdAllocator* sa = (StdAllocator*)sa_;
     ZETA_DebugAssert(sa != NULL);
 
+    Zeta_Allocator_Init(dst);
+
     dst->context = sa;
 
     dst->GetAlign = StdAllocator_GetAlign;
