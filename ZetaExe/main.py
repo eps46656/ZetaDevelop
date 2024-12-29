@@ -478,14 +478,16 @@ def AddDeps(builder: Builder, config: Config):
         {
             f"{FILE}",
             f"{zeta_build_dir}/datetime.o",
-
+            f"{zeta_build_dir}/debug_str_pipe.o",
+            f"{zeta_build_dir}/debugger.o",
             f"{zeta_exe_build_dir}/test_datetime.o",
         },
         lambda: compiler.to_exe(
             f"{zeta_exe_build_dir}/test_datetime.exe",
             {
                 f"{zeta_build_dir}/datetime.o",
-
+                f"{zeta_build_dir}/debug_str_pipe.o",
+                f"{zeta_build_dir}/debugger.o",
                 f"{zeta_exe_build_dir}/test_datetime.o",
             }
         )
@@ -1605,15 +1607,6 @@ def AddDeps(builder: Builder, config: Config):
                 f"{zeta_exe_build_dir}/test_sort.o",
             }
         )
-    )
-
-    builder.Add(
-        f"{zeta_exe_dir}/DyVec.c",
-        {
-            f"{FILE}",
-            f"{zeta_dir}/dynamic_vector.h",
-        },
-        None
     )
 
     builder.Add(

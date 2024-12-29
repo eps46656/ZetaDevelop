@@ -5,7 +5,7 @@
 ZETA_ExternC_Beg;
 
 #define ZETA_ColorPtr_GetPtr(color_ptr, align) \
-    __builtin_align_down((void*)(*(color_ptr)), (align))
+    __builtin_align_down(ZETA_ToVoidPtr((*(color_ptr))), (align))
 
 #define ZETA_ColorPtr_GetColor_(tmp, color_ptr, align) \
     ({                                                 \
@@ -23,7 +23,7 @@ ZETA_ExternC_Beg;
         ZETA_AutoVar(tmp_color, (color));                                   \
         ZETA_DebugAssert(0 <= tmp_color &&                                  \
                          (unsigned long long)tmp_color < (align));          \
-        *tmp_color_ptr = (void*)((void*)(ptr) + tmp_color);                 \
+        *tmp_color_ptr = ZETA_ToVoidPtr((ptr)) + tmp_color;                 \
     }                                                                       \
     ZETA_StaticAssert(TRUE)
 
@@ -64,15 +64,16 @@ ZETA_ExternC_Beg;
 
 // -----------------------------------------------------------------------------
 
-#define ZETA_RelPtr_GetPtr(rel_ptr, base) ((void*)((void*)(base) + *(rel_ptr)))
+#define ZETA_RelPtr_GetPtr(rel_ptr, base) (ZETA_ToVoidPtr((base)) + *(rel_ptr))
 
-#define ZETA_RelPtr_SetPtr_(tmp_rel_ptr, tmp_val, rel_ptr, base, ptr) \
-    {                                                                 \
-        ZETA_AutoVar(tmp_rel_ptr, (rel_ptr));                         \
-        ZETA_AutoVar(tmp_val, ((void*)(ptr) - (void*)(base)));        \
-        *tmp_rel_ptr = tmp_val;                                       \
-        ZETA_DebugAssert(*tmp_rel_ptr == tmp_val);                    \
-    }                                                                 \
+#define ZETA_RelPtr_SetPtr_(tmp_rel_ptr, tmp_val, rel_ptr, base, ptr)   \
+    {                                                                   \
+        ZETA_AutoVar(tmp_rel_ptr, (rel_ptr));                           \
+        ZETA_AutoVar(tmp_val,                                           \
+                     (ZETA_ToVoidPtr((ptr)) - ZETA_ToVoidPtr((base)))); \
+        *tmp_rel_ptr = tmp_val;                                         \
+        ZETA_DebugAssert(*tmp_rel_ptr == tmp_val);                      \
+    }                                                                   \
     ZETA_StaticAssert(TRUE)
 
 #define ZETA_RelPtr_SetPtr(rel_ptr, base, ptr) \
@@ -81,28 +82,29 @@ ZETA_ExternC_Beg;
 // -----------------------------------------------------------------------------
 
 #define ZETA_RelColorPtr_GetPtr(rel_color_ptr, align, base) \
-    __builtin_align_down((void*)((void*)(base) + *(rel_color_ptr)), (align))
+    __builtin_align_down((ZETA_ToVoidPtr((base)) + *(rel_color_ptr)), (align))
 
 #define ZETA_RelColorPtr_GetColor_(tmp, rel_color_ptr, align, base) \
     ({                                                              \
-        void* tmp = (void*)(base) + *(rel_color_ptr);               \
+        void* tmp = ZETA_ToVoidPtr((base)) + *(rel_color_ptr);      \
         tmp - __builtin_align_down(tmp, (align));                   \
     })
 
 #define ZETA_RelColorPtr_GetColor(rel_color_ptr, align, base) \
     ZETA_RelColorPtr_GetColor_(ZETA_TmpName, (rel_color_ptr), (align), (base))
 
-#define ZETA_RelColorPtr_Set_(tmp_rel_color_ptr, tmp_color, tmp_val,       \
-                              rel_color_ptr, align, base, ptr, color)      \
-    {                                                                      \
-        ZETA_AutoVar(tmp_rel_color_ptr, (rel_color_ptr));                  \
-        ZETA_AutoVar(tmp_color, (color));                                  \
-        ZETA_DebugAssert(0 <= tmp_color &&                                 \
-                         (unsigned long long)tmp_color < (align));         \
-        ZETA_AutoVar(tmp_val, ((void*)(ptr) + tmp_color - (void*)(base))); \
-        *tmp_rel_color_ptr = tmp_val;                                      \
-        ZETA_DebugAssert(*tmp_rel_color_ptr == tmp_val);                   \
-    }                                                                      \
+#define ZETA_RelColorPtr_Set_(tmp_rel_color_ptr, tmp_color, tmp_val,  \
+                              rel_color_ptr, align, base, ptr, color) \
+    {                                                                 \
+        ZETA_AutoVar(tmp_rel_color_ptr, (rel_color_ptr));             \
+        ZETA_AutoVar(tmp_color, (color));                             \
+        ZETA_DebugAssert(0 <= tmp_color &&                            \
+                         (unsigned long long)tmp_color < (align));    \
+        ZETA_AutoVar(tmp_val, (ZETA_ToVoidPtr((ptr)) + tmp_color -    \
+                               ZETA_ToVoidPtr((base))));              \
+        *tmp_rel_color_ptr = tmp_val;                                 \
+        ZETA_DebugAssert(*tmp_rel_color_ptr == tmp_val);              \
+    }                                                                 \
     ZETA_StaticAssert(TRUE)
 
 #define ZETA_RelColorPtr_Set(rel_color_ptr, align, base, ptr, color) \

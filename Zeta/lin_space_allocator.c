@@ -187,7 +187,7 @@ static void NodeSetAccSize_(void* context, void* n, size_t acc_size) {
     ZETA_Unused(context);
     ZETA_DebugAssert(n != NULL);
 
-    ZETA_DebugAssert(acc_size <= ZETA_RangeMaxOf(unsigned));
+    ZETA_DebugAssert(acc_size <= ZETA_UINT_MAX);
     ((Zeta_LinSpaceAllocator_Node*)n)->acc_size = acc_size;
 }
 

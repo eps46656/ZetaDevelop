@@ -4,7 +4,7 @@
 
 #define YearOffset_ (400 * 16)
 
-static int const acc_days_in_month_comm[] = {
+static unsigned const acc_days_in_month_comm[] = {
     0,
     0,
     31,                                                         // 1
@@ -21,7 +21,7 @@ static int const acc_days_in_month_comm[] = {
     31 + 28 + 31 + 30 + 31 + 30 + 31 + 31 + 30 + 31 + 30 + 31,  // 12
 };
 
-static int const acc_days_in_month_leap[] = {
+static unsigned const acc_days_in_month_leap[] = {
     0,
     0,
     31,                                                         // 1
@@ -77,19 +77,23 @@ static const Zeta_Date leap_sec_hists[] = {
     (Zeta_Date){ 2016, 12, 31 },  //
 };
 
-#define IsLeapYear_(year)                                     \
-    ({                                                        \
-        long long tmp = (year);                               \
-        (tmp % 4 == 0) && (tmp % 100 != 0 || tmp % 400 == 0); \
+#define IsLeapYear__(tmp_year, year)                                         \
+    ({                                                                       \
+        unsigned long long tmp_year = (year);                                \
+        (tmp_year % 4 == 0) && (tmp_year % 100 != 0 || tmp_year % 400 == 0); \
     })
 
-#define AccDaysInYear_(abs_year)             \
-    ({                                       \
-        long long k = (abs_year) - 1;        \
-        365 * k + k / 4 - k / 100 + k / 400; \
+#define IsLeapYear_(year) IsLeapYear__(ZETA_TmpName, (year))
+
+#define AccDaysInYear__(tmp_y, abs_year)                     \
+    ({                                                       \
+        unsigned long long tmp_y = (abs_year) - 1;           \
+        365 * tmp_y + tmp_y / 4 - tmp_y / 100 + tmp_y / 400; \
     })
 
-long long Zeta_DateToAbsDay(Zeta_Date date) {
+#define AccDaysInYear_(abs_year) AccDaysInYear__(ZETA_TmpName, (abs_year))
+
+unsigned long long Zeta_DateToAbsDay(Zeta_Date date) {
     ZETA_DebugAssert(ZETA_DateTime_min_year <= date.year);
     ZETA_DebugAssert(date.year <= ZETA_DateTime_max_year);
 
@@ -97,18 +101,18 @@ long long Zeta_DateToAbsDay(Zeta_Date date) {
 
     bool_t is_leap_year = IsLeapYear_(date.year);
 
-    int const* acc_days_in_month =
+    unsigned const* acc_days_in_month =
         is_leap_year ? acc_days_in_month_leap : acc_days_in_month_comm;
 
     ZETA_DebugAssert(1 <= date.day &&
-                     date.day <= acc_days_in_month[date.month + 1] -
-                                     acc_days_in_month[date.month]);
+                     date.day <= (int)(acc_days_in_month[date.month + 1] -
+                                       acc_days_in_month[date.month]));
 
     return AccDaysInYear_(date.year - ZETA_DateTime_min_year) +
            acc_days_in_month[date.month] + date.day - 1;
 }
 
-static long long FindY_(long long x) {
+static unsigned long long FindY_(unsigned long long x) {
     /*
         365*y + floor(y/4) - floor(y/100) + floor(y/400) <= x
 
@@ -121,24 +125,24 @@ static long long FindY_(long long x) {
         146097*a + 36524*b + 1461*c + 365*d <= x
     */
 
-    long long a = x / 146097;
+    unsigned long long a = x / 146097;
     x %= 146097;
 
-    long long b = ZETA_GetMinOf(3, x / 36524);
+    unsigned long long b = ZETA_GetMinOf(3, x / 36524);
     x -= 36524 * b;
 
-    long long c = ZETA_GetMinOf(24, x / 1461);
+    unsigned long long c = ZETA_GetMinOf(24, x / 1461);
     x -= 1461 * c;
 
-    long long d = ZETA_GetMinOf(3, x / 365);
+    unsigned long long d = ZETA_GetMinOf(3, x / 365);
 
     return 400 * a + 100 * b + 4 * c + d;
 }
 
-Zeta_Date Zeta_AbsDayToDate(long long abs_day) {
+Zeta_Date Zeta_AbsDayToDate(unsigned long long abs_day) {
     ZETA_DebugAssert(0 <= abs_day);
 
-    long long abs_year = FindY_(abs_day) + 1;
+    unsigned long long abs_year = FindY_(abs_day) + 1;
 
     abs_day -= AccDaysInYear_(abs_year);
 
@@ -147,7 +151,7 @@ Zeta_Date Zeta_AbsDayToDate(long long abs_day) {
     int month_lb = 1;
     int month_rb = 12;
 
-    int const* acc_days_in_month =
+    unsigned const* acc_days_in_month =
         is_leap_year ? acc_days_in_month_leap : acc_days_in_month_comm;
 
     while (month_lb < month_rb) {
@@ -169,64 +173,59 @@ Zeta_Date Zeta_AbsDayToDate(long long abs_day) {
 int Zeta_GetDayInWeek(Zeta_Date date) {
     Zeta_Date base = { .year = 1970, .month = 1, .day = 1 };
 
-    long long delta = Zeta_DateToAbsDay(date) - Zeta_DateToAbsDay(base);
+    unsigned long long base_abs_day = Zeta_DateToAbsDay(base);
+    unsigned long long cur_abs_day = Zeta_DateToAbsDay(date);
 
-    return ((delta % 7) + 11) % 7;
+    unsigned long long delta = base_abs_day <= cur_abs_day
+                                   ? cur_abs_day - base_abs_day
+                                   : base_abs_day - cur_abs_day;
+
+    return (delta + 4) % 7;
 }
 
-static int DateCompare_(Zeta_Date const* x, Zeta_Date const* y) {
-    if (x->year < y->year) { return -1; }
-    if (y->year < x->year) { return 1; }
-
-    if (x->month < y->month) { return -1; }
-    if (y->month < x->month) { return 1; }
-
-    if (x->day < y->day) { return -1; }
-    if (y->day < x->day) { return 1; }
-
-    return 0;
-}
-
-long long Zeta_UTCDateTimeToAbsUs(Zeta_DateTime datetime) {
+unsigned long long Zeta_UTCDateTimeToAbsUs(Zeta_DateTime datetime) {
     Zeta_Date date = (Zeta_Date){ datetime.year, datetime.month, datetime.day };
 
-    long long hist_lb = 0;
-    long long hist_rb = sizeof(leap_sec_hists) / sizeof(leap_sec_hists[0]);
+    unsigned long long abs_day = Zeta_DateToAbsDay(date);
+
+    unsigned hist_lb = 0;
+    unsigned hist_rb = sizeof(leap_sec_hists) / sizeof(leap_sec_hists[0]);
 
     while (hist_lb < hist_rb) {
-        long long mid = (hist_lb + hist_rb) / 2;
+        unsigned mid = (hist_lb + hist_rb) / 2;
 
-        if (DateCompare_(leap_sec_hists + mid, &date) < 0) {
+        unsigned long long cur_abs_day = Zeta_DateToAbsDay(leap_sec_hists[mid]);
+
+        if (cur_abs_day < abs_day) {
             hist_lb = mid + 1;
         } else {
             hist_rb = mid;
         }
     }
 
-    long long abs_sec =
-        ((Zeta_DateToAbsDay(date) * 24 + datetime.hour) * 60 + datetime.min) *
-            60 +
+    unsigned long long abs_sec =
+        ((abs_day * 24 + datetime.hour) * 60 + datetime.min) * 60 +
         datetime.sec + hist_lb;
 
     return abs_sec * 1000000 + datetime.us;
 }
 
-Zeta_DateTime Zeta_AbsUsToUTCDateTime(long long abs_us) {
+Zeta_DateTime Zeta_AbsUsToUTCDateTime(unsigned long long abs_us) {
     ZETA_DebugAssert(0 <= abs_us);
 
-    long long abs_sec = abs_us / 1000000;
-    long long us = abs_us % 1000000;
+    unsigned long long abs_sec = abs_us / 1000000;
+    unsigned long long us = abs_us % 1000000;
 
-    long long const leap_sec_hists_length =
+    unsigned leap_sec_hists_length =
         sizeof(leap_sec_hists) / sizeof(leap_sec_hists[0]);
 
-    long long hist_lb = 0;
-    long long hist_rb = leap_sec_hists_length;
+    unsigned hist_lb = 0;
+    unsigned hist_rb = leap_sec_hists_length;
 
     while (hist_lb < hist_rb) {
-        long long mid = (hist_lb + hist_rb) / 2;
+        unsigned mid = (hist_lb + hist_rb) / 2;
 
-        long long cur_abs_sec =
+        unsigned long long cur_abs_sec =
             Zeta_DateToAbsDay(leap_sec_hists[mid]) * 86400 + mid + 86401;
 
         if (cur_abs_sec <= abs_sec) {
@@ -237,7 +236,7 @@ Zeta_DateTime Zeta_AbsUsToUTCDateTime(long long abs_us) {
     }
 
     if (hist_lb < leap_sec_hists_length) {
-        long long hist_leap_abs_sec =
+        unsigned long long hist_leap_abs_sec =
             Zeta_DateToAbsDay(leap_sec_hists[hist_lb]) * 86400 + hist_lb +
             86400;
 
@@ -255,7 +254,7 @@ Zeta_DateTime Zeta_AbsUsToUTCDateTime(long long abs_us) {
         }
     }
 
-    long long k = abs_sec - hist_lb;
+    unsigned long long k = abs_sec - hist_lb;
 
     Zeta_DateTime ret;
 
@@ -279,10 +278,10 @@ Zeta_DateTime Zeta_AbsUsToUTCDateTime(long long abs_us) {
     return ret;
 }
 
-long long Zeta_GMTDateTimeToAbsUs(Zeta_DateTime datetime) {
+unsigned long long Zeta_GMTDateTimeToAbsUs(Zeta_DateTime datetime) {
     Zeta_Date date = (Zeta_Date){ datetime.year, datetime.month, datetime.day };
 
-    long long ret = Zeta_DateToAbsDay(date);
+    unsigned long long ret = Zeta_DateToAbsDay(date);
     ret = ret * 24 + datetime.hour;
     ret = ret * 60 + datetime.min;
     ret = ret * 60 + datetime.sec;
@@ -291,10 +290,10 @@ long long Zeta_GMTDateTimeToAbsUs(Zeta_DateTime datetime) {
     return ret;
 }
 
-Zeta_DateTime Zeta_AbsUsToGMTDateTime(long long abs_us) {
+Zeta_DateTime Zeta_AbsUsToGMTDateTime(unsigned long long abs_us) {
     ZETA_DebugAssert(0 <= abs_us);
 
-    long long k = abs_us;
+    unsigned long long k = abs_us;
 
     Zeta_DateTime ret;
 

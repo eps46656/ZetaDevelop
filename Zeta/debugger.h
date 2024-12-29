@@ -70,13 +70,9 @@ extern bool_t zeta_assert_stage;
 #define ZETA_CheckAssert(cond) ZETA_Assert(cond)
 
 #if ZETA_EnableDebug
-
 #define ZETA_DebugAssert(cond) ZETA_Assert((cond))
-
 #else
-
 #define ZETA_DebugAssert(cond) ZETA_Unused((cond))
-
 #endif
 
 void Zeta_Debugger_InitPipe();

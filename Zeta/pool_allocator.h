@@ -10,6 +10,8 @@ struct Zeta_PoolAllocator {
 
 void Zeta_PoolAllocator_Init(void* pa);
 
+size_t Zeta_PoolAllocator_GetAlign(void* pa);
+
 void* Zeta_PoolAllocator_Allocate(void* pa, size_t size);
 
 void Zeta_PoolAllocator_Deallocate(void* pa, void* ptr);

@@ -11,7 +11,7 @@
 
 ZETA_ExternC_Beg;
 
-#define ZETA_LRUCachaManager_max_cn_cnts (ZETA_RangeMaxOf(unsigned))
+#define ZETA_LRUCachaManager_max_cn_cnts (ZETA_UINT_MAX)
 
 ZETA_DeclareStruct(Zeta_LRUCacheManager);
 ZETA_DeclareStruct(Zeta_LRUCacheManager_SNode);

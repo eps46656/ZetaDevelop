@@ -129,7 +129,7 @@ static void InitTree_(Cntr* cntr) {
 static void* AllocateData_(Cntr* cntr, Zeta_PoolAllocator* datas) {
     void* data = NULL;
 
-    if (datas != NULL) { data = Zeta_PoolAllocator_Allocate(datas, 0); }
+    if (datas != NULL) { data = Zeta_PoolAllocator_Allocate(datas, 1); }
 
     if (data == NULL) {
         data = ZETA_Allocator_SafeAllocate(
@@ -142,7 +142,7 @@ static void* AllocateData_(Cntr* cntr, Zeta_PoolAllocator* datas) {
 static void* AllocateSeg_(Cntr* cntr, Zeta_PoolAllocator* segs) {
     Cntr_(Seg)* seg = NULL;
 
-    if (segs != NULL) { seg = Zeta_PoolAllocator_Allocate(segs, 0); }
+    if (segs != NULL) { seg = Zeta_PoolAllocator_Allocate(segs, 1); }
 
     if (seg == NULL) {
         seg = ZETA_Allocator_SafeAllocate(
@@ -2657,13 +2657,13 @@ void Cntr_(Copy)(void* cntr_, void* src_cntr_) {
                            same_data_size ? &datas : NULL);
 
     for (;;) {
-        void* seg = Zeta_PoolAllocator_Allocate(&segs, 0);
+        void* seg = Zeta_PoolAllocator_Allocate(&segs, 1);
         if (seg == NULL) { break; }
         ZETA_Allocator_Deallocate(cntr->seg_allocator, seg);
     }
 
     for (;;) {
-        void* data = Zeta_PoolAllocator_Allocate(&datas, 0);
+        void* data = Zeta_PoolAllocator_Allocate(&datas, 1);
         if (data == NULL) { break; }
         ZETA_Allocator_Deallocate(cntr->data_allocator, data);
     }
@@ -3534,7 +3534,7 @@ void Cntr_(Check)(void const* cntr_) {
 
     size_t seg_capacity = cntr->seg_capacity;
     ZETA_DebugAssert(0 < seg_capacity);
-    ZETA_DebugAssert(seg_capacity <= ZETA_RangeMaxOf(unsigned short));
+    ZETA_DebugAssert(seg_capacity <= ZETA_USHRT_MAX);
 
     ZETA_DebugAssert(cntr->seg_allocator != NULL);
     ZETA_DebugAssert(cntr->seg_allocator->GetAlign != NULL);

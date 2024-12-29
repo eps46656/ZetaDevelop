@@ -23,10 +23,11 @@ extern Zeta_Allocator zeta_std_allocator;
 void Zeta_Allocator_Init(void* allocator);
 
 #define ZETA_Allocator_GetAlign(allocator) \
-    ZETA_CallMemberFunc(((Zeta_Allocator*)(void*)(allocator)), GetAlign)
+    ZETA_CallMemberFunc(((Zeta_Allocator*)ZETA_ToVoidPtr(allocator)), GetAlign)
 
-#define ZETA_Allocator_Query(allocator, size) \
-    ZETA_CallMemberFunc(((Zeta_Allocator*)(void*)(allocator)), Query, (size))
+#define ZETA_Allocator_Query(allocator, size)                                \
+    ZETA_CallMemberFunc(((Zeta_Allocator*)ZETA_ToVoidPtr(allocator)), Query, \
+                        (size))
 
 #define ZETA_Allocator_SafeAllocate_(tmp_ret, tmp_allocator, tmp_align,       \
                                      tmp_size, allocator, align, size)        \
@@ -54,9 +55,9 @@ void Zeta_Allocator_Init(void* allocator);
     ZETA_Allocator_SafeAllocate_(ZETA_TmpName, ZETA_TmpName, ZETA_TmpName, \
                                  ZETA_TmpName, allocator, align, size)
 
-#define ZETA_Allocator_Deallocate(allocator, ptr)                          \
-    ZETA_CallMemberFunc(((Zeta_Allocator*)(void*)(allocator)), Deallocate, \
-                        (ptr));                                            \
+#define ZETA_Allocator_Deallocate(allocator, ptr)                     \
+    ZETA_CallMemberFunc(((Zeta_Allocator*)ZETA_ToVoidPtr(allocator)), \
+                        Deallocate, (ptr));                           \
     ZETA_StaticAssert(TRUE)
 
 ZETA_ExternC_End;

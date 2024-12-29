@@ -9,7 +9,7 @@ ZETA_ExternC_Beg;
 ZETA_DeclareStruct(Zeta_SlabAllocator);
 ZETA_DeclareStruct(Zeta_SlabAllocator_SlabHead);
 
-#define ZETA_SlabAllocator_max_units_per_slab ZETA_RangeMaxOf(unsigned char)
+#define ZETA_SlabAllocator_max_units_per_slab ZETA_UCHAR_MAX
 
 struct Zeta_SlabAllocator {
     size_t align;
