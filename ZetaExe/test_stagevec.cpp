@@ -387,7 +387,8 @@ void main8() {
     Zeta_SeqCntr* seq_cntr_a{ DebugDeque_Create<PODValue>() };
 
     // Zeta_SeqCntr* seq_cntr_b{ SegVector_Create<PODValue>(7) };
-    Zeta_SeqCntr* seq_cntr_b{ MultiLevelCircularArray_Create<PODValue>(7) };
+    // Zeta_SeqCntr* seq_cntr_b{ MultiLevelCircularArray_Create<PODValue>(7) };
+    Zeta_SeqCntr* seq_cntr_b{ SegVector_Create<PODValue>(7) };
 
     size_t max_op_size = 1024;
 

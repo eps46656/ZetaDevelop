@@ -162,6 +162,14 @@ def AddDeps(builder: Builder, config: Config):
     )
 
     builder.Add(
+        f"{zeta_exe_dir}/dynamic_search_table.h",
+        {
+            f"{FILE}",
+        },
+        None
+    )
+
+    builder.Add(
         f"{zeta_exe_dir}/dynamic_vector_utils.h",
         {
             f"{FILE}",
@@ -182,13 +190,69 @@ def AddDeps(builder: Builder, config: Config):
     )
 
     builder.Add(
-        f"{zeta_exe_dir}/PriorityQueue.h",
+        f"{zeta_exe_dir}/multi_level_circular_array_utils.h",
         {
             f"{FILE}",
-            f"{zeta_dir}/debugger.h",
-            f"{zeta_dir}/Groupbin_heap.h",
         },
         None
+    )
+
+    builder.Add(
+        f"{zeta_exe_dir}/multi_level_circular_array_utils.cpp",
+        {
+            f"{FILE}",
+            f"{zeta_exe_dir}/multi_level_circular_array_utils.h",
+        },
+        None
+    )
+
+    builder.Add(
+        f"{zeta_exe_build_dir}/multi_level_circular_array_utils.o",
+        {
+            f"{FILE}",
+            f"{zeta_exe_dir}/multi_level_circular_array_utils.h",
+        },
+        lambda: compiler.cpp_to_obj(
+            f"{zeta_exe_build_dir}/multi_level_circular_array_utils.o",
+            f"{zeta_exe_dir}/multi_level_circular_array_utils.cpp",
+        )
+    )
+
+    builder.Add(
+        f"{zeta_exe_dir}/naive_search_table.h",
+        {
+            f"{FILE}",
+        },
+        None
+    )
+
+    builder.Add(
+        f"{zeta_exe_dir}/pod_value.h",
+        {
+            f"{FILE}",
+        },
+        None
+    )
+
+    builder.Add(
+        f"{zeta_exe_dir}/pod_value.cpp",
+        {
+            f"{FILE}",
+            f"{zeta_exe_dir}/pod_value.h",
+        },
+        None
+    )
+
+    builder.Add(
+        f"{zeta_exe_build_dir}/pod_value.o",
+        {
+            f"{FILE}",
+            f"{zeta_exe_dir}/pod_value.h",
+        },
+        lambda: compiler.cpp_to_obj(
+            f"{zeta_exe_build_dir}/pod_value.o",
+            f"{zeta_exe_dir}/pod_value.cpp",
+        )
     )
 
     builder.Add(
@@ -575,6 +639,51 @@ def AddDeps(builder: Builder, config: Config):
             f"{zeta_dir}/utils.h",
         },
         None
+    )
+
+    builder.Add(
+        f"{zeta_exe_dir}/test_dynamic_search_table.cpp",
+        {
+            f"{FILE}",
+            f"{zeta_dir}/debugger.h",
+            f"{zeta_exe_dir}/dynamic_search_table.h",
+            f"{zeta_exe_dir}/naive_search_table.h",
+            f"{zeta_exe_dir}/random.h",
+            f"{zeta_exe_dir}/timer.h",
+        },
+        None
+    )
+
+    builder.Add(
+        f"{zeta_exe_build_dir}/test_dynamic_search_table.o",
+        {
+            f"{FILE}",
+            f"{zeta_exe_dir}/test_dynamic_search_table.cpp",
+        },
+        lambda: compiler.cpp_to_obj(
+            f"{zeta_exe_build_dir}/test_dynamic_search_table.o",
+            f"{zeta_exe_dir}/test_dynamic_search_table.cpp",
+        )
+    )
+
+    builder.Add(
+        f"{zeta_exe_build_dir}/test_dynamic_search_table.exe",
+        {
+            f"{FILE}",
+            f"{zeta_build_dir}/debug_str_pipe.o",
+            f"{zeta_build_dir}/debugger.o",
+            f"{zeta_exe_build_dir}/timer.o",
+            f"{zeta_exe_build_dir}/test_dynamic_search_table.o",
+        },
+        lambda: compiler.to_exe(
+            f"{zeta_exe_build_dir}/test_dynamic_search_table.exe",
+            {
+                f"{zeta_build_dir}/debug_str_pipe.o",
+                f"{zeta_build_dir}/debugger.o",
+                f"{zeta_exe_build_dir}/timer.o",
+                f"{zeta_exe_build_dir}/test_dynamic_search_table.o",
+            }
+        )
     )
 
     builder.Add(
@@ -2173,64 +2282,6 @@ def AddDeps(builder: Builder, config: Config):
         lambda: compiler.cpp_to_obj(
             f"{zeta_exe_build_dir}/timer.o",
             f"{zeta_exe_dir}/timer.cpp",
-        )
-    )
-
-    builder.Add(
-        f"{zeta_exe_dir}/pod_value.h",
-        {
-            f"{FILE}",
-        },
-        None
-    )
-
-    builder.Add(
-        f"{zeta_exe_dir}/pod_value.cpp",
-        {
-            f"{FILE}",
-            f"{zeta_exe_dir}/pod_value.h",
-        },
-        None
-    )
-
-    builder.Add(
-        f"{zeta_exe_build_dir}/pod_value.o",
-        {
-            f"{FILE}",
-            f"{zeta_exe_dir}/pod_value.h",
-        },
-        lambda: compiler.cpp_to_obj(
-            f"{zeta_exe_build_dir}/pod_value.o",
-            f"{zeta_exe_dir}/pod_value.cpp",
-        )
-    )
-
-    builder.Add(
-        f"{zeta_exe_dir}/multi_level_circular_array_utils.h",
-        {
-            f"{FILE}",
-        },
-        None
-    )
-
-    builder.Add(
-        f"{zeta_exe_dir}/multi_level_circular_array_utils.cpp",
-        {
-            f"{FILE}",
-            f"{zeta_exe_dir}/multi_level_circular_array_utils.h",
-        },
-        None
-    )
-
-    builder.Add(
-        f"{zeta_exe_build_dir}/multi_level_circular_array_utils.o",
-        {
-            f"{FILE}",
-            f"{zeta_exe_dir}/multi_level_circular_array_utils.h",
-        },
-        lambda: compiler.cpp_to_obj(
-            f"{zeta_exe_build_dir}/multi_level_circular_array_utils.o",
-            f"{zeta_exe_dir}/multi_level_circular_array_utils.cpp",
         )
     )
 
