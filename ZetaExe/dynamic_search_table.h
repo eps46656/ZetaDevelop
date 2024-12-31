@@ -7,6 +7,7 @@ template <typename Elem, typename Compare>
 class DynamicSearchTable {
 public:
     static constexpr size_t threshold{ 8 };
+    static constexpr size_t decomposition_quata{ 6 };
 
     struct Node {
         union {
@@ -26,6 +27,8 @@ public:
     DynamicSearchTable(const std::vector<Elem>& vec, const Compare& cmp);
 
     ~DynamicSearchTable();
+
+    size_t size() const;
 
     template <typename Key>
     const Elem* LowerBound(const Key& key) const;
@@ -59,6 +62,8 @@ private:
 
     mutable std::multiset<Node*, SCompare> s_;
 
+    size_t size_;
+
     static const Elem* GetElem_(const Node* n);
 
     static void DestroyNode_(Node* n);
@@ -79,12 +84,12 @@ private:
 
 template <typename Elem, typename Compare>
 DynamicSearchTable<Elem, Compare>::DynamicSearchTable()
-    : s_{ SCompare{ *this } } {}
+    : s_{ SCompare{ *this } }, size_{ 0 } {}
 
 template <typename Elem, typename Compare>
 DynamicSearchTable<Elem, Compare>::DynamicSearchTable(
     const std::vector<Elem>& vec)
-    : s_{ SCompare{ *this } } {
+    : s_{ SCompare{ *this } }, size_{ vec.size() } {
     if (vec.size() <= threshold) {
         for (const auto& elem : vec) {
             this->s_.insert(new Node{ .elem = elem, .is_finished = true });
@@ -103,12 +108,12 @@ DynamicSearchTable<Elem, Compare>::DynamicSearchTable(
 
 template <typename Elem, typename Compare>
 DynamicSearchTable<Elem, Compare>::DynamicSearchTable(const Compare& cmp)
-    : cmp_{ cmp }, s_{ SCompare{ *this } } {}
+    : cmp_{ cmp }, s_{ SCompare{ *this } }, size_{ 0 } {}
 
 template <typename Elem, typename Compare>
 DynamicSearchTable<Elem, Compare>::DynamicSearchTable(
     const std::vector<Elem>& vec, const Compare& cmp)
-    : cmp_{ cmp }, s_{ SCompare{ *this } } {
+    : cmp_{ cmp }, s_{ SCompare{ *this } }, size_{ vec.size() } {
     if (vec.size() <= threshold) {
         for (const auto& elem : vec) {
             this->s_.insert(new Node{ .elem = elem, .is_finished = true });
@@ -139,6 +144,11 @@ DynamicSearchTable<Elem, Compare>::~DynamicSearchTable() {
 }
 
 template <typename Elem, typename Compare>
+size_t DynamicSearchTable<Elem, Compare>::size() const {
+    return this->size_;
+}
+
+template <typename Elem, typename Compare>
 template <typename Key>
 const Elem* DynamicSearchTable<Elem, Compare>::LowerBound(
     const Key& key) const {
@@ -147,7 +157,7 @@ const Elem* DynamicSearchTable<Elem, Compare>::LowerBound(
     Node* n{ nullptr };
     const Elem* ret{ nullptr };
 
-    for (int quata{ 3 };;) {
+    for (size_t quata{ decomposition_quata };;) {
         if (iter != this->s_.end()) {
             n = *iter;
             ret = GetElem_(n);
@@ -192,7 +202,7 @@ const Elem* DynamicSearchTable<Elem, Compare>::UpperBound(
     Node* n{ nullptr };
     const Elem* ret{ nullptr };
 
-    for (int quata{ 3 };;) {
+    for (size_t quata{ decomposition_quata };;) {
         if (iter != this->s_.end()) {
             n = *iter;
             ret = GetElem_(n);
@@ -232,9 +242,10 @@ template <typename Elem, typename Compare>
 void DynamicSearchTable<Elem, Compare>::Insert(const Elem& elem) {
     auto iter{ this->s_.upper_bound(elem) };
 
-    for (int quata{ 3 };;) {
+    for (size_t quata{ decomposition_quata };;) {
         if (iter == this->s_.begin()) {
             this->s_.insert(new Node{ .elem = elem, .is_finished = true });
+            ++this->size_;
             return;
         }
 
@@ -249,11 +260,13 @@ void DynamicSearchTable<Elem, Compare>::Insert(const Elem& elem) {
 
         if (prv_n->is_finished) {
             this->s_.insert(new Node{ .elem = elem, .is_finished = true });
+            ++this->size_;
             return;
         }
 
         if (quata == 0) {
             (*prv_n->seg).push_back(elem);
+            ++this->size_;
             return;
         }
 
@@ -266,11 +279,13 @@ void DynamicSearchTable<Elem, Compare>::Insert(const Elem& elem) {
 template <typename Elem, typename Compare>
 template <typename Key>
 void DynamicSearchTable<Elem, Compare>::Erase(const Key& key) {
+    assert(0 < this->size_);
+
     auto iter{ this->s_.upper_bound(key) };
 
     if (iter == this->s_.end()) { return; }
 
-    for (int quata{ 3 };;) {
+    for (size_t quata{ decomposition_quata };;) {
         if (iter == this->s_.begin()) { return; }
 
         auto prv_iter{ std::prev(iter) };
@@ -286,6 +301,7 @@ void DynamicSearchTable<Elem, Compare>::Erase(const Key& key) {
             if (!this->cmp_(prv_n->elem, key)) {
                 this->s_.erase(prv_iter);
                 DestroyNode_(prv_n);
+                --this->size_;
             }
 
             return;
@@ -318,6 +334,7 @@ void DynamicSearchTable<Elem, Compare>::Erase(const Key& key) {
             }
 
             seg.pop_back();
+            --this->size_;
 
             break;
         }
@@ -334,11 +351,17 @@ void DynamicSearchTable<Elem, Compare>::Erase(const Key& key) {
 
 template <typename Elem, typename Compare>
 void DynamicSearchTable<Elem, Compare>::Sanitize() const {
+    size_t re_size{ 0 };
+
     for (auto iter{ this->s_.begin() }, end{ this->s_.end() }; iter != end;) {
         Node* n{ *iter };
 
-        if (!n->is_finished) {
+        if (n->is_finished) {
+            ++re_size;
+        } else {
             std::vector<Elem>& seg{ *n->seg };
+
+            re_size += seg.size();
 
             assert(1 < seg.size());
 
@@ -364,6 +387,8 @@ void DynamicSearchTable<Elem, Compare>::Sanitize() const {
 
         iter = nxt_iter;
     }
+
+    assert(this->size_ == re_size);
 }
 
 template <typename Elem, typename Compare>

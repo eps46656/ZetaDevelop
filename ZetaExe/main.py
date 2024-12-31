@@ -276,6 +276,14 @@ def AddDeps(builder: Builder, config: Config):
     )
 
     builder.Add(
+        f"{zeta_exe_dir}/static_search_table.h",
+        {
+            f"{FILE}",
+        },
+        None
+    )
+
+    builder.Add(
         f"{zeta_exe_dir}/std_allocator.h",
         {
             f"{zeta_dir}/allocator.h",
@@ -642,51 +650,6 @@ def AddDeps(builder: Builder, config: Config):
     )
 
     builder.Add(
-        f"{zeta_exe_dir}/test_dynamic_search_table.cpp",
-        {
-            f"{FILE}",
-            f"{zeta_dir}/debugger.h",
-            f"{zeta_exe_dir}/dynamic_search_table.h",
-            f"{zeta_exe_dir}/naive_search_table.h",
-            f"{zeta_exe_dir}/random.h",
-            f"{zeta_exe_dir}/timer.h",
-        },
-        None
-    )
-
-    builder.Add(
-        f"{zeta_exe_build_dir}/test_dynamic_search_table.o",
-        {
-            f"{FILE}",
-            f"{zeta_exe_dir}/test_dynamic_search_table.cpp",
-        },
-        lambda: compiler.cpp_to_obj(
-            f"{zeta_exe_build_dir}/test_dynamic_search_table.o",
-            f"{zeta_exe_dir}/test_dynamic_search_table.cpp",
-        )
-    )
-
-    builder.Add(
-        f"{zeta_exe_build_dir}/test_dynamic_search_table.exe",
-        {
-            f"{FILE}",
-            f"{zeta_build_dir}/debug_str_pipe.o",
-            f"{zeta_build_dir}/debugger.o",
-            f"{zeta_exe_build_dir}/timer.o",
-            f"{zeta_exe_build_dir}/test_dynamic_search_table.o",
-        },
-        lambda: compiler.to_exe(
-            f"{zeta_exe_build_dir}/test_dynamic_search_table.exe",
-            {
-                f"{zeta_build_dir}/debug_str_pipe.o",
-                f"{zeta_build_dir}/debugger.o",
-                f"{zeta_exe_build_dir}/timer.o",
-                f"{zeta_exe_build_dir}/test_dynamic_search_table.o",
-            }
-        )
-    )
-
-    builder.Add(
         f"{zeta_exe_dir}/test_elf.cpp",
         {
             f"{FILE}",
@@ -923,6 +886,52 @@ def AddDeps(builder: Builder, config: Config):
                 f"{zeta_build_dir}/utf16.o",
                 f"{zeta_build_dir}/utils.o",
                 f"{zeta_exe_build_dir}/test_utf16.o",
+            }
+        )
+    )
+
+    builder.Add(
+        f"{zeta_exe_dir}/test_search_table.cpp",
+        {
+            f"{FILE}",
+            f"{zeta_dir}/debugger.h",
+            f"{zeta_exe_dir}/dynamic_search_table.h",
+            f"{zeta_exe_dir}/naive_search_table.h",
+            f"{zeta_exe_dir}/static_search_table.h",
+            f"{zeta_exe_dir}/random.h",
+            f"{zeta_exe_dir}/timer.h",
+        },
+        None
+    )
+
+    builder.Add(
+        f"{zeta_exe_build_dir}/test_search_table.o",
+        {
+            f"{FILE}",
+            f"{zeta_exe_dir}/test_search_table.cpp",
+        },
+        lambda: compiler.cpp_to_obj(
+            f"{zeta_exe_build_dir}/test_search_table.o",
+            f"{zeta_exe_dir}/test_search_table.cpp",
+        )
+    )
+
+    builder.Add(
+        f"{zeta_exe_build_dir}/test_search_table.exe",
+        {
+            f"{FILE}",
+            f"{zeta_build_dir}/debug_str_pipe.o",
+            f"{zeta_build_dir}/debugger.o",
+            f"{zeta_exe_build_dir}/timer.o",
+            f"{zeta_exe_build_dir}/test_search_table.o",
+        },
+        lambda: compiler.to_exe(
+            f"{zeta_exe_build_dir}/test_search_table.exe",
+            {
+                f"{zeta_build_dir}/debug_str_pipe.o",
+                f"{zeta_build_dir}/debugger.o",
+                f"{zeta_exe_build_dir}/timer.o",
+                f"{zeta_exe_build_dir}/test_search_table.o",
             }
         )
     )

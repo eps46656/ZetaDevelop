@@ -5,6 +5,7 @@ template <typename Elem, typename Compare>
 class StaticSearchTable {
 public:
     static constexpr size_t threshold{ 8 };
+    static constexpr size_t decomposition_quata{ 6 };
 
     struct Node {
         Node* p;
@@ -17,52 +18,75 @@ public:
         bool is_finished;
     };
 
+    StaticSearchTable();
+
+    StaticSearchTable(const std::vector<Elem>& vec);
+
+    StaticSearchTable(const Compare& cmp);
+
     StaticSearchTable(const std::vector<Elem>& vec, const Compare& cmp);
 
     ~StaticSearchTable();
 
-    template <typename Key>
-    const Elem* LowerBound(const Key& key);
+    size_t size() const;
 
     template <typename Key>
-    const Elem* UpperBound(const Key& key);
+    const Elem* LowerBound(const Key& key) const;
+
+    template <typename Key>
+    const Elem* UpperBound(const Key& key) const;
+
+    void Sanitize() const;
 
 private:
     Compare cmp_;
 
     std::vector<Elem> vec_;
 
-    Node* root_;
+    mutable Node* root_;
+
+    mutable bool is_finished_;
 
     void Destroy_(Node* n);
 
     template <typename Key>
     const Elem* BinaryLowerBound_(const Elem* seg, size_t seg_size,
-                                  const Key& key);
+                                  const Key& key) const;
 
     template <typename Key>
     const Elem* BinaryUpperBound_(const Elem* seg, size_t seg_size,
-                                  const Key& key);
+                                  const Key& key) const;
 
     template <typename Key>
     const Elem* LinearLowerBound_(const Elem* seg, size_t seg_size,
-                                  const Key& key);
+                                  const Key& key) const;
 
     template <typename Key>
     const Elem* LinearUpperBound_(const Elem* seg, size_t seg_size,
-                                  const Key& key);
+                                  const Key& key) const;
 
-    void CheckIsFinished_(Node* n);
+    void Decompose_(Node* n) const;
+
+    void CheckIsFinished_(Node* n) const;
+
+    std::pair<const Elem*, size_t> Sanitize_(Node* n) const;
 };
 
 // -----------------------------------------------------------------------------
 
 template <typename Elem, typename Compare>
+StaticSearchTable<Elem, Compare>::StaticSearchTable() {
+    this->root_ = nullptr;
+
+    this->is_finished_ = true;
+}
+
+template <typename Elem, typename Compare>
 StaticSearchTable<Elem, Compare>::StaticSearchTable(
-    const std::vector<Elem>& vec, const Compare& cmp)
-    : cmp_{ cmp }, vec_{ vec } {
+    const std::vector<Elem>& vec)
+    : vec_{ vec } {
     if (this->vec_.size() <= threshold) {
-        sort(this->vec_.begin(), this->vec_.end(), this->cmp_);
+        std::sort(this->vec_.begin(), this->vec_.end(), this->cmp_);
 
         this->root_ = nullptr;
 
@@ -74,6 +98,39 @@ StaticSearchTable<Elem, Compare>::StaticSearchTable(
             .r = nullptr,
             .seg = &this->vec_[0],
             .seg_size = this->vec_.size(),
+            .is_finished = false,
+        };
+
+        this->is_finished_ = false;
+    }
+}
+
+template <typename Elem, typename Compare>
+StaticSearchTable<Elem, Compare>::StaticSearchTable(const Compare& cmp)
+    : cmp_{ cmp } {
+    this->root_ = nullptr;
+
+    this->is_finished_ = true;
+}
+
+template <typename Elem, typename Compare>
+StaticSearchTable<Elem, Compare>::StaticSearchTable(
+    const std::vector<Elem>& vec, const Compare& cmp)
+    : cmp_{ cmp }, vec_{ vec } {
+    if (this->vec_.size() <= threshold) {
+        std::sort(this->vec_.begin(), this->vec_.end(), this->cmp_);
+
+        this->root_ = nullptr;
+
+        this->is_finished_ = true;
+    } else {
+        this->root_ = new Node{
+            .p = nullptr,
+            .l = nullptr,
+            .r = nullptr,
+            .seg = &this->vec_[0],
+            .seg_size = this->vec_.size(),
+            .is_finished = false,
         };
 
         this->is_finished_ = false;
@@ -94,8 +151,13 @@ StaticSearchTable<Elem, Compare>::~StaticSearchTable() {
 }
 
 template <typename Elem, typename Compare>
+size_t StaticSearchTable<Elem, Compare>::size() const {
+    return this->vec_.size();
+}
+
+template <typename Elem, typename Compare>
 template <typename Key>
-const Elem* StaticSearchTable<Elem, Compare>::LowerBound(const Key& key) {
+const Elem* StaticSearchTable<Elem, Compare>::LowerBound(const Key& key) const {
     if (this->is_finished_) {
         return this->BinaryLowerBound_(&this->vec_[0], this->vec_.size(), key);
     }
@@ -104,7 +166,7 @@ const Elem* StaticSearchTable<Elem, Compare>::LowerBound(const Key& key) {
 
     Node* n{ this->root_ };
 
-    int quata{ 2 };
+    size_t quata{ decomposition_quata };
 
     while (n != nullptr) {
         if (n->is_finished) {
@@ -128,7 +190,10 @@ const Elem* StaticSearchTable<Elem, Compare>::LowerBound(const Key& key) {
             }
 
             if (quata == 0) {
-                return this->LinearLowerBound_(n->seg, n->seg_size, key);
+                const Elem* cur{ this->LinearLowerBound_(n->seg, n->seg_size,
+                                                         key) };
+
+                return cur == nullptr ? ret : cur;
             }
 
             size_t half_seg_size{ n->seg_size / 2 };
@@ -157,6 +222,9 @@ const Elem* StaticSearchTable<Elem, Compare>::LowerBound(const Key& key) {
                 .is_finished = false,
             };
 
+            n->seg = mid;
+            n->seg_size = 1;
+
             --quata;
         }
 
@@ -173,7 +241,7 @@ const Elem* StaticSearchTable<Elem, Compare>::LowerBound(const Key& key) {
 
 template <typename Elem, typename Compare>
 template <typename Key>
-const Elem* StaticSearchTable<Elem, Compare>::UpperBound(const Key& key) {
+const Elem* StaticSearchTable<Elem, Compare>::UpperBound(const Key& key) const {
     if (this->is_finished_) {
         return this->BinaryUpperBound_(&this->vec_[0], this->vec_.size(), key);
     }
@@ -182,7 +250,7 @@ const Elem* StaticSearchTable<Elem, Compare>::UpperBound(const Key& key) {
 
     Node* n{ this->root_ };
 
-    int quata{ 2 };
+    size_t quata{ decomposition_quata };
 
     while (n != nullptr) {
         if (n->is_finished) {
@@ -206,7 +274,10 @@ const Elem* StaticSearchTable<Elem, Compare>::UpperBound(const Key& key) {
             }
 
             if (quata == 0) {
-                return this->LinearUpperBound_(n->seg, n->seg_size, key);
+                const Elem* cur{ this->LinearUpperBound_(n->seg, n->seg_size,
+                                                         key) };
+
+                return cur == nullptr ? ret : cur;
             }
 
             size_t half_seg_size{ n->seg_size / 2 };
@@ -235,6 +306,9 @@ const Elem* StaticSearchTable<Elem, Compare>::UpperBound(const Key& key) {
                 .is_finished = false,
             };
 
+            n->seg = mid;
+            n->seg_size = 1;
+
             --quata;
         }
 
@@ -250,9 +324,28 @@ const Elem* StaticSearchTable<Elem, Compare>::UpperBound(const Key& key) {
 }
 
 template <typename Elem, typename Compare>
+void StaticSearchTable<Elem, Compare>::Sanitize() const {
+    if (this->is_finished_) {
+        assert(this->root_ == nullptr);
+
+        assert(
+            std::is_sorted(this->vec_.begin(), this->vec_.end(), this->cmp_));
+
+        return;
+    }
+
+    assert(this->root_ != nullptr);
+
+    std::pair<const Elem*, size_t> seg{ Sanitize_(this->root_) };
+
+    assert(seg.first == &this->vec_[0]);
+    assert(seg.second == this->vec_.size());
+}
+
+template <typename Elem, typename Compare>
 template <typename Key>
 const Elem* StaticSearchTable<Elem, Compare>::BinaryLowerBound_(
-    const Elem* seg, size_t seg_size, const Key& key) {
+    const Elem* seg, size_t seg_size, const Key& key) const {
     size_t lb{ 0 };
     size_t rb{ seg_size };
 
@@ -272,12 +365,12 @@ const Elem* StaticSearchTable<Elem, Compare>::BinaryLowerBound_(
 template <typename Elem, typename Compare>
 template <typename Key>
 const Elem* StaticSearchTable<Elem, Compare>::BinaryUpperBound_(
-    const Elem* seg, size_t seg_size, const Key& key) {
+    const Elem* seg, size_t seg_size, const Key& key) const {
     size_t lb{ 0 };
     size_t rb{ seg_size };
 
     while (lb < rb) {
-        size_t mb{ (lb + rb + 1) / 2 };
+        size_t mb{ (lb + rb) / 2 };
 
         if (this->cmp_(key, seg[mb])) {
             rb = mb;
@@ -292,7 +385,7 @@ const Elem* StaticSearchTable<Elem, Compare>::BinaryUpperBound_(
 template <typename Elem, typename Compare>
 template <typename Key>
 const Elem* StaticSearchTable<Elem, Compare>::LinearLowerBound_(
-    const Elem* seg, size_t seg_size, const Key& key) {
+    const Elem* seg, size_t seg_size, const Key& key) const {
     const Elem* ret{ nullptr };
 
     for (size_t i{ 0 }; i < seg_size; ++i) {
@@ -310,7 +403,7 @@ const Elem* StaticSearchTable<Elem, Compare>::LinearLowerBound_(
 template <typename Elem, typename Compare>
 template <typename Key>
 const Elem* StaticSearchTable<Elem, Compare>::LinearUpperBound_(
-    const Elem* seg, size_t seg_size, const Key& key) {
+    const Elem* seg, size_t seg_size, const Key& key) const {
     const Elem* ret{ nullptr };
 
     for (size_t i{ 0 }; i < seg_size; ++i) {
@@ -326,7 +419,7 @@ const Elem* StaticSearchTable<Elem, Compare>::LinearUpperBound_(
 }
 
 template <typename Elem, typename Compare>
-void StaticSearchTable<Elem, Compare>::CheckIsFinished_(Node* n) {
+void StaticSearchTable<Elem, Compare>::CheckIsFinished_(Node* n) const {
     while (n != nullptr) {
         if (n->is_finished) { n = n->p; }
 
@@ -335,7 +428,7 @@ void StaticSearchTable<Elem, Compare>::CheckIsFinished_(Node* n) {
 
         if ((nl != nullptr && !nl->is_finished) ||
             (nr != nullptr && !nr->is_finished)) {
-            break;
+            return;
         }
 
         if (nl != nullptr) {
@@ -361,4 +454,61 @@ void StaticSearchTable<Elem, Compare>::CheckIsFinished_(Node* n) {
     this->root_ = nullptr;
 
     this->is_finished_ = true;
+}
+
+template <typename Elem, typename Compare>
+std::pair<const Elem*, size_t> StaticSearchTable<Elem, Compare>::Sanitize_(
+    Node* n) const {
+    Node* nl{ n->l };
+    Node* nr{ n->r };
+
+    if (nl == nullptr && nr == nullptr) {
+        if (n->is_finished) {
+            assert(std::is_sorted(n->seg, n->seg + n->seg_size, this->cmp_));
+        }
+
+        return { n->seg, n->seg_size };
+    }
+
+    assert(!n->is_finished);
+
+    assert(n->seg_size == 1);
+
+    const Elem* pivot{ n->seg };
+
+    std::pair<const Elem*, size_t> ret{ n->seg, n->seg_size };
+
+    if (nl != nullptr) {
+        assert(nl->p == n);
+
+        std::pair<const Elem*, size_t> seg{ Sanitize_(nl) };
+
+        assert(seg.first + seg.second == n->seg);
+
+        assert(std::all_of(
+            seg.first, seg.first + seg.second,
+            [&](const Elem& elem) { return !this->cmp_(*pivot, elem); }));
+
+        ret.first = seg.first;
+        ret.second += seg.second;
+    }
+
+    if (nr != nullptr) {
+        assert(nr->p == n);
+
+        std::pair<const Elem*, size_t> seg{ Sanitize_(nr) };
+
+        assert(ret.first + ret.second == seg.first);
+
+        assert(std::all_of(
+            seg.first, seg.first + seg.second,
+            [&](const Elem& elem) { return !this->cmp_(elem, *pivot); }));
+
+        ret.second += seg.second;
+    }
+
+    assert((nl != nullptr && !nl->is_finished) ||
+           (nr != nullptr && !nr->is_finished));
+
+    return ret;
 }

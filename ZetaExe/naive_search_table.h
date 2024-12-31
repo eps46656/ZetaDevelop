@@ -26,6 +26,8 @@ public:
     template <typename Key>
     void Erase(const Key& key);
 
+    void Sanitize() const;
+
 private:
     std::multiset<Elem, Compare> s_;
 };
@@ -77,4 +79,9 @@ void NaiveSearchTable<Elem, Compare>::Erase(const Key& key) {
     auto iter{ this->s_.find(key) };
 
     if (iter != this->s_.end()) { this->s_.erase(iter); }
+}
+
+template <typename Elem, typename Compare>
+void NaiveSearchTable<Elem, Compare>::Sanitize() const {
+    return;
 }
