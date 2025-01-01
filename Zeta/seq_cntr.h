@@ -137,11 +137,12 @@ struct Zeta_SeqCntr {
      *                   to prevent invalid.
      * @param cnt The number of read elements.
      * @param dst The destination of read elements.
+     * @param dst_stride The stride of read elements.
      * @param dst_cursor Optional. The destination of returned cursor pointing
      *                   right next of last read elements.
      */
     void (*Read)(void const* context, void const* pos_cursor, size_t cnt,
-                 void* dst, void* dst_cursor);
+                 void* dst, size_t dst_stride, void* dst_cursor);
 
     /**
      * @brief Write \p cnt elements from cursor. Concrete container should
@@ -152,11 +153,12 @@ struct Zeta_SeqCntr {
      *                   to prevent invalid.
      * @param cnt The number of written elements.
      * @param src The source of written elements.
+     * @param src_stride The stride of written elements.
      * @param dst_cursor Optional. The destination of returned cursor pointing
      *                   right next of last written elements.
      */
     void (*Write)(void* context, void* pos_cursor, size_t cnt, void const* src,
-                  void* dst_cursor);
+                  size_t src_stride, void* dst_cursor);
 
     /**
      * @brief Push \p cnt elements from left end. Concrete container can
@@ -387,13 +389,15 @@ struct Zeta_SeqCntr {
 #define ZETA_SeqCntr_ConstRefer(seq_cntr, pos_cursor) \
     ((void const*)ZETA_SeqCntr_Call_((seq_cntr), Refer, (pos_cursor)))
 
-#define ZETA_SeqCntr_Read(seq_cntr, pos_cursor, cnt, dst, dst_cursor)     \
+#define ZETA_SeqCntr_Read(seq_cntr, pos_cursor, cnt, dst, dst_stride,     \
+                          dst_cursor)                                     \
     ZETA_SeqCntr_CallConst_((seq_cntr), Read, (pos_cursor), (cnt), (dst), \
-                            (dst_cursor))
+                            (dst_stride), (dst_cursor))
 
-#define ZETA_SeqCntr_Write(seq_cntr, pos_cursor, cnt, src, dst_cursor) \
+#define ZETA_SeqCntr_Write(seq_cntr, pos_cursor, cnt, src, src_stride, \
+                           dst_cursor)                                 \
     ZETA_SeqCntr_Call_((seq_cntr), Write, (pos_cursor), (cnt), (src),  \
-                       (dst_cursor))
+                       (src_stride), (dst_cursor))
 
 #define ZETA_SeqCntr_PushL(seq_cntr, cnt, dst_cursor) \
     ZETA_SeqCntr_Call_((seq_cntr), PushL, (cnt), (dst_cursor));

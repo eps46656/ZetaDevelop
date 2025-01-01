@@ -43,7 +43,10 @@ ZETA_DeclareStruct(Cntr_(Stats));
 struct Cntr {
 #if !STAGING
     size_t width;
+    // In staing mode, width is determined by origin.
 #endif
+
+    size_t stride;
 
     /** The maximum number of elements in a segment. */
     size_t seg_capacity;
@@ -169,13 +172,13 @@ void Cntr_(BinSearch)(void* cntr, void* elem_key_cmp_context,
  * @copydoc Zeta_SeqCntr::Read
  */
 void Cntr_(Read)(void const* cntr, void const* pos_cursor, size_t cnt,
-                 void* dst, void* dst_cursor);
+                 void* dst, size_t dst_stride, void* dst_cursor);
 
 /**
  * @copydoc Zeta_SeqCntr::Write
  */
 void Cntr_(Write)(void* cntr, void* pos_cursor, size_t cnt, void const* src,
-                  void* dst_cursor);
+                  size_t src_stride, void* dst_cursor);
 
 /**
  * @copydoc Zeta_SeqCntr::PushL

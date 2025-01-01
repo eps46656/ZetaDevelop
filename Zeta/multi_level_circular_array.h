@@ -1,3 +1,5 @@
+#pragma once
+
 #include "allocator.h"
 #include "multi_level_table.h"
 #include "ord_linked_list_node.h"
@@ -16,6 +18,8 @@ ZETA_DeclareStruct(Zeta_MultiLevelCircularArray_Cursor);
 
 struct Zeta_MultiLevelCircularArray {
     size_t width;
+
+    size_t stride;
 
     size_t seg_capacity;
 
@@ -63,6 +67,8 @@ void Zeta_MultiLevelCircularArray_Deinit(void* mlca);
  * @copydoc Zeta_SeqCntr::GetWidth
  */
 size_t Zeta_MultiLevelCircularArray_GetWidth(void const* mlca);
+
+size_t Zeta_MultiLevelCircularArray_GetStride(void const* mlca);
 
 /**
  * @copydoc Zeta_SeqCntr::GetSize
@@ -114,14 +120,15 @@ void* Zeta_MultiLevelCircularArray_Refer(void* mlca, void const* pos_cursor);
  *
  */
 void Zeta_MultiLevelCircularArray_Read(void const* mlca, void const* pos_cursor,
-                                       size_t cnt, void* dst, void* dst_cursor);
+                                       size_t cnt, void* dst, size_t dst_stride,
+                                       void* dst_cursor);
 
 /**
  * @copydoc Zeta_SeqCntr::Write
  */
 void Zeta_MultiLevelCircularArray_Write(void* mlca, void* pos_cursor,
                                         size_t cnt, void const* src,
-                                        void* dst_cursor);
+                                        size_t src_stride, void* dst_cursor);
 
 /**
  * @copydoc Zeta_SeqCntr::Write

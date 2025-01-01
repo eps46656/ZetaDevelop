@@ -152,7 +152,7 @@ extern "C" void* Zeta_DebugDeque_Refer(void* dd_, void const* pos_cursor_) {
 }
 
 extern "C" void Zeta_DebugDeque_Read(void const* dd_, void const* pos_cursor_,
-                                     size_t cnt, void* dst_,
+                                     size_t cnt, void* dst_, size_t dst_stride,
                                      void* dst_cursor_) {
     Zeta_DebugDeque const* dd = (Zeta_DebugDeque const*)dd_;
     size_t const* pos_cursor = (size_t const*)pos_cursor_;
@@ -173,14 +173,17 @@ extern "C" void Zeta_DebugDeque_Read(void const* dd_, void const* pos_cursor_,
 
     if (dst_cursor != NULL) { *dst_cursor = end; }
 
+    size_t dst_width = ZETA_GetMinOf(dst_stride, dd->width);
+
     for (size_t idx = beg; idx < end; ++idx) {
-        Zeta_MemCopy(dst, (*deque)[idx], dd->width);
-        dst += dd->width;
+        Zeta_MemCopy(dst, (*deque)[idx], dst_width);
+        dst += dst_stride;
     }
 }
 
 extern "C" void Zeta_DebugDeque_Write(void* dd_, void* pos_cursor_, size_t cnt,
-                                      void const* src_, void* dst_cursor_) {
+                                      void const* src_, size_t src_stride,
+                                      void* dst_cursor_) {
     Zeta_DebugDeque* dd = (Zeta_DebugDeque*)dd_;
     size_t* pos_cursor = (size_t*)pos_cursor_;
     size_t* dst_cursor = (size_t*)dst_cursor_;
@@ -200,9 +203,11 @@ extern "C" void Zeta_DebugDeque_Write(void* dd_, void* pos_cursor_, size_t cnt,
 
     if (dst_cursor != NULL) { *dst_cursor = end; }
 
+    size_t src_width = ZETA_GetMinOf(src_stride, dd->width);
+
     for (size_t idx = beg; idx < end; ++idx) {
-        Zeta_MemCopy((*deque)[idx], src, dd->width);
-        src += dd->width;
+        Zeta_MemCopy((*deque)[idx], src, src_width);
+        src += src_stride;
     }
 }
 

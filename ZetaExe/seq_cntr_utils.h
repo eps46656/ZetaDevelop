@@ -5,22 +5,15 @@
 
 #include <unordered_map>
 
+#include "ptr_iter.h"
 #include "random.h"
 
-template <typename Value>
-Value* SeqCntrUtils_GetBuffer_A(size_t size) {
-    static Buffer<unsigned char> buffer;
-
-    return static_cast<Value*>(
-        static_cast<void*>(buffer.GetBuffer(sizeof(Value) * size)));
-}
+Buffer buffer_a;
+Buffer buffer_b;
 
 template <typename Value>
-Value* SeqCntrUtils_GetBuffer_B(size_t size) {
-    static Buffer<unsigned char> buffer;
-
-    return static_cast<Value*>(
-        static_cast<void*>(buffer.GetBuffer(sizeof(Value) * size)));
+size_t SeqCntrUtils_GetRandomStride() {
+    return sizeof(Value) + alignof(Value) * GetRandomInt<size_t, size_t>(1, 4);
 }
 
 auto& SeqCntrUtils_GetSanitizeFuncs() {
@@ -76,14 +69,11 @@ void SeqCntrUtils_Destroy(Zeta_SeqCntr* seq_cntr) {
     iter->second(seq_cntr);
 }
 
-template <typename Value>
-void SeqCntrUtils_Read(Zeta_SeqCntr* seq_cntr, size_t idx, Value* dst_beg,
-                       Value* dst_end) {
+void SeqCntrUtils_Read(Zeta_SeqCntr* seq_cntr, size_t idx, size_t cnt,
+                       void* dst, size_t dst_stride) {
     void* pos_cursor = ZETA_SeqCntr_AllocaCursor(seq_cntr);
 
     size_t size{ ZETA_SeqCntr_GetSize(seq_cntr) };
-
-    size_t cnt = dst_end - dst_beg;
 
     ZETA_DebugAssert(cnt <= size);
 
@@ -100,7 +90,8 @@ void SeqCntrUtils_Read(Zeta_SeqCntr* seq_cntr, size_t idx, Value* dst_beg,
 
         SeqCntrUtils_Sanitize(seq_cntr);
 
-        ZETA_SeqCntr_Read(seq_cntr, pos_cursor, cnt_a, dst_beg, pos_cursor);
+        ZETA_SeqCntr_Read(seq_cntr, pos_cursor, cnt_a, dst, dst_stride,
+                          pos_cursor);
 
         SeqCntrUtils_Sanitize(seq_cntr);
 
@@ -109,7 +100,7 @@ void SeqCntrUtils_Read(Zeta_SeqCntr* seq_cntr, size_t idx, Value* dst_beg,
 
         SeqCntrUtils_Sanitize(seq_cntr);
 
-        dst_beg += cnt_a;
+        dst = (char*)dst + dst_stride * cnt_a;
         idx += (idx + cnt_a) % size;
     }
 
@@ -120,7 +111,8 @@ void SeqCntrUtils_Read(Zeta_SeqCntr* seq_cntr, size_t idx, Value* dst_beg,
 
         ZETA_DebugAssert(ZETA_SeqCntr_Cursor_GetIdx(seq_cntr, pos_cursor) == 0);
 
-        ZETA_SeqCntr_Read(seq_cntr, pos_cursor, cnt_b, dst_beg, pos_cursor);
+        ZETA_SeqCntr_Read(seq_cntr, pos_cursor, cnt_b, dst, dst_stride,
+                          pos_cursor);
 
         SeqCntrUtils_Sanitize(seq_cntr);
 
@@ -131,14 +123,11 @@ void SeqCntrUtils_Read(Zeta_SeqCntr* seq_cntr, size_t idx, Value* dst_beg,
     }
 }
 
-template <typename Value>
-void SeqCntrUtils_Write(Zeta_SeqCntr* seq_cntr, size_t idx,
-                        Value const* src_beg, Value const* src_end) {
+void SeqCntrUtils_Write(Zeta_SeqCntr* seq_cntr, size_t idx, size_t cnt,
+                        void const* src, size_t src_stride) {
     void* pos_cursor = ZETA_SeqCntr_AllocaCursor(seq_cntr);
 
     size_t size{ ZETA_SeqCntr_GetSize(seq_cntr) };
-
-    size_t cnt = src_end - src_beg;
 
     ZETA_DebugAssert(cnt <= size);
 
@@ -155,7 +144,8 @@ void SeqCntrUtils_Write(Zeta_SeqCntr* seq_cntr, size_t idx,
 
         SeqCntrUtils_Sanitize(seq_cntr);
 
-        ZETA_SeqCntr_Write(seq_cntr, pos_cursor, cnt_a, src_beg, pos_cursor);
+        ZETA_SeqCntr_Write(seq_cntr, pos_cursor, cnt_a, src, src_stride,
+                           pos_cursor);
 
         SeqCntrUtils_Sanitize(seq_cntr);
 
@@ -164,7 +154,7 @@ void SeqCntrUtils_Write(Zeta_SeqCntr* seq_cntr, size_t idx,
 
         SeqCntrUtils_Sanitize(seq_cntr);
 
-        src_beg += cnt_a;
+        src = (char const*)src + src_stride * cnt_a;
         idx += (idx + cnt_a) % size;
     }
 
@@ -177,7 +167,8 @@ void SeqCntrUtils_Write(Zeta_SeqCntr* seq_cntr, size_t idx,
 
         SeqCntrUtils_Sanitize(seq_cntr);
 
-        ZETA_SeqCntr_Write(seq_cntr, pos_cursor, cnt_b, src_beg, pos_cursor);
+        ZETA_SeqCntr_Write(seq_cntr, pos_cursor, cnt_b, src, src_stride,
+                           pos_cursor);
 
         SeqCntrUtils_Sanitize(seq_cntr);
 
@@ -188,24 +179,22 @@ void SeqCntrUtils_Write(Zeta_SeqCntr* seq_cntr, size_t idx,
     }
 }
 
-template <typename Value>
-void SeqCntrUtils_PushL(Zeta_SeqCntr* seq_cntr, Value const* src_beg,
-                        Value const* src_end) {
-    ZETA_SeqCntr_PushL(seq_cntr, src_end - src_beg, NULL);
+void SeqCntrUtils_PushL(Zeta_SeqCntr* seq_cntr, size_t cnt, void const* src,
+                        size_t src_stride) {
+    ZETA_SeqCntr_PushL(seq_cntr, cnt, NULL);
 
-    SeqCntrUtils_Write(seq_cntr, 0, src_beg, src_end);
+    SeqCntrUtils_Write(seq_cntr, 0, cnt, src, src_stride);
 }
 
-template <typename Value>
-void SeqCntrUtils_PushR(Zeta_SeqCntr* seq_cntr, Value const* src_beg,
-                        Value const* src_end) {
+void SeqCntrUtils_PushR(Zeta_SeqCntr* seq_cntr, size_t cnt, void const* src,
+                        size_t src_stride) {
     size_t size{ ZETA_SeqCntr_GetSize(seq_cntr) };
 
-    ZETA_SeqCntr_PushR(seq_cntr, src_end - src_beg, NULL);
+    ZETA_SeqCntr_PushR(seq_cntr, cnt, NULL);
 
     SeqCntrUtils_Sanitize(seq_cntr);
 
-    SeqCntrUtils_Write(seq_cntr, size, src_beg, src_end);
+    SeqCntrUtils_Write(seq_cntr, size, cnt, src, src_stride);
 }
 
 void SeqCntrUtils_PopL(Zeta_SeqCntr* seq_cntr, size_t cnt) {
@@ -226,12 +215,9 @@ void SeqCntrUtils_PopR(Zeta_SeqCntr* seq_cntr, size_t cnt) {
     SeqCntrUtils_Sanitize(seq_cntr);
 }
 
-template <typename Value>
-void SeqCntrUtils_Insert(Zeta_SeqCntr* seq_cntr, size_t idx,
-                         Value const* src_beg, Value const* src_end) {
+void SeqCntrUtils_Insert(Zeta_SeqCntr* seq_cntr, size_t idx, size_t cnt,
+                         void const* src, size_t src_stride) {
     void* pos_cursor = ZETA_SeqCntr_AllocaCursor(seq_cntr);
-
-    size_t cnt = src_end - src_beg;
 
     ZETA_SeqCntr_Access(seq_cntr, idx, pos_cursor, NULL);
 
@@ -247,7 +233,7 @@ void SeqCntrUtils_Insert(Zeta_SeqCntr* seq_cntr, size_t idx,
 
     ZETA_DebugAssert(ZETA_SeqCntr_Cursor_GetIdx(seq_cntr, pos_cursor) == idx);
 
-    SeqCntrUtils_Write(seq_cntr, idx, src_beg, src_end);
+    SeqCntrUtils_Write(seq_cntr, idx, cnt, src, src_stride);
 }
 
 void SeqCntrUtils_Erase(Zeta_SeqCntr* seq_cntr, size_t idx, size_t cnt) {
@@ -404,25 +390,26 @@ size_t SeqCntrUtils_SyncGetSize(const std::vector<Zeta_SeqCntr*>& seq_cntrs) {
 template <typename Value>
 void SeqCntrUtils_SyncRandomRead(const std::vector<Zeta_SeqCntr*>& seq_cntrs,
                                  size_t max_op_size) {
+    size_t stride{ SeqCntrUtils_GetRandomStride<Value>() };
+
     size_t size{ SeqCntrUtils_SyncGetSize(seq_cntrs) };
 
     size_t idx{ GetRandomInt<size_t, size_t>(0, size) };
     size_t cnt{ GetRandomInt<size_t, size_t>(0, std::min(max_op_size, size)) };
 
-    Value* buffer_a{ SeqCntrUtils_GetBuffer_A<Value>(cnt) };
-    Value* buffer_b{ SeqCntrUtils_GetBuffer_B<Value>(cnt) };
+    Value* ba{ buffer_a.GetBuffer<Value>(stride * cnt) };
+    Value* bb{ buffer_b.GetBuffer<Value>(stride * cnt) };
 
     bool read{ false };
 
     for (auto seq_cntr : seq_cntrs) {
-        SeqCntrUtils_Write<PODValue>(seq_cntr, idx, buffer_a, buffer_a + cnt);
+        SeqCntrUtils_Write(seq_cntr, idx, cnt, ba, stride);
 
         if (read) {
-            ZETA_DebugAssert(
-                std::memcmp(buffer_a, buffer_b, sizeof(Value) * cnt) == 0);
+            ZETA_DebugAssert(std::memcmp(ba, bb, sizeof(Value) * cnt) == 0);
         } else {
             read = true;
-            std::memcpy(buffer_b, buffer_a, sizeof(Value) * cnt);
+            std::memcpy(bb, ba, sizeof(Value) * cnt);
         }
     }
 }
@@ -430,63 +417,72 @@ void SeqCntrUtils_SyncRandomRead(const std::vector<Zeta_SeqCntr*>& seq_cntrs,
 template <typename Value>
 void SeqCntrUtils_SyncRandomWrite(const std::vector<Zeta_SeqCntr*>& seq_cntrs,
                                   size_t max_op_size) {
+    size_t stride{ SeqCntrUtils_GetRandomStride<Value>() };
+
     size_t size{ SeqCntrUtils_SyncGetSize(seq_cntrs) };
 
     size_t idx{ GetRandomInt<size_t, size_t>(0, size) };
     size_t cnt{ GetRandomInt<size_t, size_t>(0, std::min(max_op_size, size)) };
 
-    Value* buffer_a{ SeqCntrUtils_GetBuffer_A<Value>(cnt) };
-    Value* buffer_b{ SeqCntrUtils_GetBuffer_B<Value>(cnt) };
+    Value* ba{ buffer_a.GetBuffer<Value>(stride * cnt) };
+    Value* bb{ buffer_b.GetBuffer<Value>(stride * cnt) };
 
-    GetRandoms<Value>(buffer_a, buffer_a + cnt);
+    GetRandoms<Value>(
+        PtrIter<Value>{ ba, static_cast<ptrdiff_t>(stride) },
+        PtrIter<Value>{ ba, static_cast<ptrdiff_t>(stride) } + cnt);
 
-    std::memcpy(buffer_b, buffer_a, sizeof(Value) * cnt);
+    std::memcpy(bb, ba, stride * cnt);
 
     for (auto seq_cntr : seq_cntrs) {
-        SeqCntrUtils_Write<PODValue>(seq_cntr, idx, buffer_a, buffer_a + cnt);
+        SeqCntrUtils_Write(seq_cntr, idx, cnt, ba, stride);
 
-        ZETA_DebugAssert(std::memcmp(buffer_a, buffer_b, sizeof(Value) * cnt) ==
-                         0);
+        ZETA_DebugAssert(std::memcmp(ba, bb, sizeof(Value) * cnt) == 0);
     }
 }
 
 template <typename Value>
 void SeqCntrUtils_SyncRandomPushL(const std::vector<Zeta_SeqCntr*>& seq_cntrs,
                                   size_t max_op_size) {
+    size_t stride{ SeqCntrUtils_GetRandomStride<Value>() };
+
     size_t cnt{ GetRandomInt<size_t, size_t>(0, max_op_size) };
 
-    Value* buffer_a{ SeqCntrUtils_GetBuffer_A<Value>(cnt) };
-    Value* buffer_b{ SeqCntrUtils_GetBuffer_B<Value>(cnt) };
+    Value* ba{ buffer_a.GetBuffer<Value>(stride * cnt) };
+    Value* bb{ buffer_b.GetBuffer<Value>(stride * cnt) };
 
-    GetRandoms<Value>(buffer_a, buffer_a + cnt);
+    GetRandoms<Value>(
+        PtrIter<Value>{ ba, static_cast<ptrdiff_t>(stride) },
+        PtrIter<Value>{ ba, static_cast<ptrdiff_t>(stride) } + cnt);
 
-    std::memcpy(buffer_b, buffer_a, sizeof(Value) * cnt);
+    std::memcpy(bb, ba, sizeof(Value) * cnt);
 
     for (auto seq_cntr : seq_cntrs) {
-        SeqCntrUtils_PushL(seq_cntr, buffer_a, buffer_a + cnt);
+        SeqCntrUtils_PushL(seq_cntr, cnt, ba, stride);
 
-        ZETA_DebugAssert(std::memcmp(buffer_a, buffer_b, sizeof(Value) * cnt) ==
-                         0);
+        ZETA_DebugAssert(std::memcmp(ba, bb, sizeof(Value) * cnt) == 0);
     }
 }
 
 template <typename Value>
 void SeqCntrUtils_SyncRandomPushR(const std::vector<Zeta_SeqCntr*>& seq_cntrs,
                                   size_t max_op_size) {
+    size_t stride{ SeqCntrUtils_GetRandomStride<Value>() };
+
     size_t cnt{ GetRandomInt<size_t, size_t>(0, max_op_size) };
 
-    Value* buffer_a{ SeqCntrUtils_GetBuffer_A<Value>(cnt) };
-    Value* buffer_b{ SeqCntrUtils_GetBuffer_B<Value>(cnt) };
+    Value* ba{ buffer_a.GetBuffer<Value>(stride * cnt) };
+    Value* bb{ buffer_b.GetBuffer<Value>(stride * cnt) };
 
-    GetRandoms<Value>(buffer_a, buffer_a + cnt);
+    GetRandoms<Value>(
+        PtrIter<Value>{ ba, static_cast<ptrdiff_t>(stride) },
+        PtrIter<Value>{ ba, static_cast<ptrdiff_t>(stride) } + cnt);
 
-    std::memcpy(buffer_b, buffer_a, sizeof(Value) * cnt);
+    std::memcpy(bb, ba, sizeof(Value) * cnt);
 
     for (auto seq_cntr : seq_cntrs) {
-        SeqCntrUtils_PushR(seq_cntr, buffer_a, buffer_a + cnt);
+        SeqCntrUtils_PushR(seq_cntr, cnt, ba, stride);
 
-        ZETA_DebugAssert(std::memcmp(buffer_a, buffer_b, sizeof(Value) * cnt) ==
-                         0);
+        ZETA_DebugAssert(std::memcmp(ba, bb, sizeof(Value) * cnt) == 0);
     }
 }
 
@@ -511,23 +507,26 @@ void SeqCntrUtils_SyncRandomPopR(const std::vector<Zeta_SeqCntr*>& seq_cntrs,
 template <typename Value>
 void SeqCntrUtils_SyncRandomInsert(const std::vector<Zeta_SeqCntr*>& seq_cntrs,
                                    size_t max_op_size) {
+    size_t stride{ SeqCntrUtils_GetRandomStride<Value>() };
+
     size_t size{ SeqCntrUtils_SyncGetSize(seq_cntrs) };
 
     size_t idx{ GetRandomInt<size_t, size_t>(0, size) };
     size_t cnt{ GetRandomInt<size_t, size_t>(0, max_op_size) };
 
-    Value* buffer_a{ SeqCntrUtils_GetBuffer_A<Value>(cnt) };
-    Value* buffer_b{ SeqCntrUtils_GetBuffer_B<Value>(cnt) };
+    Value* ba{ buffer_a.GetBuffer<Value>(stride * cnt) };
+    Value* bb{ buffer_b.GetBuffer<Value>(stride * cnt) };
 
-    GetRandoms<Value>(buffer_a, buffer_a + cnt);
+    GetRandoms<Value>(
+        PtrIter<Value>{ ba, static_cast<ptrdiff_t>(stride) },
+        PtrIter<Value>{ ba, static_cast<ptrdiff_t>(stride) } + cnt);
 
-    std::memcpy(buffer_b, buffer_a, sizeof(Value) * cnt);
+    std::memcpy(bb, ba, sizeof(Value) * cnt);
 
     for (auto seq_cntr : seq_cntrs) {
-        SeqCntrUtils_Insert<PODValue>(seq_cntr, idx, buffer_a, buffer_a + cnt);
+        SeqCntrUtils_Insert(seq_cntr, idx, cnt, ba, stride);
 
-        ZETA_DebugAssert(std::memcmp(buffer_a, buffer_b, sizeof(Value) * cnt) ==
-                         0);
+        ZETA_DebugAssert(std::memcmp(ba, bb, sizeof(Value) * cnt) == 0);
     }
 }
 
@@ -544,26 +543,34 @@ void SeqCntrUtils_SyncRandomErase(const std::vector<Zeta_SeqCntr*>& seq_cntrs,
 template <typename Value>
 void SeqCntrUtils_SyncRandomInit(const std::vector<Zeta_SeqCntr*>& seq_cntrs,
                                  size_t size) {
-    Value* buffer_a{ SeqCntrUtils_GetBuffer_A<Value>(size) };
-    Value* buffer_b{ SeqCntrUtils_GetBuffer_A<Value>(size) };
+    size_t stride{ SeqCntrUtils_GetRandomStride<Value>() };
 
-    GetRandoms<Value>(buffer_a, buffer_a + size);
+    void* ba{ buffer_a.GetBuffer<Value>(stride * size) };
+    void* bb{ buffer_a.GetBuffer<Value>(stride * size) };
 
-    std::memcpy(buffer_b, buffer_a, sizeof(Value) * size);
+    GetRandoms<Value>(
+        PtrIter<Value>{ ba, static_cast<ptrdiff_t>(stride) },
+        PtrIter<Value>{ ba, static_cast<ptrdiff_t>(stride) } + size);
+
+    std::memcpy(bb, ba, sizeof(Value) * size);
 
     for (auto seq_cntr : seq_cntrs) {
         SeqCntrUtils_Erase(seq_cntr, 0, ZETA_SeqCntr_GetSize(seq_cntr));
 
-        SeqCntrUtils_PushR(seq_cntr, buffer_a, buffer_a + size);
+        SeqCntrUtils_PushR(seq_cntr, size, ba, stride);
 
-        ZETA_DebugAssert(
-            std::memcmp(buffer_a, buffer_b, sizeof(Value) * size) == 0);
+        ZETA_DebugAssert(std::memcmp(ba, bb, sizeof(Value) * size) == 0);
     }
 }
 
 template <typename Value>
 void SeqCntrUtils_SyncCompare2_(Zeta_SeqCntr* seq_cntr_a,
                                 Zeta_SeqCntr* seq_cntr_b) {
+    size_t width_a{ ZETA_SeqCntr_GetWidth(seq_cntr_a) };
+    size_t width_b{ ZETA_SeqCntr_GetWidth(seq_cntr_b) };
+
+    ZETA_DebugAssert(width_a == width_b);
+
     size_t size_a{ ZETA_SeqCntr_GetSize(seq_cntr_a) };
     size_t size_b{ ZETA_SeqCntr_GetSize(seq_cntr_b) };
 
@@ -572,8 +579,8 @@ void SeqCntrUtils_SyncCompare2_(Zeta_SeqCntr* seq_cntr_a,
     void* cursor_a = ZETA_SeqCntr_AllocaCursor(seq_cntr_a);
     void* cursor_b = ZETA_SeqCntr_AllocaCursor(seq_cntr_b);
 
-    Value* buffer_a{ SeqCntrUtils_GetBuffer_A<Value>(1) };
-    Value* buffer_b{ SeqCntrUtils_GetBuffer_B<Value>(1) };
+    Value* ba{ buffer_a.GetBuffer<Value>(sizeof(Value)) };
+    Value* bb{ buffer_b.GetBuffer<Value>(sizeof(Value)) };
 
     // ---
 
@@ -585,11 +592,11 @@ void SeqCntrUtils_SyncCompare2_(Zeta_SeqCntr* seq_cntr_a,
 
         ZETA_DebugAssert(ZETA_SeqCntr_Cursor_GetIdx(seq_cntr_b, cursor_b) == i);
 
-        ZETA_SeqCntr_Read(seq_cntr_a, cursor_a, 1, buffer_a, cursor_a);
+        ZETA_SeqCntr_Read(seq_cntr_a, cursor_a, 1, ba, width_a, cursor_a);
 
-        ZETA_SeqCntr_Read(seq_cntr_b, cursor_b, 1, buffer_b, cursor_b);
+        ZETA_SeqCntr_Read(seq_cntr_b, cursor_b, 1, bb, width_b, cursor_b);
 
-        ZETA_DebugAssert(std::memcmp(buffer_a, buffer_b, sizeof(Value)) == 0);
+        ZETA_DebugAssert(std::memcmp(ba, bb, sizeof(Value)) == 0);
     }
 
     ZETA_DebugAssert(ZETA_SeqCntr_Cursor_GetIdx(seq_cntr_a, cursor_a) ==
@@ -608,11 +615,11 @@ void SeqCntrUtils_SyncCompare2_(Zeta_SeqCntr* seq_cntr_a,
 
         ZETA_DebugAssert(ZETA_SeqCntr_Cursor_GetIdx(seq_cntr_b, cursor_b) == i);
 
-        ZETA_SeqCntr_Read(seq_cntr_a, cursor_a, 1, buffer_a, NULL);
+        ZETA_SeqCntr_Read(seq_cntr_a, cursor_a, 1, ba, width_a, NULL);
 
-        ZETA_SeqCntr_Read(seq_cntr_b, cursor_b, 1, buffer_b, NULL);
+        ZETA_SeqCntr_Read(seq_cntr_b, cursor_b, 1, bb, width_b, NULL);
 
-        ZETA_DebugAssert(std::memcmp(buffer_a, buffer_b, sizeof(Value)) == 0);
+        ZETA_DebugAssert(std::memcmp(ba, bb, sizeof(Value)) == 0);
 
         ZETA_SeqCntr_Cursor_StepL(seq_cntr_a, cursor_a);
 

@@ -10,6 +10,7 @@ ZETA_DeclareStruct(Zeta_CircularArray_Cursor);
 struct Zeta_CircularArray {
     void* data;
     size_t width;
+    size_t stride;
     size_t offset;
     size_t size;
     size_t capacity;
@@ -32,6 +33,8 @@ void Zeta_CircularArray_Deinit(void* ca);
  * @copydoc Zeta_SeqCntr::GetWidth
  */
 size_t Zeta_CircularArray_GetWidth(void const* ca);
+
+size_t Zeta_CircularArray_GetStride(void const* ca);
 
 /**
  * @copydoc Zeta_SeqCntr::GetOffset
@@ -83,13 +86,14 @@ void* Zeta_CircularArray_Refer(void* ca, void const* pos_cursor);
  * @copydoc Zeta_SeqCntr::Read
  */
 void Zeta_CircularArray_Read(void const* ca, void const* pos_cursor, size_t cnt,
-                             void* dst, void* dst_cursor);
+                             void* dst, size_t dst_stride, void* dst_cursor);
 
 /**
  * @copydoc Zeta_SeqCntr::Write
  */
 void Zeta_CircularArray_Write(void* ca, void* pos_cursor, size_t cnt,
-                              void const* src, void* dst_cursor);
+                              void const* src, size_t src_stride,
+                              void* dst_cursor);
 
 /**
  * @copydoc Zeta_SeqCntr::PushL

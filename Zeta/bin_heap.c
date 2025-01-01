@@ -3,10 +3,10 @@
 #include "debugger.h"
 #include "utils.h"
 
-static void DownAdjust_(void* data, size_t width, size_t stride, size_t idx,
-                        size_t size, void* src_elem, void* cmp_context,
-                        int (*Compare)(void* cmp_context, void const* x,
-                                       void const* y)) {
+static void* DownAdjust_(void* data, size_t width, size_t stride, size_t idx,
+                         size_t size, void* src_elem, void* cmp_context,
+                         int (*Compare)(void* cmp_context, void const* x,
+                                        void const* y)) {
     ZETA_DebugAssert(data != NULL);
 
     ZETA_DebugAssert(0 < width);
@@ -14,17 +14,23 @@ static void DownAdjust_(void* data, size_t width, size_t stride, size_t idx,
 
     ZETA_DebugAssert(idx < size);
 
+    ZETA_DebugAssert(Compare != NULL);
+
     if (size == 1) {
         if (src_elem != NULL) { Zeta_MemCopy(data, src_elem, width); }
-        return;
+
+        return data;
     }
 
     for (size_t n_i = idx;;) {
+        void* n_ref = data + stride * n_i;
+
         size_t l_i = n_i * 2 + 1;
 
-        if (size <= l_i) { break; }
-
-        void* n_ref = data + stride * n_i;
+        if (size <= l_i) {
+            if (src_elem != NULL) { Zeta_MemCopy(n_ref, src_elem, width); }
+            return n_ref;
+        }
 
         void* l_ref = data + stride * l_i;
 
@@ -41,7 +47,7 @@ static void DownAdjust_(void* data, size_t width, size_t stride, size_t idx,
         }
 
         if (src_elem == NULL) {
-            if (min == n_ref) { break; }
+            if (min == n_ref) { return n_ref; }
 
             src_elem = __builtin_alloca_with_align(
                 width, __CHAR_BIT__ * alignof(max_align_t));
@@ -51,7 +57,7 @@ static void DownAdjust_(void* data, size_t width, size_t stride, size_t idx,
 
         Zeta_MemCopy(n_ref, min, width);
 
-        if (min == src_elem) { break; }
+        if (min == src_elem) { return n_ref; }
 
         n_i = min == l_ref ? l_i : r_i;
     }
@@ -66,15 +72,19 @@ void Zeta_BinHeap_Construct(void* data, size_t width, size_t stride,
     ZETA_DebugAssert(0 < width);
     ZETA_DebugAssert(width <= stride);
 
-    for (size_t i = size; 0 <= --i;) {
+    ZETA_DebugAssert(0 < stride);
+
+    ZETA_DebugAssert(Compare != NULL);
+
+    for (size_t i = size; 0 < i--;) {
         DownAdjust_(data, width, stride, i, size, NULL, cmp_context, Compare);
     }
 }
 
-void Zeta_BinHeap_Push(void* data, size_t width, size_t stride, size_t size,
-                       void const* src_elem, void* cmp_context,
-                       int (*Compare)(void* cmp_context, void const* x,
-                                      void const* y)) {
+void* Zeta_BinHeap_Push(void* data, size_t width, size_t stride, size_t size,
+                        void const* src_elem, void* cmp_context,
+                        int (*Compare)(void* cmp_context, void const* x,
+                                       void const* y)) {
     ZETA_DebugAssert(data != NULL);
 
     ZETA_DebugAssert(0 < width);
@@ -82,14 +92,12 @@ void Zeta_BinHeap_Push(void* data, size_t width, size_t stride, size_t size,
 
     ZETA_DebugAssert(0 < stride);
 
-    if (size == 1) {
-        if (src_elem != NULL) { Zeta_MemCopy(data, src_elem, width); }
-        return;
-    }
+    ZETA_DebugAssert(Compare != NULL);
 
-    for (size_t n_i = size - 1;;) {
+    for (size_t n_i = size;;) {
         if (n_i == 0) {
             if (src_elem != NULL) { Zeta_MemCopy(data, src_elem, width); }
+            return data;
         }
 
         size_t p_i = (n_i - 1) / 2;
@@ -102,16 +110,14 @@ void Zeta_BinHeap_Push(void* data, size_t width, size_t stride, size_t size,
 
         if (Compare(cmp_context, p_ref, cur) <= 0) {
             Zeta_MemCopy(n_ref, cur, width);
-            break;
+            return n_ref;
         }
 
         if (src_elem == NULL) {
-            void* src_elem_ = __builtin_alloca_with_align(
+            src_elem = __builtin_alloca_with_align(
                 width, __CHAR_BIT__ * alignof(max_align_t));
 
-            src_elem = src_elem_;
-
-            Zeta_MemCopy(src_elem_, n_ref, width);
+            Zeta_MemCopy((void*)src_elem, n_ref, width);
         }
 
         Zeta_MemCopy(n_ref, p_ref, width);
@@ -129,43 +135,24 @@ void Zeta_BinHeap_Pop(void* data, size_t width, size_t stride, size_t size,
     ZETA_DebugAssert(0 < width);
     ZETA_DebugAssert(width <= stride);
 
-    if (size <= 1) { return; }
+    ZETA_DebugAssert(Compare != NULL);
 
-    if (dst_elem != NULL) { Zeta_MemCopy(dst_elem, data, width); }
+    if (size <= 1) {
+        if (size == 1 && dst_elem != NULL) {
+            Zeta_MemCopy(dst_elem, data, width);
+        }
 
-    void* last_ref = data + stride * (size - 1);
-
-    size_t n_i = 0;
-
-    for (;;) {
-        size_t l_i = n_i * 2 + 1;
-
-        if (size <= l_i) { break; }
-
-        void* l_ref = data + stride * l_i;
-
-        size_t r_i = n_i * 2 + 2;
-
-        void* r_ref = data + stride * r_i;
-
-        void* min = r_i < size && Compare(cmp_context, r_ref, l_ref) <= 0
-                        ? r_ref
-                        : l_ref;
-
-        if (Compare(cmp_context, last_ref, min) <= 0) { break; }
-
-        Zeta_MemSwap(data + stride * n_i, min, width);
-
-        n_i = min == l_ref ? l_i : r_i;
+        return;
     }
 
-    Zeta_MemSwap(data + stride * n_i, last_ref, width);
+    DownAdjust_(data, width, stride, 0, size - 1, data + stride * (size - 1),
+                cmp_context, Compare);
 }
 
-void Zeta_BinHeap_Adjust(void* data, size_t width, size_t stride, size_t idx,
-                         size_t size, void* cmp_context,
-                         int (*Compare)(void* cmp_context, void const* x,
-                                        void const* y)) {
+void* Zeta_BinHeap_Adjust(void* data, size_t width, size_t stride, size_t idx,
+                          size_t size, void* cmp_context,
+                          int (*Compare)(void* cmp_context, void const* x,
+                                         void const* y)) {
     ZETA_DebugAssert(data != NULL);
 
     ZETA_DebugAssert(0 < width);
@@ -173,9 +160,15 @@ void Zeta_BinHeap_Adjust(void* data, size_t width, size_t stride, size_t idx,
 
     ZETA_DebugAssert(idx < size);
 
-    if (size == 1) { return; }
+    ZETA_DebugAssert(Compare != NULL);
 
-    DownAdjust_(data, width, stride, idx, size, NULL, cmp_context, Compare);
+    if (size == 1) { return data; }
 
-    Zeta_BinHeap_Push(data, width, stride, idx + 1, NULL, cmp_context, Compare);
+    void* p =
+        DownAdjust_(data, width, stride, idx, size, NULL, cmp_context, Compare);
+
+    return p == data + stride * idx
+               ? Zeta_BinHeap_Push(data, width, stride, idx + 1, NULL,
+                                   cmp_context, Compare)
+               : p;
 }

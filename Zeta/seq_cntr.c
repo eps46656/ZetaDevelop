@@ -135,9 +135,9 @@ void Zeta_SeqCntr_RangeAssign(Zeta_SeqCntr* dst_seq_cntr,
             size_t cur_cnt = ZETA_GetMinOf(buffer_capacity, cnt);
             cnt -= cur_cnt;
 
-            ZETA_SeqCntr_Read(src_seq_cntr, src_cursor, cur_cnt, buffer,
+            ZETA_SeqCntr_Read(src_seq_cntr, src_cursor, cur_cnt, buffer, width,
                               src_cursor);
-            ZETA_SeqCntr_Write(dst_seq_cntr, dst_cursor, cur_cnt, buffer,
+            ZETA_SeqCntr_Write(dst_seq_cntr, dst_cursor, cur_cnt, buffer, width,
                                dst_cursor);
         }
 
@@ -154,8 +154,10 @@ void Zeta_SeqCntr_RangeAssign(Zeta_SeqCntr* dst_seq_cntr,
         ZETA_SeqCntr_Cursor_AdvanceL(dst_seq_cntr, dst_cursor, cur_cnt);
         ZETA_SeqCntr_Cursor_AdvanceL(src_seq_cntr, src_cursor, cur_cnt);
 
-        ZETA_SeqCntr_Read(src_seq_cntr, src_cursor, cur_cnt, buffer, NULL);
-        ZETA_SeqCntr_Write(dst_seq_cntr, dst_cursor, cur_cnt, buffer, NULL);
+        ZETA_SeqCntr_Read(src_seq_cntr, src_cursor, cur_cnt, buffer, width,
+                          NULL);
+        ZETA_SeqCntr_Write(dst_seq_cntr, dst_cursor, cur_cnt, buffer, width,
+                           NULL);
     }
 }
 

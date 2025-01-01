@@ -1,3 +1,5 @@
+#pragma once
+
 #include <sanitizer/common_interface_defs.h>
 #include <stdio.h>
 

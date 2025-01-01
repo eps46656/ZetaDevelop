@@ -1,3 +1,5 @@
+#pragma once
+
 #include "allocator.h"
 
 ZETA_ExternC_Beg;

@@ -1,3 +1,5 @@
+#pragma once
+
 #include "define.h"
 
 ZETA_ExternC_Beg;

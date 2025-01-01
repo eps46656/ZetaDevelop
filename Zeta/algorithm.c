@@ -71,9 +71,9 @@ static void* Partition_(void* data, size_t width, size_t stride, size_t size,
     return j;
 }
 
-static void* SimplePartition_(void* data, size_t width, size_t stride,
-                              size_t size, void* cmp_context,
-                              Zeta_Compare Compare) {
+static void* NaivePartition_(void* data, size_t width, size_t stride,
+                             size_t size, void* cmp_context,
+                             Zeta_Compare Compare) {
     void* a = data + stride * (size * 1 / 4);
     void* b = data + stride * (size * 2 / 4);
     void* c = data + stride * (size * 3 / 4);
@@ -93,13 +93,12 @@ static void* SimplePartition_(void* data, size_t width, size_t stride,
     return Partition_(data, width, stride, size, cmp_context, Compare);
 }
 
-static void PrettyKthElement_(void* data, size_t width, size_t stride,
-                              size_t mid, size_t size, void* cmp_context,
-                              Zeta_Compare Compare);
+static void KthElement_(void* data, size_t width, size_t stride, size_t mid,
+                        size_t size, void* cmp_context, Zeta_Compare Compare,
+                        size_t quata);
 
-static void* PrettyPartition_(void* data, size_t width, size_t stride,
-                              size_t size, void* cmp_context,
-                              Zeta_Compare Compare) {
+static void* MoMPartition_(void* data, size_t width, size_t stride, size_t size,
+                           void* cmp_context, Zeta_Compare Compare) {
     if (size <= InsertionThreshold) {
         InsertionSort_(data, width, stride, size, cmp_context, Compare);
         return data + stride * (size / 2);
@@ -116,32 +115,39 @@ static void* PrettyPartition_(void* data, size_t width, size_t stride,
 
     void* mid = data + stride * group_cnt * (GROUP_SIZE / 2);
 
-    PrettyKthElement_(mid, width, stride, group_cnt / 2, group_cnt, cmp_context,
-                      Compare);
+    KthElement_(mid, width, stride, group_cnt / 2, group_cnt, cmp_context,
+                Compare, 0);
 
     Zeta_MemSwap(data, mid + stride * (group_cnt / 2), width);
 
     return Partition_(data, width, stride, size, cmp_context, Compare);
 }
 
-static void PrettyKthElement_(void* data, size_t width, size_t stride,
-                              size_t mid, size_t size, void* cmp_context,
-                              Zeta_Compare Compare) {
+static void KthElement_(void* data, size_t width, size_t stride, size_t mid,
+                        size_t size, void* cmp_context, Zeta_Compare Compare,
+                        size_t quata) {
     for (;;) {
         if (size <= InsertionThreshold) {
             InsertionSort_(data, width, stride, size, cmp_context, Compare);
             return;
         }
 
-        void* pivot =
-            PrettyPartition_(data, width, stride, size, cmp_context, Compare);
+        void* pivot;
+
+        if (0 < quata) {
+            pivot = NaivePartition_(data, width, stride, size, cmp_context,
+                                    Compare);
+            quata -= size;
+        } else {
+            pivot =
+                MoMPartition_(data, width, stride, size, cmp_context, Compare);
+        }
 
         size_t pivot_idx = (pivot - data) / stride;
 
         if (pivot_idx < mid) {
             data = pivot + stride;
             mid -= pivot_idx + 1;
-            size -= pivot_idx + 1;
             continue;
         }
 
@@ -154,41 +160,62 @@ static void PrettyKthElement_(void* data, size_t width, size_t stride,
     }
 }
 
-static void KthElement_(void* data, size_t width, size_t stride, size_t mid,
-                        size_t size, void* cmp_context, Zeta_Compare Compare) {
-    size_t chance = size * 4;
+void* Zeta_NicePartition(void* data, size_t width, size_t stride, size_t size,
+                         void* cmp_context, Zeta_Compare Compare) {
+    ZETA_DebugAssert(data != NULL);
+    ZETA_DebugAssert(0 < width);
+    ZETA_DebugAssert(width <= stride);
+
+    ZETA_DebugAssert(Compare != NULL);
+
+    if (size <= 1) { return data; }
+
+    size_t quata = size * 4;
+
+    size_t lb = 0;
+    size_t rb = size;
 
     for (;;) {
-        if (size <= InsertionThreshold) {
-            InsertionSort_(data, width, stride, size, cmp_context, Compare);
-            return;
+        size_t cur_size = rb - lb;
+
+        if (cur_size <= InsertionThreshold) {
+            InsertionSort_(data + stride * lb, width, stride, cur_size,
+                           cmp_context, Compare);
+
+            size_t mid = size / 2;
+
+            if (mid < lb) { return data + stride * lb; }
+
+            if (rb <= mid) { return data + stride * (rb - 1); }
+
+            return data + stride * mid;
         }
 
         void* pivot;
 
-        if (0 < chance) {
-            pivot = SimplePartition_(data, width, stride, size, cmp_context,
-                                     Compare);
-            chance -= size;
+        if (0 < quata) {
+            pivot = NaivePartition_(data + stride * lb, width, stride, cur_size,
+                                    cmp_context, Compare);
+            quata -= cur_size;
         } else {
-            pivot = PrettyPartition_(data, width, stride, size, cmp_context,
-                                     Compare);
+            pivot = MoMPartition_(data + stride * lb, width, stride, cur_size,
+                                  cmp_context, Compare);
         }
 
         size_t pivot_idx = (pivot - data) / stride;
 
-        if (pivot_idx < mid) {
-            data = pivot + stride;
-            mid -= pivot_idx + 1;
-            continue;
+        size_t l_size = pivot_idx;
+        size_t r_size = size - l_size - 1;
+
+        if (l_size <= r_size * 4 && r_size <= l_size * 4) {
+            return data + stride * pivot_idx;
         }
 
-        if (mid < pivot_idx) {
-            size = pivot_idx;
-            continue;
+        if (l_size < r_size) {
+            rb = pivot_idx;
+        } else {
+            lb = pivot_idx + 1;
         }
-
-        return;
     }
 }
 
@@ -203,7 +230,8 @@ void Zeta_KthElement(void* data, size_t width, size_t stride, size_t mid,
     ZETA_DebugAssert(Compare != NULL);
 
     if (mid != size) {
-        KthElement_(data, width, stride, mid, size, cmp_context, Compare);
+        KthElement_(data, width, stride, mid, size, cmp_context, Compare,
+                    size * 4);
     }
 }
 
@@ -218,12 +246,12 @@ static void Sort_(size_t credit, void* data, size_t width, size_t stride,
         void* pivot;
 
         if (0 < credit) {
-            pivot = SimplePartition_(data, width, stride, size, cmp_context,
-                                     Compare);
+            pivot = NaivePartition_(data, width, stride, size, cmp_context,
+                                    Compare);
             credit = credit / 2;
         } else {
-            pivot = PrettyPartition_(data, width, stride, size, cmp_context,
-                                     Compare);
+            pivot =
+                MoMPartition_(data, width, stride, size, cmp_context, Compare);
         }
 
         void* r_data = pivot + stride;
@@ -270,9 +298,13 @@ static void Merge_(void* src_a, void* src_b, void* dst, size_t width,
         dst += stride;
     }
 
-    if (0 < size_a) { Zeta_ElemMove(dst, src_a, width, stride, size_a); }
+    if (0 < size_a) {
+        Zeta_ElemMove(dst, src_a, width, stride, stride, size_a);
+    }
 
-    if (0 < size_b) { Zeta_ElemMove(dst, src_b, width, stride, size_b); }
+    if (0 < size_b) {
+        Zeta_ElemMove(dst, src_b, width, stride, stride, size_b);
+    }
 }
 
 static void MergeSortTo_(void* src, void* dst, size_t width, size_t stride,

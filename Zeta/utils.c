@@ -10,8 +10,6 @@ void Zeta_MemCopy(void* dst, void const* src, size_t size) {
     ZETA_DebugAssert(dst != NULL);
     ZETA_DebugAssert(src != NULL);
 
-    ZETA_DebugAssert(!ZETA_AreOverlapped(dst, dst + size, src, src + size));
-
     __builtin_memcpy(dst, src, size);
 }
 
@@ -36,44 +34,33 @@ void Zeta_MemSwap(void* x_, void* y_, size_t size) {
     for (size_t i = 0; i < size; ++i) { ZETA_Swap(x[i], y[i]); }
 }
 
-void* Zeta_MemRotate(void* beg_, void* mid_, void* end_) {
-    unsigned char* beg = beg_;
-    unsigned char* mid = mid_;
-    unsigned char* end = end_;
+void* Zeta_MemRotate(void* data, size_t l_size, size_t r_size) {
+    if (l_size == 0 && r_size == 0) { return data; }
 
-    ZETA_DebugAssert(beg != NULL);
-    ZETA_DebugAssert(mid != NULL);
-    ZETA_DebugAssert(end != NULL);
+    ZETA_DebugAssert(data != NULL);
 
-    ZETA_DebugAssert(beg <= mid);
-    ZETA_DebugAssert(mid <= end);
+    void* ret = data + r_size;
 
-    if (beg == mid) { return end; }
-    if (mid == end) { return beg; }
+    void* end = data + l_size + r_size;
 
-    ptrdiff_t a = mid - beg;
-    ptrdiff_t b = end - mid;
+    while (0 < l_size && 0 < r_size) {
+        unsigned char* iter = data;
+        unsigned char* jter = data + l_size;
 
-    unsigned char* ret = beg + b;
+        for (; jter != end; ++iter, ++jter) { ZETA_Swap(*iter, *jter); }
 
-    while (0 < a && 0 < b) {
-        ptrdiff_t r = b % a;
-
-        a -= r;
-        b = r;
-
-        for (; mid != end; ++beg, ++mid) { ZETA_Swap(*beg, *mid); }
-
-        mid -= r;
+        r_size %= l_size;
+        l_size -= r_size;
     }
 
     return ret;
 }
 
 void Zeta_MemReverse(void* data, size_t stride, size_t size) {
-    ZETA_DebugAssert(data != NULL);
-
-    if (stride == 0 || size <= 1) { return; }
+    if (stride == 0 || size <= 1) {
+        if (size == 1) { ZETA_DebugAssert(data != NULL); }
+        return;
+    }
 
     void* i = data;
     void* j = data + stride * (size - 1);
@@ -98,62 +85,148 @@ unsigned long long Zeta_MemHash(void const* data_, size_t size) {
     return ret;
 }
 
-void Zeta_ElemCopy(void* dst, void const* src, size_t width, size_t stride,
-                   size_t size) {
+void Zeta_ElemCopy(void* dst, void const* src, size_t width, size_t dst_stride,
+                   size_t src_stride, size_t size) {
     ZETA_DebugAssert(0 < width);
-    ZETA_DebugAssert(width <= stride);
+    ZETA_DebugAssert(width <= dst_stride);
+    ZETA_DebugAssert(width <= src_stride);
 
     if (size == 0 || dst == src) { return; }
 
-    size_t length = stride * (size - 1) + width;
-
-    if (stride - width == 0) {
-        Zeta_MemCopy(dst, src, length);
+    if (width == dst_stride && width == src_stride) {
+        Zeta_MemCopy(dst, src, width * size);
         return;
     }
 
     ZETA_DebugAssert(dst != NULL);
     ZETA_DebugAssert(src != NULL);
 
-    ZETA_DebugAssert(!ZETA_AreOverlapped(dst, dst + length, src, src + length));
-
-    for (size_t i = 0; i < size; ++i, dst += stride, src += stride) {
+    for (size_t i = 0; i < size; ++i, dst += dst_stride, src += src_stride) {
         Zeta_MemCopy(dst, src, width);
     }
 }
 
-void Zeta_ElemMove(void* dst, void const* src, size_t width, size_t stride,
-                   size_t size) {
+void Zeta_ElemMove(void* dst, void const* src, size_t width, size_t dst_stride,
+                   size_t src_stride, size_t size) {
     ZETA_DebugAssert(0 < width);
-    ZETA_DebugAssert(width <= stride);
+    ZETA_DebugAssert(0 < dst_stride);
+    ZETA_DebugAssert(0 < src_stride);
 
-    if (size == 0 || dst == src) { return; }
+    if (size == 0) { return; }
 
-    size_t length = stride * (size - 1) + width;
+    width = ZETA_GetMinOf(width, ZETA_GetMinOf(dst_stride, src_stride));
 
-    if (stride - width == 0) {
-        Zeta_MemMove(dst, src, length);
+    if (width == dst_stride && width == src_stride) {
+        Zeta_MemMove(dst, src, width * size);
         return;
     }
 
     ZETA_DebugAssert(dst != NULL);
     ZETA_DebugAssert(src != NULL);
 
-    size_t del;
+    void* dst_end = dst + dst_stride * (size - 1) + width;
+    void const* src_end = src + src_stride * (size - 1) + width;
 
-    if (ZETA_AreOverlapped(dst, dst + length, src, src + length) && src < dst) {
-        dst += stride * size;
-        src += stride * size;
-        del = -stride;
-    } else {
-        dst -= stride;
-        src -= stride;
-        del = stride;
+    if (dst_end <= src || src_end <= dst) {
+        Zeta_ElemCopy(dst, src, width, dst_stride, src_stride, size);
+        return;
     }
 
-    for (size_t i = 0; i < size; ++i) {
-        Zeta_MemMove(dst += del, src += del, width);
+    if (dst_stride == src_stride) {
+        if (dst <= src) {
+            for (; 0 < size--; dst += dst_stride, src += src_stride) {
+                Zeta_MemCopy(dst, src, width);
+            }
+        } else {
+            dst += dst_stride * size;
+            src += src_stride * size;
+
+            while (0 < size--) {
+                Zeta_MemCopy(dst -= dst_stride, src -= src_stride, width);
+            }
+        }
+
+        return;
     }
+
+    size_t buffer_capacity = ZETA_FloorLog2(size) + 4;
+
+    size_t* begs = __builtin_alloca_with_align(
+        sizeof(size_t) * buffer_capacity, __CHAR_BIT__ * alignof(max_align_t));
+
+    size_t* cnts = __builtin_alloca_with_align(
+        sizeof(size_t) * buffer_capacity, __CHAR_BIT__ * alignof(max_align_t));
+
+    size_t buffer_i = 0;
+
+    begs[buffer_i] = 0;
+    cnts[buffer_i] = size;
+    ++buffer_i;
+
+    while (0 < buffer_i--) {
+        size_t cur_beg = begs[buffer_i];
+        size_t cur_cnt = cnts[buffer_i];
+
+        if (cur_cnt == 1) {
+            Zeta_MemMove(dst + dst_stride * cur_beg, src + src_stride * cur_beg,
+                         width);
+
+            continue;
+        }
+
+        size_t cur_l_cnt = cur_cnt / 2;
+        size_t cur_r_cnt = cur_cnt - cur_l_cnt;
+
+        void* dst_mid = dst + dst_stride * cur_l_cnt;
+        void const* src_mid = src + src_stride * cur_l_cnt;
+
+        if (dst_mid <= src_mid) {
+            begs[buffer_i] = cur_beg + cur_l_cnt;
+            cnts[buffer_i] = cur_r_cnt;
+            ++buffer_i;
+
+            begs[buffer_i] = cur_beg;
+            cnts[buffer_i] = cur_l_cnt;
+            ++buffer_i;
+        } else {
+            begs[buffer_i] = cur_beg;
+            cnts[buffer_i] = cur_l_cnt;
+            ++buffer_i;
+
+            begs[buffer_i] = cur_beg + cur_l_cnt;
+            cnts[buffer_i] = cur_r_cnt;
+            ++buffer_i;
+        }
+    }
+}
+
+void* Zeta_ElemRotate(void* data, size_t width, size_t stride, size_t l_size,
+                      size_t r_size) {
+    if (width == stride) {
+        return Zeta_MemRotate(data, stride * l_size, stride * r_size);
+    }
+
+    if (l_size == 0 && r_size == 0) { return data; }
+
+    ZETA_DebugAssert(data != NULL);
+
+    void* ret = data + r_size;
+
+    void* end = data + l_size + r_size;
+
+    while (0 < l_size && 0 < r_size) {
+        void* iter = data;
+        void* jter = data + l_size;
+
+        for (; jter != end; iter += stride, jter += stride) {
+            Zeta_MemSwap(iter, jter, width);
+        }
+
+        r_size %= l_size;
+        l_size -= r_size;
+    }
+
+    return ret;
 }
 
 unsigned long long Zeta_ReadLittleEndianULL(byte_t const* src,
@@ -163,7 +236,7 @@ unsigned long long Zeta_ReadLittleEndianULL(byte_t const* src,
 
     unsigned long long ret = 0;
 
-    for (unsigned i = length; 0 < i--;) { ret = ret * 256 + src[i]; }
+    for (unsigned i = length; 0 < i--;) { ret = (ret << 8) + src[i]; }
 
     return ret;
 }
@@ -174,7 +247,7 @@ u128_t Zeta_ReadLittleEndian(byte_t const* src, unsigned length) {
 
     u128_t ret = 0;
 
-    for (unsigned i = length; 0 < i--;) { ret = ret * 256 + src[i]; }
+    for (unsigned i = length; 0 < i--;) { ret = (ret << 8) + src[i]; }
 
     return ret;
 }
@@ -185,8 +258,8 @@ unsigned long long Zeta_WriteLittleEndianULL(byte_t* dst,
     ZETA_DebugAssert(dst != NULL);
 
     for (unsigned i = 0; i < length; ++i) {
-        dst[i] = val % 256;
-        val /= 256;
+        dst[i] = val % (1 << 8);
+        val >>= 8;
     }
 
     return val;
@@ -196,8 +269,8 @@ u128_t Zeta_WriteLittleEndian(byte_t* dst, u128_t val, unsigned length) {
     ZETA_DebugAssert(dst != NULL);
 
     for (unsigned i = 0; i < length; ++i) {
-        dst[i] = val % 256;
-        val /= 256;
+        dst[i] = val % (1 << 8);
+        val >>= 8;
     }
 
     return val;
@@ -209,7 +282,7 @@ unsigned long long Zeta_ReadBigEndianULL(byte_t const* src, unsigned length) {
 
     unsigned long long ret = 0;
 
-    for (unsigned i = 0; i < length; ++i) { ret = ret * 256 + src[i]; }
+    for (unsigned i = 0; i < length; ++i) { ret = (ret << 8) >> +src[i]; }
 
     return ret;
 }
@@ -220,7 +293,7 @@ u128_t Zeta_ReadBigEndian(byte_t const* src, unsigned length) {
 
     u128_t ret = 0;
 
-    for (unsigned i = 0; i < length; ++i) { ret = ret * 256 + src[i]; }
+    for (unsigned i = 0; i < length; ++i) { ret = (ret << 8) + src[i]; }
 
     return ret;
 }
@@ -230,8 +303,8 @@ unsigned long long Zeta_WriteBigEndianULL(byte_t* dst, unsigned long long val,
     ZETA_DebugAssert(dst != NULL);
 
     for (unsigned i = length; 0 < i--;) {
-        dst[i] = val % 256;
-        val /= 256;
+        dst[i] = val % (1 << 8);
+        val >>= 8;
     }
 
     return val;
@@ -241,8 +314,8 @@ u128_t Zeta_WriteBigEndian(byte_t* dst, u128_t val, unsigned length) {
     ZETA_DebugAssert(dst != NULL);
 
     for (unsigned i = length; 0 < i--;) {
-        dst[i] = val % 256;
-        val /= 256;
+        dst[i] = val % (1 << 8);
+        val >>= 8;
     }
 
     return val;

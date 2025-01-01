@@ -22,8 +22,8 @@
 
 #endif
 
-#define Refer_(data, width, offset, idx, capacity) \
-    ((data) + (width) * (((offset) + (idx)) % (capacity)))
+#define Refer_(data, stride, offset, idx, capacity) \
+    ((data) + (stride) * (((offset) + (idx)) % (capacity)))
 
 void Zeta_CircularArray_Init(void* ca_) {
     Zeta_CircularArray* ca = ca_;
@@ -31,6 +31,7 @@ void Zeta_CircularArray_Init(void* ca_) {
 
     ca->data = NULL;
     ca->width = 0;
+    ca->stride = 0;
     ca->offset = 0;
     ca->size = 0;
     ca->capacity = 0;
@@ -43,6 +44,13 @@ size_t Zeta_CircularArray_GetWidth(void const* ca_) {
     CheckCntr_(ca);
 
     return ca->width;
+}
+
+size_t Zeta_CircularArray_GetSride(void const* ca_) {
+    Zeta_CircularArray const* ca = ca_;
+    CheckCntr_(ca);
+
+    return ca->stride;
 }
 
 size_t Zeta_CircularArray_GetOffset(void const* ca_) {
@@ -100,11 +108,12 @@ void* Zeta_CircularArray_PeekL(void* ca_, void* dst_cursor_, void* dst_elem) {
 
     void* data = ca->data;
     size_t width = ca->width;
+    size_t stride = ca->stride;
     size_t offset = ca->offset;
     size_t size = ca->size;
     size_t capacity = ca->capacity;
 
-    void* ref = 0 < size ? Refer_(data, width, offset, 0, capacity) : NULL;
+    void* ref = 0 < size ? Refer_(data, stride, offset, 0, capacity) : NULL;
 
     if (dst_cursor != NULL) {
         dst_cursor->ca = ca;
@@ -125,12 +134,13 @@ void* Zeta_CircularArray_PeekR(void* ca_, void* dst_cursor_, void* dst_elem) {
 
     void* data = ca->data;
     size_t width = ca->width;
+    size_t stride = ca->stride;
     size_t offset = ca->offset;
     size_t size = ca->size;
     size_t capacity = ca->capacity;
 
     void* ref =
-        0 < size ? Refer_(data, width, offset, size - 1, capacity) : NULL;
+        0 < size ? Refer_(data, stride, offset, size - 1, capacity) : NULL;
 
     if (dst_cursor != NULL) {
         dst_cursor->ca = ca;
@@ -152,13 +162,14 @@ void* Zeta_CircularArray_Access(void* ca_, size_t idx, void* dst_cursor_,
 
     void* data = ca->data;
     size_t width = ca->width;
+    size_t stride = ca->stride;
     size_t offset = ca->offset;
     size_t size = ca->size;
     size_t capacity = ca->capacity;
 
     ZETA_DebugAssert(idx + 1 < size + 2);
 
-    void* ref = idx < size ? Refer_(data, width, offset, idx, capacity) : NULL;
+    void* ref = idx < size ? Refer_(data, stride, offset, idx, capacity) : NULL;
 
     if (dst_cursor != NULL) {
         dst_cursor->ca = ca;
@@ -181,7 +192,8 @@ void* Zeta_CircularArray_Refer(void* ca_, void const* pos_cursor_) {
 }
 
 void Zeta_CircularArray_Read(void const* ca_, void const* pos_cursor_,
-                             size_t cnt, void* dst, void* dst_cursor_) {
+                             size_t cnt, void* dst, size_t dst_stride,
+                             void* dst_cursor_) {
     Zeta_CircularArray const* ca = ca_;
     Zeta_CircularArray_Cursor const* pos_cursor = pos_cursor_;
 
@@ -195,6 +207,7 @@ void Zeta_CircularArray_Read(void const* ca_, void const* pos_cursor_,
 
     void* data = ca->data;
     size_t width = ca->width;
+    size_t stride = ca->stride;
     size_t offset = ca->offset;
     size_t size = ca->size;
     size_t capacity = ca->capacity;
@@ -209,23 +222,24 @@ void Zeta_CircularArray_Read(void const* ca_, void const* pos_cursor_,
             ZETA_GetMinOf(cnt, Zeta_CircularArray_GetLongestContSucr(ca, idx));
         cnt -= cur_cnt;
 
-        Zeta_ElemCopy(dst, Refer_(data, width, offset, idx, capacity), width,
-                      width, cur_cnt);
+        Zeta_ElemCopy(dst, Refer_(data, stride, offset, idx, capacity), width,
+                      dst_stride, stride, cur_cnt);
 
         idx += cur_cnt;
-        dst += width * cur_cnt;
+        dst += dst_stride * cur_cnt;
     }
 
     if (dst_cursor != NULL) {
         dst_cursor->ca = ca;
         dst_cursor->idx = idx;
         dst_cursor->ref =
-            idx == size ? NULL : Refer_(data, width, offset, idx, capacity);
+            idx == size ? NULL : Refer_(data, stride, offset, idx, capacity);
     }
 }
 
 void Zeta_CircularArray_Write(void* ca_, void* pos_cursor_, size_t cnt,
-                              void const* src, void* dst_cursor_) {
+                              void const* src, size_t src_stride,
+                              void* dst_cursor_) {
     Zeta_CircularArray* ca = ca_;
     Zeta_CircularArray_Cursor* pos_cursor = pos_cursor_;
 
@@ -247,6 +261,7 @@ void Zeta_CircularArray_Write(void* ca_, void* pos_cursor_, size_t cnt,
 
     void* data = ca->data;
     size_t width = ca->width;
+    size_t stride = ca->stride;
     size_t offset = ca->offset;
     size_t size = ca->size;
     size_t capacity = ca->capacity;
@@ -261,18 +276,18 @@ void Zeta_CircularArray_Write(void* ca_, void* pos_cursor_, size_t cnt,
             ZETA_GetMinOf(cnt, Zeta_CircularArray_GetLongestContSucr(ca, idx));
         cnt -= cur_cnt;
 
-        Zeta_ElemCopy(Refer_(data, width, offset, idx, capacity), src, width,
-                      width, cur_cnt);
+        Zeta_ElemCopy(Refer_(data, stride, offset, idx, capacity), src, width,
+                      stride, src_stride, cur_cnt);
 
         idx += cur_cnt;
-        src += width * cur_cnt;
+        src += src_stride * cur_cnt;
     }
 
     if (dst_cursor != NULL) {
         dst_cursor->ca = ca;
         dst_cursor->idx = idx;
         dst_cursor->ref =
-            idx == size ? NULL : Refer_(data, width, offset, idx, capacity);
+            idx == size ? NULL : Refer_(data, stride, offset, idx, capacity);
     }
 }
 
@@ -282,15 +297,18 @@ void* Zeta_CircularArray_PushL(void* ca_, size_t cnt, void* dst_cursor_) {
 
     Zeta_CircularArray_Cursor* dst_cursor = dst_cursor_;
 
+    void* data = ca->data;
+    size_t stride = ca->stride;
+    size_t offset = ca->offset;
     size_t size = ca->size;
     size_t capacity = ca->capacity;
 
     ZETA_DebugAssert(cnt <= capacity - size);
 
-    ca->offset = (ca->offset + capacity - cnt) % capacity;
-    ca->size += cnt;
+    ca->offset = offset = (offset + capacity - cnt) % capacity;
+    ca->size = size += cnt;
 
-    void* ref = Refer_(ca->data, ca->width, ca->offset, 0, capacity);
+    void* ref = Refer_(data, stride, offset, 0, capacity);
 
     if (dst_cursor != NULL) {
         dst_cursor->ca = ca;
@@ -307,6 +325,9 @@ void* Zeta_CircularArray_PushR(void* ca_, size_t cnt, void* dst_cursor_) {
 
     Zeta_CircularArray_Cursor* dst_cursor = dst_cursor_;
 
+    void* data = ca->data;
+    size_t stride = ca->stride;
+    size_t offset = ca->offset;
     size_t size = ca->size;
     size_t capacity = ca->capacity;
 
@@ -314,9 +335,8 @@ void* Zeta_CircularArray_PushR(void* ca_, size_t cnt, void* dst_cursor_) {
 
     ca->size = size += cnt;
 
-    void* ref = cnt == 0 ? NULL
-                         : Refer_(ca->data, ca->width, ca->offset, size - cnt,
-                                  capacity);
+    void* ref =
+        cnt == 0 ? NULL : Refer_(data, stride, offset, size - cnt, capacity);
 
     if (dst_cursor != NULL) {
         dst_cursor->ca = ca;
@@ -334,7 +354,7 @@ void* Zeta_CircularArray_Insert(void* ca_, void* pos_cursor_, size_t cnt) {
     CheckCursor_(ca, pos_cursor);
 
     void* data = ca->data;
-    size_t width = ca->width;
+    size_t stride = ca->stride;
     size_t offset = ca->offset;
     size_t size = ca->size;
     size_t capacity = ca->capacity;
@@ -358,7 +378,7 @@ void* Zeta_CircularArray_Insert(void* ca_, void* pos_cursor_, size_t cnt) {
         Zeta_CircularArray_Assign(ca, ca, l_size + cnt, l_size, r_size);
     }
 
-    pos_cursor->ref = Refer_(data, width, offset, idx, capacity);
+    pos_cursor->ref = Refer_(data, stride, offset, idx, capacity);
 
     return pos_cursor->ref;
 }
@@ -395,7 +415,7 @@ void Zeta_CircularArray_Erase(void* ca_, void* pos_cursor_, size_t cnt) {
     CheckCursor_(ca, pos_cursor);
 
     void* data = ca->data;
-    size_t width = ca->width;
+    size_t stride = ca->stride;
     size_t offset = ca->offset;
     size_t size = ca->size;
     size_t capacity = ca->capacity;
@@ -424,7 +444,7 @@ void Zeta_CircularArray_Erase(void* ca_, void* pos_cursor_, size_t cnt) {
     if (size == 0) { ca->offset = offset = 0; }
 
     pos_cursor->ref =
-        idx < size ? Refer_(data, width, offset, idx, capacity) : NULL;
+        idx < size ? Refer_(data, stride, offset, idx, capacity) : NULL;
 }
 
 void Zeta_CircularArray_EraseAll(void* ca_) {
@@ -445,12 +465,14 @@ void Zeta_CircularArray_Assign(void* dst_ca_, void* src_ca_, size_t dst_beg,
 
     void* dst_data = dst_ca->data;
     size_t dst_width = dst_ca->width;
+    size_t dst_stride = dst_ca->stride;
     size_t dst_offset = dst_ca->offset;
     size_t dst_size = dst_ca->size;
     size_t dst_capacity = dst_ca->capacity;
 
     void* src_data = src_ca->data;
     size_t src_width = src_ca->width;
+    size_t src_stride = src_ca->stride;
     size_t src_offset = src_ca->offset;
     size_t src_size = src_ca->size;
     size_t src_capacity = src_ca->capacity;
@@ -459,6 +481,8 @@ void Zeta_CircularArray_Assign(void* dst_ca_, void* src_ca_, size_t dst_beg,
     ZETA_DebugAssert(src_beg <= src_size);
 
     if (cnt == 0) { return; }
+
+    size_t width = ZETA_GetMinOf(dst_width, src_width);
 
     ZETA_DebugAssert(cnt <= dst_size - dst_beg);
     ZETA_DebugAssert(cnt <= src_size - src_beg);
@@ -489,10 +513,10 @@ VEC_FW_MOVE: {
                      Zeta_CircularArray_GetLongestContSucr(src_ca, src_beg)));
         cnt -= cur_cnt;
 
-        Zeta_MemMove(
-            Refer_(dst_data, dst_width, dst_offset, dst_beg, dst_capacity),
-            Refer_(src_data, src_width, src_offset, src_beg, src_capacity),
-            dst_width * cur_cnt);
+        Zeta_ElemMove(
+            Refer_(dst_data, dst_stride, dst_offset, dst_beg, dst_capacity),
+            Refer_(src_data, src_stride, src_offset, src_beg, src_capacity),
+            width, dst_stride, src_stride, cur_cnt);
 
         dst_beg += cur_cnt;
         src_beg += cur_cnt;
@@ -512,10 +536,10 @@ VEC_BW_MOVE: {
         dst_end -= cur_cnt;
         src_end -= cur_cnt;
 
-        Zeta_MemMove(
-            Refer_(dst_data, dst_width, dst_offset, dst_end, dst_capacity),
-            Refer_(src_data, src_width, src_offset, src_end, src_capacity),
-            dst_width * cur_cnt);
+        Zeta_ElemMove(
+            Refer_(dst_data, dst_stride, dst_offset, dst_end, dst_capacity),
+            Refer_(src_data, src_stride, src_offset, src_end, src_capacity),
+            width, dst_stride, src_stride, cur_cnt);
     }
 
     return;
@@ -541,8 +565,7 @@ void Zeta_CircularArray_AssignFromSeqCntr(void* ca_, void* ca_cursor_,
     }
 
     void* data = ca->data;
-
-    size_t width = ca->width;
+    size_t stride = ca->stride;
     size_t offset = ca->offset;
     size_t size = ca->size;
     size_t capacity = ca->capacity;
@@ -560,7 +583,7 @@ void Zeta_CircularArray_AssignFromSeqCntr(void* ca_, void* ca_cursor_,
         cnt -= cur_cnt;
 
         ZETA_SeqCntr_Read(seq_cntr, seq_cntr_cursor, cur_cnt,
-                          Refer_(data, width, offset, idx, capacity),
+                          Refer_(data, stride, offset, idx, capacity), stride,
                           seq_cntr_cursor);
 
         idx += cur_cnt;
@@ -603,11 +626,13 @@ void Zeta_CircularArray_Check(void const* ca_) {
 
     void* data = ca->data;
     size_t width = ca->width;
+    size_t stride = ca->stride;
     size_t offset = ca->offset;
     size_t size = ca->size;
     size_t capacity = ca->capacity;
 
     ZETA_DebugAssert(0 < width);
+    ZETA_DebugAssert(width <= stride);
     ZETA_DebugAssert(offset == 0 || offset < capacity);
     ZETA_DebugAssert(size <= capacity);
     ZETA_DebugAssert(capacity <= ZETA_max_capacity);
@@ -714,14 +739,14 @@ void Zeta_CircularArray_Cursor_Check(void const* ca_, void const* cursor_) {
     ZETA_DebugAssert(cursor->idx + 1 < ca->size + 2);
 
     void* data = ca->data;
-    size_t width = ca->width;
+    size_t stride = ca->stride;
     size_t offset = ca->offset;
     size_t size = ca->size;
     size_t capacity = ca->capacity;
 
     if (cursor->idx < size) {
         ZETA_DebugAssert(cursor->ref ==
-                         Refer_(data, width, offset, cursor->idx, capacity));
+                         Refer_(data, stride, offset, cursor->idx, capacity));
     }
 }
 

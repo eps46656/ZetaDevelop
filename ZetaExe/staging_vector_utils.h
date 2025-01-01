@@ -24,7 +24,7 @@ struct StagingVectorPack {
 
 template <typename Elem>
 void StagingVector_Init(Zeta_SeqCntr* seq_cntr, Zeta_SeqCntr* origin_seq_cntr,
-                        size_t seg_capacity) {
+                        size_t stride, size_t seg_capacity) {
     if (origin_seq_cntr != NULL) {
         ZETA_DebugAssert(sizeof(Elem) <=
                          ZETA_SeqCntr_GetWidth(origin_seq_cntr));
@@ -50,6 +50,7 @@ void StagingVector_Init(Zeta_SeqCntr* seq_cntr, Zeta_SeqCntr* origin_seq_cntr,
     StdAllocator_DeployAllocator(&pack->data_allocator_instance,
                                  &pack->data_allocator);
 
+    pack->staging_vector.stride = stride;
     pack->staging_vector.origin = origin_seq_cntr;
     pack->staging_vector.seg_capacity = seg_capacity;
     pack->staging_vector.seg_allocator = &pack->seg_allocator;
@@ -80,11 +81,11 @@ void StagingVector_Deinit(Zeta_SeqCntr* seq_cntr) {
 }
 
 template <typename Elem>
-Zeta_SeqCntr* StagingVector_Create(Zeta_SeqCntr* origin_seq_cntr,
+Zeta_SeqCntr* StagingVector_Create(Zeta_SeqCntr* origin_seq_cntr, size_t stride,
                                    size_t seg_capacity) {
     Zeta_SeqCntr* seq_cntr{ new Zeta_SeqCntr{} };
 
-    StagingVector_Init<Elem>(seq_cntr, origin_seq_cntr, seg_capacity);
+    StagingVector_Init<Elem>(seq_cntr, origin_seq_cntr, stride, seg_capacity);
 
     return seq_cntr;
 }

@@ -30,10 +30,11 @@ void* Zeta_DummyVector_Access(void* dv, size_t idx, void* dst_cursor,
 void* Zeta_DummyVector_Refer(void* dv, void const* pos_cursor);
 
 void Zeta_DummyVector_Read(void const* dv, void const* pos_cursor, size_t cnt,
-                           void* dst, void* dst_cursor);
+                           void* dst, size_t dst_stride, void* dst_cursor);
 
 void Zeta_DummyVector_Write(void* dv, void const* pos_cursor, size_t cnt,
-                            void const* src, void* dst_cursor);
+                            void const* src, size_t src_stride,
+                            void* dst_cursor);
 
 void Zeta_DummyVector_Check(void const* dv);
 

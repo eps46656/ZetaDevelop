@@ -19,7 +19,8 @@ struct SegVectorPack {
 };
 
 template <typename Elem>
-void SegVector_Init(Zeta_SeqCntr* seq_cntr, size_t seg_capacity) {
+void SegVector_Init(Zeta_SeqCntr* seq_cntr, size_t stride,
+                    size_t seg_capacity) {
     SegVectorPack* pack{ static_cast<SegVectorPack*>(
         std::malloc(sizeof(SegVectorPack))) };
 
@@ -29,6 +30,7 @@ void SegVector_Init(Zeta_SeqCntr* seq_cntr, size_t seg_capacity) {
     StdAllocator_DeployAllocator(&pack->seg_allocator_, &pack->seg_allocator);
     StdAllocator_DeployAllocator(&pack->data_allocator_, &pack->data_allocator);
 
+    pack->seg_vector.stride = stride;
     pack->seg_vector.width = sizeof(Elem);
     pack->seg_vector.seg_capacity = seg_capacity;
     pack->seg_vector.seg_allocator = &pack->seg_allocator;
@@ -57,10 +59,10 @@ void SegVector_Deinit(Zeta_SeqCntr* seq_cntr) {
 }
 
 template <typename Elem>
-Zeta_SeqCntr* SegVector_Create(size_t seg_capacity) {
+Zeta_SeqCntr* SegVector_Create(size_t stride, size_t seg_capacity) {
     Zeta_SeqCntr* seq_cntr{ new Zeta_SeqCntr{} };
 
-    SegVector_Init<Elem>(seq_cntr, seg_capacity);
+    SegVector_Init<Elem>(seq_cntr, stride, seg_capacity);
 
     return seq_cntr;
 }

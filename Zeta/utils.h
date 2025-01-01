@@ -46,17 +46,20 @@ void Zeta_MemSwap(void* x, void* y, size_t size);
  *
  * @return The new pivot after rotation.
  */
-void* Zeta_MemRotate(void* beg, void* mid, void* end);
+void* Zeta_MemRotate(void* data, size_t l_size, size_t r_size);
 
 void Zeta_MemReverse(void* data, size_t stride, size_t size);
 
 unsigned long long Zeta_MemHash(void const* data, size_t size);
 
-void Zeta_ElemCopy(void* dst, void const* src, size_t width, size_t stride,
-                   size_t size);
+void Zeta_ElemCopy(void* dst, void const* src, size_t width, size_t dst_stride,
+                   size_t src_stride, size_t size);
 
-void Zeta_ElemMove(void* dst, void const* src, size_t width, size_t stride,
-                   size_t size);
+void Zeta_ElemMove(void* dst, void const* src, size_t width, size_t dst_stride,
+                   size_t src_stride, size_t size);
+
+void* Zeta_ElemRotate(void* data, size_t width, size_t stride, size_t l_size,
+                      size_t r_size);
 
 #define ZETA_ReadLittleEndian4_(src_tmp, src)                      \
     ({                                                             \

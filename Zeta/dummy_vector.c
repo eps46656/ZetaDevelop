@@ -85,18 +85,21 @@ void* Zeta_DummyVector_Refer(void* dv, void const* pos_cursor) {
 }
 
 void Zeta_DummyVector_Read(void const* dv, void const* pos_cursor, size_t cnt,
-                           void* dst, void* dst_cursor) {
+                           void* dst, size_t dst_stride, void* dst_cursor) {
     CheckCursor_(dv, pos_cursor);
     ZETA_DebugAssert(cnt == 0);
     ZETA_Unused(dst);
+    ZETA_Unused(dst_stride);
     ZETA_Unused(dst_cursor);
 }
 
 void Zeta_DummyVector_Write(void* dv, void const* pos_cursor, size_t cnt,
-                            void const* src, void* dst_cursor) {
+                            void const* src, size_t src_stride,
+                            void* dst_cursor) {
     CheckCursor_(dv, pos_cursor);
     ZETA_DebugAssert(cnt == 0);
     ZETA_Unused(src);
+    ZETA_Unused(src_stride);
     ZETA_Unused(dst_cursor);
 }
 
