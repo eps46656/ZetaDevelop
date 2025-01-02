@@ -1215,7 +1215,6 @@ void Cntr_(Write)(void* cntr_, void* pos_cursor_, size_t cnt, void const* src,
                 n = &new_seg->n;
 
                 ZETA_CheckAssert(cnt == 0);
-
             } else {
                 Zeta_BinTree_SetSize(btn_opr, &new_seg->n, new_seg->dat.size);
 

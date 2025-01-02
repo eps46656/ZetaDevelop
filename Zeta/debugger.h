@@ -77,6 +77,15 @@ extern bool_t zeta_assert_stage;
 #define ZETA_DebugAssert(cond) ZETA_Unused((cond))
 #endif
 
+#define ZETA_NotNull_(tmp_x, x)          \
+    ({                                   \
+        ZETA_AutoVar(tmp_x, x);          \
+        ZETA_DebugAssert(tmp_x != NULL); \
+        tmp_x;                           \
+    })
+
+#define ZETA_NotNull(x) ZETA_NotNull_(ZETA_TmpName, x)
+
 void Zeta_Debugger_InitPipe();
 
 void Zeta_Debugger_ClearPipe();

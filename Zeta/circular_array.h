@@ -22,7 +22,8 @@ struct Zeta_CircularArray_Cursor {
     void* ref;
 };
 
-void Zeta_CircularArray_Init(void* ca);
+void Zeta_CircularArray_Init(void* ca, void* data, size_t width, size_t stride,
+                             size_t capacity);
 
 /**
  * @copydoc Zeta_SeqCntr::Deinit

@@ -109,8 +109,8 @@ void main1() {
 
         std::sort(vec_a.begin(), vec_a.end(), DComparerCpp{});
 
-        Zeta_TransMergeSort(&vec_b[0].val, sizeof(Val), sizeof(D), vec_b.size(),
-                            NULL, DCompare);
+        Zeta_Sort(&vec_b[0].val, sizeof(Val), sizeof(D), vec_b.size(), NULL,
+                  DCompare);
 
         for (size_t i{ 0 }; i < vec_a.size(); ++i) {
             ZETA_DebugAssert(DCompare(NULL, &vec_a[i], &vec_b[i]) == 0);
@@ -150,8 +150,8 @@ void main2() {
     if (FALSE) {
         std::sort(vec_a.begin(), vec_a.end(), DComparerCpp{});
     } else {
-        Zeta_TransMergeSort(&vec_a[0].val, sizeof(Val), sizeof(D), vec_a.size(),
-                            NULL, DCompare);
+        Zeta_Sort(&vec_a[0].val, sizeof(Val), sizeof(D), vec_a.size(), NULL,
+                  DCompare);
     }
 
     unsigned long long end_time{ GetTime() };
@@ -164,7 +164,7 @@ int main() {
 
     unsigned long long beg{ GetTime() };
 
-    main2();
+    main1();
 
     unsigned long long end{ GetTime() };
 

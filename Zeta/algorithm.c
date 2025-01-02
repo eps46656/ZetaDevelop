@@ -46,6 +46,36 @@ static void InsertionSort_(void* data, size_t width, size_t stride, size_t size,
     }
 }
 
+static void* Mo5_(void* a, void* b, void* c, void* d, void* e,
+                  void* cmp_context, Zeta_Compare Compare) {
+    for (int state = 0; state <= 3; ++state) {
+        switch (state) {
+            case 3:
+                if (Compare(cmp_context, d, e) <= 0) { break; }
+                ZETA_Swap(d, e);
+
+            case 2:
+                if (Compare(cmp_context, c, d) <= 0) { break; }
+                ZETA_Swap(c, d);
+
+            case 1:
+                if (Compare(cmp_context, b, c) <= 0) { break; }
+                ZETA_Swap(b, c);
+
+            case 0:
+                if (Compare(cmp_context, a, b) <= 0) { break; }
+                ZETA_Swap(a, b);
+        }
+    }
+
+    ZETA_DebugAssert(Compare(cmp_context, a, b) <= 0);
+    ZETA_DebugAssert(Compare(cmp_context, b, c) <= 0);
+    ZETA_DebugAssert(Compare(cmp_context, c, d) <= 0);
+    ZETA_DebugAssert(Compare(cmp_context, d, e) <= 0);
+
+    return c;
+}
+
 static void* Partition_(void* data, size_t width, size_t stride, size_t size,
                         void* cmp_context, Zeta_Compare Compare) {
     void* i = data;
@@ -74,21 +104,18 @@ static void* Partition_(void* data, size_t width, size_t stride, size_t size,
 static void* NaivePartition_(void* data, size_t width, size_t stride,
                              size_t size, void* cmp_context,
                              Zeta_Compare Compare) {
-    void* a = data + stride * (size * 1 / 4);
-    void* b = data + stride * (size * 2 / 4);
-    void* c = data + stride * (size * 3 / 4);
-
-    if (Compare(cmp_context, b, a) < 0) { ZETA_Swap(a, b); }
-
-    if (Compare(cmp_context, c, b) < 0) {
-        ZETA_Swap(b, c);
-        if (Compare(cmp_context, b, a) < 0) { ZETA_Swap(a, b); }
+    if (size <= InsertionThreshold) {
+        InsertionSort_(data, width, stride, size, cmp_context, Compare);
+        return data + stride * (size / 2);
     }
 
-    ZETA_DebugAssert(Compare(cmp_context, a, b) <= 0);
-    ZETA_DebugAssert(Compare(cmp_context, b, c) <= 0);
+    void* a = data + stride * (size * 1 / 6);
+    void* b = data + stride * (size * 2 / 6);
+    void* c = data + stride * (size * 3 / 6);
+    void* d = data + stride * (size * 4 / 6);
+    void* e = data + stride * (size * 5 / 6);
 
-    Zeta_MemSwap(data, b, width);
+    Zeta_MemSwap(data, Mo5_(a, b, c, d, e, cmp_context, Compare), width);
 
     return Partition_(data, width, stride, size, cmp_context, Compare);
 }
@@ -104,21 +131,26 @@ static void* MoMPartition_(void* data, size_t width, size_t stride, size_t size,
         return data + stride * (size / 2);
     }
 
-#define GROUP_SIZE 7
+    size_t group_cnt = size / 5;
 
-    size_t group_cnt = size / GROUP_SIZE;
+    size_t group_stride = stride * group_cnt;
 
     for (size_t i = 0; i < group_cnt; ++i) {
-        InsertionSort_(data + stride * i, width, stride * group_cnt, GROUP_SIZE,
-                       cmp_context, Compare);
+        void* a = data + stride * i;
+        void* b = a + group_stride;
+        void* c = b + group_stride;
+        void* d = c + group_stride;
+        void* e = d + group_stride;
+
+        Zeta_MemSwap(a, Mo5_(a, b, c, d, e, cmp_context, Compare), width);
     }
 
-    void* mid = data + stride * group_cnt * (GROUP_SIZE / 2);
+    void* mid = data + stride * group_cnt * 3;
 
-    KthElement_(mid, width, stride, group_cnt / 2, group_cnt, cmp_context,
+    KthElement_(data, width, stride, group_cnt / 2, group_cnt, cmp_context,
                 Compare, 0);
 
-    Zeta_MemSwap(data, mid + stride * (group_cnt / 2), width);
+    Zeta_MemSwap(data, data + stride * (group_cnt / 2), width);
 
     return Partition_(data, width, stride, size, cmp_context, Compare);
 }

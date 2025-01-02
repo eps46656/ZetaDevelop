@@ -5,15 +5,15 @@
 
 #include <cstdlib>
 
-#include "AssocCntrUtils.h"
+#include "assoc_cntr_utils.h"
 #include "std_allocator.h"
 
 struct DynamicHashTablePack {
     StdAllocator node_allocator_instance;
     Zeta_Allocator node_allocator;
 
-    StdAllocator table_allocator_instance;
-    Zeta_Allocator table_allocator;
+    StdAllocator table_node_allocator_instance;
+    Zeta_Allocator table_node_allocator;
 
     Zeta_DynamicHashTable dht;
 };
@@ -29,15 +29,15 @@ void DynamicHashTable_Init(
     void* elem_cmp_context,
     int (*ElemCompare)(void* elem_cmp_context, void const* elem_a,
                        void const* elem_b),
-    void* elem_key_cmp_context,
-    int (*ElemKeyCompare)(void* elem_key_cmp_context, void const* elem,
+    void* key_elem_cmp_context,
+    int (*KeyElemCompare)(void* key_elem_cmp_context, void const* elem,
                           void const* key)) {
     DynamicHashTablePack* pack{ new DynamicHashTablePack{} };
 
     StdAllocator_DeployAllocator(&pack->node_allocator_instance,
                                  &pack->node_allocator);
-    StdAllocator_DeployAllocator(&pack->table_allocator_instance,
-                                 &pack->table_allocator);
+    StdAllocator_DeployAllocator(&pack->table_node_allocator_instance,
+                                 &pack->table_node_allocator);
 
     pack->dht.width = sizeof(Val);
 
@@ -50,12 +50,12 @@ void DynamicHashTable_Init(
     pack->dht.elem_cmp_context = elem_cmp_context;
     pack->dht.ElemCompare = ElemCompare;
 
-    pack->dht.elem_key_cmp_context = elem_key_cmp_context;
-    pack->dht.ElemKeyCompare = ElemKeyCompare;
+    pack->dht.key_elem_cmp_context = key_elem_cmp_context;
+    pack->dht.KeyElemCompare = KeyElemCompare;
 
     pack->dht.node_allocator = &pack->node_allocator;
 
-    pack->dht.ght.table_allocator = &pack->table_allocator;
+    pack->dht.ght.table_node_allocator = &pack->table_node_allocator;
 
     Zeta_DynamicHashTable_Init(&pack->dht);
 
@@ -90,14 +90,14 @@ Zeta_AssocCntr* DynamicHashTable_Create(
     void* elem_cmp_context,
     int (*ElemCompare)(void* elem_cmp_context, void const* elem_a,
                        void const* elem_b),
-    void* elem_key_cmp_context,
-    int (*ElemKeyCompare)(void* elem_key_cmp_context, void const* elem,
+    void* key_elem_cmp_context,
+    int (*KeyElemCompare)(void* key_elem_cmp_context, void const* elem,
                           void const* key)) {
     Zeta_AssocCntr* assoc_cntr{ new Zeta_AssocCntr{} };
 
     DynamicHashTable_Init<Val>(
         assoc_cntr, elem_hash_context, ElemHash, key_hash_context, KeyHash,
-        elem_cmp_context, ElemCompare, elem_key_cmp_context, ElemKeyCompare);
+        elem_cmp_context, ElemCompare, key_elem_cmp_context, KeyElemCompare);
 
     return assoc_cntr;
 }
@@ -125,7 +125,7 @@ void DynamicHashTable_Sanitize(Zeta_AssocCntr const* assoc_cntr) {
 
     Zeta_DynamicHashTable_Sanitize(&pack->dht, table_recorder, node_recorder);
 
-    Zeta_MemCheck_MatchRecords(pack->table_allocator_instance.mem_recorder,
+    Zeta_MemCheck_MatchRecords(pack->table_node_allocator_instance.mem_recorder,
                                table_recorder);
     Zeta_MemCheck_MatchRecords(pack->node_allocator_instance.mem_recorder,
                                node_recorder);

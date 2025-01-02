@@ -91,7 +91,7 @@ void Zeta_ElemCopy(void* dst, void const* src, size_t width, size_t dst_stride,
     ZETA_DebugAssert(width <= dst_stride);
     ZETA_DebugAssert(width <= src_stride);
 
-    if (size == 0 || dst == src) { return; }
+    if (size == 0) { return; }
 
     if (width == dst_stride && width == src_stride) {
         Zeta_MemCopy(dst, src, width * size);
@@ -101,7 +101,7 @@ void Zeta_ElemCopy(void* dst, void const* src, size_t width, size_t dst_stride,
     ZETA_DebugAssert(dst != NULL);
     ZETA_DebugAssert(src != NULL);
 
-    for (size_t i = 0; i < size; ++i, dst += dst_stride, src += src_stride) {
+    for (; 0 < size--; dst += dst_stride, src += src_stride) {
         Zeta_MemCopy(dst, src, width);
     }
 }
@@ -132,18 +132,22 @@ void Zeta_ElemMove(void* dst, void const* src, size_t width, size_t dst_stride,
         return;
     }
 
-    if (dst_stride == src_stride) {
-        if (dst <= src) {
-            for (; 0 < size--; dst += dst_stride, src += src_stride) {
-                Zeta_MemCopy(dst, src, width);
-            }
-        } else {
-            dst += dst_stride * size;
-            src += src_stride * size;
+    if (dst == src && dst_stride == src_stride) { return; }
 
-            while (0 < size--) {
-                Zeta_MemCopy(dst -= dst_stride, src -= src_stride, width);
-            }
+    if (dst <= src && dst_end <= src_end) {
+        for (; 0 < size--; dst += dst_stride, src += src_stride) {
+            Zeta_MemCopy(dst, src, width);
+        }
+
+        return;
+    }
+
+    if (src <= dst && src_end <= dst_end) {
+        dst += dst_stride * size;
+        src += src_stride * size;
+
+        while (0 < size--) {
+            Zeta_MemCopy(dst -= dst_stride, src -= src_stride, width);
         }
 
         return;
@@ -380,6 +384,10 @@ unsigned long long Zeta_LCM(unsigned long long x, unsigned long long y) {
 unsigned long long Zeta_Power(unsigned long long base, unsigned long long exp) {
     if (base == 0) { return 0; }
 
+    if (__builtin_popcountll(base) == 1) {
+        return 1ULL << (__builtin_ctzll(base) * exp);
+    }
+
     unsigned long long ret = 1;
 
     for (; 0 < exp; exp /= 2) {
@@ -398,11 +406,11 @@ unsigned long long Zeta_GetMulMod(unsigned long long x, unsigned long long y,
     x %= mod;
     y %= mod;
 
-    if (x == 0 || y <= ZETA_ULLONG_MAX / x) { return (x * y) % mod; }
+    unsigned long long ret = 0;
+
+    if (!__builtin_umulll_overflow(x, y, &ret)) { return ret % mod; }
 
     if (x < y) { ZETA_Swap(x, y); }
-
-    unsigned long long ret = 0;
 
     for (; 0 < y; y /= 2) {
         if (y % 2 == 1) { ret = (ret + x) % mod; }
@@ -458,7 +466,11 @@ unsigned Zeta_FloorLog(unsigned long long val, unsigned long long base) {
 unsigned Zeta_CeilLog(unsigned long long val, unsigned long long base) {
     ZETA_DebugAssert(1 < base);
 
-    return val <= 1 ? 0 : Zeta_FloorLog((val - 1) / base, base) + 2;
+    if (val <= 1) { return 0; }
+
+    if (val <= base) { return 1; }
+
+    return Zeta_FloorLog((val - 1) / base, base) + 2;
 }
 
 unsigned long long Zeta_FixedPoint2Power(long long val_) {

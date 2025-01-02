@@ -1,13 +1,13 @@
-#include <Debugger.h>
 #include <debug_deque.h>
+#include <debugger.h>
 #include <mem_check_utils.h>
 
 #include <memory>
 
-#include "Random.h"
 #include "assoc_cntr_utils.h"
 #include "dynamic_hash_table_utils.h"
 #include "pod_value.h"
+#include "random.h"
 #include "std_allocator.h"
 #include "timer.h"
 
@@ -74,7 +74,19 @@ void AC_Erase(Zeta_AssocCntr* assoc_cntr,
 }
 
 void main1() {
-    RandomSetSeed();
+    unsigned random_seed = time(NULL);
+    unsigned fixed_seed = 1729615114;
+
+    unsigned seed = random_seed;
+    // unsigned seed = fixed_seed;
+
+    ZETA_PrintCurPos;
+
+    ZETA_PrintVar(random_seed);
+    ZETA_PrintVar(fixed_seed);
+    ZETA_PrintVar(seed);
+
+    RandomEngine().seed(seed);
 
     Zeta_AssocCntr* dht = DynamicHashTable_Create<Pair>(
         NULL, Zeta_PairHash, NULL, Zeta_KeyHash, NULL, Zeta_PairCompare, NULL,
@@ -84,11 +96,11 @@ void main1() {
     Pair* pair;
 
     for (unsigned long long _{ 0 }; _ < 4; ++_) {
-        for (unsigned long long i{ 0 }; i < 1024; ++i) {
-            unsigned long long key{ static_cast<unsigned long long>(
-                GetRandomInt(0, 1024 * 1024)) };
-            unsigned long long val{ static_cast<unsigned long long>(
-                GetRandomInt(0, 1024 * 1024)) };
+        for (unsigned long long i{ 0 }; i < 1024 * 8; ++i) {
+            unsigned long long key{ GetRandomInt<unsigned long long, size_t>(
+                0, 1024 * 1024) };
+            unsigned long long val{ GetRandomInt<unsigned long long, size_t>(
+                0, 1024 * 1024) };
 
             cursor = AC_Insert(dht, Pair{ key, val });
             Pair* pair = (Pair*)ZETA_AssocCntr_Refer(dht, cursor.get());
@@ -107,9 +119,9 @@ void main1() {
                     (double)Zeta_DynamicHashTable_GetEffFactor(dht->context) /
                         ZETA_FixedPoint_Base);
             }
-
-            ZETA_AssocCntr_EraseAll(dht);
         }
+
+        ZETA_AssocCntr_EraseAll(dht);
     }
 
     printf("eff factor = %e\n",

@@ -879,8 +879,10 @@ def AddDeps(builder: Builder, config: Config):
         {
             f"{FILE}",
             f"{zeta_dir}/generic_hash_table.h",
+            f"{zeta_dir}/bin_tree.h",
             f"{zeta_dir}/debugger.h",
             f"{zeta_dir}/mem_check_utils.h",
+            f"{zeta_dir}/multi_level_table.h",
             f"{zeta_dir}/rbtree.h",
             f"{zeta_dir}/utils.h",
         },

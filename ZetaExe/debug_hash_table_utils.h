@@ -1,11 +1,11 @@
 #pragma once
 
-#include <Debugger.h>
 #include <debug_hash_table.h>
+#include <debugger.h>
 
 #include <cstdlib>
 
-#include "AssocCntrUtils.h"
+#include "assoc_cntr_utils.h"
 
 struct DebugHashTablePack {
     Zeta_DebugHashTable debug_ht;

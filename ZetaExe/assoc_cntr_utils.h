@@ -1,19 +1,19 @@
 #pragma once
 
-#include <Debugger.h>
 #include <assoc_cntr.h>
+#include <debugger.h>
 
 #include <unordered_map>
 
 auto& AssocCntr_GetSanitizeFuncs() {
-    static std::unordered_map<size_t (*)(void* constext),
+    static std::unordered_map<size_t (*)(void const* constext),
                               void (*)(Zeta_AssocCntr const* assoc_cntr)>
         instance;
     return instance;
 }
 
 void AssocCntr_AddSanitizeFunc(
-    size_t (*GetWidth)(void* context),
+    size_t (*GetWidth)(void const* context),
     void (*Sanitize)(Zeta_AssocCntr const* assoc_cntr)) {
     auto& map{ AssocCntr_GetSanitizeFuncs() };
 
