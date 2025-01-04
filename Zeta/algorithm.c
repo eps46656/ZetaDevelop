@@ -145,8 +145,6 @@ static void* MoMPartition_(void* data, size_t width, size_t stride, size_t size,
         Zeta_MemSwap(a, Mo5_(a, b, c, d, e, cmp_context, Compare), width);
     }
 
-    void* mid = data + stride * group_cnt * 3;
-
     KthElement_(data, width, stride, group_cnt / 2, group_cnt, cmp_context,
                 Compare, 0);
 

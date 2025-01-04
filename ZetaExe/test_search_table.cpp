@@ -102,7 +102,7 @@ void main1() {
     ZETA_PrintVar(fixed_seed);
     ZETA_PrintVar(seed);
 
-    RandomEngine().seed(seed);
+    SetRandomSeed(seed);
 
     size_t size{ 1024 * 16 };
 
@@ -154,7 +154,7 @@ void main2() {
     ZETA_PrintVar(fixed_seed);
     ZETA_PrintVar(seed);
 
-    RandomEngine().seed(seed);
+    SetRandomSeed(seed);
 
     size_t size{ 1024 * 1024 * 16 };
 

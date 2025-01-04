@@ -19,8 +19,6 @@
 #define TestHot_(hot, idx) (((hot) >> (idx)) % 2 != 0)
 
 static int FindPrevHot_(unsigned long long hot, size_t idx) {
-    ZETA_CheckAssert(idx == (size_t)(-1) || idx <= ZETA_ULLONG_WIDTH - 1);
-
     if (idx == (size_t)(-1)) { return -1; }
 
     hot = hot << (ZETA_ULLONG_WIDTH - 1 - idx) >> (ZETA_ULLONG_WIDTH - 1 - idx);
@@ -29,8 +27,6 @@ static int FindPrevHot_(unsigned long long hot, size_t idx) {
 }
 
 static int FindNextHot_(unsigned long long hot, size_t idx) {
-    ZETA_CheckAssert(idx <= ZETA_ULLONG_WIDTH);
-
     if (idx == ZETA_ULLONG_WIDTH) { return -1; }
 
     hot = hot >> idx << idx;

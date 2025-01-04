@@ -1107,12 +1107,7 @@ void Cntr_(Write)(void* cntr_, void* pos_cursor_, size_t cnt, void const* src,
 
         size_t l_seg_size = k * seg_size / seg_cnt;
 
-        ZETA_CheckAssert(l_seg_size <= seg_idx);
-        ZETA_CheckAssert(seg_idx < (k + 1) * seg_size / seg_cnt);
-
         size_t avg_seg_size = (k + 1) * seg_size / seg_cnt - l_seg_size;
-
-        ZETA_CheckAssert(seg_idx - l_seg_size < avg_seg_size);
 
         seg_idx -= l_seg_size;
 
@@ -1125,8 +1120,6 @@ void Cntr_(Write)(void* cntr_, void* pos_cursor_, size_t cnt, void const* src,
 
             seg->ref.beg += l_seg_size;
             seg->ref.size -= l_seg_size;
-
-            ZETA_CheckAssert(0 < seg->ref.size);
 
             Zeta_BinTree_SetSize(btn_opr, &new_seg->n, new_seg->ref.size);
 
@@ -1213,8 +1206,6 @@ void Cntr_(Write)(void* cntr_, void* pos_cursor_, size_t cnt, void const* src,
                 Zeta_BinTree_SetSize(btn_opr, n, seg->ref.size);
 
                 n = &new_seg->n;
-
-                ZETA_CheckAssert(cnt == 0);
             } else {
                 Zeta_BinTree_SetSize(btn_opr, &new_seg->n, new_seg->dat.size);
 
@@ -3083,7 +3074,7 @@ static void WriteBack_LR_(Cntr* cntr, int write_back_strategy,
 
             dht.node_allocator = zeta_cas_allocator;
 
-            dht.ght.table_allocator = zeta_cas_allocator;
+            dht.ght.table_node_allocator = zeta_cas_allocator;
 
             Zeta_DynamicHashTable_Init(&dht);
 
@@ -3149,7 +3140,7 @@ static void WriteBack_LR_(Cntr* cntr, int write_back_strategy,
         }
     }
 
-    ZETA_CheckAssert(origin_size + del_l_cnt + del_r_cnt == size);
+    ZETA_SanitizeAssert(origin_size + del_l_cnt + del_r_cnt == size);
 
     size_t push_l_cnt;
     size_t pop_l_cnt;
@@ -3260,8 +3251,8 @@ static void WriteBack_Random_(Cntr* cntr, unsigned long long cost_coeff_read,
             }
         }
 
-        ZETA_CheckAssert(to_wb_seg_ret.ref_segs_cnt == check_ref_segs_cnt);
-        ZETA_CheckAssert(to_wb_seg_ret.dat_segs_cnt == check_dat_segs_cnt);
+        ZETA_SanitizeAssert(to_wb_seg_ret.ref_segs_cnt == check_ref_segs_cnt);
+        ZETA_SanitizeAssert(to_wb_seg_ret.dat_segs_cnt == check_dat_segs_cnt);
     }
 
     WBSeg* rb_wb_seg = wb_segs + segs_cnt;
@@ -3314,7 +3305,7 @@ static void WriteBack_Random_(Cntr* cntr, unsigned long long cost_coeff_read,
     ref_wb_segs[ref_segs_cnt] = rb_wb_seg;
 
     for (size_t i = 0, j = 0; j < ref_segs_cnt; ++i) {
-        ZETA_CheckAssert(j < ref_segs_cnt);
+        ZETA_SanitizeAssert(j < ref_segs_cnt);
 
         WBSeg* wb_seg = wb_segs + i;
 
@@ -3457,7 +3448,7 @@ static void WriteBack_Random_(Cntr* cntr, unsigned long long cost_coeff_read,
                 check_cost += cost_coeff_read_write * segs_[i].size;
             }
 
-            ZETA_CheckAssert(dst_size == check_dst_size);
+            ZETA_SanitizeAssert(dst_size == check_dst_size);
 
             if (src_size < dst_size) {
                 check_cost += cost_coeff_insert * (dst_size - src_size);
@@ -3493,7 +3484,7 @@ static void WriteBack_Random_(Cntr* cntr, unsigned long long cost_coeff_read,
         cur_end = cur_beg;
     }
 
-    ZETA_CheckAssert(check_cost == dp_cost[ref_segs_cnt + 1]);
+    ZETA_SanitizeAssert(check_cost == dp_cost[ref_segs_cnt + 1]);
 
     ZETA_Allocator_Deallocate(zeta_cas_allocator, wb_segs - 1);
     ZETA_Allocator_Deallocate(zeta_cas_allocator, ref_wb_segs - 1);

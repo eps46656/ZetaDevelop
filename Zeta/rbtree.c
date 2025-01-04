@@ -369,10 +369,8 @@ void* Zeta_RBTree_Extract(Zeta_BinTreeNodeOperator const* btn_opr, void* pos) {
     return root;
 }
 
-#if ZETA_EnableDebug
-
-static size_t Check_(Zeta_BinTreeNodeOperator const* btn_opr,
-                     Zeta_MemRecorder* dst_mr, void* n) {
+static size_t Sanitize_(Zeta_BinTreeNodeOperator const* btn_opr,
+                        Zeta_MemRecorder* dst_mr, void* n) {
     if (n == NULL) { return 0; }
 
     void* context = btn_opr->context;
@@ -380,16 +378,16 @@ static size_t Check_(Zeta_BinTreeNodeOperator const* btn_opr,
     void* nl = btn_opr->GetL(context, n);
     void* nr = btn_opr->GetR(context, n);
 
-    if (nl != NULL) { ZETA_CheckAssert(btn_opr->GetP(context, nl) == n); }
-    if (nr != NULL) { ZETA_CheckAssert(btn_opr->GetP(context, nr) == n); }
+    if (nl != NULL) { ZETA_DebugAssert(btn_opr->GetP(context, nl) == n); }
+    if (nr != NULL) { ZETA_DebugAssert(btn_opr->GetP(context, nr) == n); }
 
-    size_t lbh = Check_(btn_opr, dst_mr, nl);
+    size_t lbh = Sanitize_(btn_opr, dst_mr, nl);
 
     if (dst_mr != NULL) { Zeta_MemRecorder_Record(dst_mr, n, sizeof(void*)); }
 
-    size_t rbh = Check_(btn_opr, dst_mr, nr);
+    size_t rbh = Sanitize_(btn_opr, dst_mr, nr);
 
-    ZETA_CheckAssert(lbh == rbh);
+    ZETA_DebugAssert(lbh == rbh);
 
     int nc = btn_opr->GetColor(context, n);
 
@@ -397,16 +395,14 @@ static size_t Check_(Zeta_BinTreeNodeOperator const* btn_opr,
 
     if (nc == Black) { return lbh + 1; }
 
-    ZETA_CheckAssert(btn_opr->GetColor(context, nl) == Black);
-    ZETA_CheckAssert(btn_opr->GetColor(context, nr) == Black);
+    ZETA_DebugAssert(btn_opr->GetColor(context, nl) == Black);
+    ZETA_DebugAssert(btn_opr->GetColor(context, nr) == Black);
 
     return lbh;
 }
 
-#endif
-
-void Zeta_RBTree_Check(Zeta_BinTreeNodeOperator const* btn_opr,
-                       Zeta_MemRecorder* dst_mr, void* root) {
+void Zeta_RBTree_Sanitize(Zeta_BinTreeNodeOperator const* btn_opr,
+                          Zeta_MemRecorder* dst_mr, void* root) {
     ZETA_DebugAssert(btn_opr != NULL);
     ZETA_DebugAssert(btn_opr->GetP != NULL);
     ZETA_DebugAssert(btn_opr->GetL != NULL);
@@ -418,9 +414,5 @@ void Zeta_RBTree_Check(Zeta_BinTreeNodeOperator const* btn_opr,
     ZETA_DebugAssert(ZETA_CallMemberFunc(btn_opr, GetP, root) == NULL);
     ZETA_DebugAssert(ZETA_CallMemberFunc(btn_opr, GetColor, root) == Black);
 
-#if !ZETA_EnableDebug
-    ZETA_Unused(dst_mr);
-#else
-    Check_(btn_opr, dst_mr, root);
-#endif
+    Sanitize_(btn_opr, dst_mr, root);
 }

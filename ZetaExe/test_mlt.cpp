@@ -351,7 +351,7 @@ void main1() {
     ZETA_PrintVar(fixed_seed);
     ZETA_PrintVar(seed);
 
-    RandomEngine().seed(seed);
+    SetRandomSeed(seed);
 
     ZetaMap zeta_map;
     StdMap std_map;

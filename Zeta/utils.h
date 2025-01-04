@@ -214,7 +214,7 @@ unsigned long long Zeta_LCM(unsigned long long x, unsigned long long y);
  *
  * @return base^exp.
  */
-unsigned long long Zeta_Power(unsigned long long base, unsigned long long exp);
+unsigned long long Zeta_Power(unsigned long long base, unsigned exp);
 
 /**
  * @brief Calculate base^exp % mod.

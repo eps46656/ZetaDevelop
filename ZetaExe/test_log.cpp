@@ -172,7 +172,7 @@ void main5() {
 }
 
 int main() {
-    main5();
+    main2();
     printf("ok\n");
     return 0;
 }

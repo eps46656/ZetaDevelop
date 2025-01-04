@@ -18,7 +18,7 @@ struct MultiLevelCircularArrayPack {
     Zeta_MultiLevelCircularArray mlca;
 };
 
-template <typename Val>
+template <typename Elem>
 void MultiLevelCircularArray_Init(Zeta_SeqCntr* seq_cntr, size_t stride,
                                   size_t seg_capacity) {
     MultiLevelCircularArrayPack* mlca_pack{
@@ -34,7 +34,7 @@ void MultiLevelCircularArray_Init(Zeta_SeqCntr* seq_cntr, size_t stride,
     StdAllocator_DeployAllocator(&mlca_pack->seg_allocator_instance,
                                  &mlca_pack->seg_allocator);
 
-    mlca_pack->mlca.width = sizeof(Val);
+    mlca_pack->mlca.width = sizeof(Elem);
     mlca_pack->mlca.stride = stride;
     mlca_pack->mlca.seg_capacity = seg_capacity;
 
@@ -67,11 +67,11 @@ void MultiLevelCircularArray_Deinit(Zeta_SeqCntr* seq_cntr) {
     std::free(mlca_pack);
 }
 
-template <typename Val>
+template <typename Elem>
 Zeta_SeqCntr* MultiLevelCircularArray_Create(size_t stride,
                                              size_t seg_capacity) {
     Zeta_SeqCntr* seq_cntr{ new Zeta_SeqCntr{} };
-    MultiLevelCircularArray_Init<Val>(seq_cntr, stride, seg_capacity);
+    MultiLevelCircularArray_Init<Elem>(seq_cntr, stride, seg_capacity);
     return seq_cntr;
 }
 

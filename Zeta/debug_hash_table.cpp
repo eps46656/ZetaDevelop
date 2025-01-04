@@ -5,61 +5,95 @@
 
 #include "debugger.h"
 
-struct Pack {
-    bool_t is_elem;
+struct Wrapper {
+    bool_t is_key;
     void const* ptr;
 };
 
-struct PackHash {
-    Zeta_DebugHashTable* debug_hash_table;
+struct HashCore {
+    void const* elem_hash_context;
+    Zeta_Hash ElemHash;
 
-    unsigned long long operator()(const Pack& pack) const {
-        return pack.is_elem
-                   ? debug_hash_table->ElemHash(
-                         debug_hash_table->elem_hash_context, pack.ptr)
-                   : debug_hash_table->KeyHash(
-                         debug_hash_table->elem_hash_context, pack.ptr);
-    }
-};
+    void const* key_hash_context;
+    Zeta_Hash KeyHash;
 
-struct PackCompare {
-    Zeta_DebugHashTable* debug_hash_table;
-
-    bool_t operator()(const Pack& pack_a, const Pack& pack_b) const {
-        ZETA_DebugAssert(pack_a.is_elem || pack_b.is_elem);
-
-        if (pack_a.is_elem && pack_b.is_elem) {
-            return this->debug_hash_table->ElemCompare(
-                       this->debug_hash_table->elem_cmp_context, pack_a.ptr,
-                       pack_b.ptr) == 0;
+    unsigned long long operator()(const Wrapper& wrapper) const {
+        if (wrapper.is_key) {
+            return this->KeyHash(this->key_hash_context, wrapper.ptr, 0);
         }
 
-        return (pack_a.is_elem
-                    ? this->debug_hash_table->ElemKeyCompare(
-                          this->debug_hash_table->elem_key_cmp_context,
-                          pack_a.ptr, pack_b.ptr)
-                    : this->debug_hash_table->ElemKeyCompare(
-                          this->debug_hash_table->elem_key_cmp_context,
-                          pack_b.ptr, pack_a.ptr)) == 0;
+        return this->ElemHash(this->elem_hash_context, wrapper.ptr, 0);
     }
 };
 
-typedef std::unordered_multiset<Pack, PackHash, PackCompare> hash_table_t;
+struct Hash {
+    HashCore* core;
+
+    template <typename Value>
+    unsigned long long operator()(const Value& value) const {
+        return (*this->core)(value);
+    }
+};
+
+struct KeyEqCore {
+    void const* elem_cmp_context;
+    Zeta_Compare ElemCompare;
+
+    void const* key_elem_cmp_context;
+    Zeta_Compare KeyElemCompare;
+
+    bool_t operator()(const Wrapper& a, const Wrapper& b) const {
+        if (a.is_key) {
+            return this->KeyElemCompare(this->key_elem_cmp_context, a.ptr,
+                                        b.ptr) == 0;
+        }
+
+        if (b.is_key) {
+            return this->KeyElemCompare(this->key_elem_cmp_context, a.ptr,
+                                        b.ptr) == 0;
+        }
+
+        return this->ElemCompare(this->elem_cmp_context, a.ptr, b.ptr) == 0;
+    }
+};
+
+struct KeyEq {
+    KeyEqCore* core;
+
+    template <typename ValueA, typename ValueB>
+    bool_t operator()(const ValueA& a, const ValueB& b) const {
+        return (*this->core)(a, b);
+    }
+};
+
+typedef std::unordered_multiset<Wrapper, Hash, KeyEq> hash_table_t;
 
 extern "C" void Zeta_DebugHashTable_Init(void* debug_ht_) {
     Zeta_DebugHashTable* debug_ht = (Zeta_DebugHashTable*)debug_ht_;
     ZETA_DebugAssert(debug_ht != NULL);
 
-    hash_table_t* hash_table =
-        new hash_table_t{ 0, PackHash{ debug_ht }, PackCompare{ debug_ht } };
+    hash_table_t* hash_table = new hash_table_t{
+        0,
+        Hash{ .core =
+                  new HashCore{
+                      .elem_hash_context = debug_ht->elem_hash_context,
+                      .ElemHash = debug_ht->ElemHash,
+                      .key_hash_context = nullptr,
+                      .KeyHash = nullptr,
+                  } },
+        KeyEq{ .core =
+                   new KeyEqCore{
+                       .elem_cmp_context = debug_ht->elem_cmp_context,
+                       .ElemCompare = debug_ht->ElemCompare,
+                       .key_elem_cmp_context = nullptr,
+                       .KeyElemCompare = nullptr,
+                   } }
+    };
 
     debug_ht->hash_table = hash_table;
 
     ZETA_DebugAssert(debug_ht->ElemHash != NULL);
-    ZETA_DebugAssert(debug_ht->KeyHash != NULL);
-
     ZETA_DebugAssert(debug_ht->ElemCompare != NULL);
-    ZETA_DebugAssert(debug_ht->ElemKeyCompare != NULL);
 }
 
 extern "C" void Zeta_DebugHashTable_Deinit(void* debug_ht_) {
@@ -98,7 +132,7 @@ extern "C" size_t Zeta_DebugHashTable_GetCapacity(void const* debug_ht_) {
     hash_table_t* hash_table = (hash_table_t*)debug_ht->hash_table;
     ZETA_DebugAssert(hash_table != NULL);
 
-    return ZETA_SIZE_MAX;
+    return ZETA_max_capacity;
 }
 
 extern "C" void Zeta_DebugHashTable_GetRBCursor(void const* debug_ht_,
@@ -140,13 +174,17 @@ extern "C" void* Zeta_DebugHashTable_Refer(void* debug_ht_,
     hash_table_t* hash_table = (hash_table_t*)debug_ht->hash_table;
     ZETA_DebugAssert(hash_table != NULL);
 
-    hash_table_t::iterator* pos_cursor = (hash_table_t::iterator*)pos_cursor_;
-    ZETA_DebugAssert(pos_cursor != NULL);
+    hash_table_t::iterator* iter = (hash_table_t::iterator*)pos_cursor_;
+    ZETA_DebugAssert(iter != NULL);
 
-    return const_cast<void*>((*pos_cursor)->ptr);
+    return *iter == hash_table->end() ? NULL : const_cast<void*>((*iter)->ptr);
 }
 
 extern "C" void* Zeta_DebugHashTable_Find(void* debug_ht_, void const* key,
+                                          void const* key_hash_context,
+                                          Zeta_Hash KeyHash,
+                                          void const* key_elem_cmp_context,
+                                          Zeta_Compare KeyElemCompare,
                                           void* dst_cursor_) {
     Zeta_DebugHashTable* debug_ht = (Zeta_DebugHashTable*)debug_ht_;
     ZETA_DebugAssert(debug_ht != NULL);
@@ -156,9 +194,16 @@ extern "C" void* Zeta_DebugHashTable_Find(void* debug_ht_, void const* key,
 
     hash_table_t::iterator* dst_cursor = (hash_table_t::iterator*)dst_cursor_;
 
-    Pack key_pack{ TRUE, key };
+    HashCore* hash_core{ hash_table->hash_function().core };
+    KeyEqCore* key_eq_core{ hash_table->key_eq().core };
 
-    auto iter{ hash_table->find(key_pack) };
+    hash_core->key_hash_context = key_hash_context;
+    hash_core->KeyHash = KeyHash;
+
+    key_eq_core->key_elem_cmp_context = key_elem_cmp_context;
+    key_eq_core->KeyElemCompare = KeyElemCompare;
+
+    auto iter{ hash_table->find(Wrapper{ .is_key = TRUE, .ptr = key }) };
 
     if (dst_cursor != NULL) { new (dst_cursor) hash_table_t::iterator{ iter }; }
 
@@ -175,10 +220,10 @@ extern "C" void* Zeta_DebugHashTable_Insert(void* debug_ht_, void const* elem,
 
     hash_table_t::iterator* dst_cursor = (hash_table_t::iterator*)dst_cursor_;
 
-    Pack pack{ FALSE, std::malloc(debug_ht->width) };
-    std::memcpy(const_cast<void*>(pack.ptr), elem, debug_ht->width);
+    Wrapper wrapper{ .is_key = FALSE, .ptr = std::malloc(debug_ht->width) };
+    std::memcpy(const_cast<void*>(wrapper.ptr), elem, debug_ht->width);
 
-    auto iter{ hash_table->insert(pack) };
+    auto iter{ hash_table->insert(wrapper) };
 
     if (dst_cursor != NULL) { new (dst_cursor) hash_table_t::iterator{ iter }; }
 

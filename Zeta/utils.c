@@ -381,7 +381,7 @@ unsigned long long Zeta_LCM(unsigned long long x, unsigned long long y) {
     return x / Zeta_GCD(x, y) * y;
 }
 
-unsigned long long Zeta_Power(unsigned long long base, unsigned long long exp) {
+unsigned long long Zeta_Power(unsigned long long base, unsigned exp) {
     if (base == 0) { return 0; }
 
     if (__builtin_popcountll(base) == 1) {
@@ -446,17 +446,27 @@ unsigned Zeta_FloorLog(unsigned long long val, unsigned long long base) {
     ZETA_DebugAssert(0 < val);
     ZETA_DebugAssert(1 < base);
 
+    if (base == 2) { return ZETA_FloorLog2(val); }
+
+    unsigned floor_log2_base = ZETA_CeilLog2(base);
+
     unsigned ret = 0;
 
     for (;;) {
-        unsigned long long cur_ret = ZETA_FloorLog2(val) / ZETA_CeilLog2(base);
-
-        if (cur_ret <= 1) { break; }
+        unsigned cur_ret = ZETA_FloorLog2(val) / floor_log2_base;
 
         ret += cur_ret;
 
+        switch (cur_ret) {
+            case 1: val /= base;
+            case 0: goto RES;
+            default:
+        }
+
         val /= Zeta_Power(base, cur_ret);
     }
+
+RES:;
 
     for (; base <= val; val /= base) { ++ret; }
 
@@ -466,11 +476,9 @@ unsigned Zeta_FloorLog(unsigned long long val, unsigned long long base) {
 unsigned Zeta_CeilLog(unsigned long long val, unsigned long long base) {
     ZETA_DebugAssert(1 < base);
 
-    if (val <= 1) { return 0; }
+    if (base == 2) { return ZETA_CeilLog2(val); }
 
-    if (val <= base) { return 1; }
-
-    return Zeta_FloorLog((val - 1) / base, base) + 2;
+    return val <= 1 ? 0 : Zeta_FloorLog(val - 1, base) + 1;
 }
 
 unsigned long long Zeta_FixedPoint2Power(long long val_) {

@@ -13,22 +13,10 @@ struct Zeta_DebugHashTable {
     void* hash_table;
 
     void* elem_hash_context;
-
-    unsigned long long (*ElemHash)(void* elem_hash_context, void const* elem);
-
-    void* key_hash_context;
-
-    unsigned long long (*KeyHash)(void* key_hash_context, void const* key);
+    Zeta_Hash ElemHash;
 
     void* elem_cmp_context;
-
-    int (*ElemCompare)(void* elem_cmp_context, void const* elem_a,
-                       void const* elem_b);
-
-    void* elem_key_cmp_context;
-
-    int (*ElemKeyCompare)(void* elem_cmp_context, void const* elem,
-                          void const* key);
+    Zeta_Compare ElemCompare;
 };
 
 void Zeta_DebugHashTable_Init(void* debug_ht);
@@ -52,7 +40,9 @@ void* Zeta_DebugHashTable_PeekL(void* debug_ht, void* dst_cursor);
 void* Zeta_DebugHashTable_Refer(void* debug_ht, void const* pos_cursor);
 
 void* Zeta_DebugHashTable_Find(void* debug_ht, void const* key,
-                               void* dst_cursor);
+                               void const* key_hash_context, Zeta_Hash KeyHash,
+                               void const* key_elem_cmp_context,
+                               Zeta_Compare KeyElemCompare, void* dst_cursor);
 
 void* Zeta_DebugHashTable_Insert(void* debug_ht, void const* key,
                                  void* dst_cursor);

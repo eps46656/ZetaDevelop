@@ -29,14 +29,8 @@ struct Zeta_GenericHashTable {
     void* node_hash_context;
     Zeta_Hash NodeHash;
 
-    void* key_hash_context;
-    Zeta_Hash KeyHash;
-
     void* node_cmp_context;
     Zeta_Compare NodeCompare;
-
-    void* node_key_cmp_context;
-    Zeta_Compare NodeKeyCompare;
 
     Zeta_Allocator* table_node_allocator;
 };
@@ -53,7 +47,11 @@ size_t Zeta_GenericHashTable_GetSize(void const* ght);
 
 bool_t Zeta_GenericHashTable_Contain(void const* ght, void const* node);
 
-void* Zeta_GenericHashTable_Find(void const* ght, void const* key);
+void* Zeta_GenericHashTable_Find(void const* ght, void const* key,
+                                 void const* key_hash_context,
+                                 Zeta_Hash KeyHash,
+                                 void const* key_node_cmp_context,
+                                 Zeta_Compare KeyNodeCompare);
 
 void Zeta_GenericHashTable_Insert(void* ght, void* node);
 

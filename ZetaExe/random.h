@@ -4,15 +4,15 @@
 
 #include <random>
 
-std::mt19937_64& RandomEngine() {
+std::mt19937_64& GetRandomEngine() {
     static std::mt19937_64 en;
     return en;
 }
 
-void SetRandomSeed(unsigned seed) { RandomEngine().seed(seed); }
+void SetRandomSeed(unsigned seed) { GetRandomEngine().seed(seed); }
 
 template <typename Int>
-constexpr bool IsInteger() {
+constexpr bool_t IsInteger() {
     return std::is_same<Int, char>() ||                //
            std::is_same<Int, unsigned char>() ||       //
            std::is_same<Int, signed char>() ||         //
@@ -34,15 +34,23 @@ RetInt GetRandomInt(RangeInt lb, RangeInt rb) {
     ZETA_StaticAssert(IsInteger<RangeInt>());
 
     return static_cast<RetInt>(
-        lb + static_cast<RangeInt>(ll_generator(RandomEngine()) %
+        lb + static_cast<RangeInt>(ll_generator(GetRandomEngine()) %
                                    (static_cast<unsigned long long>(rb) -
                                     static_cast<unsigned long long>(lb) + 1)));
 }
 
-template <typename RetInt>
-RetInt GetRandom() {
-    return GetRandomInt<RetInt>(ZETA_RangeMinOf(RetInt),
-                                ZETA_RangeMaxOf(RetInt));
+template <typename Value>
+struct GetRandomCore {
+    Value operator()() const {
+        std::uniform_int_distribution<Value> generator;
+        return generator(GetRandomEngine());
+        ;
+    }
+};
+
+template <typename Value>
+Value GetRandom() {
+    return GetRandomCore<Value>{}();
 }
 
 template <typename Value, typename Iterator>

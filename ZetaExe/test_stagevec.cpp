@@ -40,7 +40,7 @@ void test_seq_cntr() {
     ZETA_PrintVar(fixed_seed);
     ZETA_PrintVar(seed);
 
-    RandomEngine().seed(seed);
+    SetRandomSeed(seed);
 
     Zeta_SeqCntr* seq_cntr_a_origin{ DebugDeque_Create<PODValue>() };
 
@@ -104,7 +104,7 @@ void test_staging_vector() {
     ZETA_PrintVar(fixed_seed);
     ZETA_PrintVar(seed);
 
-    RandomEngine().seed(seed);
+    SetRandomSeed(seed);
 
     Zeta_SeqCntr* seq_cntr_a_origin{ DebugDeque_Create<PODValue>() };
     Zeta_SeqCntr* seq_cntr_b_origin{ DebugDeque_Create<PODValue>() };
@@ -169,7 +169,7 @@ void test_staging_vector_copy() {
     ZETA_PrintVar(fixed_seed);
     ZETA_PrintVar(seed);
 
-    RandomEngine().seed(seed);
+    SetRandomSeed(seed);
 
     Zeta_SeqCntr* seq_cntr_a_origin{ DebugDeque_Create<PODValue>() };
     Zeta_SeqCntr* seq_cntr_b_origin{ DebugDeque_Create<PODValue>() };
@@ -285,7 +285,7 @@ void test_staging_vector_collapse() {
     ZETA_PrintVar(fixed_seed);
     ZETA_PrintVar(seed);
 
-    RandomEngine().seed(seed);
+    SetRandomSeed(seed);
 
     /*
 
@@ -420,7 +420,7 @@ void test_staging_vector_write_back() {
     ZETA_PrintVar(fixed_seed);
     ZETA_PrintVar(seed);
 
-    RandomEngine().seed(seed);
+    SetRandomSeed(seed);
 
     InitCasAllocator();
 

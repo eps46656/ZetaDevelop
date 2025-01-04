@@ -18,20 +18,8 @@ struct DynamicHashTablePack {
     Zeta_DynamicHashTable dht;
 };
 
-template <typename Val>
-void DynamicHashTable_Init(
-    Zeta_AssocCntr* assoc_cntr, void* elem_hash_context,
-    unsigned long long (*ElemHash)(void* elem_hash_context, void const* elem,
-                                   unsigned long long salt),
-    void* key_hash_context,
-    unsigned long long (*KeyHash)(void* key_hash_context, void const* key,
-                                  unsigned long long salt),
-    void* elem_cmp_context,
-    int (*ElemCompare)(void* elem_cmp_context, void const* elem_a,
-                       void const* elem_b),
-    void* key_elem_cmp_context,
-    int (*KeyElemCompare)(void* key_elem_cmp_context, void const* elem,
-                          void const* key)) {
+template <typename Elem>
+void DynamicHashTable_Init(Zeta_AssocCntr* assoc_cntr) {
     DynamicHashTablePack* pack{ new DynamicHashTablePack{} };
 
     StdAllocator_DeployAllocator(&pack->node_allocator_instance,
@@ -39,19 +27,13 @@ void DynamicHashTable_Init(
     StdAllocator_DeployAllocator(&pack->table_node_allocator_instance,
                                  &pack->table_node_allocator);
 
-    pack->dht.width = sizeof(Val);
+    pack->dht.width = sizeof(Elem);
 
-    pack->dht.elem_hash_context = elem_hash_context;
-    pack->dht.ElemHash = ElemHash;
+    pack->dht.elem_hash_context = NULL;
+    pack->dht.ElemHash = &ZetaHash<Elem>;
 
-    pack->dht.key_hash_context = key_hash_context;
-    pack->dht.KeyHash = KeyHash;
-
-    pack->dht.elem_cmp_context = elem_cmp_context;
-    pack->dht.ElemCompare = ElemCompare;
-
-    pack->dht.key_elem_cmp_context = key_elem_cmp_context;
-    pack->dht.KeyElemCompare = KeyElemCompare;
+    pack->dht.elem_cmp_context = NULL;
+    pack->dht.ElemCompare = &ZetaCompare<Elem, Elem>;
 
     pack->dht.node_allocator = &pack->node_allocator;
 
@@ -61,8 +43,11 @@ void DynamicHashTable_Init(
 
     Zeta_DynamicHashTable_DeployAssocCntr(&pack->dht, assoc_cntr);
 
-    AssocCntr_AddSanitizeFunc(Zeta_DynamicHashTable_GetWidth,
-                              DynamicHashTable_Sanitize);
+    AssocCntrUtils_AddSanitizeFunc(Zeta_DynamicHashTable_GetWidth,
+                                   DynamicHashTable_Sanitize);
+
+    AssocCntrUtils_AddDestroyFunc(Zeta_DynamicHashTable_GetWidth,
+                                  DynamicHashTable_Destroy);
 }
 
 void DynamicHashTable_Deinit(Zeta_AssocCntr* assoc_cntr) {
@@ -79,25 +64,11 @@ void DynamicHashTable_Deinit(Zeta_AssocCntr* assoc_cntr) {
     std::free(pack);
 }
 
-template <typename Val>
-Zeta_AssocCntr* DynamicHashTable_Create(
-    void* elem_hash_context,
-    unsigned long long (*ElemHash)(void* elem_hash_context, void const* elem,
-                                   unsigned long long salt),
-    void* key_hash_context,
-    unsigned long long (*KeyHash)(void* key_hash_context, void const* key,
-                                  unsigned long long salt),
-    void* elem_cmp_context,
-    int (*ElemCompare)(void* elem_cmp_context, void const* elem_a,
-                       void const* elem_b),
-    void* key_elem_cmp_context,
-    int (*KeyElemCompare)(void* key_elem_cmp_context, void const* elem,
-                          void const* key)) {
+template <typename Elem>
+Zeta_AssocCntr* DynamicHashTable_Create() {
     Zeta_AssocCntr* assoc_cntr{ new Zeta_AssocCntr{} };
 
-    DynamicHashTable_Init<Val>(
-        assoc_cntr, elem_hash_context, ElemHash, key_hash_context, KeyHash,
-        elem_cmp_context, ElemCompare, key_elem_cmp_context, KeyElemCompare);
+    DynamicHashTable_Init<Elem>(assoc_cntr);
 
     return assoc_cntr;
 }

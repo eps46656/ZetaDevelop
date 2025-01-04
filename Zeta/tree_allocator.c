@@ -251,14 +251,10 @@ void Zeta_TreeAllocator_Deallocate(void* ta_, void* ptr) {
         r_head = rr_head;
     }
 
-    ZETA_CheckAssert(!IsVacant_(r_head));
-
     ta->sn_root = Zeta_RBTree_GeneralInsertL(
         &btn_opr, ta->sn_root,
         FindBlock_(ta->sn_root, (void*)(r_head) - (void*)(l_head)),
         &l_head->sn);
-
-    ZETA_CheckAssert(!IsVacant_(r_head));
 }
 
 static void GetVacantHead_(Zeta_MemRecorder* dst_head_recorder, Head* head,

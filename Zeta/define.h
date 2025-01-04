@@ -597,14 +597,7 @@ ZETA_StaticAssert(255 <= ZETA_RangeMaxOf(byte_t));
 #define ZETA_LittleEndian (0)
 #define ZETA_BigEndian (1)
 
-typedef int (*Zeta_Compare)(void* context, void const* a, void const* b);
+typedef int (*Zeta_Compare)(void const* context, void const* a, void const* b);
 
-typedef unsigned long long (*Zeta_Hash)(void* context, void const* a,
+typedef unsigned long long (*Zeta_Hash)(void const* context, void const* a,
                                         unsigned long long salt);
-
-typedef void (*Zeta_FuncPtr_ArrayRead)(void* context, void const* data,
-                                       size_t width, size_t stride,
-                                       size_t size);
-
-typedef void (*Zeta_FuncPtr_ArrayWrite)(void* context, void* data, size_t width,
-                                        size_t stride, size_t size);

@@ -25,22 +25,9 @@
 #define Refer_(data, stride, offset, idx, capacity) \
     ((data) + (stride) * (((offset) + (idx)) % (capacity)))
 
-void Zeta_CircularArray_Init(void* ca_, void* data, size_t width, size_t stride,
-                             size_t capacity) {
+void Zeta_CircularArray_Init(void* ca_) {
     Zeta_CircularArray* ca = ca_;
-
-    ZETA_DebugAssert(0 < width);
-    ZETA_DebugAssert(width <= stride);
-    ZETA_DebugAssert(capacity <= ZETA_max_capacity);
-
-    if (data == NULL) { ZETA_DebugAssert(capacity == 0); }
-
-    ca->data = data;
-    ca->width = width;
-    ca->stride = stride;
-    ca->offset = 0;
-    ca->size = 0;
-    ca->capacity = capacity;
+    CheckCntr_(ca);
 }
 
 void Zeta_CircularArray_Deinit(void* ca) { ZETA_Unused(ca); }

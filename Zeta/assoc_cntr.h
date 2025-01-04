@@ -105,7 +105,9 @@ struct Zeta_AssocCntr {
      */
     void* (*Refer)(void* context, void const* pos_cursor);
 
-    void* (*Find)(void* context, void const* key, void* dst_cursor);
+    void* (*Find)(void* context, void const* key, void const* key_hash_context,
+                  Zeta_Hash KeyHash, void const* key_elem_cmp_context,
+                  Zeta_Compare KeyElemCompare, void* dst_cursor);
 
     void* (*Insert)(void* context, void const* elem, void* dst_cursor);
 
@@ -260,8 +262,11 @@ void Zeta_AssocCntr_Init(Zeta_AssocCntr* assoc_cntr);
 #define ZETA_AssocCntr_ConstRefer(assoc_cntr, pos_cursor) \
     ZETA_AssocCntr_CallConst_((assoc_cntr), Refer, (pos_cursor))
 
-#define ZETA_AssocCntr_Find(assoc_cntr, key, dst_cursor) \
-    ZETA_AssocCntr_Call_((assoc_cntr), Find, (key), (dst_cursor))
+#define ZETA_AssocCntr_Find(assoc_cntr, key, key_hash_context, KeyHash,       \
+                            key_elem_cmp_context, KeyElemCompare, dst_cursor) \
+    ZETA_AssocCntr_Call_((assoc_cntr), Find, (key), (key_hash_context),       \
+                         (KeyHash), (key_elem_cmp_context), (KeyElemCompare), \
+                         (dst_cursor))
 
 #define ZETA_AssocCntr_ConstFind(assoc_cntr, key, dst_cursor) \
     ZETA_AssocCntr_CallConst_((assoc_cntr), Find, (key), (dst_cursor))

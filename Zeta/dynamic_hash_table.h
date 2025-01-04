@@ -20,24 +20,10 @@ struct Zeta_DynamicHashTable {
     Zeta_OrdLinkedListNode* lln;
 
     void* elem_hash_context;
-
-    unsigned long long (*ElemHash)(void* hash_elem_context, void const* elem,
-                                   unsigned long long salt);
-
-    void* key_hash_context;
-
-    unsigned long long (*KeyHash)(void* hash_key_context, void const* key,
-                                  unsigned long long salt);
+    Zeta_Hash ElemHash;
 
     void* elem_cmp_context;
-
-    int (*ElemCompare)(void* elem_cmp_context, void const* elem_a,
-                       void const* elem_b);
-
-    void* key_elem_cmp_context;
-
-    int (*KeyElemCompare)(void* key_elem_cmp_context, void const* key,
-                          void const* elem);
+    Zeta_Compare ElemCompare;
 
     Zeta_Allocator* node_allocator;
 
@@ -47,6 +33,8 @@ struct Zeta_DynamicHashTable {
 struct Zeta_DynamicHashTable_Node {
     Zeta_OrdLinkedListNode lln;
     Zeta_GenericHashTable_Node htn;
+
+    unsigned char data[] __attribute__((aligned(alignof(max_align_t))));
 };
 
 struct Zeta_DynamicHashTable_Cursor {
@@ -74,7 +62,11 @@ void* Zeta_DynamicHashTable_PeekR(void* dht, void* dst_cursor);
 
 void* Zeta_DynamicHashTable_Refer(void* dht, void const* pos_cursor);
 
-void* Zeta_DynamicHashTable_Find(void* dht, void const* key, void* dst_cursor);
+void* Zeta_DynamicHashTable_Find(void* dht, void const* key,
+                                 void const* key_hash_context,
+                                 Zeta_Hash KeyHash,
+                                 void const* key_elem_cmp_context,
+                                 Zeta_Compare KeyElemCompare, void* dst_cursor);
 
 void* Zeta_DynamicHashTable_Insert(void* dht, void const* elem,
                                    void* dst_cursor);

@@ -190,6 +190,15 @@ def AddDeps(builder: Builder, config: Config):
     )
 
     builder.Add(
+        f"{zeta_exe_dir}/hash.h",
+        {
+            f"{FILE}",
+            f"{zeta_dir}/define.h",
+        },
+        None
+    )
+
+    builder.Add(
         f"{zeta_exe_dir}/multi_level_circular_array_utils.h",
         {
             f"{FILE}",
@@ -222,6 +231,16 @@ def AddDeps(builder: Builder, config: Config):
         f"{zeta_exe_dir}/naive_search_table.h",
         {
             f"{FILE}",
+        },
+        None
+    )
+
+    builder.Add(
+        f"{zeta_exe_dir}/pair.h",
+        {
+            f"{FILE}",
+            f"{zeta_dir}/define.h",
+            f"{zeta_exe_dir}/random.h",
         },
         None
     )

@@ -89,7 +89,7 @@ void main1() {
 
     InitCasAllocator();
 
-    RandomEngine().seed(seed);
+    SetRandomSeed(seed);
 
     std::vector<D> vec_a;
     std::vector<D> vec_b;
@@ -137,7 +137,7 @@ void main2() {
 
     InitCasAllocator();
 
-    RandomEngine().seed(seed);
+    SetRandomSeed(seed);
 
     std::vector<D> vec_a;
 

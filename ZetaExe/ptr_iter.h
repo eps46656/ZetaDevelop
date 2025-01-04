@@ -20,28 +20,28 @@ struct PtrIter {
 };
 
 template <typename ValueA, typename ValueB>
-bool operator==(const PtrIter<ValueA>& ptr_iter_a,
-                const PtrIter<ValueB>& ptr_iter_b);
+bool_t operator==(const PtrIter<ValueA>& ptr_iter_a,
+                  const PtrIter<ValueB>& ptr_iter_b);
 
 template <typename ValueA, typename ValueB>
-bool operator!=(const PtrIter<ValueA>& ptr_iter_a,
-                const PtrIter<ValueB>& ptr_iter_b);
+bool_t operator!=(const PtrIter<ValueA>& ptr_iter_a,
+                  const PtrIter<ValueB>& ptr_iter_b);
 
 template <typename ValueA, typename ValueB>
-bool operator<(const PtrIter<ValueA>& ptr_iter_a,
-               const PtrIter<ValueB>& ptr_iter_b);
+bool_t operator<(const PtrIter<ValueA>& ptr_iter_a,
+                 const PtrIter<ValueB>& ptr_iter_b);
 
 template <typename ValueA, typename ValueB>
-bool operator>(const PtrIter<ValueA>& ptr_iter_a,
-               const PtrIter<ValueB>& ptr_iter_b);
+bool_t operator>(const PtrIter<ValueA>& ptr_iter_a,
+                 const PtrIter<ValueB>& ptr_iter_b);
 
 template <typename ValueA, typename ValueB>
-bool operator<=(const PtrIter<ValueA>& ptr_iter_a,
-                const PtrIter<ValueB>& ptr_iter_b);
+bool_t operator<=(const PtrIter<ValueA>& ptr_iter_a,
+                  const PtrIter<ValueB>& ptr_iter_b);
 
 template <typename ValueA, typename ValueB>
-bool operator>=(const PtrIter<ValueA>& ptr_iter_a,
-                const PtrIter<ValueB>& ptr_iter_b);
+bool_t operator>=(const PtrIter<ValueA>& ptr_iter_a,
+                  const PtrIter<ValueB>& ptr_iter_b);
 
 template <typename Value>
 PtrIter<Value>& operator++(PtrIter<Value>& ptr_iter);
@@ -87,38 +87,38 @@ Value& PtrIter<Value>::operator[](ptrdiff_t idx) const {
 }
 
 template <typename ValueA, typename ValueB>
-bool operator==(const PtrIter<ValueA>& ptr_iter_a,
-                const PtrIter<ValueB>& ptr_iter_b) {
+bool_t operator==(const PtrIter<ValueA>& ptr_iter_a,
+                  const PtrIter<ValueB>& ptr_iter_b) {
     return ptr_iter_a.ptr == ptr_iter_b.ptr;
 }
 
 template <typename ValueA, typename ValueB>
-bool operator!=(const PtrIter<ValueA>& ptr_iter_a,
-                const PtrIter<ValueB>& ptr_iter_b) {
+bool_t operator!=(const PtrIter<ValueA>& ptr_iter_a,
+                  const PtrIter<ValueB>& ptr_iter_b) {
     return ptr_iter_a.ptr != ptr_iter_b.ptr;
 }
 
 template <typename ValueA, typename ValueB>
-bool operator<(const PtrIter<ValueA>& ptr_iter_a,
-               const PtrIter<ValueB>& ptr_iter_b) {
+bool_t operator<(const PtrIter<ValueA>& ptr_iter_a,
+                 const PtrIter<ValueB>& ptr_iter_b) {
     return ptr_iter_a.ptr <= ptr_iter_b.ptr;
 }
 
 template <typename ValueA, typename ValueB>
-bool operator>(const PtrIter<ValueA>& ptr_iter_a,
-               const PtrIter<ValueB>& ptr_iter_b) {
+bool_t operator>(const PtrIter<ValueA>& ptr_iter_a,
+                 const PtrIter<ValueB>& ptr_iter_b) {
     return ptr_iter_a.ptr >= ptr_iter_b.ptr;
 }
 
 template <typename ValueA, typename ValueB>
-bool operator<=(const PtrIter<ValueA>& ptr_iter_a,
-                const PtrIter<ValueB>& ptr_iter_b) {
+bool_t operator<=(const PtrIter<ValueA>& ptr_iter_a,
+                  const PtrIter<ValueB>& ptr_iter_b) {
     return ptr_iter_a.ptr <= ptr_iter_b.ptr;
 }
 
 template <typename ValueA, typename ValueB>
-bool operator>=(const PtrIter<ValueA>& ptr_iter_a,
-                const PtrIter<ValueB>& ptr_iter_b) {
+bool_t operator>=(const PtrIter<ValueA>& ptr_iter_a,
+                  const PtrIter<ValueB>& ptr_iter_b) {
     return ptr_iter_a.ptr >= ptr_iter_b.ptr;
 }
 

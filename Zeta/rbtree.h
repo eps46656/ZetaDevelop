@@ -22,7 +22,7 @@ void* Zeta_RBTree_GeneralInsertR(Zeta_BinTreeNodeOperator const* btn_opr,
 
 void* Zeta_RBTree_Extract(Zeta_BinTreeNodeOperator const* btn_opr, void* n);
 
-void Zeta_RBTree_Check(Zeta_BinTreeNodeOperator const* btn_opr,
-                       Zeta_MemRecorder* dst_mr, void* root);
+void Zeta_RBTree_Sanitize(Zeta_BinTreeNodeOperator const* btn_opr,
+                          Zeta_MemRecorder* dst_mr, void* root);
 
 ZETA_ExternC_End;

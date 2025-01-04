@@ -132,32 +132,33 @@ static size_t FindNxtCapacity_(size_t capacity) {
     return lb < len ? capacities[lb] : 0;
 }
 
-static void* Find_(Zeta_GenericHashTable const* ght,
-                   Zeta_MultiLevelTable* table, void const* key,
-                   unsigned long long salt, size_t capacity) {
+static void* Find_(unsigned long long salt, Zeta_MultiLevelTable* table,
+                   size_t capacity, void const* key,
+                   void const* key_hash_context, Zeta_Hash KeyHash,
+                   void const* key_node_cmp_context,
+                   Zeta_Compare KeyNodeCompare) {
     size_t idxes[ZETA_MultiLevelTable_max_level];
 
     SetIdxes_(table->level, idxes,
-              GetBucketIdx_(ght->KeyHash(ght->key_hash_context, key, salt),
-                            capacity));
+              GetBucketIdx_(KeyHash(key_hash_context, key, salt), capacity));
 
     void* target_n = NULL;
 
     for (void* n = ({
-             void** tmp = Zeta_MultiLevelTable_Access(&table, idxes);
+             void** tmp = Zeta_MultiLevelTable_Access(table, idxes);
              tmp == NULL ? NULL : *tmp;
          });
          n != NULL;) {
-        int cmp = ght->NodeKeyCompare(
-            ght->node_key_cmp_context,
-            ZETA_MemberToStruct(Zeta_GenericHashTable_Node, n, n), key);
+        int cmp = KeyNodeCompare(
+            key_node_cmp_context, key,
+            ZETA_MemberToStruct(Zeta_GenericHashTable_Node, n, n));
 
         if (cmp == 0) { target_n = n; }
 
         if (cmp <= 0) {
-            n = Zeta_OrdRBTreeNode_GetR(NULL, n);
-        } else {
             n = Zeta_OrdRBTreeNode_GetL(NULL, n);
+        } else {
+            n = Zeta_OrdRBTreeNode_GetR(NULL, n);
         }
     }
 
@@ -184,15 +185,15 @@ static void Insert_(Zeta_GenericHashTable* ght, Zeta_MultiLevelTable* table,
 
     while (n != NULL) {
         int cmp = ght->NodeCompare(
-            ght->node_cmp_context,
-            ZETA_MemberToStruct(Zeta_GenericHashTable_Node, n, n), node);
+            ght->node_cmp_context, node,
+            ZETA_MemberToStruct(Zeta_GenericHashTable_Node, n, n));
 
-        if (cmp <= 0) {
-            le_n = n;
-            n = Zeta_OrdRBTreeNode_GetR(NULL, n);
-        } else {
+        if (cmp < 0) {
             gt_n = n;
             n = Zeta_OrdRBTreeNode_GetL(NULL, n);
+        } else {
+            le_n = n;
+            n = Zeta_OrdRBTreeNode_GetR(NULL, n);
         }
     }
 
@@ -397,7 +398,11 @@ bool_t Zeta_GenericHashTable_Contain(void const* ght_, void const* node_) {
     return ret;
 }
 
-void* Zeta_GenericHashTable_Find(void const* ght_, void const* key) {
+void* Zeta_GenericHashTable_Find(void const* ght_, void const* key,
+                                 void const* key_hash_context,
+                                 Zeta_Hash KeyHash,
+                                 void const* key_node_cmp_context,
+                                 Zeta_Compare KeyNodeCompare) {
     Zeta_GenericHashTable const* ght = ght_;
     CheckCntr_(ght);
 
@@ -420,10 +425,14 @@ void* Zeta_GenericHashTable_Find(void const* ght_, void const* key) {
 
     void* ret = nxt_capacity == 0
                     ? NULL
-                    : Find_(ght, &nxt_table, key, ght->nxt_salt, nxt_capacity);
+                    : Find_(ght->nxt_salt, &nxt_table, nxt_capacity, key,
+                            key_hash_context, KeyHash, key_node_cmp_context,
+                            KeyNodeCompare);
 
     if (ret == NULL) {
-        ret = Find_(ght, &cur_table, key, ght->cur_salt, cur_capacity);
+        ret = Find_(ght->cur_salt, &cur_table, cur_capacity, key,
+                    key_hash_context, KeyHash, key_node_cmp_context,
+                    KeyNodeCompare);
     }
 
     TryDo_;
@@ -619,9 +628,7 @@ void Zeta_GenericHashTable_Check(void const* ght_) {
                      0);
 
     ZETA_DebugAssert(ght->NodeHash != NULL);
-    ZETA_DebugAssert(ght->KeyHash != NULL);
     ZETA_DebugAssert(ght->NodeCompare != NULL);
-    ZETA_DebugAssert(ght->NodeKeyCompare != NULL);
 }
 
 ZETA_DeclareStruct(SanitizeTreeRet);
