@@ -31,8 +31,15 @@ struct Zeta_DynamicHashTable {
 };
 
 struct Zeta_DynamicHashTable_Node {
+    ZETA_DebugStructPadding;
+
     Zeta_OrdLinkedListNode lln;
+
+    ZETA_DebugStructPadding;
+
     Zeta_GenericHashTable_Node htn;
+
+    ZETA_DebugStructPadding;
 
     unsigned char data[] __attribute__((aligned(alignof(max_align_t))));
 };

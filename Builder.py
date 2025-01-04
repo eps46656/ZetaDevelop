@@ -130,7 +130,7 @@ class Builder:
               for dep in ([] if deps is None else deps) if dep is not None)
 
         if unit in self.deps:
-            assert building_func is None, "Conflict building function."
+            assert building_func is None, "Conflicting building function."
             self.deps[unit].update(ds)
         else:
             self.deps[unit] = set(ds)

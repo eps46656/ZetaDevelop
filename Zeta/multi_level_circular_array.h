@@ -40,7 +40,11 @@ struct Zeta_MultiLevelCircularArray {
 };
 
 struct Zeta_MultiLevelCircularArray_Seg {
+    ZETA_DebugStructPadding;
+
     Zeta_OrdLinkedListNode ln;
+
+    ZETA_DebugStructPadding;
 
     unsigned char data[] __attribute__((aligned(alignof(max_align_t))));
 };

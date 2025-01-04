@@ -68,7 +68,8 @@ void Zeta_MemReverse(void* data, size_t stride, size_t size) {
     for (; i < j; i += stride, j -= stride) { Zeta_MemSwap(i, j, stride); }
 }
 
-unsigned long long Zeta_MemHash(void const* data_, size_t size) {
+unsigned long long Zeta_MemHash(void const* data_, size_t size,
+                                unsigned long long salt) {
     unsigned long long fnv_offset_basis = 14695981039346656037ULL;
     unsigned long long fnv_prime = 1099511628211ULL;
 
@@ -79,7 +80,7 @@ unsigned long long Zeta_MemHash(void const* data_, size_t size) {
 
     for (size_t i = 0; i < size; ++i) {
         ret *= fnv_prime;
-        ret ^= data[i];
+        ret = ret ^ data[i] + salt;
     }
 
     return ret;

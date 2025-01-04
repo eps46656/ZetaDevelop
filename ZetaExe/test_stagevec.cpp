@@ -409,7 +409,7 @@ void test_staging_vector_collapse() {
 
 void test_staging_vector_write_back() {
     unsigned random_seed = time(NULL);
-    unsigned fixed_seed = 1729615114;
+    unsigned fixed_seed = 1735990806;
 
     unsigned seed = random_seed;
     // unsigned seed = fixed_seed;
@@ -464,12 +464,12 @@ void test_staging_vector_write_back() {
             16   // cursor_advance_r_op_size
         );
 
-        Zeta_StagingVector_WriteBack(
-            seq_cntr_a->context, ZETA_StagingVector_WriteBackStrategy_Random,
-            1,   // cost_coeff_read
-            2,   // cost_coeff_write
-            10,  // cost_coeff_insert
-            10   // cost_coeff_erase
+        Zeta_StagingVector_WriteBack(seq_cntr_a->context,
+                                     ZETA_StagingVector_WriteBackStrategy_LR,
+                                     1,   // cost_coeff_read
+                                     2,   // cost_coeff_write
+                                     10,  // cost_coeff_insert
+                                     10   // cost_coeff_erase
         );
 
         SeqCntrUtils_SyncCompare<PODValue>({ seq_cntr_a_origin, seq_cntr_b });

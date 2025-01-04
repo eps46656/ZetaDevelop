@@ -597,6 +597,17 @@ ZETA_StaticAssert(255 <= ZETA_RangeMaxOf(byte_t));
 #define ZETA_LittleEndian (0)
 #define ZETA_BigEndian (1)
 
+#if ZETA_EnableDebug
+
+#define ZETA_DebugStructPadding \
+    unsigned char ZETA_TmpName[alignof(max_align_t) + 1]
+
+#else
+
+#define ZETA_DebugStructPadding
+
+#endif
+
 typedef int (*Zeta_Compare)(void const* context, void const* a, void const* b);
 
 typedef unsigned long long (*Zeta_Hash)(void const* context, void const* a,

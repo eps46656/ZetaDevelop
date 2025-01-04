@@ -5,6 +5,8 @@
 #include <iostream>
 #include <unordered_map>
 
+#include "cmp_utils.h"
+#include "hash_utils.h"
 #include "random.h"
 
 struct PODValue {
@@ -30,7 +32,7 @@ struct HashCore<PODValue> {
                                   unsigned long long salt) {
         ZETA_Unused(context);
 
-        return Zeta_MemHash(x.data, PODValue::width) * 23 + salt;
+        return Zeta_MemHash(x.data, PODValue::width, salt);
     }
 };
 

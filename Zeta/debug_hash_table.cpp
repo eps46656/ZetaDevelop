@@ -242,9 +242,11 @@ extern "C" void Zeta_DebugHashTable_Erase(void* debug_ht_, void* pos_cursor_) {
 
     ZETA_DebugAssert(*pos_cursor != hash_table->end());
 
-    std::free(const_cast<void*>((*pos_cursor)->ptr));
+    void const* elem = (*pos_cursor)->ptr;
 
     hash_table->erase(*pos_cursor);
+
+    std::free(const_cast<void*>(elem));
 }
 
 extern "C" void Zeta_DebugHashTable_EraseAll(void* debug_ht_) {

@@ -121,6 +121,15 @@ def AddDeps(builder: Builder, config: Config):
     )
 
     builder.Add(
+        f"{zeta_exe_dir}/cmp_utils.h",
+        {
+            f"{FILE}",
+            f"{zeta_dir}/define.h",
+        },
+        None
+    )
+
+    builder.Add(
         f"{zeta_exe_dir}/circular_array_utils.h",
         {
             f"{FILE}",
@@ -177,6 +186,14 @@ def AddDeps(builder: Builder, config: Config):
             f"{zeta_dir}/mem_check_utils.h",
             f"{zeta_exe_dir}/seq_cntr_utils.h",
             f"{zeta_exe_dir}/std_allocator.h",
+        },
+        None
+    )
+
+    builder.Add(
+        f"{zeta_exe_dir}/hash_utils.h",
+        {
+            f"{zeta_dir}/define.h",
         },
         None
     )
@@ -249,29 +266,12 @@ def AddDeps(builder: Builder, config: Config):
         f"{zeta_exe_dir}/pod_value.h",
         {
             f"{FILE}",
+            f"{zeta_dir}/utils.h",
+            f"{zeta_exe_dir}/cmp_utils.h",
+            f"{zeta_exe_dir}/hash_utils.h",
+            f"{zeta_exe_dir}/random.h",
         },
         None
-    )
-
-    builder.Add(
-        f"{zeta_exe_dir}/pod_value.cpp",
-        {
-            f"{FILE}",
-            f"{zeta_exe_dir}/pod_value.h",
-        },
-        None
-    )
-
-    builder.Add(
-        f"{zeta_exe_build_dir}/pod_value.o",
-        {
-            f"{FILE}",
-            f"{zeta_exe_dir}/pod_value.h",
-        },
-        lambda: compiler.cpp_to_obj(
-            f"{zeta_exe_build_dir}/pod_value.o",
-            f"{zeta_exe_dir}/pod_value.cpp",
-        )
     )
 
     builder.Add(

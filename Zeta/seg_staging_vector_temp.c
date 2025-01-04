@@ -2,7 +2,7 @@
 
 #include "circular_array.h"
 #include "debugger.h"
-#include "dynamic_hash_table.h"
+#include "generic_hash_table.h"
 #include "mem_check_utils.h"
 #include "memory.h"
 #include "pool_allocator.h"
@@ -2943,38 +2943,50 @@ static inline void WriteWBSeg_(Cntr* cntr, Zeta_SeqCntr* ca_seq_cntr,
 
 #if STAGING
 
-ZETA_DeclareStruct(OffsetPair);
+ZETA_DeclareStruct(OffsetCntNode);
 
-struct OffsetPair {
+struct OffsetCntNode {
+    Zeta_GenericHashTable_Node ghtn;
+
     size_t offset;
     size_t cnt;
 };
 
-static unsigned long long OffsetPairHash(void* context, void const* a,
-                                         unsigned long long salt) {
+static unsigned long long OffsetCntNodeHash(void const* context,
+                                            void const* ghtn,
+                                            unsigned long long salt) {
     ZETA_Unused(context);
-    return Zeta_ULLHash(((OffsetPair*)a)->offset, salt);
+
+    OffsetCntNode* node = ZETA_MemberToStruct(OffsetCntNode, ghtn, ghtn);
+
+    return Zeta_ULLHash(node->offset, salt);
 }
 
-static unsigned long long OffsetHash(void* context, void const* a,
+static int OffsetCntNodeCompare(void const* context, void const* a_ghtn,
+                                void const* b_ghtn) {
+    ZETA_Unused(context);
+
+    OffsetCntNode* a_node = ZETA_MemberToStruct(OffsetCntNode, ghtn, a_ghtn);
+
+    OffsetCntNode* b_node = ZETA_MemberToStruct(OffsetCntNode, ghtn, b_ghtn);
+
+    return ZETA_ThreeWayCompare(a_node->offset, b_node->offset);
+}
+
+static unsigned long long OffsetHash(void const* context, void const* offset,
                                      unsigned long long salt) {
     ZETA_Unused(context);
-    return Zeta_ULLHash(*(unsigned long long*)a, salt);
+
+    return Zeta_ULLHash(*(unsigned long long*)offset, salt);
 }
 
-static int OffsetPairCompare(void* context, void const* a, void const* b) {
+static int OffsetOffsetCntNodeCompare(void const* context, void const* offset,
+                                      void const* ghtn) {
     ZETA_Unused(context);
 
-    return ZETA_ThreeWayCompare(((OffsetPair*)a)->offset,
-                                ((OffsetPair*)b)->offset);
-}
+    OffsetCntNode* node = ZETA_MemberToStruct(OffsetCntNode, ghtn, ghtn);
 
-static int OffsetOffsetPairCompare(void* context, void const* a,
-                                   void const* b) {
-    ZETA_Unused(context);
-
-    return ZETA_ThreeWayCompare(*(unsigned long long*)a,
-                                ((OffsetPair*)b)->offset);
+    return ZETA_ThreeWayCompare(*(unsigned long long*)offset, node->offset);
 }
 
 #endif
@@ -2982,12 +2994,12 @@ static int OffsetOffsetPairCompare(void* context, void const* a,
 #if STAGING
 
 static size_t RecordOffset_(Cntr* cntr, TreeNode* n, size_t dst_idx,
-                            Zeta_DynamicHashTable* dht) {
+                            Zeta_GenericHashTable* ght) {
     while (n != NULL) {
         TreeNode* nl = ZETA_Concat(TreeNode, _GetL)(NULL, n);
         TreeNode* nr = ZETA_Concat(TreeNode, _GetR)(NULL, n);
 
-        if (nl != NULL) { dst_idx = RecordOffset_(cntr, nl, dst_idx, dht); }
+        if (nl != NULL) { dst_idx = RecordOffset_(cntr, nl, dst_idx, ght); }
 
         if (cntr->lb == n || cntr->rb == n) {
             n = nr;
@@ -3005,17 +3017,29 @@ static size_t RecordOffset_(Cntr* cntr, TreeNode* n, size_t dst_idx,
 
         size_t offset = seg->ref.beg - dst_idx;
 
-        OffsetPair* offset_pair =
-            Zeta_DynamicHashTable_Find(dht, &offset, NULL);
+        Zeta_GenericHashTable_Node* ghtn = Zeta_GenericHashTable_Find(
+            ght, &offset, NULL, OffsetHash, NULL, OffsetOffsetCntNodeCompare);
 
-        if (offset_pair == NULL) {
-            OffsetPair tmp_offset_pair = { .offset = offset, .cnt = 0 };
+        OffsetCntNode* offset_cnt_node;
 
-            offset_pair =
-                Zeta_DynamicHashTable_Insert(dht, &tmp_offset_pair, NULL);
+        if (ghtn == NULL) {
+            offset_cnt_node = ZETA_Allocator_SafeAllocate(
+                zeta_cas_allocator, alignof(OffsetCntNode),
+                sizeof(OffsetCntNode));
+
+            ghtn = &offset_cnt_node->ghtn;
+
+            offset_cnt_node->offset = offset;
+            offset_cnt_node->cnt = 0;
+
+            Zeta_GenericHashTable_Node_Init(ghtn);
+
+            Zeta_GenericHashTable_Insert(ght, ghtn);
+        } else {
+            offset_cnt_node = ZETA_MemberToStruct(OffsetCntNode, ghtn, ghtn);
         }
 
-        offset_pair->cnt += seg->ref.size;
+        offset_cnt_node->cnt += seg->ref.size;
 
         dst_idx += seg->ref.size;
 
@@ -3056,35 +3080,19 @@ static void WriteBack_LR_(Cntr* cntr, int write_back_strategy,
             break;
 
         case ZETA_StagingVector_WriteBackStrategy_LR: {
-            Zeta_DynamicHashTable dht;
+            Zeta_GenericHashTable ght;
 
-            dht.width = sizeof(OffsetPair);
+            ght.node_hash_context = NULL;
+            ght.NodeHash = OffsetCntNodeHash;
 
-            dht.elem_hash_context = NULL;
-            dht.ElemHash = OffsetPairHash;
+            ght.node_cmp_context = NULL;
+            ght.NodeCompare = OffsetCntNodeCompare;
 
-            dht.key_hash_context = NULL;
-            dht.KeyHash = OffsetHash;
+            ght.table_node_allocator = zeta_cas_allocator;
 
-            dht.elem_cmp_context = NULL;
-            dht.ElemCompare = OffsetPairCompare;
+            Zeta_GenericHashTable_Init(&ght);
 
-            dht.key_elem_cmp_context = NULL;
-            dht.KeyElemCompare = OffsetOffsetPairCompare;
-
-            dht.node_allocator = zeta_cas_allocator;
-
-            dht.ght.table_node_allocator = zeta_cas_allocator;
-
-            Zeta_DynamicHashTable_Init(&dht);
-
-            RecordOffset_(cntr, cntr->root, 0, &dht);
-
-            void* cursor = __builtin_alloca_with_align(
-                sizeof(Zeta_DynamicHashTable_Cursor),
-                CHAR_BIT * alignof(Zeta_DynamicHashTable_Cursor));
-
-            Zeta_DynamicHashTable_PeekL(&dht, cursor);
+            RecordOffset_(cntr, cntr->root, 0, &ght);
 
             unsigned long long best_cost = ZETA_ULLONG_MAX;
 
@@ -3092,12 +3100,15 @@ static void WriteBack_LR_(Cntr* cntr, int write_back_strategy,
             del_r_cnt = size - origin_size;
 
             for (;;) {
-                OffsetPair* offset_pair =
-                    Zeta_DynamicHashTable_Refer(&dht, cursor);
+                Zeta_GenericHashTable_Node* ghtn =
+                    Zeta_GenericHashTable_ExtractAny(&ght);
 
-                if (offset_pair == NULL) { break; }
+                if (ghtn == NULL) { break; }
 
-                size_t cur_offset = offset_pair->offset;
+                OffsetCntNode* offset_cnt_node =
+                    ZETA_MemberToStruct(OffsetCntNode, ghtn, ghtn);
+
+                size_t cur_offset = offset_cnt_node->offset;
 
                 size_t cur_del_l_cnt = 0;
                 size_t cur_del_r_cnt = size - origin_size;
@@ -3111,7 +3122,8 @@ static void WriteBack_LR_(Cntr* cntr, int write_back_strategy,
                 }
 
                 unsigned long long cur_cost =
-                    -((cost_coeff_read + cost_coeff_write) * offset_pair->cnt);
+                    -((cost_coeff_read + cost_coeff_write) *
+                      offset_cnt_node->cnt);
 
                 if (cur_del_l_cnt <= ZETA_SIZE_MAX / 2) {
                     cur_cost += cost_coeff_insert * cur_del_l_cnt;
@@ -3125,16 +3137,17 @@ static void WriteBack_LR_(Cntr* cntr, int write_back_strategy,
                     cur_cost += cost_coeff_erase * -cur_del_r_cnt;
                 }
 
-                if (ZETA_ULLONG_MAX / 2 < cur_cost - best_cost) {
+                if (cur_cost - best_cost < ZETA_ULLONG_MAX / 2) {}
+
+                if (cur_cost < best_cost ||
+                    (cur_cost == best_cost && cur_del_l_cnt < del_l_cnt)) {
                     best_cost = cur_cost;
                     del_l_cnt = cur_del_l_cnt;
                     del_r_cnt = cur_del_r_cnt;
                 }
 
-                Zeta_DynamicHashTable_Cursor_StepR(&dht, cursor);
+                ZETA_Allocator_Deallocate(zeta_cas_allocator, offset_cnt_node);
             }
-
-            Zeta_DynamicHashTable_Deinit(&dht);
 
             break;
         }

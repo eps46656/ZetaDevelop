@@ -70,11 +70,15 @@ struct Cntr {
 };
 
 struct Cntr_(Seg) {
+    ZETA_DebugStructPadding;
+
 #if STAGING
     Zeta_OrdCnt3RBTreeNode n;
 #else
     Zeta_OrdCntRBTreeNode n;
 #endif
+
+    ZETA_DebugStructPadding;
 
     union {
 #if STAGING

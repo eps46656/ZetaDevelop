@@ -262,6 +262,9 @@ void Zeta_GenericHashTable_Init(void* ght_) {
 
     ght->cur_salt = GetSalt_(ght);
 
+    ght->cur_table_root = NULL;
+    ght->nxt_table_root = NULL;
+
     ght->cur_table_size = 0;
     ght->nxt_table_size = 0;
 
@@ -511,6 +514,48 @@ void Zeta_GenericHashTable_Extract(void* ght_, void* node_) {
     --ght->size;
 
     TryDo_;
+}
+
+void* Zeta_GenericHashTable_ExtractAny(void* ght_) {
+    Zeta_GenericHashTable* ght = ght_;
+    CheckCntr_(ght);
+
+    if (ght->size == 0) { return NULL; }
+
+    size_t cur_capacity = ght->cur_capacity;
+    size_t nxt_capacity = ght->nxt_capacity;
+
+    Zeta_MultiLevelTable cur_table;
+    cur_table.level = Zeta_CeilLog(cur_capacity, branch_num);
+    cur_table.branch_nums = branch_nums;
+    cur_table.size = ght->cur_table_size;
+    cur_table.root = ght->cur_table_root;
+    cur_table.node_allocator = ght->table_node_allocator;
+
+    Zeta_MultiLevelTable nxt_table;
+    nxt_table.level = Zeta_CeilLog(nxt_capacity, branch_num);
+    nxt_table.branch_nums = branch_nums;
+    nxt_table.size = ght->nxt_table_size;
+    nxt_table.root = ght->nxt_table_root;
+    nxt_table.node_allocator = ght->table_node_allocator;
+
+    size_t idxes[ZETA_MultiLevelTable_max_level];
+
+    void** root_entry = Zeta_MultiLevelTable_FindFirst(&cur_table, idxes);
+
+    Zeta_GenericHashTable_Node* node =
+        ZETA_MemberToStruct(Zeta_GenericHashTable_Node, n, *root_entry);
+
+    if ((*root_entry = Zeta_RBTree_Extract(&zeta_ord_rb_tree_node_opr,
+                                           &node->n)) == NULL) {
+        Zeta_MultiLevelTable_Erase(&cur_table, idxes);
+    }
+
+    --ght->size;
+
+    TryDo_;
+
+    return node;
 }
 
 void Zeta_GenericHashTable_ExtractAll(void* ght_) {

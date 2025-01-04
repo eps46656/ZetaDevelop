@@ -36,7 +36,11 @@ struct Zeta_GenericHashTable {
 };
 
 struct Zeta_GenericHashTable_Node {
+    ZETA_DebugStructPadding;
+
     Zeta_OrdRBTreeNode n;
+
+    ZETA_DebugStructPadding;
 };
 
 void Zeta_GenericHashTable_Init(void* ght);
@@ -56,6 +60,8 @@ void* Zeta_GenericHashTable_Find(void const* ght, void const* key,
 void Zeta_GenericHashTable_Insert(void* ght, void* node);
 
 void Zeta_GenericHashTable_Extract(void* ght, void* node);
+
+void* Zeta_GenericHashTable_ExtractAny(void* ght);
 
 void Zeta_GenericHashTable_ExtractAll(void* ght);
 

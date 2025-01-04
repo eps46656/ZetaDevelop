@@ -3,6 +3,7 @@
 #include <mem_check_utils.h>
 
 #include <memory>
+#include <unordered_set>
 
 #include "assoc_cntr_utils.h"
 #include "debug_hash_table_utils.h"
@@ -35,12 +36,58 @@ void main1() {
 
     std::shared_ptr<void> cursor;
 
-    for (unsigned long long _{ 0 }; _ < 4; ++_) {
-        for (unsigned long long i{ 0 }; i < 512; ++i) {
-            ZETA_PrintVar(i);
+    std::vector<Zeta_AssocCntr*> assoc_cntrs{ assoc_cntr_a, assoc_cntr_b };
 
-            AssocCntrUtils_SyncRandomInsert<Elem>(
-                { assoc_cntr_a, assoc_cntr_b });
+    std::unordered_set<Elem> elems_s;
+    std::vector<Elem> elems_v;
+
+    auto GenerateUniqueElem{ [&] {
+        Elem ret{ GetRandom<Elem>() };
+        while (!elems_s.insert(ret).second) { ret = GetRandom<Elem>(); }
+        elems_v.push_back(ret);
+        return ret;
+    } };
+
+    auto PopRecordedElem = [&] {
+        ZETA_DebugAssert(!elems_s.empty());
+
+        size_t idx{ GetRandomInt<size_t, size_t>(0, elems_v.size() - 1) };
+
+        auto iter{ elems_s.find(elems_v[idx]) };
+
+        ZETA_DebugAssert(iter != elems_s.end());
+
+        auto ret{ *iter };
+
+        elems_s.erase(iter);
+
+        elems_v[idx] = elems_v.back();
+        elems_v.pop_back();
+
+        return ret;
+    };
+
+    for (unsigned long long _{ 0 }; _ < 4; ++_) {
+        for (unsigned long long i{ 0 }; i < 128; ++i) {
+            ZETA_PrintVar(i);
+            AssocCntrUtils_SyncInsert<Elem>(assoc_cntrs, GenerateUniqueElem());
+            AssocCntrUtils_Equal<Elem>(assoc_cntrs);
+        }
+
+        for (size_t p{ 0 }; p < 4; ++p) {
+            for (unsigned long long i{ 0 }; i < 32; ++i) {
+                ZETA_PrintVar(i);
+                ZETA_DebugAssert(AssocCntrUtils_SyncInsert<Elem>(
+                    assoc_cntrs, GenerateUniqueElem()));
+                AssocCntrUtils_Equal<Elem>(assoc_cntrs);
+            }
+
+            for (unsigned long long i{ 0 }; i < 32; ++i) {
+                ZETA_PrintVar(i);
+                ZETA_DebugAssert(AssocCntrUtils_SyncErase<Elem>(
+                    assoc_cntrs, PopRecordedElem()));
+                AssocCntrUtils_Equal<Elem>(assoc_cntrs);
+            }
         }
     }
 

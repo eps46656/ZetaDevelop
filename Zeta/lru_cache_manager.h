@@ -28,24 +28,38 @@ ZETA_DeclareStruct(Zeta_LRUCacheManager_XNode);
 #define Zeta_LRUCacheManager_XNode_color (3)
 
 struct Zeta_LRUCacheManager_SNode {
+    ZETA_DebugStructPadding;
+
     Zeta_OrdRBLinkedListNode lh;
     // p: color
+
+    ZETA_DebugStructPadding;
 
     unsigned cn_cnt;
     unsigned max_cn_cnt;
 };
 
 struct Zeta_LRUCacheManager_CXNodeBase {
+    ZETA_DebugStructPadding;
+
     Zeta_GenericHashTable_Node ghtn;
+
+    ZETA_DebugStructPadding;
 
     Zeta_OrdRBLinkedListNode ln;
     // p: color
+
+    ZETA_DebugStructPadding;
 
     size_t blk_num;
 };
 
 struct Zeta_LRUCacheManager_CNode {
+    ZETA_DebugStructPadding;
+
     Zeta_LRUCacheManager_CXNodeBase base;
+
+    ZETA_DebugStructPadding;
 
     void* frame;
 
@@ -54,7 +68,11 @@ struct Zeta_LRUCacheManager_CNode {
 };
 
 struct Zeta_LRUCacheManager_XNode {
+    ZETA_DebugStructPadding;
+
     Zeta_LRUCacheManager_CXNodeBase base;
+
+    ZETA_DebugStructPadding;
 
     Zeta_LRUCacheManager_SNode* sn;
     Zeta_LRUCacheManager_CNode* cn;
