@@ -6,48 +6,37 @@
 #define Black (0)
 #define Red (1)
 
-#define Insert_(D, E)                                                        \
-    ZETA_DebugAssert(btn_opr != NULL);                                       \
-                                                                             \
-    ZETA_DebugAssert(pos != n);                                              \
-    ZETA_DebugAssert(n != NULL);                                             \
-                                                                             \
-    void* context = btn_opr->context;                                        \
-                                                                             \
-    void* (*GetP)(void* context, void* n) = btn_opr->GetP;                   \
-    void* (*GetD)(void* context, void* n) = btn_opr->Get##D;                 \
-    void* (*GetE)(void* context, void* n) = btn_opr->Get##E;                 \
-                                                                             \
-    ZETA_DebugAssert(GetP != NULL);                                          \
-    ZETA_DebugAssert(GetD != NULL);                                          \
-    ZETA_DebugAssert(GetE != NULL);                                          \
-                                                                             \
-    ZETA_DebugAssert(GetP(context, n) == NULL);                              \
-    ZETA_DebugAssert(GetD(context, n) == NULL);                              \
-    ZETA_DebugAssert(GetE(context, n) == NULL);                              \
-                                                                             \
-    int (*GetColor)(void* context, void* n) = btn_opr->GetColor;             \
-    void (*SetColor)(void* context, void* n, int color) = btn_opr->SetColor; \
-                                                                             \
-    ZETA_DebugAssert(GetColor != NULL);                                      \
-    ZETA_DebugAssert(SetColor != NULL);                                      \
-                                                                             \
-    if (pos == NULL) {                                                       \
-        if (GetColor(context, n) != Black) { SetColor(context, n, Black); }  \
-        return n;                                                            \
-    }                                                                        \
-                                                                             \
-    if (GetColor(context, n) != Red) { SetColor(context, n, Red); }          \
-                                                                             \
-    void* pos_d = GetD(context, pos);                                        \
-                                                                             \
-    if (pos_d == NULL) {                                                     \
-        Zeta_BinTree_Attatch##D(btn_opr, pos, n);                            \
-    } else {                                                                 \
-        Zeta_BinTree_Attatch##E(btn_opr,                                     \
-                                Zeta_GetMostLink(context, GetE, pos_d), n);  \
-    }                                                                        \
-                                                                             \
+#define Insert_(D, E)                                                       \
+    ZETA_DebugAssert(btn_opr != NULL);                                      \
+                                                                            \
+    ZETA_DebugAssert(pos != n);                                             \
+    ZETA_DebugAssert(n != NULL);                                            \
+                                                                            \
+    ZETA_DebugAssert(ZETA_BinTreeNodeOperator_GetP(btn_opr, n) == NULL);    \
+    ZETA_DebugAssert(ZETA_BinTreeNodeOperator_Get##D(btn_opr, n) == NULL);  \
+    ZETA_DebugAssert(ZETA_BinTreeNodeOperator_Get##E(btn_opr, n) == NULL);  \
+                                                                            \
+    if (pos == NULL) {                                                      \
+        if (ZETA_BinTreeNodeOperator_GetColor(btn_opr, n) != Black) {       \
+            ZETA_BinTreeNodeOperator_SetColor(btn_opr, n, Black);           \
+        }                                                                   \
+        return n;                                                           \
+    }                                                                       \
+                                                                            \
+    if (ZETA_BinTreeNodeOperator_GetColor(btn_opr, n) != Red) {             \
+        ZETA_BinTreeNodeOperator_SetColor(btn_opr, n, Red);                 \
+    }                                                                       \
+                                                                            \
+    void* pos_d = ZETA_BinTreeNodeOperator_Get##D(btn_opr, pos);            \
+                                                                            \
+    if (pos_d == NULL) {                                                    \
+        Zeta_BinTree_Attatch##D(btn_opr, pos, n);                           \
+    } else {                                                                \
+        Zeta_BinTree_Attatch##E(                                            \
+            btn_opr,                                                        \
+            Zeta_GetMostLink(btn_opr->context, btn_opr->Get##E, pos_d), n); \
+    }                                                                       \
+                                                                            \
     return InsertBalance_(btn_opr, n);
 
 static void* InsertBalance_(Zeta_BinTreeNodeOperator const* btn_opr, void* n) {
@@ -55,75 +44,59 @@ static void* InsertBalance_(Zeta_BinTreeNodeOperator const* btn_opr, void* n) {
 
     ZETA_DebugAssert(n != NULL);
 
-    void* context = btn_opr->context;
-
-    void* (*GetP)(void* context, void* n) = btn_opr->GetP;
-    void* (*GetL)(void* context, void* n) = btn_opr->GetL;
-    void* (*GetR)(void* context, void* n) = btn_opr->GetR;
-
-    ZETA_DebugAssert(GetP != NULL);
-    ZETA_DebugAssert(GetL != NULL);
-    ZETA_DebugAssert(GetR != NULL);
-
-    int (*GetColor)(void* context, void* n) = btn_opr->GetColor;
-    void (*SetColor)(void* context, void* n, int color) = btn_opr->SetColor;
-
-    ZETA_DebugAssert(GetColor != NULL);
-    ZETA_DebugAssert(SetColor != NULL);
-
     for (;;) {
-        void* np = GetP(context, n);
+        void* np = ZETA_BinTreeNodeOperator_GetP(btn_opr, n);
 
         if (np == NULL) {
-            SetColor(context, n, Black);
+            ZETA_BinTreeNodeOperator_SetColor(btn_opr, n, Black);
             break;
         }
 
-        if (GetColor(context, np) == Black) { break; }
+        if (ZETA_BinTreeNodeOperator_GetColor(btn_opr, np) == Black) { break; }
 
-        void* ng = GetP(context, np);
+        void* ng = ZETA_BinTreeNodeOperator_GetP(btn_opr, np);
 
         if (ng == NULL) {
-            SetColor(context, np, Black);
+            ZETA_BinTreeNodeOperator_SetColor(btn_opr, np, Black);
             break;
         }
 
-        void* (*GetY)(void* context, void* n);
+        void* (*GetY)(void const* context, void* n);
         void (*RotateX)(Zeta_BinTreeNodeOperator const* btn_opr, void* n);
         void (*RotateY)(Zeta_BinTreeNodeOperator const* btn_opr, void* n);
 
-        if (GetL(context, ng) == np) {
-            GetY = GetR;
+        if (ZETA_BinTreeNodeOperator_GetL(btn_opr, ng) == np) {
+            GetY = btn_opr->GetR;
             RotateX = Zeta_BinTree_RotateL;
             RotateY = Zeta_BinTree_RotateR;
         } else {
-            GetY = GetL;
+            GetY = btn_opr->GetL;
             RotateX = Zeta_BinTree_RotateR;
             RotateY = Zeta_BinTree_RotateL;
         }
 
-        void* nu = GetY(context, ng);
+        void* nu = GetY(btn_opr->context, ng);
 
-        if (GetColor(context, nu) == Red) {
-            SetColor(context, ng, Red);
-            SetColor(context, np, Black);
-            SetColor(context, nu, Black);
+        if (ZETA_BinTreeNodeOperator_GetColor(btn_opr, nu) == Red) {
+            ZETA_BinTreeNodeOperator_SetColor(btn_opr, ng, Red);
+            ZETA_BinTreeNodeOperator_SetColor(btn_opr, np, Black);
+            ZETA_BinTreeNodeOperator_SetColor(btn_opr, nu, Black);
             n = ng;
             continue;
         }
 
-        if (GetY(context, np) == n) {
+        if (GetY(btn_opr->context, np) == n) {
             RotateX(btn_opr, np);
             ZETA_Swap(n, np);
         }
 
-        SetColor(context, ng, Red);
-        SetColor(context, np, Black);
+        ZETA_BinTreeNodeOperator_SetColor(btn_opr, ng, Red);
+        ZETA_BinTreeNodeOperator_SetColor(btn_opr, np, Black);
         RotateY(btn_opr, ng);
         break;
     }
 
-    return Zeta_GetMostLink(context, GetP, n);
+    return Zeta_GetMostLink(btn_opr->context, btn_opr->GetP, n);
 }
 
 void* Zeta_RBTree_InsertL(Zeta_BinTreeNodeOperator const* btn_opr, void* pos,
@@ -144,25 +117,9 @@ void* Zeta_RBTree_Insert(Zeta_BinTreeNodeOperator const* btn_opr, void* pos_l,
     ZETA_DebugAssert(pos_r != n);
     ZETA_DebugAssert(n != NULL);
 
-    void* context = btn_opr->context;
-
-    void* (*GetP)(void* context, void* n) = btn_opr->GetP;
-    void* (*GetL)(void* context, void* n) = btn_opr->GetL;
-    void* (*GetR)(void* context, void* n) = btn_opr->GetR;
-
-    ZETA_DebugAssert(GetP != NULL);
-    ZETA_DebugAssert(GetL != NULL);
-    ZETA_DebugAssert(GetR != NULL);
-
-    ZETA_DebugAssert(GetP(context, n) == NULL);
-    ZETA_DebugAssert(GetL(context, n) == NULL);
-    ZETA_DebugAssert(GetR(context, n) == NULL);
-
-    int (*GetColor)(void* context, void* n) = btn_opr->GetColor;
-    void (*SetColor)(void* context, void* n, int color) = btn_opr->SetColor;
-
-    ZETA_DebugAssert(GetColor != NULL);
-    ZETA_DebugAssert(SetColor != NULL);
+    ZETA_DebugAssert(ZETA_BinTreeNodeOperator_GetP(btn_opr, n) == NULL);
+    ZETA_DebugAssert(ZETA_BinTreeNodeOperator_GetL(btn_opr, n) == NULL);
+    ZETA_DebugAssert(ZETA_BinTreeNodeOperator_GetR(btn_opr, n) == NULL);
 
     void (*AttachL)(Zeta_BinTreeNodeOperator const* btn_opr, void* pos,
                     void* n) = Zeta_BinTree_AttatchL;
@@ -178,13 +135,18 @@ void* Zeta_RBTree_Insert(Zeta_BinTreeNodeOperator const* btn_opr, void* pos_l,
                      Zeta_BinTree_StepL(btn_opr, pos_r) == pos_l);
 
     if (pos_l == NULL && pos_r == NULL) {
-        if (GetColor(context, n) != Black) { SetColor(context, n, Black); }
+        if (ZETA_BinTreeNodeOperator_GetColor(btn_opr, n) != Black) {
+            ZETA_BinTreeNodeOperator_SetColor(btn_opr, n, Black);
+        }
         return n;
     }
 
-    if (GetColor(context, n) != Red) { SetColor(context, n, Red); }
+    if (ZETA_BinTreeNodeOperator_GetColor(btn_opr, n) != Red) {
+        ZETA_BinTreeNodeOperator_SetColor(btn_opr, n, Red);
+    }
 
-    if (pos_l != NULL && GetR(context, pos_l) == NULL) {
+    if (pos_l != NULL &&
+        ZETA_BinTreeNodeOperator_GetR(btn_opr, pos_l) == NULL) {
         AttachR(btn_opr, pos_l, n);
     } else {
         AttachL(btn_opr, pos_r, n);
@@ -218,53 +180,39 @@ void* Zeta_RBTree_GeneralInsertR(Zeta_BinTreeNodeOperator const* btn_opr,
 }
 
 static void ExtractBalance_(Zeta_BinTreeNodeOperator const* btn_opr, void* n) {
-    void* context = btn_opr->context;
-
-    void* (*GetP)(void* context, void* n) = btn_opr->GetP;
-    void* (*GetL)(void* context, void* n) = btn_opr->GetL;
-    void* (*GetR)(void* context, void* n) = btn_opr->GetR;
-
-    ZETA_DebugAssert(GetP != NULL);
-    ZETA_DebugAssert(GetL != NULL);
-    ZETA_DebugAssert(GetR != NULL);
-
-    int (*GetColor)(void* context, void* n) = btn_opr->GetColor;
-    void (*SetColor)(void* context, void* n, int color) = btn_opr->SetColor;
-
-    ZETA_DebugAssert(GetColor != NULL);
-    ZETA_DebugAssert(SetColor != NULL);
+    void const* context = btn_opr->context;
 
     for (;;) {
-        if (GetColor(context, n) == Red) {
-            SetColor(context, n, Black);
+        if (ZETA_BinTreeNodeOperator_GetColor(btn_opr, n) == Red) {
+            ZETA_BinTreeNodeOperator_SetColor(btn_opr, n, Black);
             break;
         }
 
-        void* np = GetP(context, n);
+        void* np = ZETA_BinTreeNodeOperator_GetP(btn_opr, n);
         if (np == NULL) { break; }
 
-        void* (*GetD)(void* context, void* n);
-        void* (*GetE)(void* context, void* n);
+        void* (*GetD)(void const* context, void* n);
+        void* (*GetE)(void const* context, void* n);
         void (*RotateD)(Zeta_BinTreeNodeOperator const* btn_opr, void* n);
         void (*RotateE)(Zeta_BinTreeNodeOperator const* btn_opr, void* n);
 
-        if (GetL(context, np) == n) {
-            GetD = GetL;
-            GetE = GetR;
+        if (ZETA_BinTreeNodeOperator_GetL(btn_opr, np) == n) {
+            GetD = btn_opr->GetL;
+            GetE = btn_opr->GetR;
             RotateD = Zeta_BinTree_RotateL;
             RotateE = Zeta_BinTree_RotateR;
         } else {
-            GetD = GetR;
-            GetE = GetL;
+            GetD = btn_opr->GetR;
+            GetE = btn_opr->GetL;
             RotateD = Zeta_BinTree_RotateR;
             RotateE = Zeta_BinTree_RotateL;
         }
 
         void* ns = GetE(context, np);
 
-        if (GetColor(context, ns) == Red) {
-            SetColor(context, np, Red);
-            SetColor(context, ns, Black);
+        if (ZETA_BinTreeNodeOperator_GetColor(btn_opr, ns) == Red) {
+            ZETA_BinTreeNodeOperator_SetColor(btn_opr, np, Red);
+            ZETA_BinTreeNodeOperator_SetColor(btn_opr, ns, Black);
             RotateD(btn_opr, np);
             ns = GetE(context, np);
         }
@@ -272,25 +220,26 @@ static void ExtractBalance_(Zeta_BinTreeNodeOperator const* btn_opr, void* n) {
         void* nsd = GetD(context, ns);
         void* nse = GetE(context, ns);
 
-        if (GetColor(context, nsd) == Black &&
-            GetColor(context, nse) == Black) {
-            SetColor(context, ns, Red);
+        if (ZETA_BinTreeNodeOperator_GetColor(btn_opr, nsd) == Black &&
+            ZETA_BinTreeNodeOperator_GetColor(btn_opr, nse) == Black) {
+            ZETA_BinTreeNodeOperator_SetColor(btn_opr, ns, Red);
             n = np;
             continue;
         }
 
-        if (GetColor(context, nse) == Black) {
-            SetColor(context, ns, Red);
-            SetColor(context, nsd, Black);
+        if (ZETA_BinTreeNodeOperator_GetColor(btn_opr, nse) == Black) {
+            ZETA_BinTreeNodeOperator_SetColor(btn_opr, ns, Red);
+            ZETA_BinTreeNodeOperator_SetColor(btn_opr, nsd, Black);
             RotateE(btn_opr, ns);
             nse = ns;
             ns = nsd;
             nsd = GetD(context, nsd);
         }
 
-        SetColor(context, ns, GetColor(context, np));
-        SetColor(context, nse, Black);
-        SetColor(context, np, Black);
+        ZETA_BinTreeNodeOperator_SetColor(
+            btn_opr, ns, ZETA_BinTreeNodeOperator_GetColor(btn_opr, np));
+        ZETA_BinTreeNodeOperator_SetColor(btn_opr, nse, Black);
+        ZETA_BinTreeNodeOperator_SetColor(btn_opr, np, Black);
         RotateD(btn_opr, np);
 
         break;
@@ -306,63 +255,49 @@ void* Zeta_RBTree_Extract(Zeta_BinTreeNodeOperator const* btn_opr, void* pos) {
 
     void* context = btn_opr->context;
 
-    void* (*GetP)(void* context, void* n) = btn_opr->GetP;
-    void* (*GetL)(void* context, void* n) = btn_opr->GetL;
-    void* (*GetR)(void* context, void* n) = btn_opr->GetR;
-
-    ZETA_DebugAssert(GetP != NULL);
-    ZETA_DebugAssert(GetL != NULL);
-    ZETA_DebugAssert(GetR != NULL);
-
-    int (*GetColor)(void* context, void* n) = btn_opr->GetColor;
-    void (*SetColor)(void* context, void* n, int color) = btn_opr->SetColor;
-
-    ZETA_DebugAssert(GetColor != NULL);
-    ZETA_DebugAssert(SetColor != NULL);
-
     void* root;
 
-    void* nl = GetL(context, n);
-    void* nr = GetR(context, n);
+    void* nl = ZETA_BinTreeNodeOperator_GetL(btn_opr, n);
+    void* nr = ZETA_BinTreeNodeOperator_GetR(btn_opr, n);
 
     if (nl != NULL && nr != NULL) {
         unsigned long long rand_seed = ZETA_PtrToAddr(nl) + ZETA_PtrToAddr(nr);
 
         void* m = Zeta_SimpleRandomRotate(&rand_seed) % 2 == 0
-                      ? Zeta_GetMostLink(context, GetL, nr)
-                      : Zeta_GetMostLink(context, GetR, nl);
+                      ? Zeta_GetMostLink(context, btn_opr->GetL, nr)
+                      : Zeta_GetMostLink(context, btn_opr->GetR, nl);
 
         Zeta_BinTree_Swap(btn_opr, n, m);
 
-        int nc = GetColor(context, n);
-        int mc = GetColor(context, m);
+        int nc = ZETA_BinTreeNodeOperator_GetColor(btn_opr, n);
+        int mc = ZETA_BinTreeNodeOperator_GetColor(btn_opr, m);
 
         if (nc != mc) {
-            SetColor(context, n, mc);
-            SetColor(context, m, nc);
+            ZETA_BinTreeNodeOperator_SetColor(btn_opr, n, mc);
+            ZETA_BinTreeNodeOperator_SetColor(btn_opr, m, nc);
         }
 
-        root = Zeta_GetMostLink(context, GetP, m);
+        root = Zeta_GetMostLink(context, btn_opr->GetP, m);
     } else {
-        root = Zeta_GetMostLink(context, GetP, n);
+        root = Zeta_GetMostLink(context, btn_opr->GetP, n);
     }
 
-    if (GetColor(context, n) == Black) {
-        nl = GetL(context, n);
-        nr = GetR(context, n);
+    if (ZETA_BinTreeNodeOperator_GetColor(btn_opr, n) == Black) {
+        nl = ZETA_BinTreeNodeOperator_GetL(btn_opr, n);
+        nr = ZETA_BinTreeNodeOperator_GetR(btn_opr, n);
 
         if (nl != NULL) {
             Zeta_BinTree_RotateR(btn_opr, n);
-            SetColor(context, nl, Black);
+            ZETA_BinTreeNodeOperator_SetColor(btn_opr, nl, Black);
         } else if (nr != NULL) {
             Zeta_BinTree_RotateL(btn_opr, n);
-            SetColor(context, nr, Black);
+            ZETA_BinTreeNodeOperator_SetColor(btn_opr, nr, Black);
         } else {
             ExtractBalance_(btn_opr, n);
         }
     }
 
-    root = Zeta_GetMostLink(context, GetP, root);
+    root = Zeta_GetMostLink(context, btn_opr->GetP, root);
     if (root == n) { return NULL; }
 
     Zeta_BinTree_Detach(btn_opr, n);
@@ -373,13 +308,15 @@ static size_t Sanitize_(Zeta_BinTreeNodeOperator const* btn_opr,
                         Zeta_MemRecorder* dst_mr, void* n) {
     if (n == NULL) { return 0; }
 
-    void* context = btn_opr->context;
+    void* nl = ZETA_BinTreeNodeOperator_GetL(btn_opr, n);
+    void* nr = ZETA_BinTreeNodeOperator_GetR(btn_opr, n);
 
-    void* nl = btn_opr->GetL(context, n);
-    void* nr = btn_opr->GetR(context, n);
-
-    if (nl != NULL) { ZETA_DebugAssert(btn_opr->GetP(context, nl) == n); }
-    if (nr != NULL) { ZETA_DebugAssert(btn_opr->GetP(context, nr) == n); }
+    if (nl != NULL) {
+        ZETA_DebugAssert(ZETA_BinTreeNodeOperator_GetP(btn_opr, nl) == n);
+    }
+    if (nr != NULL) {
+        ZETA_DebugAssert(ZETA_BinTreeNodeOperator_GetP(btn_opr, nr) == n);
+    }
 
     size_t lbh = Sanitize_(btn_opr, dst_mr, nl);
 
@@ -389,14 +326,14 @@ static size_t Sanitize_(Zeta_BinTreeNodeOperator const* btn_opr,
 
     ZETA_DebugAssert(lbh == rbh);
 
-    int nc = btn_opr->GetColor(context, n);
+    int nc = ZETA_BinTreeNodeOperator_GetColor(btn_opr, n);
 
     ZETA_DebugAssert(nc == Black || nc == Red);
 
     if (nc == Black) { return lbh + 1; }
 
-    ZETA_DebugAssert(btn_opr->GetColor(context, nl) == Black);
-    ZETA_DebugAssert(btn_opr->GetColor(context, nr) == Black);
+    ZETA_DebugAssert(ZETA_BinTreeNodeOperator_GetColor(btn_opr, nl) == Black);
+    ZETA_DebugAssert(ZETA_BinTreeNodeOperator_GetColor(btn_opr, nr) == Black);
 
     return lbh;
 }
@@ -404,15 +341,11 @@ static size_t Sanitize_(Zeta_BinTreeNodeOperator const* btn_opr,
 void Zeta_RBTree_Sanitize(Zeta_BinTreeNodeOperator const* btn_opr,
                           Zeta_MemRecorder* dst_mr, void* root) {
     ZETA_DebugAssert(btn_opr != NULL);
-    ZETA_DebugAssert(btn_opr->GetP != NULL);
-    ZETA_DebugAssert(btn_opr->GetL != NULL);
-    ZETA_DebugAssert(btn_opr->GetR != NULL);
-    ZETA_DebugAssert(btn_opr->GetColor != NULL);
 
     if (root == NULL) { return; }
 
-    ZETA_DebugAssert(ZETA_CallMemberFunc(btn_opr, GetP, root) == NULL);
-    ZETA_DebugAssert(ZETA_CallMemberFunc(btn_opr, GetColor, root) == Black);
+    ZETA_DebugAssert(ZETA_BinTreeNodeOperator_GetP(btn_opr, root) == NULL);
+    ZETA_DebugAssert(ZETA_BinTreeNodeOperator_GetColor(btn_opr, root) == Black);
 
     Sanitize_(btn_opr, dst_mr, root);
 }

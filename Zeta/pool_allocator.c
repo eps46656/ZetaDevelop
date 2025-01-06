@@ -9,8 +9,8 @@ void Zeta_PoolAllocator_Init(void* pa_) {
     pa->n = NULL;
 }
 
-size_t Zeta_PoolAllocator_GetAlign(void* pa_) {
-    Zeta_PoolAllocator* pa = pa_;
+size_t Zeta_PoolAllocator_GetAlign(void const* pa_) {
+    Zeta_PoolAllocator const* pa = pa_;
     ZETA_DebugAssert(pa != NULL);
 
     return 1;

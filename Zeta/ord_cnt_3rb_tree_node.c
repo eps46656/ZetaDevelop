@@ -3,7 +3,7 @@
 #include "debugger.h"
 #include "ptr_utils.h"
 
-void Zeta_OrdCnt3RBTreeNode_Init(void* context, void* n_) {
+void Zeta_OrdCnt3RBTreeNode_Init(void const* context, void* n_) {
     ZETA_Unused(context);
 
     Zeta_OrdCnt3RBTreeNode* n = n_;
@@ -15,7 +15,7 @@ void Zeta_OrdCnt3RBTreeNode_Init(void* context, void* n_) {
     n->acc_size = 0;
 }
 
-void* Zeta_OrdCnt3RBTreeNode_GetP(void* context, void* n_) {
+void* Zeta_OrdCnt3RBTreeNode_GetP(void const* context, void* n_) {
     ZETA_Unused(context);
 
     Zeta_OrdCnt3RBTreeNode* n = n_;
@@ -26,7 +26,7 @@ void* Zeta_OrdCnt3RBTreeNode_GetP(void* context, void* n_) {
     return n == p ? NULL : p;
 }
 
-void* Zeta_OrdCnt3RBTreeNode_GetL(void* context, void* n_) {
+void* Zeta_OrdCnt3RBTreeNode_GetL(void const* context, void* n_) {
     ZETA_Unused(context);
 
     Zeta_OrdCnt3RBTreeNode* n = n_;
@@ -37,7 +37,7 @@ void* Zeta_OrdCnt3RBTreeNode_GetL(void* context, void* n_) {
     return n == l ? NULL : l;
 }
 
-void* Zeta_OrdCnt3RBTreeNode_GetR(void* context, void* n_) {
+void* Zeta_OrdCnt3RBTreeNode_GetR(void const* context, void* n_) {
     ZETA_Unused(context);
 
     Zeta_OrdCnt3RBTreeNode* n = n_;
@@ -48,7 +48,7 @@ void* Zeta_OrdCnt3RBTreeNode_GetR(void* context, void* n_) {
     return n == r ? NULL : r;
 }
 
-void Zeta_OrdCnt3RBTreeNode_SetP(void* context, void* n_, void* m) {
+void Zeta_OrdCnt3RBTreeNode_SetP(void const* context, void* n_, void* m) {
     ZETA_Unused(context);
 
     Zeta_OrdCnt3RBTreeNode* n = n_;
@@ -58,7 +58,7 @@ void Zeta_OrdCnt3RBTreeNode_SetP(void* context, void* n_, void* m) {
                          m == NULL ? n : m);
 }
 
-void Zeta_OrdCnt3RBTreeNode_SetL(void* context, void* n_, void* m) {
+void Zeta_OrdCnt3RBTreeNode_SetL(void const* context, void* n_, void* m) {
     ZETA_Unused(context);
 
     Zeta_OrdCnt3RBTreeNode* n = n_;
@@ -68,7 +68,7 @@ void Zeta_OrdCnt3RBTreeNode_SetL(void* context, void* n_, void* m) {
                          m == NULL ? n : m);
 }
 
-void Zeta_OrdCnt3RBTreeNode_SetR(void* context, void* n_, void* m) {
+void Zeta_OrdCnt3RBTreeNode_SetR(void const* context, void* n_, void* m) {
     ZETA_Unused(context);
 
     Zeta_OrdCnt3RBTreeNode* n = n_;
@@ -78,7 +78,7 @@ void Zeta_OrdCnt3RBTreeNode_SetR(void* context, void* n_, void* m) {
                          m == NULL ? n : m);
 }
 
-int Zeta_OrdCnt3RBTreeNode_GetPColor(void* context, void* n_) {
+int Zeta_OrdCnt3RBTreeNode_GetPColor(void const* context, void* n_) {
     ZETA_Unused(context);
 
     Zeta_OrdCnt3RBTreeNode* n = n_;
@@ -88,7 +88,7 @@ int Zeta_OrdCnt3RBTreeNode_GetPColor(void* context, void* n_) {
                : ZETA_ColorPtr_GetColor(&n->p, alignof(Zeta_OrdCnt3RBTreeNode));
 }
 
-int Zeta_OrdCnt3RBTreeNode_GetLColor(void* context, void* n_) {
+int Zeta_OrdCnt3RBTreeNode_GetLColor(void const* context, void* n_) {
     ZETA_Unused(context);
 
     Zeta_OrdCnt3RBTreeNode* n = n_;
@@ -98,7 +98,7 @@ int Zeta_OrdCnt3RBTreeNode_GetLColor(void* context, void* n_) {
                : ZETA_ColorPtr_GetColor(&n->l, alignof(Zeta_OrdCnt3RBTreeNode));
 }
 
-int Zeta_OrdCnt3RBTreeNode_GetRColor(void* context, void* n_) {
+int Zeta_OrdCnt3RBTreeNode_GetRColor(void const* context, void* n_) {
     ZETA_Unused(context);
 
     Zeta_OrdCnt3RBTreeNode* n = n_;
@@ -108,7 +108,8 @@ int Zeta_OrdCnt3RBTreeNode_GetRColor(void* context, void* n_) {
                : ZETA_ColorPtr_GetColor(&n->r, alignof(Zeta_OrdCnt3RBTreeNode));
 }
 
-void Zeta_OrdCnt3RBTreeNode_SetPColor(void* context, void* n_, int color) {
+void Zeta_OrdCnt3RBTreeNode_SetPColor(void const* context, void* n_,
+                                      int color) {
     ZETA_Unused(context);
 
     Zeta_OrdCnt3RBTreeNode* n = n_;
@@ -117,7 +118,8 @@ void Zeta_OrdCnt3RBTreeNode_SetPColor(void* context, void* n_, int color) {
     ZETA_ColorPtr_SetColor(&n->p, alignof(Zeta_OrdCnt3RBTreeNode), color);
 }
 
-void Zeta_OrdCnt3RBTreeNode_SetLColor(void* context, void* n_, int color) {
+void Zeta_OrdCnt3RBTreeNode_SetLColor(void const* context, void* n_,
+                                      int color) {
     ZETA_Unused(context);
 
     Zeta_OrdCnt3RBTreeNode* n = n_;
@@ -126,7 +128,8 @@ void Zeta_OrdCnt3RBTreeNode_SetLColor(void* context, void* n_, int color) {
     ZETA_ColorPtr_SetColor(&n->l, alignof(Zeta_OrdCnt3RBTreeNode), color);
 }
 
-void Zeta_OrdCnt3RBTreeNode_SetRColor(void* context, void* n_, int color) {
+void Zeta_OrdCnt3RBTreeNode_SetRColor(void const* context, void* n_,
+                                      int color) {
     ZETA_Unused(context);
 
     Zeta_OrdCnt3RBTreeNode* n = n_;
@@ -135,7 +138,7 @@ void Zeta_OrdCnt3RBTreeNode_SetRColor(void* context, void* n_, int color) {
     ZETA_ColorPtr_SetColor(&n->r, alignof(Zeta_OrdCnt3RBTreeNode), color);
 }
 
-size_t Zeta_OrdCnt3RBTreeNode_GetAccSize(void* context, void* n_) {
+size_t Zeta_OrdCnt3RBTreeNode_GetAccSize(void const* context, void* n_) {
     ZETA_Unused(context);
 
     Zeta_OrdCnt3RBTreeNode* n = n_;
@@ -143,7 +146,7 @@ size_t Zeta_OrdCnt3RBTreeNode_GetAccSize(void* context, void* n_) {
     return n == NULL ? 0 : n->acc_size;
 }
 
-void Zeta_OrdCnt3RBTreeNode_SetAccSize(void* context, void* n_,
+void Zeta_OrdCnt3RBTreeNode_SetAccSize(void const* context, void* n_,
                                        size_t acc_size) {
     ZETA_Unused(context);
 
@@ -154,7 +157,7 @@ void Zeta_OrdCnt3RBTreeNode_SetAccSize(void* context, void* n_,
 }
 
 void Zeta_OrdCnt3RBTreeNode_DeployBinTreeNodeOperator(
-    void* context, Zeta_BinTreeNodeOperator* btn_opr) {
+    void const* context, Zeta_BinTreeNodeOperator* btn_opr) {
     ZETA_Unused(context);
 
     Zeta_BinTree_InitOpr(btn_opr);

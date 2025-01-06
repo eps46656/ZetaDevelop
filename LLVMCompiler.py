@@ -223,12 +223,15 @@ class LLVMCompiler:
         ]
 
         self.to_exe_args.append(f"-O{self.opt_type}")
-        self.to_exe_args.append(f"-O{self.opt_type}")
 
         if self.enable_debug:
             self.to_exe_args.extend([
+                "-g",
+
                 "-fno-omit-frame-pointer",
                 "-fno-optimize-sibling-calls",
+
+                "-DZETA_EnableDebug=1",
             ])
 
         if self.enable_asan:

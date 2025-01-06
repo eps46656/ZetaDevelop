@@ -14,6 +14,8 @@ DIR = FILE.parents[0]
 
 @dataclasses.dataclass
 class Config:
+    name: str
+
     verbose: bool
 
     build_dir: object
@@ -68,7 +70,12 @@ def AddDeps(builder: Builder, config: Config):
 
     # --------------------------------------------------------------------------
 
-    builder.Add(f"{FILE}", {}, None)
+    builder.Add(
+        f"{FILE}",
+        {
+        },
+        None
+    )
 
     builder.Add(
         f"{zeta_exe_dir}/assoc_cntr_utils.h",
@@ -84,6 +91,13 @@ def AddDeps(builder: Builder, config: Config):
         f"{zeta_exe_dir}/cpp_std_allocator.h",
         {
             f"{zeta_dir}/define.h",
+        },
+        None
+    )
+
+    builder.Add(
+        f"{zeta_exe_dir}/cor.s",
+        {
         },
         None
     )
@@ -2264,6 +2278,54 @@ def AddDeps(builder: Builder, config: Config):
             f"{zeta_dir}/define.h",
         },
         None
+    )
+
+    builder.Add(
+        f"{zeta_exe_dir}/test_cor.cpp",
+        {
+            f"{FILE}",
+            f"{zeta_dir}/coroutine.h",
+            f"{zeta_dir}/debugger.h",
+        },
+        None
+    )
+
+    builder.Add(
+        f"{zeta_exe_build_dir}/test_cor.o",
+        {
+            f"{FILE}",
+            f"{zeta_exe_dir}/test_cor.cpp",
+        },
+        lambda: compiler.cpp_to_obj(
+            f"{zeta_exe_build_dir}/test_cor.o",
+            f"{zeta_exe_dir}/test_cor.cpp",
+        )
+    )
+
+    builder.Add(
+        f"{zeta_exe_build_dir}/test_cor.exe",
+        {
+            f"{FILE}",
+            f"{zeta_dir}/coroutine_x86_64.s",
+            f"{zeta_build_dir}/coroutine.o",
+            f"{zeta_build_dir}/debug_str_pipe.o",
+            f"{zeta_build_dir}/debugger.o",
+            f"{zeta_build_dir}/io.o",
+            f"{zeta_build_dir}/logger.o",
+            f"{zeta_exe_build_dir}/test_cor.o",
+        },
+        lambda: compiler.to_exe(
+            f"{zeta_exe_build_dir}/test_cor.exe",
+            {
+                f"{zeta_dir}/coroutine_x86_64.s",
+                f"{zeta_build_dir}/coroutine.o",
+                f"{zeta_build_dir}/debug_str_pipe.o",
+                f"{zeta_build_dir}/debugger.o",
+                f"{zeta_build_dir}/io.o",
+                f"{zeta_build_dir}/logger.o",
+                f"{zeta_exe_build_dir}/test_cor.o",
+            }
+        )
     )
 
     builder.Add(

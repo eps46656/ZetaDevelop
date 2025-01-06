@@ -81,8 +81,8 @@ void CompareRL() {
     }
 }
 
-void Check() {
-    Zeta_RBTree_Check(&btn_opr, NULL, root);
+void Sanitize() {
+    Zeta_RBTree_Sanitize(&btn_opr, NULL, root);
     CompareLR();
     CompareRL();
 }
@@ -177,20 +177,20 @@ void main1() {
 
     for (int i = 0; i < 1024; ++i) {
         Insert(idx_generator(en) % (vec.size() + 1), size_generator(en));
-        Check();
+        Sanitize();
     }
 
     for (int _ = 0; _ < 16; ++_) {
         for (int i = 0, end = idx_generator(en) % 1024 + 4096; i < end; ++i) {
             Insert(idx_generator(en) % (vec.size() + 1), size_generator(en));
-            Check();
+            Sanitize();
         }
 
         for (int i = 0,
                  end = std::min(vec.size(), idx_generator(en) % 1024 + 4096);
              i < end; ++i) {
             Erase(idx_generator(en) % vec.size());
-            Check();
+            Sanitize();
         }
 
         for (int i = 0, end = vec.size() * 2; i < end; ++i) {

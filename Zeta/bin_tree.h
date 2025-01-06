@@ -9,20 +9,59 @@ ZETA_DeclareStruct(Zeta_BinTreeNodeOperator);
 struct Zeta_BinTreeNodeOperator {
     void* context;
 
-    void* (*GetP)(void* context, void* n);
-    void* (*GetL)(void* context, void* n);
-    void* (*GetR)(void* context, void* n);
+    void* (*GetP)(void const* context, void* n);
+    void* (*GetL)(void const* context, void* n);
+    void* (*GetR)(void const* context, void* n);
 
-    void (*SetP)(void* context, void* n, void* m);
-    void (*SetL)(void* context, void* n, void* m);
-    void (*SetR)(void* context, void* n, void* m);
+    void (*SetP)(void const* context, void* n, void* m);
+    void (*SetL)(void const* context, void* n, void* m);
+    void (*SetR)(void const* context, void* n, void* m);
 
-    int (*GetColor)(void* context, void* n);
-    void (*SetColor)(void* context, void* n, int p_color);
+    int (*GetColor)(void const* context, void* n);
+    void (*SetColor)(void const* context, void* n, int p_color);
 
-    size_t (*GetAccSize)(void* context, void* n);
-    void (*SetAccSize)(void* context, void* n, size_t acc_size);
+    size_t (*GetAccSize)(void const* context, void* n);
+    void (*SetAccSize)(void const* context, void* n, size_t acc_size);
 };
+
+// -----------------------------------------------------------------------------
+
+#define ZETA_BinTreeNodeOperator_Call_(btn_opr, member_func, ...)              \
+    ZETA_CallMemberFunc(                                                       \
+        (Zeta_BinTreeNodeOperator const*)ZETA_ToVoidPtr(btn_opr), member_func, \
+        __VA_ARGS__)
+
+#define ZETA_BinTreeNodeOperator_GetP(btn_opr, n) \
+    ZETA_BinTreeNodeOperator_Call_((btn_opr), GetP, (n))
+
+#define ZETA_BinTreeNodeOperator_GetL(btn_opr, n) \
+    ZETA_BinTreeNodeOperator_Call_((btn_opr), GetL, (n))
+
+#define ZETA_BinTreeNodeOperator_GetR(btn_opr, n) \
+    ZETA_BinTreeNodeOperator_Call_((btn_opr), GetR, (n))
+
+#define ZETA_BinTreeNodeOperator_SetP(btn_opr, n, m) \
+    ZETA_BinTreeNodeOperator_Call_((btn_opr), SetP, (n), (m))
+
+#define ZETA_BinTreeNodeOperator_SetL(btn_opr, n, m) \
+    ZETA_BinTreeNodeOperator_Call_((btn_opr), SetL, (n), (m))
+
+#define ZETA_BinTreeNodeOperator_SetR(btn_opr, n, m) \
+    ZETA_BinTreeNodeOperator_Call_((btn_opr), SetR, (n), (m))
+
+#define ZETA_BinTreeNodeOperator_GetColor(btn_opr, n) \
+    ZETA_BinTreeNodeOperator_Call_((btn_opr), GetColor, (n))
+
+#define ZETA_BinTreeNodeOperator_SetColor(btn_opr, n, color) \
+    ZETA_BinTreeNodeOperator_Call_((btn_opr), SetColor, (n), (color))
+
+#define ZETA_BinTreeNodeOperator_GetAccSize(btn_opr, n) \
+    ZETA_BinTreeNodeOperator_Call_((btn_opr), GetAccSize, (n))
+
+#define ZETA_BinTreeNodeOperator_SetAccSize(btn_opr, n, acc_size) \
+    ZETA_BinTreeNodeOperator_Call_((btn_opr), SetAccSize, (n), (acc_size))
+
+// -----------------------------------------------------------------------------
 
 void Zeta_BinTree_InitOpr(Zeta_BinTreeNodeOperator* btn_opr);
 
@@ -78,6 +117,6 @@ void Zeta_BinTree_AdvanceR(void** dst_n, size_t* dst_tail_idx,
 void Zeta_BinTree_GetAccSize(size_t* dst_l_acc_size, size_t* dst_r_acc_size,
                              Zeta_BinTreeNodeOperator const* btn_opr, void* n);
 
-void Zeta_BinTree_Check(Zeta_BinTreeNodeOperator const* btn_opr, void* root);
+void Zeta_BinTree_Sanitize(Zeta_BinTreeNodeOperator const* btn_opr, void* root);
 
 ZETA_ExternC_End;

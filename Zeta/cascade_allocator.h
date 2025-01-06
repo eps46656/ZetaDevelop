@@ -18,17 +18,18 @@ struct Zeta_CascadeAllocator {
 
 void Zeta_CascadeAllocator_Init(void* ca);
 
-size_t Zeta_CascadeAllocator_Query(void* ca, size_t size);
+size_t Zeta_CascadeAllocator_GetAlign(void const* ca);
 
-size_t Zeta_CascadeAllocator_GetAlign(void* ca);
+size_t Zeta_CascadeAllocator_Query(void const* ca, size_t size);
 
 void* Zeta_CascadeAllocator_Allocate(void* ca, size_t size);
 
 void Zeta_CascadeAllocator_Deallocate(void* ca, void* ptr);
 
-void Zeta_CascadeAllocator_Check(void* ca);
+void Zeta_CascadeAllocator_Check(void const* ca);
 
-void Zeta_CascadeAllocator_Sanitize(void* ca, Zeta_MemRecorder* dst_recorder);
+void Zeta_CascadeAllocator_Sanitize(void const* ca,
+                                    Zeta_MemRecorder* dst_recorder);
 
 void Zeta_CascadeAllocator_DeployAllocator(void* ca, Zeta_Allocator* allocator);
 

@@ -46,20 +46,20 @@ void Zeta_CascadeAllocator_Init(void* ca_) {
     ca->first_node = first_node;
 }
 
-size_t Zeta_CascadeAllocator_Query(void* ca_, size_t size) {
-    Zeta_CascadeAllocator* ca = ca_;
+size_t Zeta_CascadeAllocator_GetAlign(void const* ca_) {
+    Zeta_CascadeAllocator const* ca = ca_;
+    Check_(ca);
+
+    return ca->align;
+}
+
+size_t Zeta_CascadeAllocator_Query(void const* ca_, size_t size) {
+    Zeta_CascadeAllocator const* ca = ca_;
     Check_(ca);
 
     size_t align = ca->align;
 
     return ZETA_IntRoundUp(size, align);
-}
-
-size_t Zeta_CascadeAllocator_GetAlign(void* ca_) {
-    Zeta_CascadeAllocator* ca = ca_;
-    Check_(ca);
-
-    return ca->align;
 }
 
 void* Zeta_CascadeAllocator_Allocate(void* ca_, size_t size) {
@@ -112,8 +112,8 @@ void Zeta_CascadeAllocator_Deallocate(void* ca_, void* ptr) {
     Zeta_OrdLinkedListNode_Extract(ptr - node_size);
 }
 
-void Zeta_CascadeAllocator_Check(void* ca_) {
-    Zeta_CascadeAllocator* ca = ca_;
+void Zeta_CascadeAllocator_Check(void const* ca_) {
+    Zeta_CascadeAllocator const* ca = ca_;
     ZETA_DebugAssert(ca != NULL);
 
     size_t align = ca->align;
@@ -128,13 +128,10 @@ void Zeta_CascadeAllocator_Check(void* ca_) {
     ZETA_DebugAssert(__builtin_is_aligned(mem_end, align));
 }
 
-void Zeta_CascadeAllocator_Sanitize(void* ca_, Zeta_MemRecorder* dst) {
-    Zeta_CascadeAllocator* ca = ca_;
+void Zeta_CascadeAllocator_Sanitize(void const* ca_, Zeta_MemRecorder* dst) {
+    Zeta_CascadeAllocator const* ca = ca_;
     Check_(ca);
 
-#if !(ZETA_EnableIntegrityDebug && ZETA_EnableDeepDebug)
-    ZETA_Unused(dst);
-#else
     size_t align = ca->align;
 
     size_t node_size = ZETA_IntRoundUp(sizeof(Zeta_OrdLinkedListNode), align);
@@ -160,7 +157,6 @@ void Zeta_CascadeAllocator_Sanitize(void* ca_, Zeta_MemRecorder* dst) {
 
     ZETA_DebugAssert(ca->mem + ca->size - node_size ==
                      Zeta_OrdLinkedListNode_GetL(first_node));
-#endif
 }
 
 void Zeta_CascadeAllocator_DeployAllocator(void* ca_, Zeta_Allocator* dst) {

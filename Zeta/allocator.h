@@ -9,9 +9,9 @@ ZETA_DeclareStruct(Zeta_Allocator);
 struct Zeta_Allocator {
     void* context;
 
-    size_t (*GetAlign)(void* context);
+    size_t (*GetAlign)(void const* context);
 
-    size_t (*Query)(void* context, size_t size);
+    size_t (*Query)(void const* context, size_t size);
 
     void* (*Allocate)(void* context, size_t size);
 

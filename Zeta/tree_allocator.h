@@ -71,7 +71,7 @@ size_t Zeta_TreeAllocator_GetAlign(void* ta);
  * @param size The size(byte) of allocated memory should at least occupied at
  * least size of bytes.
  */
-size_t Zeta_TreeAllocator_Query(void* ta, size_t size);
+size_t Zeta_TreeAllocator_Query(void const* ta, size_t size);
 
 /**
  * @brief Allocate a continuous memory from managed memory block, then return
@@ -81,7 +81,7 @@ size_t Zeta_TreeAllocator_Query(void* ta, size_t size);
  * @param size The size(byte) of allocated memory should at least occupied at
  * least size of bytes.
  */
-void* Zeta_TreeAllocator_Allocate(void* ta, size_t size);
+void* Zeta_TreeAllocator_Allocate(void const* ta, size_t size);
 
 /**
  * @brief Deallocate the target memory block. The memory block should be

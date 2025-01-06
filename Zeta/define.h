@@ -493,14 +493,16 @@ ZETA_StaticAssert(255 <= ZETA_RangeMaxOf(byte_t));
 
 #define ZETA_IntRoundDown(x, y) ZETA_IntRoundDown_(ZETA_TmpName, (x), (y))
 
-#define ZETA_IntRoundUp_(tmp_y, x, y)              \
-    ({                                             \
-        ZETA_AutoVar(tmp_y, (y));                  \
-        ZETA_DebugAssert(0 < tmp_y);               \
-        ZETA_IntRoundDown((x) + tmp_y - 1, tmp_y); \
+#define ZETA_IntRoundUp_(tmp_x, tmp_y, x, y)                      \
+    ({                                                            \
+        ZETA_AutoVar(tmp_x, (x));                                 \
+        ZETA_AutoVar(tmp_y, (y));                                 \
+        ZETA_DebugAssert(0 < tmp_y);                              \
+        tmp_x == 0 ? 0 : tmp_x - 1 - (tmp_x - 1) % tmp_y + tmp_y; \
     })
 
-#define ZETA_IntRoundUp(x, y) ZETA_IntRoundUp_(ZETA_TmpName, (x), (y))
+#define ZETA_IntRoundUp(x, y) \
+    ZETA_IntRoundUp_(ZETA_TmpName, ZETA_TmpName, (x), (y))
 
 #define ZETA_FixedPoint_BaseOrder (ZETA_ULLONG_WIDTH * 3 / 8)
 

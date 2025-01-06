@@ -4,35 +4,35 @@
 #include "ptr_utils.h"
 
 #define GetL_(n) \
-    ((void*)__builtin_align_down(n->l, alignof(Zeta_OrdRBLinkedListNode)))
+    ZETA_ColorPtr_GetPtr((&(n)->l), alignof(Zeta_OrdRBLinkedListNode))
 
 #define GetR_(n) \
-    ((void*)__builtin_align_down(n->r, alignof(Zeta_OrdRBLinkedListNode)))
+    ZETA_ColorPtr_GetPtr((&(n)->r), alignof(Zeta_OrdRBLinkedListNode))
 
-#define GetLC_(n) (n->l - GetL_(n))
+#define SetL_(n, m) \
+    ZETA_ColorPtr_SetPtr((&(n)->l), alignof(Zeta_OrdRBLinkedListNode), (m))
 
-#define GetRC_(n) (n->r - GetR_(n))
+#define SetR_(n, m) \
+    ZETA_ColorPtr_SetPtr((&(n)->r), alignof(Zeta_OrdRBLinkedListNode), (m))
 
-static void SetL_(void* n_, void* l) {
-    Zeta_OrdRBLinkedListNode* n = n_;
-    ZETA_DebugAssert(n != NULL);
+#define GetLC_(n) \
+    ZETA_ColorPtr_GetColor((&(n)->l), alignof(Zeta_OrdRBLinkedListNode))
 
-    n->l = l + GetLC_(n);
-}
+#define GetRC_(n) \
+    ZETA_ColorPtr_GetColor((&(n)->r), alignof(Zeta_OrdRBLinkedListNode))
 
-static void SetR_(void* n_, void* r) {
-    Zeta_OrdRBLinkedListNode* n = n_;
-    ZETA_DebugAssert(n != NULL);
+#define SetLC_(n, c) \
+    ZETA_ColorPtr_SetColor((&(n)->l), alignof(Zeta_OrdRBLinkedListNode), (c))
 
-    n->r = r + GetRC_(n);
-}
+#define SetRC_(n, c) \
+    ZETA_ColorPtr_SetColor((&(n)->r), alignof(Zeta_OrdRBLinkedListNode), (c))
 
 void Zeta_OrdRBLinkedListNode_Init(void* n_) {
     Zeta_OrdRBLinkedListNode* n = n_;
     ZETA_DebugAssert(n != NULL);
 
-    n->l = (void*)n;
-    n->r = (void*)n;
+    ZETA_ColorPtr_Set(&n->l, alignof(Zeta_OrdRBLinkedListNode), n, 0);
+    ZETA_ColorPtr_Set(&n->r, alignof(Zeta_OrdRBLinkedListNode), n, 0);
 }
 
 void* Zeta_OrdRBLinkedListNode_GetL(void* n_) {
@@ -67,8 +67,8 @@ void Zeta_OrdRBLinkedListNode_SetColor(void* n_, int color) {
     int lc = color % alignof(Zeta_OrdRBLinkedListNode);
     int rc = color / alignof(Zeta_OrdRBLinkedListNode);
 
-    ZETA_ColorPtr_SetColor(&n->l, alignof(Zeta_OrdRBLinkedListNode), lc);
-    ZETA_ColorPtr_SetColor(&n->r, alignof(Zeta_OrdRBLinkedListNode), rc);
+    SetLC_(n, lc);
+    SetRC_(n, rc);
 }
 
 size_t Zeta_OrdRBLinkedListNode_Count(void* n_, void* m_) {
@@ -95,7 +95,7 @@ void Zeta_OrdRBLinkedListNode_InsertL(void* n_, void* m_) {
     ZETA_DebugAssert(GetL_(m) == m);
     ZETA_DebugAssert(GetR_(m) == m);
 
-    void* nl = GetL_(n);
+    Zeta_OrdRBLinkedListNode* nl = GetL_(n);
 
     SetL_(n, m);
     SetR_(m, n);
@@ -114,7 +114,7 @@ void Zeta_OrdRBLinkedListNode_InsertR(void* n_, void* m_) {
     ZETA_DebugAssert(GetL_(m) == m);
     ZETA_DebugAssert(GetR_(m) == m);
 
-    void* nr = GetR_(n);
+    Zeta_OrdRBLinkedListNode* nr = GetR_(n);
 
     SetR_(n, m);
     SetL_(m, n);
@@ -132,10 +132,10 @@ void Zeta_OrdRBLinkedListNode_InsertSegL(void* n_, void* m_beg_, void* m_end_) {
     ZETA_DebugAssert(m_beg != NULL);
     ZETA_DebugAssert(m_end != NULL);
 
-    void* nl = GetL_(n);
+    Zeta_OrdRBLinkedListNode* nl = GetL_(n);
 
-    void* m_beg_l = GetL_(m_beg);
-    void* m_end_r = GetR_(m_end);
+    Zeta_OrdRBLinkedListNode* m_beg_l = GetL_(m_beg);
+    Zeta_OrdRBLinkedListNode* m_end_r = GetR_(m_end);
 
     SetL_(m_end_r, m_beg_l);
     SetR_(m_beg_l, m_end_r);
@@ -156,10 +156,10 @@ void Zeta_OrdRBLinkedListNode_InsertSegR(void* n_, void* m_beg_, void* m_end_) {
     ZETA_DebugAssert(m_beg != NULL);
     ZETA_DebugAssert(m_end != NULL);
 
-    void* nr = GetR_(n);
+    Zeta_OrdRBLinkedListNode* nr = GetR_(n);
 
-    void* m_beg_l = GetL_(m_beg);
-    void* m_end_r = GetR_(m_end);
+    Zeta_OrdRBLinkedListNode* m_beg_l = GetL_(m_beg);
+    Zeta_OrdRBLinkedListNode* m_end_r = GetR_(m_end);
 
     SetR_(m_beg_l, m_end_r);
     SetL_(m_end_r, m_beg_l);
@@ -175,12 +175,12 @@ void Zeta_OrdRBLinkedListNode_Extract(void* n_) {
     Zeta_OrdRBLinkedListNode* n = n_;
     ZETA_DebugAssert(n != NULL);
 
-    void* nl = GetL_(n);
-    void* nr = GetR_(n);
+    Zeta_OrdRBLinkedListNode* nl = GetL_(n);
+    Zeta_OrdRBLinkedListNode* nr = GetR_(n);
 
     SetR_(nl, nr);
     SetL_(nr, nl);
 
-    n->l = n + GetLC_(n);
-    n->r = n + GetRC_(n);
+    SetL_(n, n);
+    SetR_(n, n);
 }

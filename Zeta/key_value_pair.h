@@ -78,6 +78,8 @@ struct hash<KeyValuePair<Key, Value>> {
 }  // namespace std
 
 template <typename Key, typename Value>
-KeyValuePair<Key, Value> GetRandom<KeyValuePair<Key, Value>>() {
-    return { GetRandom<Key>(), GetRandom<Value>() };
-}
+struct GetRandomCore<KeyValuePair<Key, Value>> {
+    KeyValuePair<Key, Value> operator()() const {
+        return { GetRandom<Key>(), GetRandom<Value>() };
+    }
+};

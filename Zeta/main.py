@@ -14,6 +14,8 @@ DIR = FILE.parents[0]
 
 @dataclasses.dataclass
 class Config:
+    name: str
+
     verbose: bool
 
     build_dir: object
@@ -62,7 +64,12 @@ def AddDeps(builder: Builder, config: Config):
 
     # --------------------------------------------------------------------------
 
-    builder.Add(f"{FILE}", {}, None)
+    builder.Add(
+        f"{FILE}",
+        {
+        },
+        None
+    )
 
     builder.Add(
         f"{zeta_dir}/algorithm.h",
@@ -343,6 +350,45 @@ def AddDeps(builder: Builder, config: Config):
         lambda: compiler.c_to_obj(
             f"{zeta_build_dir}/circular_array.o",
             f"{zeta_dir}/circular_array.c",
+        )
+    )
+
+    builder.Add(
+        f"{zeta_dir}/coroutine_x86_64.s",
+        {
+            f"{FILE}",
+        },
+        None
+    )
+
+    builder.Add(
+        f"{zeta_dir}/coroutine.h",
+        {
+            f"{FILE}",
+            f"{zeta_dir}/define.h",
+        },
+        None
+    )
+
+    builder.Add(
+        f"{zeta_dir}/coroutine.c",
+        {
+            f"{FILE}",
+            f"{zeta_dir}/coroutine.h",
+            f"{zeta_dir}/debugger.h",
+        },
+        None
+    )
+
+    builder.Add(
+        f"{zeta_build_dir}/coroutine.o",
+        {
+            f"{FILE}",
+            f"{zeta_dir}/coroutine.c",
+        },
+        lambda: compiler.c_to_obj(
+            f"{zeta_build_dir}/coroutine.o",
+            f"{zeta_dir}/coroutine.c",
         )
     )
 

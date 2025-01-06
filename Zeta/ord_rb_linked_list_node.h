@@ -1,6 +1,6 @@
 #pragma once
 
-#include "define.h"
+#include "ptr_utils.h"
 
 ZETA_ExternC_Beg;
 

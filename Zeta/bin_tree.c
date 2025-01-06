@@ -22,12 +22,10 @@ void Zeta_BinTree_InitOpr(Zeta_BinTreeNodeOperator* btn_opr) {
 }
 
 static size_t Count_(Zeta_BinTreeNodeOperator const* btn_opr, void* n) {
-    void* context = btn_opr->context;
-
     size_t ret = 1;
 
-    void* nl = btn_opr->GetL(context, n);
-    void* nr = btn_opr->GetR(context, n);
+    void* nl = ZETA_BinTreeNodeOperator_GetL(btn_opr, n);
+    void* nr = ZETA_BinTreeNodeOperator_GetR(btn_opr, n);
 
     if (nl != NULL) { ret += Count_(btn_opr, nl); }
     if (nr != NULL) { ret += Count_(btn_opr, nr); }
@@ -38,10 +36,6 @@ static size_t Count_(Zeta_BinTreeNodeOperator const* btn_opr, void* n) {
 size_t Zeta_BinTree_Count(Zeta_BinTreeNodeOperator const* btn_opr, void* n) {
     if (n == NULL) { return 0; }
 
-    ZETA_DebugAssert(btn_opr != NULL);
-    ZETA_DebugAssert(btn_opr->GetL != NULL);
-    ZETA_DebugAssert(btn_opr->GetR != NULL);
-
     return Count_(btn_opr, n);
 }
 
@@ -49,43 +43,25 @@ static void AddDiffSize_(Zeta_BinTreeNodeOperator const* btn_opr, void* n,
                          size_t diff_size) {
     if (diff_size == 0) { return; }
 
-    void* context = btn_opr->context;
-
-    void* (*GetP)(void* context, void* n) = btn_opr->GetP;
-    ZETA_DebugAssert(GetP != NULL);
-
-    size_t (*GetAccSize)(void* context, void* n) = btn_opr->GetAccSize;
-    void (*SetAccSize)(void* context, void* n, size_t acc_size) =
-        btn_opr->SetAccSize;
-
-    ZETA_DebugAssert(GetAccSize != NULL);
-    ZETA_DebugAssert(SetAccSize != NULL);
-
-    for (; n != NULL; n = GetP(context, n)) {
-        SetAccSize(context, n, GetAccSize(context, n) + diff_size);
+    for (; n != NULL; n = ZETA_BinTreeNodeOperator_GetP(btn_opr, n)) {
+        ZETA_BinTreeNodeOperator_SetAccSize(
+            btn_opr, n,
+            ZETA_BinTreeNodeOperator_GetAccSize(btn_opr, n) + diff_size);
     }
 }
 
 size_t Zeta_BinTree_GetSize(Zeta_BinTreeNodeOperator const* btn_opr, void* n) {
     ZETA_DebugAssert(btn_opr != NULL);
 
-    void* context = btn_opr->context;
-
-    size_t (*GetAccSize)(void* context, void* n) = btn_opr->GetAccSize;
-    ZETA_DebugAssert(GetAccSize != NULL);
-
-    size_t n_acc_size = GetAccSize(context, n);
+    size_t n_acc_size = ZETA_BinTreeNodeOperator_GetAccSize(btn_opr, n);
 
     if (n == NULL) { return n_acc_size; }
 
-    void* (*GetL)(void* context, void* n) = btn_opr->GetL;
-    void* (*GetR)(void* context, void* n) = btn_opr->GetR;
-
-    ZETA_DebugAssert(GetL != NULL);
-    ZETA_DebugAssert(GetR != NULL);
-
-    return n_acc_size - GetAccSize(context, GetL(context, n)) -
-           GetAccSize(context, GetR(context, n));
+    return n_acc_size -
+           ZETA_BinTreeNodeOperator_GetAccSize(
+               btn_opr, ZETA_BinTreeNodeOperator_GetL(btn_opr, n)) -
+           ZETA_BinTreeNodeOperator_GetAccSize(
+               btn_opr, ZETA_BinTreeNodeOperator_GetR(btn_opr, n));
 }
 
 void Zeta_BinTree_SetSize(Zeta_BinTreeNodeOperator const* btn_opr, void* n,
@@ -106,38 +82,24 @@ void Zeta_BinTree_SetDiffSize(Zeta_BinTreeNodeOperator const* btn_opr, void* n,
     AddDiffSize_(btn_opr, n, diff_size);
 }
 
-#define Attatch_(D)                                                       \
-    ZETA_DebugAssert(btn_opr != NULL);                                    \
-                                                                          \
-    ZETA_DebugAssert(n != NULL);                                          \
-                                                                          \
-    void* context = btn_opr->context;                                     \
-                                                                          \
-    void* (*GetP)(void* context, void* n) = btn_opr->GetP;                \
-    void* (*GetD)(void* context, void* n) = btn_opr->Get##D;              \
-                                                                          \
-    ZETA_DebugAssert(GetP != NULL);                                       \
-    ZETA_DebugAssert(GetD != NULL);                                       \
-                                                                          \
-    void (*SetP)(void* context, void* n, void* m) = btn_opr->SetP;        \
-    void (*SetD)(void* context, void* n, void* m) = btn_opr->Set##D;      \
-                                                                          \
-    ZETA_DebugAssert(SetP != NULL);                                       \
-    ZETA_DebugAssert(SetD != NULL);                                       \
-                                                                          \
-    ZETA_DebugAssert(GetD(context, n) == NULL);                           \
-    ZETA_DebugAssert(m == NULL || GetP(context, m) == NULL);              \
-                                                                          \
-    if (m == NULL) { return; }                                            \
-                                                                          \
-    SetD(context, n, m);                                                  \
-    SetP(context, m, n);                                                  \
-                                                                          \
-    size_t (*GetAccSize)(void* context, void* n) = btn_opr->GetAccSize;   \
-                                                                          \
-    if (GetAccSize != NULL) {                                             \
-        AddDiffSize_(btn_opr, n,                                          \
-                     GetAccSize(context, m) - GetAccSize(context, NULL)); \
+#define Attatch_(D)                                                           \
+    ZETA_DebugAssert(btn_opr != NULL);                                        \
+                                                                              \
+    ZETA_DebugAssert(n != NULL);                                              \
+                                                                              \
+    ZETA_DebugAssert(ZETA_BinTreeNodeOperator_Get##D(btn_opr, n) == NULL);    \
+    ZETA_DebugAssert(m == NULL ||                                             \
+                     ZETA_BinTreeNodeOperator_GetP(btn_opr, m) == NULL);      \
+                                                                              \
+    if (m == NULL) { return; }                                                \
+                                                                              \
+    ZETA_BinTreeNodeOperator_Set##D(btn_opr, n, m);                           \
+    ZETA_BinTreeNodeOperator_SetP(btn_opr, m, n);                             \
+                                                                              \
+    if (btn_opr->GetAccSize != NULL) {                                        \
+        AddDiffSize_(btn_opr, n,                                              \
+                     ZETA_BinTreeNodeOperator_GetAccSize(btn_opr, m) -        \
+                         ZETA_BinTreeNodeOperator_GetAccSize(btn_opr, NULL)); \
     }
 
 void Zeta_BinTree_AttatchL(Zeta_BinTreeNodeOperator const* btn_opr, void* n,
@@ -155,41 +117,22 @@ void Zeta_BinTree_Detach(Zeta_BinTreeNodeOperator const* btn_opr, void* n) {
 
     ZETA_DebugAssert(n != NULL);
 
-    void* context = btn_opr->context;
-
-    void* (*GetP)(void* context, void* n) = btn_opr->GetP;
-    void* (*GetL)(void* context, void* n) = btn_opr->GetL;
-
-    ZETA_DebugAssert(GetP != NULL);
-    ZETA_DebugAssert(GetL != NULL);
-
-    void (*SetP)(void* context, void* n, void* m) = btn_opr->SetP;
-    void (*SetL)(void* context, void* n, void* m) = btn_opr->SetL;
-    void (*SetR)(void* context, void* n, void* m) = btn_opr->SetR;
-
-    ZETA_DebugAssert(SetP != NULL);
-    ZETA_DebugAssert(SetL != NULL);
-    ZETA_DebugAssert(SetR != NULL);
-
-    size_t (*GetAccSize)(void* context, void* n) = btn_opr->GetAccSize;
-    void (*SetAccSize)(void* context, void* n, size_t acc_size) =
-        btn_opr->SetAccSize;
-
-    void* np = GetP(context, n);
+    void* np = ZETA_BinTreeNodeOperator_GetP(btn_opr, n);
 
     if (np == NULL) { return; }
 
-    if (GetL(context, np) == n) {
-        SetL(context, np, NULL);
+    if (ZETA_BinTreeNodeOperator_GetL(btn_opr, np) == n) {
+        ZETA_BinTreeNodeOperator_SetL(btn_opr, np, NULL);
     } else {
-        SetR(context, np, NULL);
+        ZETA_BinTreeNodeOperator_SetR(btn_opr, np, NULL);
     }
 
-    SetP(context, n, NULL);
+    ZETA_BinTreeNodeOperator_SetP(btn_opr, n, NULL);
 
-    if (GetAccSize != NULL && SetAccSize != NULL) {
+    if (btn_opr->GetAccSize != NULL && btn_opr->SetAccSize != NULL) {
         AddDiffSize_(btn_opr, np,
-                     GetAccSize(context, NULL) - GetAccSize(context, n));
+                     ZETA_BinTreeNodeOperator_GetAccSize(btn_opr, NULL) -
+                         ZETA_BinTreeNodeOperator_GetAccSize(btn_opr, n));
     }
 }
 
@@ -197,18 +140,6 @@ static void EraseAll_B_(Zeta_BinTreeNodeOperator const* btn_opr, void* n,
                         void* callback_context,
                         void (*Callback)(void* callback_context, void* n)) {
     ZETA_DebugAssert(n != NULL);
-
-    void* context = btn_opr->context;
-
-    void* (*GetP)(void* context, void* n) = btn_opr->GetP;
-    void* (*GetL)(void* context, void* n) = btn_opr->GetL;
-    void* (*GetR)(void* context, void* n) = btn_opr->GetR;
-
-    ZETA_DebugAssert(GetL != NULL);
-    ZETA_DebugAssert(GetR != NULL);
-
-    void (*SetP)(void* context, void* n, void* p) = btn_opr->SetP;
-    ZETA_DebugAssert(SetP != NULL);
 
     void* head = NULL;
 
@@ -218,11 +149,11 @@ static void EraseAll_B_(Zeta_BinTreeNodeOperator const* btn_opr, void* n,
         if (n == NULL) {
             if (head == NULL) { break; }
             n = head;
-            head = GetP(context, head);
+            head = ZETA_BinTreeNodeOperator_GetP(btn_opr, head);
         }
 
-        void* nl = GetL(context, n);
-        void* nr = GetR(context, n);
+        void* nl = ZETA_BinTreeNodeOperator_GetL(btn_opr, n);
+        void* nr = ZETA_BinTreeNodeOperator_GetR(btn_opr, n);
 
         if (Callback != NULL) { Callback(callback_context, n); }
 
@@ -237,11 +168,11 @@ static void EraseAll_B_(Zeta_BinTreeNodeOperator const* btn_opr, void* n,
         }
 
         if (Zeta_SimpleRandomRotate(&seed) % 2 == 0) {
-            SetP(context, nl, head);
+            ZETA_BinTreeNodeOperator_SetP(btn_opr, nl, head);
             head = nl;
             n = nr;
         } else {
-            SetP(context, nr, head);
+            ZETA_BinTreeNodeOperator_SetP(btn_opr, nr, head);
             head = nr;
             n = nl;
         }
@@ -251,14 +182,6 @@ static void EraseAll_B_(Zeta_BinTreeNodeOperator const* btn_opr, void* n,
 static void EraseAll_A_(Zeta_BinTreeNodeOperator const* btn_opr, void* n,
                         void* callback_context,
                         void (*Callback)(void* callback_context, void* n)) {
-    void* context = btn_opr->context;
-
-    void* (*GetL)(void* context, void* n) = btn_opr->GetL;
-    void* (*GetR)(void* context, void* n) = btn_opr->GetR;
-
-    ZETA_DebugAssert(GetL != NULL);
-    ZETA_DebugAssert(GetR != NULL);
-
     size_t buffer_capacity = ZETA_GetMaxOf(24, ZETA_ULLONG_WIDTH * 3 / 4);
 
     void* buffer[buffer_capacity];
@@ -269,8 +192,8 @@ static void EraseAll_A_(Zeta_BinTreeNodeOperator const* btn_opr, void* n,
     while (0 < buffer_i) {
         n = buffer[--buffer_i];
 
-        void* nl = GetL(context, n);
-        void* nr = GetR(context, n);
+        void* nl = ZETA_BinTreeNodeOperator_GetL(btn_opr, n);
+        void* nr = ZETA_BinTreeNodeOperator_GetR(btn_opr, n);
 
         if (Callback != NULL) { Callback(callback_context, n); }
 
@@ -297,12 +220,7 @@ void Zeta_BinTree_EraseAll(Zeta_BinTreeNodeOperator const* btn_opr, void* root,
                            void (*Callback)(void* callback_context, void* n)) {
     ZETA_DebugAssert(btn_opr != NULL);
 
-    void* context = btn_opr->context;
-
-    void* (*GetP)(void* context, void* n) = btn_opr->GetP;
-    ZETA_DebugAssert(GetP != NULL);
-
-    ZETA_DebugAssert(GetP(context, root) == NULL);
+    ZETA_DebugAssert(ZETA_BinTreeNodeOperator_GetP(btn_opr, root) == NULL);
 
     EraseAll_A_(btn_opr, root, callback_context, Callback);
 }
@@ -316,30 +234,8 @@ void Zeta_BinTree_Swap(Zeta_BinTreeNodeOperator const* btn_opr, void* n,
 
     if (n == m) { return; }
 
-    void* context = btn_opr->context;
-
-    void* (*GetP)(void* context, void* n) = btn_opr->GetP;
-    void* (*GetL)(void* context, void* n) = btn_opr->GetL;
-    void* (*GetR)(void* context, void* n) = btn_opr->GetR;
-
-    ZETA_DebugAssert(GetP != NULL);
-    ZETA_DebugAssert(GetL != NULL);
-    ZETA_DebugAssert(GetR != NULL);
-
-    void (*SetP)(void* context, void* n, void* m) = btn_opr->SetP;
-    void (*SetL)(void* context, void* n, void* m) = btn_opr->SetL;
-    void (*SetR)(void* context, void* n, void* m) = btn_opr->SetR;
-
-    ZETA_DebugAssert(SetP != NULL);
-    ZETA_DebugAssert(SetL != NULL);
-    ZETA_DebugAssert(SetR != NULL);
-
-    size_t (*GetAccSize)(void* context, void* n) = btn_opr->GetAccSize;
-    void (*SetAccSize)(void* context, void* n, size_t acc_size) =
-        btn_opr->SetAccSize;
-
-    void* np = GetP(context, n);
-    void* mp = GetP(context, m);
+    void* np = ZETA_BinTreeNodeOperator_GetP(btn_opr, n);
+    void* mp = ZETA_BinTreeNodeOperator_GetP(btn_opr, m);
 
     if (np == m) {
         ZETA_Swap(n, m);
@@ -352,150 +248,132 @@ void Zeta_BinTree_Swap(Zeta_BinTreeNodeOperator const* btn_opr, void* n,
     size_t n_size;
     size_t m_size;
 
-    void* nl = GetL(context, n);
-    void* nr = GetR(context, n);
+    void* nl = ZETA_BinTreeNodeOperator_GetL(btn_opr, n);
+    void* nr = ZETA_BinTreeNodeOperator_GetR(btn_opr, n);
 
-    void* ml = GetL(context, m);
-    void* mr = GetR(context, m);
+    void* ml = ZETA_BinTreeNodeOperator_GetL(btn_opr, m);
+    void* mr = ZETA_BinTreeNodeOperator_GetR(btn_opr, m);
 
-    if (GetAccSize != NULL && SetAccSize != NULL) {
-        n_acc_size = GetAccSize(context, n);
-        m_acc_size = GetAccSize(context, m);
+    if (btn_opr->GetAccSize != NULL && btn_opr->SetAccSize != NULL) {
+        n_acc_size = ZETA_BinTreeNodeOperator_GetAccSize(btn_opr, n);
+        m_acc_size = ZETA_BinTreeNodeOperator_GetAccSize(btn_opr, m);
 
-        n_size = n_acc_size - GetAccSize(context, nl) - GetAccSize(context, nr);
-        m_size = m_acc_size - GetAccSize(context, ml) - GetAccSize(context, mr);
+        n_size = n_acc_size - ZETA_BinTreeNodeOperator_GetAccSize(btn_opr, nl) -
+                 ZETA_BinTreeNodeOperator_GetAccSize(btn_opr, nr);
+        m_size = m_acc_size - ZETA_BinTreeNodeOperator_GetAccSize(btn_opr, ml) -
+                 ZETA_BinTreeNodeOperator_GetAccSize(btn_opr, mr);
     }
 
     if (mp == n) {
         if (np != NULL) {
-            if (GetL(context, np) == n) {
-                SetL(context, np, m);
+            if (ZETA_BinTreeNodeOperator_GetL(btn_opr, np) == n) {
+                ZETA_BinTreeNodeOperator_SetL(btn_opr, np, m);
             } else {
-                SetR(context, np, m);
+                ZETA_BinTreeNodeOperator_SetR(btn_opr, np, m);
             }
         }
 
-        SetP(context, m, np);
+        ZETA_BinTreeNodeOperator_SetP(btn_opr, m, np);
 
-        if (GetL(context, n) == m) {
-            SetL(context, m, n);
+        if (ZETA_BinTreeNodeOperator_GetL(btn_opr, n) == m) {
+            ZETA_BinTreeNodeOperator_SetL(btn_opr, m, n);
 
-            SetR(context, m, nr);
-            if (nr != NULL) { SetP(context, nr, m); }
+            ZETA_BinTreeNodeOperator_SetR(btn_opr, m, nr);
+            if (nr != NULL) { ZETA_BinTreeNodeOperator_SetP(btn_opr, nr, m); }
         } else {
-            SetL(context, m, nl);
-            if (nl != NULL) { SetP(context, nl, m); }
+            ZETA_BinTreeNodeOperator_SetL(btn_opr, m, nl);
+            if (nl != NULL) { ZETA_BinTreeNodeOperator_SetP(btn_opr, nl, m); }
 
-            SetR(context, m, n);
+            ZETA_BinTreeNodeOperator_SetR(btn_opr, m, n);
         }
 
-        SetP(context, n, m);
+        ZETA_BinTreeNodeOperator_SetP(btn_opr, n, m);
 
-        SetL(context, n, ml);
-        if (ml != NULL) { SetP(context, ml, n); }
+        ZETA_BinTreeNodeOperator_SetL(btn_opr, n, ml);
+        if (ml != NULL) { ZETA_BinTreeNodeOperator_SetP(btn_opr, ml, n); }
 
-        SetR(context, n, mr);
-        if (mr != NULL) { SetP(context, mr, n); }
+        ZETA_BinTreeNodeOperator_SetR(btn_opr, n, mr);
+        if (mr != NULL) { ZETA_BinTreeNodeOperator_SetP(btn_opr, mr, n); }
     } else {
         if (np != NULL) {
-            if (GetL(context, np) == n) {
-                SetL(context, np, m);
+            if (ZETA_BinTreeNodeOperator_GetL(btn_opr, np) == n) {
+                ZETA_BinTreeNodeOperator_SetL(btn_opr, np, m);
             } else {
-                SetR(context, np, m);
+                ZETA_BinTreeNodeOperator_SetR(btn_opr, np, m);
             }
         }
 
-        SetP(context, m, np);
+        ZETA_BinTreeNodeOperator_SetP(btn_opr, m, np);
 
-        SetL(context, m, nl);
-        if (nl != NULL) { SetP(context, nl, m); }
+        ZETA_BinTreeNodeOperator_SetL(btn_opr, m, nl);
+        if (nl != NULL) { ZETA_BinTreeNodeOperator_SetP(btn_opr, nl, m); }
 
-        SetR(context, m, nr);
-        if (nr != NULL) { SetP(context, nr, m); }
+        ZETA_BinTreeNodeOperator_SetR(btn_opr, m, nr);
+        if (nr != NULL) { ZETA_BinTreeNodeOperator_SetP(btn_opr, nr, m); }
 
         if (mp != NULL) {
-            if (GetL(context, mp) == m) {
-                SetL(context, mp, n);
+            if (ZETA_BinTreeNodeOperator_GetL(btn_opr, mp) == m) {
+                ZETA_BinTreeNodeOperator_SetL(btn_opr, mp, n);
             } else {
-                SetR(context, mp, n);
+                ZETA_BinTreeNodeOperator_SetR(btn_opr, mp, n);
             }
         }
 
-        SetP(context, n, mp);
+        ZETA_BinTreeNodeOperator_SetP(btn_opr, n, mp);
 
-        SetL(context, n, ml);
-        if (ml != NULL) { SetP(context, ml, n); }
+        ZETA_BinTreeNodeOperator_SetL(btn_opr, n, ml);
+        if (ml != NULL) { ZETA_BinTreeNodeOperator_SetP(btn_opr, ml, n); }
 
-        SetR(context, n, mr);
-        if (mr != NULL) { SetP(context, mr, n); }
+        ZETA_BinTreeNodeOperator_SetR(btn_opr, n, mr);
+        if (mr != NULL) { ZETA_BinTreeNodeOperator_SetP(btn_opr, mr, n); }
     }
 
-    if (GetAccSize != NULL && SetAccSize != NULL) {
-        SetAccSize(context, n, m_acc_size);
-        SetAccSize(context, m, n_acc_size);
+    if (btn_opr->GetAccSize != NULL && btn_opr->SetAccSize != NULL) {
+        ZETA_BinTreeNodeOperator_SetAccSize(btn_opr, n, m_acc_size);
+        ZETA_BinTreeNodeOperator_SetAccSize(btn_opr, m, n_acc_size);
 
         AddDiffSize_(btn_opr, n, n_size - m_size);
         AddDiffSize_(btn_opr, m, m_size - n_size);
     }
 }
 
-#define Rotate_(D, E)                                                   \
-    ZETA_DebugAssert(btn_opr != NULL);                                  \
-                                                                        \
-    ZETA_DebugAssert(n != NULL);                                        \
-                                                                        \
-    void* context = btn_opr->context;                                   \
-                                                                        \
-    void* (*GetP)(void* context, void* n) = btn_opr->GetP;              \
-    void* (*GetD)(void* context, void* n) = btn_opr->Get##D;            \
-    void* (*GetE)(void* context, void* n) = btn_opr->Get##E;            \
-                                                                        \
-    ZETA_DebugAssert(GetP != NULL);                                     \
-    ZETA_DebugAssert(GetD != NULL);                                     \
-    ZETA_DebugAssert(GetE != NULL);                                     \
-                                                                        \
-    void (*SetP)(void* context, void* n, void* m) = btn_opr->SetP;      \
-    void (*SetD)(void* context, void* n, void* m) = btn_opr->Set##D;    \
-    void (*SetE)(void* context, void* n, void* m) = btn_opr->Set##E;    \
-                                                                        \
-    ZETA_DebugAssert(SetP != NULL);                                     \
-    ZETA_DebugAssert(SetD != NULL);                                     \
-    ZETA_DebugAssert(SetE != NULL);                                     \
-                                                                        \
-    size_t (*GetAccSize)(void* context, void* n) = btn_opr->GetAccSize; \
-    void (*SetAccSize)(void* context, void* n, size_t acc_size) =       \
-        btn_opr->SetAccSize;                                            \
-                                                                        \
-    void* ne = GetE(context, n);                                        \
-    ZETA_DebugAssert(ne != NULL);                                       \
-                                                                        \
-    void* ned = GetD(context, ne);                                      \
-    void* np = GetP(context, n);                                        \
-                                                                        \
-    if (np != NULL) {                                                   \
-        if (GetD(context, np) == n) {                                   \
-            SetD(context, np, ne);                                      \
-        } else {                                                        \
-            SetE(context, np, ne);                                      \
-        }                                                               \
-    }                                                                   \
-                                                                        \
-    SetP(context, ne, np);                                              \
-                                                                        \
-    SetD(context, ne, n);                                               \
-    SetP(context, n, ne);                                               \
-                                                                        \
-    SetE(context, n, ned);                                              \
-    if (ned != NULL) { SetP(context, ned, n); }                         \
-                                                                        \
-    if (SetAccSize == NULL) { return; }                                 \
-                                                                        \
-    size_t n_acc_size = GetAccSize(context, n);                         \
-    size_t ne_acc_size = GetAccSize(context, ne);                       \
-    size_t ned_acc_size = GetAccSize(context, ned);                     \
-                                                                        \
-    SetAccSize(context, n, n_acc_size - ne_acc_size + ned_acc_size);    \
-    SetAccSize(context, ne, n_acc_size);
+#define Rotate_(D, E)                                                        \
+    ZETA_DebugAssert(btn_opr != NULL);                                       \
+                                                                             \
+    ZETA_DebugAssert(n != NULL);                                             \
+                                                                             \
+    void* ne = ZETA_BinTreeNodeOperator_Get##E(btn_opr, n);                  \
+    ZETA_DebugAssert(ne != NULL);                                            \
+                                                                             \
+    void* ned = ZETA_BinTreeNodeOperator_Get##D(btn_opr, ne);                \
+    void* np = ZETA_BinTreeNodeOperator_Get##P(btn_opr, n);                  \
+                                                                             \
+    if (np != NULL) {                                                        \
+        if (ZETA_BinTreeNodeOperator_Get##D(btn_opr, np) == n) {             \
+            ZETA_BinTreeNodeOperator_Set##D(btn_opr, np, ne);                \
+        } else {                                                             \
+            ZETA_BinTreeNodeOperator_Set##E(btn_opr, np, ne);                \
+        }                                                                    \
+    }                                                                        \
+                                                                             \
+    ZETA_BinTreeNodeOperator_SetP(btn_opr, ne, np);                          \
+                                                                             \
+    ZETA_BinTreeNodeOperator_Set##D(btn_opr, ne, n);                         \
+    ZETA_BinTreeNodeOperator_SetP(btn_opr, n, ne);                           \
+                                                                             \
+    ZETA_BinTreeNodeOperator_Set##E(btn_opr, n, ned);                        \
+    if (ned != NULL) { ZETA_BinTreeNodeOperator_SetP(btn_opr, ned, n); }     \
+                                                                             \
+    if (btn_opr->SetAccSize == NULL) { return; }                             \
+                                                                             \
+    size_t n_acc_size = ZETA_BinTreeNodeOperator_GetAccSize(btn_opr, n);     \
+    size_t ne_acc_size = ZETA_BinTreeNodeOperator_GetAccSize(btn_opr, ne);   \
+    size_t ned_acc_size = ZETA_BinTreeNodeOperator_GetAccSize(btn_opr, ned); \
+                                                                             \
+    ZETA_BinTreeNodeOperator_SetAccSize(                                     \
+        btn_opr, n, n_acc_size - ne_acc_size + ned_acc_size);                \
+                                                                             \
+    ZETA_BinTreeNodeOperator_SetAccSize(btn_opr, ne, n_acc_size);
 
 void Zeta_BinTree_RotateL(Zeta_BinTreeNodeOperator const* btn_opr, void* n) {
     Rotate_(L, R);
@@ -505,24 +383,16 @@ void Zeta_BinTree_RotateR(Zeta_BinTreeNodeOperator const* btn_opr, void* n) {
     Rotate_(R, L);
 }
 
-#define StepP_(E)                                            \
-    ZETA_DebugAssert(btn_opr != NULL);                       \
-                                                             \
-    ZETA_DebugAssert(n != NULL);                             \
-                                                             \
-    void* context = btn_opr->context;                        \
-                                                             \
-    void* (*GetP)(void* context, void* n) = btn_opr->GetP;   \
-    void* (*GetE)(void* context, void* n) = btn_opr->Get##E; \
-                                                             \
-    ZETA_DebugAssert(GetP != NULL);                          \
-    ZETA_DebugAssert(GetE != NULL);                          \
-                                                             \
-    for (;;) {                                               \
-        void* np = GetP(context, n);                         \
-        if (np == NULL) { return NULL; }                     \
-        if (GetE(context, np) == n) { return np; }           \
-        n = np;                                              \
+#define StepP_(E)                                                             \
+    ZETA_DebugAssert(btn_opr != NULL);                                        \
+                                                                              \
+    ZETA_DebugAssert(n != NULL);                                              \
+                                                                              \
+    for (;;) {                                                                \
+        void* np = ZETA_BinTreeNodeOperator_GetP(btn_opr, n);                 \
+        if (np == NULL) { return NULL; }                                      \
+        if (ZETA_BinTreeNodeOperator_Get##E(btn_opr, np) == n) { return np; } \
+        n = np;                                                               \
     }
 
 void* Zeta_BinTree_StepPL(Zeta_BinTreeNodeOperator const* btn_opr, void* n) {
@@ -533,29 +403,22 @@ void* Zeta_BinTree_StepPR(Zeta_BinTreeNodeOperator const* btn_opr, void* n) {
     StepP_(L);
 }
 
-#define Step_(D, E)                                                 \
-    ZETA_DebugAssert(btn_opr != NULL);                              \
-                                                                    \
-    ZETA_DebugAssert(n != NULL);                                    \
-                                                                    \
-    void* context = btn_opr->context;                               \
-                                                                    \
-    void* (*GetP)(void* context, void* n) = btn_opr->GetP;          \
-    void* (*GetD)(void* context, void* n) = btn_opr->Get##D;        \
-    void* (*GetE)(void* context, void* n) = btn_opr->Get##E;        \
-                                                                    \
-    ZETA_DebugAssert(GetP != NULL);                                 \
-    ZETA_DebugAssert(GetD != NULL);                                 \
-    ZETA_DebugAssert(GetE != NULL);                                 \
-                                                                    \
-    void* nd = GetD(context, n);                                    \
-    if (nd != NULL) { return Zeta_GetMostLink(context, GetE, nd); } \
-                                                                    \
-    for (;;) {                                                      \
-        void* np = GetP(context, n);                                \
-        if (np == NULL) { return NULL; }                            \
-        if (GetE(context, np) == n) { return np; }                  \
-        n = np;                                                     \
+#define Step_(D, E)                                                           \
+    ZETA_DebugAssert(btn_opr != NULL);                                        \
+                                                                              \
+    ZETA_DebugAssert(n != NULL);                                              \
+                                                                              \
+    void* nd = ZETA_BinTreeNodeOperator_Get##D(btn_opr, n);                   \
+                                                                              \
+    if (nd != NULL) {                                                         \
+        return Zeta_GetMostLink(btn_opr->context, btn_opr->Get##E, nd);       \
+    }                                                                         \
+                                                                              \
+    for (;;) {                                                                \
+        void* np = ZETA_BinTreeNodeOperator_GetP(btn_opr, n);                 \
+        if (np == NULL) { return NULL; }                                      \
+        if (ZETA_BinTreeNodeOperator_Get##E(btn_opr, np) == n) { return np; } \
+        n = np;                                                               \
     }
 
 void* Zeta_BinTree_StepL(Zeta_BinTreeNodeOperator const* btn_opr, void* n) {
@@ -566,56 +429,43 @@ void* Zeta_BinTree_StepR(Zeta_BinTreeNodeOperator const* btn_opr, void* n) {
     Step_(R, L);
 }
 
-#define Access_(D, E)                                                   \
-    if (dst_n == NULL && dst_tail_idx == NULL) { return; }              \
-                                                                        \
-    ZETA_DebugAssert(btn_opr != NULL);                                  \
-                                                                        \
-    void* context = btn_opr->context;                                   \
-                                                                        \
-    void* (*GetP)(void* context, void* n) = btn_opr->GetP;              \
-    void* (*GetD)(void* context, void* n) = btn_opr->Get##D;            \
-    void* (*GetE)(void* context, void* n) = btn_opr->Get##E;            \
-                                                                        \
-    ZETA_DebugAssert(GetP != NULL);                                     \
-    ZETA_DebugAssert(GetD != NULL);                                     \
-    ZETA_DebugAssert(GetE != NULL);                                     \
-                                                                        \
-    size_t (*GetAccSize)(void* context, void* n) = btn_opr->GetAccSize; \
-    ZETA_DebugAssert(GetAccSize != NULL);                               \
-                                                                        \
-    size_t n_acc_size = GetAccSize(context, n);                         \
-                                                                        \
-    if (n_acc_size <= idx) {                                            \
-        if (dst_n != NULL) { *dst_n = NULL; }                           \
-        if (dst_tail_idx != NULL) { *dst_tail_idx = idx - n_acc_size; } \
-        return;                                                         \
-    }                                                                   \
-                                                                        \
-    while (n != NULL) {                                                 \
-        void* nd = GetD(context, n);                                    \
-        size_t nd_acc_size = GetAccSize(context, nd);                   \
-                                                                        \
-        if (idx < nd_acc_size) {                                        \
-            n = nd;                                                     \
-            n_acc_size = nd_acc_size;                                   \
-            continue;                                                   \
-        }                                                               \
-                                                                        \
-        void* ne = GetE(context, n);                                    \
-        size_t ne_acc_size = GetAccSize(context, ne);                   \
-                                                                        \
-        idx -= nd_acc_size;                                             \
-        size_t n_size = n_acc_size - nd_acc_size - ne_acc_size;         \
-                                                                        \
-        if (idx < n_size) { break; }                                    \
-                                                                        \
-        n = ne;                                                         \
-        n_acc_size = ne_acc_size;                                       \
-        idx -= n_size;                                                  \
-    }                                                                   \
-                                                                        \
-    if (dst_n != NULL) { *dst_n = n; }                                  \
+#define Access_(D, E)                                                          \
+    if (dst_n == NULL && dst_tail_idx == NULL) { return; }                     \
+                                                                               \
+    ZETA_DebugAssert(btn_opr != NULL);                                         \
+                                                                               \
+    size_t n_acc_size = ZETA_BinTreeNodeOperator_GetAccSize(btn_opr, n);       \
+                                                                               \
+    if (n_acc_size <= idx) {                                                   \
+        if (dst_n != NULL) { *dst_n = NULL; }                                  \
+        if (dst_tail_idx != NULL) { *dst_tail_idx = idx - n_acc_size; }        \
+        return;                                                                \
+    }                                                                          \
+                                                                               \
+    while (n != NULL) {                                                        \
+        void* nd = ZETA_BinTreeNodeOperator_Get##D(btn_opr, n);                \
+        size_t nd_acc_size = ZETA_BinTreeNodeOperator_GetAccSize(btn_opr, nd); \
+                                                                               \
+        if (idx < nd_acc_size) {                                               \
+            n = nd;                                                            \
+            n_acc_size = nd_acc_size;                                          \
+            continue;                                                          \
+        }                                                                      \
+                                                                               \
+        void* ne = ZETA_BinTreeNodeOperator_Get##E(btn_opr, n);                \
+        size_t ne_acc_size = ZETA_BinTreeNodeOperator_GetAccSize(btn_opr, ne); \
+                                                                               \
+        idx -= nd_acc_size;                                                    \
+        size_t n_size = n_acc_size - nd_acc_size - ne_acc_size;                \
+                                                                               \
+        if (idx < n_size) { break; }                                           \
+                                                                               \
+        n = ne;                                                                \
+        n_acc_size = ne_acc_size;                                              \
+        idx -= n_size;                                                         \
+    }                                                                          \
+                                                                               \
+    if (dst_n != NULL) { *dst_n = n; }                                         \
     if (dst_tail_idx != NULL) { *dst_tail_idx = idx; }
 
 void Zeta_BinTree_AccessL(void** dst_n, size_t* dst_tail_idx,
@@ -630,58 +480,46 @@ void Zeta_BinTree_AccessR(void** dst_n, size_t* dst_tail_idx,
     Access_(R, L);
 }
 
-#define Advance_(D, E)                                                      \
-    if (dst_n == NULL && dst_tail_idx == NULL) { return; }                  \
-                                                                            \
-    ZETA_DebugAssert(btn_opr != NULL);                                      \
-                                                                            \
-    void* context = btn_opr->context;                                       \
-                                                                            \
-    void* (*GetP)(void* context, void* n) = btn_opr->GetP;                  \
-    void* (*GetD)(void* context, void* n) = btn_opr->Get##D;                \
-    void* (*GetE)(void* context, void* n) = btn_opr->Get##E;                \
-                                                                            \
-    ZETA_DebugAssert(GetP != NULL);                                         \
-    ZETA_DebugAssert(GetD != NULL);                                         \
-    ZETA_DebugAssert(GetE != NULL);                                         \
-                                                                            \
-    size_t (*GetAccSize)(void* context, void* n) = btn_opr->GetAccSize;     \
-    ZETA_DebugAssert(GetAccSize != NULL);                                   \
-                                                                            \
-    while (n != NULL && 0 < step) {                                         \
-        void* nd = GetD(context, n);                                        \
-        void* ne = GetE(context, n);                                        \
-                                                                            \
-        size_t n_acc_size = GetAccSize(context, n);                         \
-        size_t nd_acc_size = GetAccSize(context, nd);                       \
-        size_t ne_acc_size = GetAccSize(context, ne);                       \
-                                                                            \
-        size_t n_size = n_acc_size - nd_acc_size - ne_acc_size;             \
-                                                                            \
-        if (step < n_size) { break; }                                       \
-                                                                            \
-        step -= n_size;                                                     \
-                                                                            \
-        if (step < ne_acc_size) {                                           \
-            Zeta_BinTree_Access##D(dst_n, dst_tail_idx, btn_opr, ne, step); \
-            return;                                                         \
-        }                                                                   \
-                                                                            \
-        step -= ne_acc_size;                                                \
-                                                                            \
-        for (;;) {                                                          \
-            void* np = GetP(context, n);                                    \
-                                                                            \
-            if (np == NULL || GetD(context, np) == n) {                     \
-                n = np;                                                     \
-                break;                                                      \
-            }                                                               \
-                                                                            \
-            n = np;                                                         \
-        }                                                                   \
-    }                                                                       \
-                                                                            \
-    if (dst_n != NULL) { *dst_n = n; }                                      \
+#define Advance_(D, E)                                                         \
+    if (dst_n == NULL && dst_tail_idx == NULL) { return; }                     \
+                                                                               \
+    ZETA_DebugAssert(btn_opr != NULL);                                         \
+                                                                               \
+    while (n != NULL && 0 < step) {                                            \
+        void* nd = ZETA_BinTreeNodeOperator_Get##D(btn_opr, n);                \
+        void* ne = ZETA_BinTreeNodeOperator_Get##E(btn_opr, n);                \
+                                                                               \
+        size_t n_acc_size = ZETA_BinTreeNodeOperator_GetAccSize(btn_opr, n);   \
+        size_t nd_acc_size = ZETA_BinTreeNodeOperator_GetAccSize(btn_opr, nd); \
+        size_t ne_acc_size = ZETA_BinTreeNodeOperator_GetAccSize(btn_opr, ne); \
+                                                                               \
+        size_t n_size = n_acc_size - nd_acc_size - ne_acc_size;                \
+                                                                               \
+        if (step < n_size) { break; }                                          \
+                                                                               \
+        step -= n_size;                                                        \
+                                                                               \
+        if (step < ne_acc_size) {                                              \
+            Zeta_BinTree_Access##D(dst_n, dst_tail_idx, btn_opr, ne, step);    \
+            return;                                                            \
+        }                                                                      \
+                                                                               \
+        step -= ne_acc_size;                                                   \
+                                                                               \
+        for (;;) {                                                             \
+            void* np = ZETA_BinTreeNodeOperator_GetP(btn_opr, n);              \
+                                                                               \
+            if (np == NULL ||                                                  \
+                ZETA_BinTreeNodeOperator_Get##D(btn_opr, np) == n) {           \
+                n = np;                                                        \
+                break;                                                         \
+            }                                                                  \
+                                                                               \
+            n = np;                                                            \
+        }                                                                      \
+    }                                                                          \
+                                                                               \
+    if (dst_n != NULL) { *dst_n = n; }                                         \
     if (dst_tail_idx != NULL) { *dst_tail_idx = step; }
 
 void Zeta_BinTree_AdvanceL(void** dst_n, size_t* dst_tail_idx,
@@ -704,32 +542,21 @@ void Zeta_BinTree_GetAccSize(size_t* dst_l_acc_size, size_t* dst_r_acc_size,
 
     if (dst_l_acc_size == NULL && dst_r_acc_size == NULL) { return; }
 
-    void* context = btn_opr->context;
+    size_t l_acc_size = ZETA_BinTreeNodeOperator_GetAccSize(
+        btn_opr, ZETA_BinTreeNodeOperator_GetL(btn_opr, n));
+    size_t r_acc_size = ZETA_BinTreeNodeOperator_GetAccSize(
+        btn_opr, ZETA_BinTreeNodeOperator_GetR(btn_opr, n));
 
-    void* (*GetP)(void* context, void* n) = btn_opr->GetP;
-    void* (*GetL)(void* context, void* n) = btn_opr->GetL;
-    void* (*GetR)(void* context, void* n) = btn_opr->GetR;
-
-    ZETA_DebugAssert(GetP != NULL);
-    ZETA_DebugAssert(GetL != NULL);
-    ZETA_DebugAssert(GetR != NULL);
-
-    size_t (*GetAccSize)(void* context, void* n) = btn_opr->GetAccSize;
-    ZETA_DebugAssert(GetAccSize != NULL);
-
-    size_t l_acc_size = GetAccSize(context, GetL(context, n));
-    size_t r_acc_size = GetAccSize(context, GetR(context, n));
-
-    size_t n_acc_size = GetAccSize(context, n);
+    size_t n_acc_size = ZETA_BinTreeNodeOperator_GetAccSize(btn_opr, n);
 
     for (;;) {
-        void* np = GetP(context, n);
+        void* np = ZETA_BinTreeNodeOperator_GetP(btn_opr, n);
         if (np == NULL) { break; }
 
-        size_t np_acc_size = GetAccSize(context, np);
+        size_t np_acc_size = ZETA_BinTreeNodeOperator_GetAccSize(btn_opr, np);
         size_t k = np_acc_size - n_acc_size;
 
-        if (GetL(context, np) == n) {
+        if (ZETA_BinTreeNodeOperator_GetL(btn_opr, np) == n) {
             r_acc_size += k;
         } else {
             l_acc_size += k;
@@ -743,49 +570,28 @@ void Zeta_BinTree_GetAccSize(size_t* dst_l_acc_size, size_t* dst_r_acc_size,
     if (dst_r_acc_size != NULL) { *dst_r_acc_size = r_acc_size; }
 }
 
-static void Check_(Zeta_BinTreeNodeOperator const* btn_opr, void* n) {
-    ZETA_DebugAssert(btn_opr != NULL);
-
-    void* context = btn_opr->context;
-
-    void* (*GetP)(void* context, void* n) = btn_opr->GetP;
-    void* (*GetL)(void* context, void* n) = btn_opr->GetL;
-    void* (*GetR)(void* context, void* n) = btn_opr->GetR;
-
-    ZETA_DebugAssert(GetP != NULL);
-    ZETA_DebugAssert(GetL != NULL);
-    ZETA_DebugAssert(GetR != NULL);
-
-    void* nl = GetL(context, n);
-    void* nr = GetR(context, n);
+static void Sanitize_(Zeta_BinTreeNodeOperator const* btn_opr, void* n) {
+    void* nl = ZETA_BinTreeNodeOperator_GetL(btn_opr, n);
+    void* nr = ZETA_BinTreeNodeOperator_GetR(btn_opr, n);
 
     if (nl != NULL) {
-        ZETA_DebugAssert(GetP(context, nl) == n);
-        Check_(btn_opr, nl);
+        ZETA_DebugAssert(ZETA_BinTreeNodeOperator_GetP(btn_opr, nl) == n);
+        Sanitize_(btn_opr, nl);
     }
 
     if (nr != NULL) {
-        ZETA_DebugAssert(GetP(context, nr) == n);
-        Check_(btn_opr, nr);
+        ZETA_DebugAssert(ZETA_BinTreeNodeOperator_GetP(btn_opr, nr) == n);
+        Sanitize_(btn_opr, nr);
     }
 }
 
-void Zeta_BinTree_Check(Zeta_BinTreeNodeOperator const* btn_opr, void* root) {
+void Zeta_BinTree_Sanitize(Zeta_BinTreeNodeOperator const* btn_opr,
+                           void* root) {
     ZETA_DebugAssert(btn_opr != NULL);
-
-    void* context = btn_opr->context;
-
-    void* (*GetP)(void* context, void* n) = btn_opr->GetP;
-    void* (*GetL)(void* context, void* n) = btn_opr->GetL;
-    void* (*GetR)(void* context, void* n) = btn_opr->GetR;
-
-    ZETA_DebugAssert(GetP != NULL);
-    ZETA_DebugAssert(GetL != NULL);
-    ZETA_DebugAssert(GetR != NULL);
 
     if (root == NULL) { return; }
 
-    ZETA_DebugAssert(GetP(context, root) == NULL);
+    ZETA_DebugAssert(ZETA_BinTreeNodeOperator_GetP(btn_opr, root) == NULL);
 
-    Check_(btn_opr, root);
+    Sanitize_(btn_opr, root);
 }

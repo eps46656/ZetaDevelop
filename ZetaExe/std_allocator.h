@@ -34,12 +34,12 @@ StdAllocator::~StdAllocator() {
 #endif
 }
 
-size_t StdAllocator_GetAlign(void* sa_) {
+size_t StdAllocator_GetAlign(void const* sa_) {
     ZETA_Unused(sa_);
     return alignof(max_align_t);
 }
 
-size_t StdAllocator_Query(void* sa_, size_t size) {
+size_t StdAllocator_Query(void const* sa_, size_t size) {
     ZETA_Unused(sa_);
     return 0 < size ? size : 0;
 }

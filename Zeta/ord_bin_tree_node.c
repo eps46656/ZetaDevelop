@@ -2,7 +2,7 @@
 
 #include "debugger.h"
 
-void Zeta_OrdBinTreeNode_Init(void* context, void* n_) {
+void Zeta_OrdBinTreeNode_Init(void const* context, void* n_) {
     ZETA_Unused(context);
 
     Zeta_OrdBinTreeNode* n = n_;
@@ -13,7 +13,7 @@ void Zeta_OrdBinTreeNode_Init(void* context, void* n_) {
     n->r = NULL;
 }
 
-void* Zeta_OrdBinTreeNode_GetP(void* context, void* n_) {
+void* Zeta_OrdBinTreeNode_GetP(void const* context, void* n_) {
     ZETA_Unused(context);
 
     Zeta_OrdBinTreeNode* n = n_;
@@ -22,7 +22,7 @@ void* Zeta_OrdBinTreeNode_GetP(void* context, void* n_) {
     return n->p;
 }
 
-void* Zeta_OrdBinTreeNode_GetL(void* context, void* n_) {
+void* Zeta_OrdBinTreeNode_GetL(void const* context, void* n_) {
     ZETA_Unused(context);
 
     Zeta_OrdBinTreeNode* n = n_;
@@ -31,7 +31,7 @@ void* Zeta_OrdBinTreeNode_GetL(void* context, void* n_) {
     return n->l;
 }
 
-void* Zeta_OrdBinTreeNode_GetR(void* context, void* n_) {
+void* Zeta_OrdBinTreeNode_GetR(void const* context, void* n_) {
     ZETA_Unused(context);
 
     Zeta_OrdBinTreeNode* n = n_;
@@ -40,7 +40,7 @@ void* Zeta_OrdBinTreeNode_GetR(void* context, void* n_) {
     return n->r;
 }
 
-void Zeta_OrdBinTreeNode_SetP(void* context, void* n_, void* m) {
+void Zeta_OrdBinTreeNode_SetP(void const* context, void* n_, void* m) {
     ZETA_Unused(context);
 
     Zeta_OrdBinTreeNode* n = n_;
@@ -49,7 +49,7 @@ void Zeta_OrdBinTreeNode_SetP(void* context, void* n_, void* m) {
     n->p = m;
 }
 
-void Zeta_OrdBinTreeNode_SetL(void* context, void* n_, void* m) {
+void Zeta_OrdBinTreeNode_SetL(void const* context, void* n_, void* m) {
     ZETA_Unused(context);
 
     Zeta_OrdBinTreeNode* n = n_;
@@ -58,7 +58,7 @@ void Zeta_OrdBinTreeNode_SetL(void* context, void* n_, void* m) {
     n->l = m;
 }
 
-void Zeta_OrdBinTreeNode_SetR(void* context, void* n_, void* m) {
+void Zeta_OrdBinTreeNode_SetR(void const* context, void* n_, void* m) {
     ZETA_Unused(context);
 
     Zeta_OrdBinTreeNode* n = n_;
@@ -68,7 +68,7 @@ void Zeta_OrdBinTreeNode_SetR(void* context, void* n_, void* m) {
 }
 
 void Zeta_OrdBinTreeNode_DeployBinTreeNodeOperator(
-    void* context, Zeta_BinTreeNodeOperator* btn_opr) {
+    void const* context, Zeta_BinTreeNodeOperator* btn_opr) {
     ZETA_Unused(context);
 
     Zeta_BinTree_InitOpr(btn_opr);

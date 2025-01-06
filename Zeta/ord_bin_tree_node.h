@@ -12,17 +12,17 @@ struct Zeta_OrdBinTreeNode {
     Zeta_OrdBinTreeNode* r;
 };
 
-void Zeta_OrdBinTreeNode_Init(void* context, void* n);
+void Zeta_OrdBinTreeNode_Init(void const* context, void* n);
 
-void* Zeta_OrdBinTreeNode_GetP(void* context, void* n);
-void* Zeta_OrdBinTreeNode_GetL(void* context, void* n);
-void* Zeta_OrdBinTreeNode_GetR(void* context, void* n);
+void* Zeta_OrdBinTreeNode_GetP(void const* context, void* n);
+void* Zeta_OrdBinTreeNode_GetL(void const* context, void* n);
+void* Zeta_OrdBinTreeNode_GetR(void const* context, void* n);
 
-void Zeta_OrdBinTreeNode_SetP(void* context, void* n, void* m);
-void Zeta_OrdBinTreeNode_SetL(void* context, void* n, void* m);
-void Zeta_OrdBinTreeNode_SetR(void* context, void* n, void* m);
+void Zeta_OrdBinTreeNode_SetP(void const* context, void* n, void* m);
+void Zeta_OrdBinTreeNode_SetL(void const* context, void* n, void* m);
+void Zeta_OrdBinTreeNode_SetR(void const* context, void* n, void* m);
 
 void Zeta_OrdBinTreeNode_DeployBinTreeNodeOperator(
-    void* context, Zeta_BinTreeNodeOperator* btn_opr);
+    void const* context, Zeta_BinTreeNodeOperator* btn_opr);
 
 ZETA_ExternC_End;

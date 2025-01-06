@@ -38,6 +38,8 @@ else:
     assert False, "Unsupported architecture."
 
 zeta_debug_config = Zeta.Config(
+    name="debug",
+
     verbose=True,
 
     build_dir=zeta_develop_dir / "ZetaDebugBuild",
@@ -58,6 +60,8 @@ zeta_debug_config = Zeta.Config(
 )
 
 zeta_exe_debug_config = ZetaExe.Config(
+    name="debug",
+
     verbose=True,
 
     build_dir=zeta_develop_dir / "ZetaExeDebugBuild",
@@ -81,6 +85,8 @@ zeta_exe_debug_config = ZetaExe.Config(
 )
 
 zeta_release_config = Zeta.Config(
+    name="release",
+
     verbose=True,
 
     build_dir=zeta_develop_dir / "ZetaReleaseBuild",
@@ -101,6 +107,8 @@ zeta_release_config = Zeta.Config(
 )
 
 zeta_exe_release_config = ZetaExe.Config(
+    name="release",
+
     verbose=True,
 
     build_dir=zeta_develop_dir / "ZetaExeReleaseBuild",
@@ -123,6 +131,53 @@ zeta_exe_release_config = ZetaExe.Config(
     link_time_opt=True,
 )
 
+zeta_raw_config = Zeta.Config(
+    name="raw",
+
+    verbose=True,
+
+    build_dir=zeta_develop_dir / "ZetaRawBuild",
+
+    target=target,
+
+    c_standard="c2x",
+    cpp_standard="c++17",
+
+    c_include_dirs=[],
+    cpp_include_dirs=[],
+
+    enable_debug=True,
+    enable_asan=False,
+
+    opt_type=0,
+    link_time_opt=False,
+)
+
+zeta_exe_raw_config = ZetaExe.Config(
+    name="raw",
+
+    verbose=True,
+
+    build_dir=zeta_develop_dir / "ZetaExeRawBuild",
+
+    zeta_dir=zeta_develop_dir / "Zeta",
+    zeta_build_dir=zeta_raw_config.build_dir,
+
+    target=target,
+
+    c_standard="c2x",
+    cpp_standard="c++17",
+
+    c_include_dirs=[zeta_dir],
+    cpp_include_dirs=[zeta_dir],
+
+    enable_debug=True,
+    enable_asan=False,
+
+    opt_type=0,
+    link_time_opt=False,
+)
+
 
 @dataclasses.dataclass
 class ConfigSet:
@@ -139,6 +194,11 @@ configs = {
     "release": ConfigSet(
         zeta_config=zeta_release_config,
         zeta_exe_config=zeta_exe_release_config,
+    ),
+
+    "raw": ConfigSet(
+        zeta_config=zeta_raw_config,
+        zeta_exe_config=zeta_exe_raw_config,
     ),
 }
 

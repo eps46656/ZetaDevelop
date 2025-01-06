@@ -633,7 +633,8 @@ unsigned long long Zeta_FindNextConMod(unsigned long long beg,
     return beg + (target + mod - beg % mod) % mod;
 }
 
-void* Zeta_GetMostLink(void* context, void* (*GetLink)(void* context, void* n),
+void* Zeta_GetMostLink(void const* context,
+                       void* (*GetLink)(void const* context, void* n),
                        void* n) {
     ZETA_DebugAssert(GetLink != NULL);
 

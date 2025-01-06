@@ -3,7 +3,7 @@
 #include "debugger.h"
 #include "ptr_utils.h"
 
-void Zeta_OrdRBTreeNode_Init(void* context, void* n_) {
+void Zeta_OrdRBTreeNode_Init(void const* context, void* n_) {
     ZETA_Unused(context);
 
     Zeta_OrdRBTreeNode* n = n_;
@@ -14,7 +14,7 @@ void Zeta_OrdRBTreeNode_Init(void* context, void* n_) {
     n->r = NULL;
 }
 
-void* Zeta_OrdRBTreeNode_GetP(void* context, void* n_) {
+void* Zeta_OrdRBTreeNode_GetP(void const* context, void* n_) {
     ZETA_Unused(context);
 
     Zeta_OrdRBTreeNode* n = n_;
@@ -25,7 +25,7 @@ void* Zeta_OrdRBTreeNode_GetP(void* context, void* n_) {
     return n == p ? NULL : p;
 }
 
-void* Zeta_OrdRBTreeNode_GetL(void* context, void* n_) {
+void* Zeta_OrdRBTreeNode_GetL(void const* context, void* n_) {
     ZETA_Unused(context);
 
     Zeta_OrdRBTreeNode* n = n_;
@@ -34,7 +34,7 @@ void* Zeta_OrdRBTreeNode_GetL(void* context, void* n_) {
     return n->l;
 }
 
-void* Zeta_OrdRBTreeNode_GetR(void* context, void* n_) {
+void* Zeta_OrdRBTreeNode_GetR(void const* context, void* n_) {
     ZETA_Unused(context);
 
     Zeta_OrdRBTreeNode* n = n_;
@@ -43,7 +43,7 @@ void* Zeta_OrdRBTreeNode_GetR(void* context, void* n_) {
     return n->r;
 }
 
-void Zeta_OrdRBTreeNode_SetP(void* context, void* n_, void* m) {
+void Zeta_OrdRBTreeNode_SetP(void const* context, void* n_, void* m) {
     ZETA_Unused(context);
 
     Zeta_OrdRBTreeNode* n = n_;
@@ -52,7 +52,7 @@ void Zeta_OrdRBTreeNode_SetP(void* context, void* n_, void* m) {
     ZETA_ColorPtr_SetPtr(&n->p, alignof(Zeta_OrdRBTreeNode), m == NULL ? n : m);
 }
 
-void Zeta_OrdRBTreeNode_SetL(void* context, void* n_, void* m) {
+void Zeta_OrdRBTreeNode_SetL(void const* context, void* n_, void* m) {
     ZETA_Unused(context);
 
     Zeta_OrdRBTreeNode* n = n_;
@@ -61,7 +61,7 @@ void Zeta_OrdRBTreeNode_SetL(void* context, void* n_, void* m) {
     n->l = m;
 }
 
-void Zeta_OrdRBTreeNode_SetR(void* context, void* n_, void* m) {
+void Zeta_OrdRBTreeNode_SetR(void const* context, void* n_, void* m) {
     ZETA_Unused(context);
 
     Zeta_OrdRBTreeNode* n = n_;
@@ -70,7 +70,7 @@ void Zeta_OrdRBTreeNode_SetR(void* context, void* n_, void* m) {
     n->r = m;
 }
 
-int Zeta_OrdRBTreeNode_GetPColor(void* context, void* n_) {
+int Zeta_OrdRBTreeNode_GetPColor(void const* context, void* n_) {
     ZETA_Unused(context);
 
     Zeta_OrdRBTreeNode* n = n_;
@@ -80,7 +80,7 @@ int Zeta_OrdRBTreeNode_GetPColor(void* context, void* n_) {
                : ZETA_ColorPtr_GetColor(&n->p, alignof(Zeta_OrdRBTreeNode));
 }
 
-void Zeta_OrdRBTreeNode_SetPColor(void* context, void* n_, int color) {
+void Zeta_OrdRBTreeNode_SetPColor(void const* context, void* n_, int color) {
     ZETA_Unused(context);
 
     Zeta_OrdRBTreeNode* n = n_;
@@ -90,7 +90,7 @@ void Zeta_OrdRBTreeNode_SetPColor(void* context, void* n_, int color) {
 }
 
 void Zeta_OrdRBTreeNode_DeployBinTreeNodeOperator(
-    void* context, Zeta_BinTreeNodeOperator* btn_opr) {
+    void const* context, Zeta_BinTreeNodeOperator* btn_opr) {
     ZETA_Unused(context);
 
     Zeta_BinTree_InitOpr(btn_opr);

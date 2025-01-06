@@ -155,8 +155,8 @@ static int ChooseNiceBlock_(Zeta_TreeAllocator* ta, size_t size, Head** dst) {
     return choose_ret_cut;
 }
 
-size_t Zeta_TreeAllocator_Query(void* ta_, size_t size) {
-    Zeta_TreeAllocator* ta = ta_;
+size_t Zeta_TreeAllocator_Query(void const* ta_, size_t size) {
+    Zeta_TreeAllocator const* ta = ta_;
     ZETA_DebugAssert(ta != NULL);
 
     if (size == 0) { return 0; }
@@ -169,8 +169,8 @@ size_t Zeta_TreeAllocator_Query(void* ta_, size_t size) {
            occupied_head_size;
 }
 
-void* Zeta_TreeAllocator_Allocate(void* ta_, size_t size) {
-    Zeta_TreeAllocator* ta = ta_;
+void* Zeta_TreeAllocator_Allocate(void const* ta_, size_t size) {
+    Zeta_TreeAllocator const* ta = ta_;
     ZETA_DebugAssert(ta != NULL);
 
     if (size == 0) { return NULL; }
