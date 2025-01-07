@@ -7,7 +7,8 @@ from typeguard import typechecked
 
 
 class ArchEnum(enum.Enum):
-    X86_64 = enum.auto(),
+    INTEL64 = enum.auto(),
+    AMD64 = enum.auto(),
     ARM32 = enum.auto(),
     ARM64 = enum.auto(),
     RISCV32 = enum.auto(),

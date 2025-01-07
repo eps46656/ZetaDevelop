@@ -146,6 +146,12 @@ class Builder:
 
         return list(reversed(TPSort(self.deps, [target_unit])))
 
+    def Merge(self, builder: typing.Self):
+        for dep in builder.deps.keys():
+            self.Add(dep, builder.building_funcs[dep])
+
+        return self
+
     def Check(self):
         for unit, deps in self.deps.items():
             for dep in deps:

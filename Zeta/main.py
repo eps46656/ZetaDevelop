@@ -6,7 +6,7 @@ from typeguard import typechecked
 
 from Builder import Builder
 from LLVMCompiler import LLVMCompiler, LLVMCompilerConfig
-from utils import Target
+import utils
 
 FILE = pathlib.Path(__file__).absolute()
 DIR = FILE.parents[0]
@@ -20,7 +20,7 @@ class Config:
 
     build_dir: object
 
-    target: Target
+    target: utils.Target
 
     c_standard: str
     cpp_standard: str
@@ -353,8 +353,12 @@ def AddDeps(builder: Builder, config: Config):
         )
     )
 
+    coroutine_s = {
+        utils.ArchEnum.INTEL64: f"{zeta_dir}/coroutine_intel64.s",
+    }[config.target.arch]
+
     builder.Add(
-        f"{zeta_dir}/coroutine_x86_64.s",
+        coroutine_s,
         {
             f"{FILE}",
         },
@@ -1681,38 +1685,6 @@ def AddDeps(builder: Builder, config: Config):
             f"{zeta_dir}/define.h",
         },
         None
-    )
-
-    builder.Add(
-        f"{zeta_dir}/SegList.h",
-        {
-            f"{FILE}",
-            f"{zeta_dir}/allocator.h",
-            f"{zeta_dir}/debug_hash_table.h",
-            f"{zeta_dir}/ord_linked_list_node.h",
-        },
-        None
-    )
-
-    builder.Add(
-        f"{zeta_dir}/SegList.c",
-        {
-            f"{FILE}",
-            f"{zeta_dir}/SegList.h",
-        },
-        None
-    )
-
-    builder.Add(
-        f"{zeta_build_dir}/SegList.o",
-        {
-            f"{FILE}",
-            f"{zeta_dir}/SegList.c",
-        },
-        lambda: compiler.c_to_obj(
-            f"{zeta_build_dir}/SegList.o",
-            f"{zeta_dir}/SegList.c",
-        )
     )
 
     builder.Add(

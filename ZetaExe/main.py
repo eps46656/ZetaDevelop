@@ -6,7 +6,7 @@ from typeguard import typechecked
 
 from Builder import Builder
 from LLVMCompiler import LLVMCompiler, LLVMCompilerConfig
-from utils import Target
+import utils
 
 FILE = pathlib.Path(__file__).absolute()
 DIR = FILE.parents[0]
@@ -23,7 +23,7 @@ class Config:
     zeta_dir: object
     zeta_build_dir: object
 
-    target: Target
+    target: utils.Target
 
     c_standard: str
     cpp_standard: str
@@ -2302,11 +2302,15 @@ def AddDeps(builder: Builder, config: Config):
         )
     )
 
+    coroutine_s = {
+        utils.ArchEnum.INTEL64: f"{zeta_dir}/coroutine_intel64.s",
+    }[config.target.arch]
+
     builder.Add(
         f"{zeta_exe_build_dir}/test_cor.exe",
         {
             f"{FILE}",
-            f"{zeta_dir}/coroutine_x86_64.s",
+            coroutine_s,
             f"{zeta_build_dir}/coroutine.o",
             f"{zeta_build_dir}/debug_str_pipe.o",
             f"{zeta_build_dir}/debugger.o",
@@ -2317,7 +2321,7 @@ def AddDeps(builder: Builder, config: Config):
         lambda: compiler.to_exe(
             f"{zeta_exe_build_dir}/test_cor.exe",
             {
-                f"{zeta_dir}/coroutine_x86_64.s",
+                coroutine_s,
                 f"{zeta_build_dir}/coroutine.o",
                 f"{zeta_build_dir}/debug_str_pipe.o",
                 f"{zeta_build_dir}/debugger.o",

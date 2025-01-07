@@ -13,7 +13,8 @@ from utils import ArchEnum, EnvEnum, SysEnum, Target, ToListCommand, VendorEnum
 @typechecked
 def GetClangTriple(target: Target):
     arch_table = {
-        ArchEnum.X86_64: "x86_64",
+        ArchEnum.INTEL64: "x86_64",
+        ArchEnum.AMD64: "x86_64",
         ArchEnum.ARM32: "arm32",
         ArchEnum.ARM64: "arm64",
         ArchEnum.RISCV32: "riscv32",
@@ -46,7 +47,8 @@ def GetClangTriple(target: Target):
 @typechecked
 def GetLLCArch(target: Target):
     arch_table = {
-        ArchEnum.X86_64: "x86-64",
+        ArchEnum.INTEL64: "x86-64",
+        ArchEnum.AMD64: "x86-64",
         ArchEnum.ARM32: "arm32",
         ArchEnum.ARM64: "arm64",
         ArchEnum.RISCV32: "riscv32",

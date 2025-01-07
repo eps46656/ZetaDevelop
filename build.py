@@ -22,14 +22,14 @@ target = None
 
 if os.name == "nt":
     target = Target(
-        arch=ArchEnum.X86_64,
+        arch=ArchEnum.INTEL64,
         vendor=VendorEnum.PC,
         sys=SysEnum.WINDOWS,
         env=EnvEnum.MSVC,
     )
 elif os.name == "posix":
     target = Target(
-        arch=ArchEnum.X86_64,
+        arch=ArchEnum.INTEL64,
         vendor=VendorEnum.PC,
         sys=SysEnum.LINUX,
         env=EnvEnum.ELF,

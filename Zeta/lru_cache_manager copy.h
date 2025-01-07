@@ -14,8 +14,8 @@ ZETA_ExternC_Beg;
 #define ZETA_LRUCachaManager_max_cn_cnts (ZETA_UINT_MAX)
 
 ZETA_DeclareStruct(Zeta_LRUCacheManager);
-ZETA_DeclareStruct(Zeta_LRUCacheManager_BNode);
 ZETA_DeclareStruct(Zeta_LRUCacheManager_SNode);
+ZETA_DeclareStruct(Zeta_LRUCacheManager_CXNodeBase);
 ZETA_DeclareStruct(Zeta_LRUCacheManager_CNode);
 ZETA_DeclareStruct(Zeta_LRUCacheManager_XNode);
 
@@ -23,7 +23,23 @@ ZETA_DeclareStruct(Zeta_LRUCacheManager_XNode);
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 
-struct Zeta_LRUCacheManager_BNode {
+#define Zeta_LRUCacheManager_SNode_color (1)
+#define Zeta_LRUCacheManager_CNode_color (2)
+#define Zeta_LRUCacheManager_XNode_color (3)
+
+struct Zeta_LRUCacheManager_SNode {
+    ZETA_DebugStructPadding;
+
+    Zeta_OrdRBLinkedListNode lh;
+    // p: color
+
+    ZETA_DebugStructPadding;
+
+    unsigned cn_cnt;
+    unsigned max_cn_cnt;
+};
+
+struct Zeta_LRUCacheManager_CXNodeBase {
     ZETA_DebugStructPadding;
 
     Zeta_GenericHashTable_Node ghtn;
@@ -32,27 +48,19 @@ struct Zeta_LRUCacheManager_BNode {
 
     Zeta_OrdRBLinkedListNode ln;
     // p: color
-};
-
-struct Zeta_LRUCacheManager_SNode {
-    ZETA_DebugStructPadding;
-
-    Zeta_LRUCacheManager_BNode bn;
 
     ZETA_DebugStructPadding;
 
-    unsigned cn_cnt;
-    unsigned max_cn_cnt;
+    size_t blk_num;
 };
 
 struct Zeta_LRUCacheManager_CNode {
     ZETA_DebugStructPadding;
 
-    Zeta_LRUCacheManager_BNode bn;
+    Zeta_LRUCacheManager_CXNodeBase base;
 
     ZETA_DebugStructPadding;
 
-    unsigned long long blk_num;
     void* frame;
 
     unsigned ref_cnt;
@@ -62,7 +70,7 @@ struct Zeta_LRUCacheManager_CNode {
 struct Zeta_LRUCacheManager_XNode {
     ZETA_DebugStructPadding;
 
-    Zeta_LRUCacheManager_BNode bn;
+    Zeta_LRUCacheManager_CXNodeBase base;
 
     ZETA_DebugStructPadding;
 
@@ -96,21 +104,25 @@ size_t Zeta_LRUCacheManager_GetWidth(void* lrucm);
 
 void* Zeta_LRUCacheManager_Open(void* lrucm, size_t max_cache_cnt);
 
-void Zeta_LRUCacheManager_Close(void* lrucm, void* sn);
+void Zeta_LRUCacheManager_Close(void* lrucm, void* sd);
 
-void Zeta_LRUCacheManager_SetMaxCacheCnt(void* lrucm, void* sn,
+void Zeta_LRUCacheManager_SetMaxCacheCnt(void* lrucm, void* sd,
                                          size_t max_cache_cnt);
 
-void const* Zeta_LRUCacheManager_Read(void* lrucm, void* sn, size_t blk_num);
+void const* Zeta_LRUCacheManager_Read(void* lrucm, void* sd, size_t blk_num);
 
-void Zeta_LRUCacheManager_Write(void* lrucm, void* sn, size_t blk_num,
+void Zeta_LRUCacheManager_Write(void* lrucm, void* sd, size_t blk_num,
                                 void const* data);
 
 void Zeta_LRUCacheManager_FlushBlock(void* lrucm, size_t blk_num);
 
-void Zeta_LRUCacheManager_Flush(void* lrucm, void* sn);
+void Zeta_LRUCacheManager_Flush(void* lrucm, void* sd);
 
 void Zeta_LRUCacheManager_FlushAll(void* lrucm);
+
+bool_t Zeta_LRUCacheManager_UnrefOverRef(void* lrcum);
+
+bool_t Zeta_LRUCacheManager_UnrefOverCache(void* lrcum);
 
 void Zeta_LRUCacheManager_DeployCacheManager(void* lrucm,
                                              Zeta_CacheManager* dst);
