@@ -618,6 +618,10 @@ typedef int (*Zeta_Compare)(void const* context, void const* a, void const* b);
 typedef unsigned long long (*Zeta_Hash)(void const* context, void const* a,
                                         unsigned long long salt);
 
+#define ZETA_SectStartOf(sect) (ZETA_Concat(__start_, sect))
+
+#define ZETA_SectStopOf(sect) (ZETA_Concat(__stop_, sect))
+
 #if defined(__i386__) || defined(__x86_64__)
 
 #define ZETA_CPU_RELAX() __asm__("pause")

@@ -171,6 +171,14 @@ void Zeta_LRUCacheManager_Init(void* lrucm_) {
     lrucm->ght.NodeCompare = BNodeCompare;
 
     Zeta_GenericHashTable_Init(&lrucm->ght);
+
+    lrucm->hot_cl = (BNode*)ZETA_Allocator_SafeAllocate(
+        cn_allocator, alignof(Zeta_OrdRBLinkedListNode),
+        sizeof(Zeta_OrdRBLinkedListNode));
+
+    lrucm->cold_cl = (BNode*)ZETA_Allocator_SafeAllocate(
+        cn_allocator, alignof(Zeta_OrdRBLinkedListNode),
+        sizeof(Zeta_OrdRBLinkedListNode));
 }
 
 static void InitBNode_(BNode* bn) {
@@ -245,11 +253,8 @@ static unsigned TryRelease_(Zeta_LRUCacheManager* lrucm, SNode* sn,
 
         if (0 < --cn->ref_cnt) { continue; }
 
-        if (lrucm->cold_cl == NULL) {
-            lrucm->cold_cl = &cn->bn.ln;
-        } else {
-            Zeta_OrdRBLinkedListNode_InsertL(lrucm->cold_cl, &cn->bn.ln);
-        }
+        Zeta_OrdRBLinkedListNode_Extract(&cn->bn.ln);
+        Zeta_OrdRBLinkedListNode_InsertL(lrucm->hot_cl, &cn->bn.ln);
     }
 
     return cnt;
@@ -296,21 +301,16 @@ static XNode* F_(Zeta_LRUCacheManager* lrucm, SNode* sn, size_t blk_num,
         cn->dirty = !fetch;
 
         cn->ref_cnt = 1;
+
+        Zeta_OrdRBLinkedListNode_InsertL(lrucm->hot_cl, &cn->bn.ln);
     } else {
         cn = ZETA_MemberToStruct(CNode, bn.ghtn, ghtn);
 
-        if (1 < ++cn->ref_cnt) { goto L1; }
-
-        if (lrucm->cold_cl == &cn->bn.ln) {
-            lrucm->cold_cl = Zeta_OrdRBLinkedListNode_GetR(lrucm->cold_cl);
-
-            if (lrucm->cold_cl == &cn->bn.ln) { lrucm->cold_cl = NULL; }
+        if (++cn->ref_cnt == 1) {
+            Zeta_OrdRBLinkedListNode_Extract(&cn->bn.ln);
+            Zeta_OrdRBLinkedListNode_InsertL(lrucm->hot_cl, &cn->bn.ln);
         }
-
-        Zeta_OrdRBLinkedListNode_Extract(&cn->bn.ln);
     }
-
-L1:;
 
     XNode* xn = AllocateXNode_(lrucm);
 

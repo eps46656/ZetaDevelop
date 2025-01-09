@@ -83,6 +83,7 @@ struct Zeta_LRUCacheManager {
 
     Zeta_GenericHashTable ght;
 
+    Zeta_OrdRBLinkedListNode* hot_cl;
     Zeta_OrdRBLinkedListNode* cold_cl;
 };
 

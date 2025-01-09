@@ -892,28 +892,6 @@ def AddDeps(builder: Builder, config: Config):
     )
 
     builder.Add(
-        f"{zeta_dir}/flow.c",
-        {
-            f"{FILE}",
-            f"{zeta_dir}/flow.h",
-            f"{zeta_dir}/debugger.h",
-        },
-        None
-    )
-
-    builder.Add(
-        f"{zeta_build_dir}/flow.o",
-        {
-            f"{FILE}",
-            f"{zeta_dir}/flow.c",
-        },
-        lambda: compiler.c_to_obj(
-            f"{zeta_build_dir}/flow.o",
-            f"{zeta_dir}/flow.c",
-        )
-    )
-
-    builder.Add(
         f"{zeta_dir}/generic_hash_table.h",
         {
             f"{FILE}",

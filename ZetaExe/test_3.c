@@ -2,10 +2,14 @@
 
 #include "../Zeta/define.h"
 
-void main3() {
-    int a = ({ 5 + 6; });
+__attribute__((__section__("my_section"))) int glb_x;
 
-    printf("%d\n", a);
+//  extern int __start_my_section[1];
+
+void main3() {
+    ZETA_PrintVar(_start_my_section);
+
+    ZETA_PrintVar((void*)&glb_x);
 }
 
 int main() {

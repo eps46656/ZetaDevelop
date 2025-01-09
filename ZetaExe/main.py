@@ -575,6 +575,28 @@ def AddDeps(builder: Builder, config: Config):
     )
 
     builder.Add(
+        f"{zeta_exe_dir}/test_4.c",
+        {
+            f"{FILE}",
+        },
+        None
+    )
+
+    builder.Add(
+        f"{zeta_exe_build_dir}/test_4.exe",
+        {
+            f"{FILE}",
+            f"{zeta_exe_dir}/test_4.c",
+        },
+        lambda: compiler.to_exe(
+            f"{zeta_exe_build_dir}/test_4.exe",
+            {
+                f"{zeta_exe_dir}/test_4.c",
+            }
+        )
+    )
+
+    builder.Add(
         f"{zeta_exe_dir}/test_datetime.cpp",
         {
             f"{FILE}",
@@ -2317,7 +2339,6 @@ def AddDeps(builder: Builder, config: Config):
             f"{zeta_build_dir}/cascade_allocator.o",
             f"{zeta_build_dir}/debug_str_pipe.o",
             f"{zeta_build_dir}/debugger.o",
-            f"{zeta_build_dir}/flow.o",
             f"{zeta_build_dir}/io.o",
             f"{zeta_build_dir}/logger.o",
             f"{zeta_build_dir}/mem_check_utils.o",
@@ -2334,7 +2355,6 @@ def AddDeps(builder: Builder, config: Config):
                 f"{zeta_build_dir}/cascade_allocator.o",
                 f"{zeta_build_dir}/debug_str_pipe.o",
                 f"{zeta_build_dir}/debugger.o",
-                f"{zeta_build_dir}/flow.o",
                 f"{zeta_build_dir}/io.o",
                 f"{zeta_build_dir}/logger.o",
                 f"{zeta_build_dir}/mem_check_utils.o",
@@ -2373,7 +2393,6 @@ def AddDeps(builder: Builder, config: Config):
         {
             f"{FILE}",
             flow_s,
-            f"{zeta_build_dir}/flow.o",
             f"{zeta_build_dir}/debug_str_pipe.o",
             f"{zeta_build_dir}/debugger.o",
             f"{zeta_build_dir}/io.o",
@@ -2384,7 +2403,6 @@ def AddDeps(builder: Builder, config: Config):
             f"{zeta_exe_build_dir}/test_flow.exe",
             {
                 flow_s,
-                f"{zeta_build_dir}/flow.o",
                 f"{zeta_build_dir}/debug_str_pipe.o",
                 f"{zeta_build_dir}/debugger.o",
                 f"{zeta_build_dir}/io.o",

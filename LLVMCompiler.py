@@ -124,8 +124,10 @@ class LLVMCompiler:
         self.c_standard = config.c_standard
         self.cpp_standard = config.cpp_standard
 
-        self.c_include_dirs = map(pathlib.Path, config.c_include_dirs)
-        self.cpp_include_dirs = map(pathlib.Path, config.cpp_include_dirs)
+        self.c_include_dirs = list(map(pathlib.Path, config.c_include_dirs))
+
+        self.cpp_include_dirs = list(
+            map(pathlib.Path, config.cpp_include_dirs))
 
         self.enable_debug = config.enable_debug
         self.enable_asan = config.enable_asan
@@ -218,6 +220,8 @@ class LLVMCompiler:
             "--verbose" if self.verbose else "",
             f"--target={self.clang_triple}",
             "-m64",
+            *(f"--include-directory={include_dir}"
+              for include_dir in self.c_include_dirs),
             # "-lstdc++",
             # "-lm",
 
