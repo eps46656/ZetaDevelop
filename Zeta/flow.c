@@ -25,15 +25,3 @@ void Zeta_Flow_Jump(Zeta_FlowBlock* dst_flow_blk, void* code) {
 
     Zeta_Flow_Jump_(dst_flow_blk, code);
 }
-
-__attribute__((sysv_abi)) void* Zeta_Flow_Switch_(Zeta_FlowBlock* src_flow_blk,
-                                                  Zeta_FlowBlock* dst_flow_blk,
-                                                  void* code);
-
-void* Zeta_Flow_Switch(Zeta_FlowBlock* src_flow_blk,
-                       Zeta_FlowBlock* dst_flow_blk, void* code) {
-    ZETA_DebugAssert(src_flow_blk != NULL);
-    ZETA_DebugAssert(dst_flow_blk != NULL);
-
-    return Zeta_Flow_Switch_(src_flow_blk, dst_flow_blk, code);
-};
