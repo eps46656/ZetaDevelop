@@ -89,7 +89,7 @@ ZETA_ExternC_Beg;
     ZETA_StaticAssert(TRUE)
 
 #define ZETA_LogVar(pipe, var) \
-    ZETA_LogVar_(ZETA_TmpName, ZETA_TmpName, ZETA_TmpName, pipe, var)
+    ZETA_LogVar_(ZETA_TmpName, ZETA_TmpName, ZETA_TmpName, (pipe), (var))
 
 void Zeta_Logger_LogBool_(Zeta_Pipe* pipe, void const* ptr);
 

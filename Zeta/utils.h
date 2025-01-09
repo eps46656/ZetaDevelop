@@ -62,63 +62,111 @@ void Zeta_ElemMove(void* dst, void const* src, size_t width, size_t dst_stride,
 void* Zeta_ElemRotate(void* data, size_t width, size_t stride, size_t l_size,
                       size_t r_size);
 
-#define ZETA_ReadLittleEndian4_(src_tmp, src)                      \
-    ({                                                             \
-        byte_t const* src_tmp = (void const*)(src);                \
-        ZETA_DebugAssert(src_tmp != NULL);                         \
-                                                                   \
-        ((u32_t)src_tmp[0] << 0) | ((u32_t)src_tmp[1] << 8) |      \
-            ((u32_t)src_tmp[2] << 16) | ((u32_t)src_tmp[3] << 24); \
+// -----------------------------------------------------------------------------
+
+#define ZETA_BytesToUInt_(tmp_ret, tmp_src, tmp_len, tmp_endian, val_type, \
+                          src, len, endian)                                \
+    ({                                                                     \
+        ZETA_StaticAssert(ZETA_WidthOf(val_type) <= 8 * 8);                \
+                                                                           \
+        ZETA_AutoVar(tmp_src, (src));                                      \
+        ZETA_DebugAssert(tmp_src != NULL);                                 \
+                                                                           \
+        ZETA_AutoVar(tmp_len, (len));                                      \
+        ZETA_DebugAssert(0 <= tmp_len);                                    \
+        ZETA_DebugAssert(tmp_len <= 8);                                    \
+                                                                           \
+        ZETA_AutoVar(tmp_endian, (endian));                                \
+        ZETA_DebugAssert(tmp_endian == ZETA_LittleEndian ||                \
+                         tmp_endian == ZETA_BigEndian);                    \
+                                                                           \
+        val_type tmp_ret = 0;                                              \
+                                                                           \
+        if (tmp_endian == ZETA_LittleEndian) {                             \
+            switch (tmp_len) {                                             \
+                case 8: tmp_ret = tmp_ret * 256 + tmp_src[7];              \
+                case 7: tmp_ret = tmp_ret * 256 + tmp_src[6];              \
+                case 6: tmp_ret = tmp_ret * 256 + tmp_src[5];              \
+                case 5: tmp_ret = tmp_ret * 256 + tmp_src[4];              \
+                case 4: tmp_ret = tmp_ret * 256 + tmp_src[3];              \
+                case 3: tmp_ret = tmp_ret * 256 + tmp_src[2];              \
+                case 2: tmp_ret = tmp_ret * 256 + tmp_src[1];              \
+                case 1: tmp_ret = tmp_ret * 256 + tmp_src[0];              \
+                case 0:                                                    \
+            }                                                              \
+        } else {                                                           \
+            switch (tmp_len) {                                             \
+                case 8: tmp_ret = tmp_ret * 256 + tmp_src[tmp_len - 8];    \
+                case 7: tmp_ret = tmp_ret * 256 + tmp_src[tmp_len - 7];    \
+                case 6: tmp_ret = tmp_ret * 256 + tmp_src[tmp_len - 6];    \
+                case 5: tmp_ret = tmp_ret * 256 + tmp_src[tmp_len - 5];    \
+                case 4: tmp_ret = tmp_ret * 256 + tmp_src[tmp_len - 4];    \
+                case 3: tmp_ret = tmp_ret * 256 + tmp_src[tmp_len - 3];    \
+                case 2: tmp_ret = tmp_ret * 256 + tmp_src[tmp_len - 2];    \
+                case 1: tmp_ret = tmp_ret * 256 + tmp_src[tmp_len - 1];    \
+                case 0:                                                    \
+            }                                                              \
+        }                                                                  \
+                                                                           \
+        tmp_ret;                                                           \
     })
 
-#define ZETA_ReadLittleEndian4(src) ZETA_ReadLittleEndian4_(ZETA_TmpName, (src))
+#define ZETA_BytesToUInt(val_type, src, len, endian)                          \
+    ZETA_BytesToUInt_(ZETA_TmpName, ZETA_TmpName, ZETA_TmpName, ZETA_TmpName, \
+                      val_type, (src), (len), (endian))
 
-#define ZETA_ReadLittleEndian8_(src_tmp, src)                       \
-    ({                                                              \
-        byte_t const* src_tmp = (void const*)(src);                 \
-        ZETA_DebugAssert(src_tmp != NULL);                          \
-                                                                    \
-        ((u64_t)src_tmp[0] << 0) | ((u64_t)src_tmp[1] << 8) |       \
-            ((u64_t)src_tmp[2] << 16) | ((u64_t)src_tmp[3] << 24) | \
-            ((u64_t)src_tmp[4] << 32) | ((u64_t)src_tmp[5] << 40) | \
-            ((u64_t)src_tmp[6] << 48) | ((u64_t)src_tmp[7] << 56);  \
+// -----------------------------------------------------------------------------
+
+#define ZETA_UIntToBytes_(tmp_ret, tmp_src, tmp_len, tmp_endian, val, dst,    \
+                          len, endian)                                        \
+    ({                                                                        \
+        ZETA_AutoVar(tmp_val, (val));                                         \
+                                                                              \
+        ZETA_AutoVar(tmp_dst, (dst));                                         \
+        ZETA_DebugAssert(tmp_dst != NULL);                                    \
+                                                                              \
+        ZETA_AutoVar(tmp_len, (len));                                         \
+        ZETA_DebugAssert(0 <= tmp_len);                                       \
+        ZETA_DebugAssert(tmp_len <= 8);                                       \
+                                                                              \
+        ZETA_AutoVar(tmp_endian, (endian));                                   \
+        ZETA_DebugAssert(tmp_endian == ZETA_LittleEndian ||                   \
+                         tmp_endian == ZETA_BigEndian);                       \
+                                                                              \
+        if (tmp_endian == ZETA_LittleEndian) {                                \
+            switch (tmp_len) {                                                \
+                case 8: tmp_dst[tmp_len - 8] = tmp_val % 256; tmp_val /= 256; \
+                case 7: tmp_dst[tmp_len - 7] = tmp_val % 256; tmp_val /= 256; \
+                case 6: tmp_dst[tmp_len - 6] = tmp_val % 256; tmp_val /= 256; \
+                case 5: tmp_dst[tmp_len - 5] = tmp_val % 256; tmp_val /= 256; \
+                case 4: tmp_dst[tmp_len - 4] = tmp_val % 256; tmp_val /= 256; \
+                case 3: tmp_dst[tmp_len - 3] = tmp_val % 256; tmp_val /= 256; \
+                case 2: tmp_dst[tmp_len - 2] = tmp_val % 256; tmp_val /= 256; \
+                case 1: tmp_dst[tmp_len - 1] = tmp_val % 256; tmp_val /= 256; \
+                case 0:                                                       \
+            }                                                                 \
+        } else {                                                              \
+            switch (tmp_len) {                                                \
+                case 8: tmp_dst[8] = tmp_val % 256; tmp_val /= 256;           \
+                case 7: tmp_dst[7] = tmp_val % 256; tmp_val /= 256;           \
+                case 6: tmp_dst[6] = tmp_val % 256; tmp_val /= 256;           \
+                case 5: tmp_dst[5] = tmp_val % 256; tmp_val /= 256;           \
+                case 4: tmp_dst[4] = tmp_val % 256; tmp_val /= 256;           \
+                case 3: tmp_dst[3] = tmp_val % 256; tmp_val /= 256;           \
+                case 2: tmp_dst[2] = tmp_val % 256; tmp_val /= 256;           \
+                case 1: tmp_dst[1] = tmp_val % 256; tmp_val /= 256;           \
+                case 0:                                                       \
+            }                                                                 \
+        }                                                                     \
+                                                                              \
+        tmp_val;                                                              \
     })
 
-#define ZETA_ReadLittleEndian8(src) ZETA_ReadLittleEndian8_(ZETA_TmpName, (src))
+#define ZETA_UIntToBytes(val, dst, len, endian)                               \
+    ZETA_UIntToBytes_(ZETA_TmpName, ZETA_TmpName, ZETA_TmpName, ZETA_TmpName, \
+                      (val), (dst), (len), (endian))
 
-#define ZETA_ReadBigEndian4_(src_tmp, src)                       \
-    ({                                                           \
-        byte_t const* src_tmp = (void const*)(src);              \
-        ZETA_DebugAssert(src_tmp != NULL);                       \
-                                                                 \
-        ((u32_t)src_tmp[0] << 24) | ((u32_t)src_tmp[1] << 16) |  \
-            ((u32_t)src_tmp[2] << 8) | ((u32_t)src_tmp[3] << 0); \
-    })
-
-#define ZETA_ReadBigEndian4(src) ZETA_ReadBigEndian4_(ZETA_TmpName, (src))
-
-#define ZETA_ReadBigEndian8_(src_tmp, src)                          \
-    ({                                                              \
-        byte_t const* src_tmp = (void const*)(src);                 \
-        ZETA_DebugAssert(src_tmp != NULL);                          \
-                                                                    \
-        ((u64_t)src_tmp[0] << 56) | ((u64_t)src_tmp[1] << 48) |     \
-            ((u64_t)src_tmp[2] << 40) | ((u64_t)src_tmp[3] << 32) | \
-            ((u64_t)src_tmp[4] << 24) | ((u64_t)src_tmp[5] << 16) | \
-            ((u64_t)src_tmp[6] << 8) | ((u64_t)src_tmp[7] << 0);    \
-    })
-
-#define ZETA_ReadBigEndian8(src) ZETA_ReadBigEndian8_(ZETA_TmpName, (src))
-
-/**
- * @brief Read little endian stored length bytes occupying integer from data.
- *
- * @param src The byte array stores integer.
- * @param length The number of bytes the integer occupied.
- *
- * @return The read integer
- */
-unsigned long long Zeta_ReadLittleEndianULL(byte_t const* src, unsigned length);
+// -----------------------------------------------------------------------------
 
 /**
  * @brief Read little endian stored length bytes occupying integer from data.
@@ -139,19 +187,6 @@ u128_t Zeta_ReadLittleEndian(byte_t const* src, unsigned length);
  *
  * @return The remaining value after
  */
-unsigned long long Zeta_WriteLittleEndianULL(byte_t* dst,
-                                             unsigned long long val,
-                                             unsigned length);
-
-/**
- * @brief Write an integer to data in little endian occupying length bytes.
- *
- * @param dst The destination byte array.
- * @param length The number of bytes the integer occupied.
- * @param val The target integer.
- *
- * @return The remaining value after
- */
 u128_t Zeta_WriteLittleEndian(byte_t* dst, u128_t val, unsigned length);
 
 /**
@@ -162,27 +197,7 @@ u128_t Zeta_WriteLittleEndian(byte_t* dst, u128_t val, unsigned length);
  *
  * @return The read integer
  */
-unsigned long long Zeta_ReadBigEndianULL(byte_t const* src, unsigned length);
-
-/**
- * @brief Read big endian stored length bytes occupying integer from data.
- *
- * @param src The byte array stores integer.
- * @param length The number of bytes the integer occupied.
- *
- * @return The read integer
- */
 u128_t Zeta_ReadBigEndian(byte_t const* src, unsigned length);
-
-/**
- * @brief Write an integer to data in big endian occupying length bytes.
- *
- * @param dst The destination byte array.
- * @param length The number of bytes the integer occupied.
- * @param val The target integer.
- */
-unsigned long long Zeta_WriteBigEndianULL(byte_t* dst, unsigned long long val,
-                                          unsigned length);
 
 /**
  * @brief Write an integer to data in big endian occupying length bytes.

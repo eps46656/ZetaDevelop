@@ -23,10 +23,9 @@ struct Zeta_DiskPartMBR_MBR {
 
 byte_t const* Zeta_DiskPartMBR_ReadMBR(Zeta_DiskPartMBR_MBR* dst,
                                        Zeta_DiskInfo const* disk_info,
-                                       byte_t const* data,
-                                       byte_t const* data_end);
+                                       byte_t const* data, size_t data_size);
 
-byte_t* Zeta_DiskPartMBR_WriteMBR(byte_t* dst, byte_t* dst_end,
+byte_t* Zeta_DiskPartMBR_WriteMBR(byte_t* dst, size_t dst_size,
                                   Zeta_DiskInfo const* disk_info,
                                   Zeta_DiskPartMBR_MBR* mbr);
 

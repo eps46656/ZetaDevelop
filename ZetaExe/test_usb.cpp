@@ -10,7 +10,7 @@
 #include "../Zeta/define.h"
 #include "../Zeta/disk_info.h"
 #include "../Zeta/disk_part_gpt.h"
-#include "../Zeta/disk_part_mbt.h"
+#include "../Zeta/disk_part_mbr.h"
 #include "../Zeta/utf16.h"
 #include "../Zeta/utf8.h"
 

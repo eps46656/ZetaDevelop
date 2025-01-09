@@ -70,6 +70,10 @@ def AddDeps(builder: Builder, config: Config):
 
     # --------------------------------------------------------------------------
 
+    flow_s = {
+        utils.ArchEnum.INTEL64: f"{zeta_dir}/flow_intel64.s",
+    }[config.target.arch]
+
     builder.Add(
         f"{FILE}",
         {
@@ -713,7 +717,7 @@ def AddDeps(builder: Builder, config: Config):
             f"{FILE}",
             f"{zeta_dir}/disk_info.h",
             f"{zeta_dir}/disk_part_gpt.h",
-            f"{zeta_dir}/disk_part_mbt.h",
+            f"{zeta_dir}/disk_part_mbr.h",
         },
         None
     )
@@ -836,7 +840,7 @@ def AddDeps(builder: Builder, config: Config):
             f"{FILE}",
             f"{zeta_dir}/disk_info.h",
             f"{zeta_dir}/disk_part_gpt.h",
-            f"{zeta_dir}/disk_part_mbt.h",
+            f"{zeta_dir}/disk_part_mbr.h",
             f"{zeta_dir}/define.h",
         },
         None
@@ -2281,53 +2285,111 @@ def AddDeps(builder: Builder, config: Config):
     )
 
     builder.Add(
-        f"{zeta_exe_dir}/test_cor.cpp",
+        f"{zeta_exe_dir}/test_exception.cpp",
         {
             f"{FILE}",
-            f"{zeta_dir}/coroutine.h",
+            f"{zeta_dir}/cascade_allocator.h",
+            f"{zeta_dir}/debugger.h",
+            f"{zeta_dir}/flow.h",
+            f"{zeta_dir}/memory.h",
+        },
+        None
+    )
+
+    builder.Add(
+        f"{zeta_exe_build_dir}/test_exception.o",
+        {
+            f"{FILE}",
+            f"{zeta_exe_dir}/test_exception.cpp",
+        },
+        lambda: compiler.cpp_to_obj(
+            f"{zeta_exe_build_dir}/test_exception.o",
+            f"{zeta_exe_dir}/test_exception.cpp",
+        )
+    )
+
+    builder.Add(
+        f"{zeta_exe_build_dir}/test_exception.exe",
+        {
+            f"{FILE}",
+            flow_s,
+            f"{zeta_build_dir}/allocator.o",
+            f"{zeta_build_dir}/cascade_allocator.o",
+            f"{zeta_build_dir}/debug_str_pipe.o",
+            f"{zeta_build_dir}/debugger.o",
+            f"{zeta_build_dir}/flow.o",
+            f"{zeta_build_dir}/io.o",
+            f"{zeta_build_dir}/logger.o",
+            f"{zeta_build_dir}/mem_check_utils.o",
+            f"{zeta_build_dir}/memory.o",
+            f"{zeta_build_dir}/ord_linked_list_node.o",
+            f"{zeta_build_dir}/utils.o",
+            f"{zeta_exe_build_dir}/test_exception.o",
+        },
+        lambda: compiler.to_exe(
+            f"{zeta_exe_build_dir}/test_exception.exe",
+            {
+                flow_s,
+                f"{zeta_build_dir}/allocator.o",
+                f"{zeta_build_dir}/cascade_allocator.o",
+                f"{zeta_build_dir}/debug_str_pipe.o",
+                f"{zeta_build_dir}/debugger.o",
+                f"{zeta_build_dir}/flow.o",
+                f"{zeta_build_dir}/io.o",
+                f"{zeta_build_dir}/logger.o",
+                f"{zeta_build_dir}/mem_check_utils.o",
+                f"{zeta_build_dir}/memory.o",
+                f"{zeta_build_dir}/ord_linked_list_node.o",
+                f"{zeta_build_dir}/utils.o",
+                f"{zeta_exe_build_dir}/test_exception.o",
+            }
+        )
+    )
+
+    builder.Add(
+        f"{zeta_exe_dir}/test_flow.cpp",
+        {
+            f"{FILE}",
+            f"{zeta_dir}/flow.h",
             f"{zeta_dir}/debugger.h",
         },
         None
     )
 
     builder.Add(
-        f"{zeta_exe_build_dir}/test_cor.o",
+        f"{zeta_exe_build_dir}/test_flow.o",
         {
             f"{FILE}",
-            f"{zeta_exe_dir}/test_cor.cpp",
+            f"{zeta_exe_dir}/test_flow.cpp",
         },
         lambda: compiler.cpp_to_obj(
-            f"{zeta_exe_build_dir}/test_cor.o",
-            f"{zeta_exe_dir}/test_cor.cpp",
+            f"{zeta_exe_build_dir}/test_flow.o",
+            f"{zeta_exe_dir}/test_flow.cpp",
         )
     )
 
-    coroutine_s = {
-        utils.ArchEnum.INTEL64: f"{zeta_dir}/coroutine_intel64.s",
-    }[config.target.arch]
-
     builder.Add(
-        f"{zeta_exe_build_dir}/test_cor.exe",
+        f"{zeta_exe_build_dir}/test_flow.exe",
         {
             f"{FILE}",
-            coroutine_s,
-            f"{zeta_build_dir}/coroutine.o",
+            flow_s,
+            f"{zeta_build_dir}/flow.o",
             f"{zeta_build_dir}/debug_str_pipe.o",
             f"{zeta_build_dir}/debugger.o",
             f"{zeta_build_dir}/io.o",
             f"{zeta_build_dir}/logger.o",
-            f"{zeta_exe_build_dir}/test_cor.o",
+            f"{zeta_exe_build_dir}/test_flow.o",
         },
         lambda: compiler.to_exe(
-            f"{zeta_exe_build_dir}/test_cor.exe",
+            f"{zeta_exe_build_dir}/test_flow.exe",
             {
-                coroutine_s,
-                f"{zeta_build_dir}/coroutine.o",
+                flow_s,
+                f"{zeta_build_dir}/flow.o",
                 f"{zeta_build_dir}/debug_str_pipe.o",
                 f"{zeta_build_dir}/debugger.o",
                 f"{zeta_build_dir}/io.o",
                 f"{zeta_build_dir}/logger.o",
-                f"{zeta_exe_build_dir}/test_cor.o",
+                f"{zeta_exe_build_dir}/test_flow.o",
             }
         )
     )

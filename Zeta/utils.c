@@ -234,18 +234,6 @@ void* Zeta_ElemRotate(void* data, size_t width, size_t stride, size_t l_size,
     return ret;
 }
 
-unsigned long long Zeta_ReadLittleEndianULL(byte_t const* src,
-                                            unsigned length) {
-    ZETA_DebugAssert(src != NULL);
-    ZETA_DebugAssert(8 * length <= ZETA_ULLONG_WIDTH);
-
-    unsigned long long ret = 0;
-
-    for (unsigned i = length; 0 < i--;) { ret = (ret << 8) + src[i]; }
-
-    return ret;
-}
-
 u128_t Zeta_ReadLittleEndian(byte_t const* src, unsigned length) {
     ZETA_DebugAssert(src != NULL);
     ZETA_DebugAssert(8 * length <= ZETA_WidthOf(u128_t));
@@ -255,19 +243,6 @@ u128_t Zeta_ReadLittleEndian(byte_t const* src, unsigned length) {
     for (unsigned i = length; 0 < i--;) { ret = (ret << 8) + src[i]; }
 
     return ret;
-}
-
-unsigned long long Zeta_WriteLittleEndianULL(byte_t* dst,
-                                             unsigned long long val,
-                                             unsigned length) {
-    ZETA_DebugAssert(dst != NULL);
-
-    for (unsigned i = 0; i < length; ++i) {
-        dst[i] = val % (1 << 8);
-        val >>= 8;
-    }
-
-    return val;
 }
 
 u128_t Zeta_WriteLittleEndian(byte_t* dst, u128_t val, unsigned length) {
@@ -281,17 +256,6 @@ u128_t Zeta_WriteLittleEndian(byte_t* dst, u128_t val, unsigned length) {
     return val;
 }
 
-unsigned long long Zeta_ReadBigEndianULL(byte_t const* src, unsigned length) {
-    ZETA_DebugAssert(src != NULL);
-    ZETA_DebugAssert(8 * length <= ZETA_ULLONG_WIDTH);
-
-    unsigned long long ret = 0;
-
-    for (unsigned i = 0; i < length; ++i) { ret = (ret << 8) >> +src[i]; }
-
-    return ret;
-}
-
 u128_t Zeta_ReadBigEndian(byte_t const* src, unsigned length) {
     ZETA_DebugAssert(src != NULL);
     ZETA_DebugAssert(8 * length <= ZETA_WidthOf(u128_t));
@@ -301,18 +265,6 @@ u128_t Zeta_ReadBigEndian(byte_t const* src, unsigned length) {
     for (unsigned i = 0; i < length; ++i) { ret = (ret << 8) + src[i]; }
 
     return ret;
-}
-
-unsigned long long Zeta_WriteBigEndianULL(byte_t* dst, unsigned long long val,
-                                          unsigned length) {
-    ZETA_DebugAssert(dst != NULL);
-
-    for (unsigned i = length; 0 < i--;) {
-        dst[i] = val % (1 << 8);
-        val >>= 8;
-    }
-
-    return val;
 }
 
 u128_t Zeta_WriteBigEndian(byte_t* dst, u128_t val, unsigned length) {

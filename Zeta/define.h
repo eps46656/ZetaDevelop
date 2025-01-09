@@ -134,8 +134,8 @@ typedef unsigned unichar_t;
     auto var{ (expression) };         \
     ZETA_StaticAssert(TRUE)
 #else
-#define ZETA_AutoVar(var, expression)             \
-    ZETA_TypeOf((expression)) var = (expression); \
+#define ZETA_AutoVar(var, expression) \
+    __auto_type var = (expression);   \
     ZETA_StaticAssert(TRUE)
 #endif
 
@@ -154,7 +154,7 @@ typedef unsigned unichar_t;
 #if defined(__cplusplus)
 #define ZETA_ToVoidPtr(ptr) (const_cast<void*>((void const*)(ptr)))
 #else
-#define ZETA_ToVoidPtr(ptr) ((void*)(ptr))
+#define ZETA_ToVoidPtr(ptr) ((void*)(void const*)(ptr))
 #endif
 
 #define ZETA_IsSigned(type) ((type)(-1) < 0)
@@ -430,7 +430,7 @@ typedef unsigned unichar_t;
 #define ZETA_ThreeWayCompare(x, y) \
     ZETA_ThreeWayCompare_(ZETA_TmpName, ZETA_TmpName, (x), (y))
 
-#define ZETA_Swap_(tmp_x, tmp_y, x, y, tmp) \
+#define ZETA_Swap_(tmp_x, tmp_y, tmp, x, y) \
     {                                       \
         ZETA_AutoVar(tmp_x, &(x));          \
         ZETA_AutoVar(tmp_y, &(y));          \
@@ -441,7 +441,7 @@ typedef unsigned unichar_t;
     ZETA_StaticAssert(TRUE)
 
 #define ZETA_Swap(x, y) \
-    ZETA_Swap_(ZETA_TmpName, ZETA_TmpName, (x), (y), ZETA_TmpName)
+    ZETA_Swap_(ZETA_TmpName, ZETA_TmpName, ZETA_TmpName, (x), (y))
 
 ZETA_StaticAssert(ZETA_RangeMinOf(byte_t) <= 0);
 
@@ -555,10 +555,10 @@ ZETA_StaticAssert(255 <= ZETA_RangeMaxOf(byte_t));
                    long double: "%g\n",                         \
                                                                 \
                    void*: "%p\n",                               \
-                   const void*: "%p\n",                         \
+                   void const*: "%p\n",                         \
                                                                 \
                    char*: "%s\n",                               \
-                   const char*: "%s\n"),                        \
+                   char const*: "%s\n"),                        \
                (var));                                          \
                                                                 \
         if (ZETA_ImmPrint) { fflush(stdout); }                  \
@@ -599,6 +599,9 @@ ZETA_StaticAssert(255 <= ZETA_RangeMaxOf(byte_t));
 #define ZETA_LittleEndian (0)
 #define ZETA_BigEndian (1)
 
+#define ZETA_Endian_L ZETA_LittleEndian
+#define ZETA_Endian_B ZETA_BigEndian
+
 #if ZETA_EnableDebug
 
 #define ZETA_DebugStructPadding \
@@ -614,3 +617,17 @@ typedef int (*Zeta_Compare)(void const* context, void const* a, void const* b);
 
 typedef unsigned long long (*Zeta_Hash)(void const* context, void const* a,
                                         unsigned long long salt);
+
+#if defined(__i386__) || defined(__x86_64__)
+
+#define ZETA_CPU_RELAX() __asm__("pause")
+
+#elif defined(__arm__) || defined(__aarch64__)
+
+#define ZETA_CPU_RELAX() __asm__("yield")
+
+#else
+
+#define ZETA_CPU_RELAX()
+
+#endif

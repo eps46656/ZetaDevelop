@@ -1,6 +1,5 @@
 #pragma once
 
-#include <dummy_vector.h>
 #include <staging_vector.h>
 
 #include <cstdlib>

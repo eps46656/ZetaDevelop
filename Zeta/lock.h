@@ -2,6 +2,8 @@
 
 #include "define.h"
 
+ZETA_ExternC_Beg;
+
 ZETA_DeclareStruct(Zeta_SpinLock);
 
 struct Zeta_SpinLock {
@@ -15,3 +17,5 @@ bool_t Zeta_SpinLock_TryLock(Zeta_SpinLock* spin_lock);
 void Zeta_SpinLock_Lock(Zeta_SpinLock* spin_lock);
 
 void Zeta_SpinLock_Unlock(Zeta_SpinLock* spin_lock);
+
+ZETA_ExternC_End;

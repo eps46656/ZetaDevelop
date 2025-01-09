@@ -23,7 +23,7 @@ void InitCasAllocator() {
 
     StdAllocator_DeployAllocator(&std_allocator_instance, &std_allocator);
 
-    zeta_cas_allocator = &std_allocator;
+    zeta_cascade_allocator = &std_allocator;
 #else
     cas_allocator_instance.align = alignof(max_align_t);
     cas_allocator_instance.mem = cas_mem;
@@ -34,6 +34,6 @@ void InitCasAllocator() {
     Zeta_CascadeAllocator_DeployAllocator(&cas_allocator_instance,
                                           &cas_allocator);
 
-    zeta_cas_allocator = &cas_allocator;
+    zeta_cascade_allocator = &cas_allocator;
 #endif
 }

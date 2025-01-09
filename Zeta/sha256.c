@@ -134,7 +134,7 @@ void Zeta_SHA256Hasher_GetResult(void* hasher_, byte_t* dst) {
         buffer[buffer_i] = 0;
     }
 
-    Zeta_WriteBigEndian(buffer + buffer_i, 8 * cur_size, 8);
+    ZETA_UIntToBytes(8 * cur_size, buffer + buffer_i, 8, ZETA_BigEndian);
     buffer_i += 8;
 
     Zeta_SHA256Hasher_Rotate(&tmp_hasher, buffer, buffer_i);
@@ -142,7 +142,7 @@ void Zeta_SHA256Hasher_GetResult(void* hasher_, byte_t* dst) {
     ZETA_DebugAssert(tmp_hasher.size % 64 == 0);
 
     for (int i = 0; i < 8; ++i) {
-        Zeta_WriteBigEndian(dst + 4 * i, tmp_hasher.hs[i], 4);
+        ZETA_UIntToBytes(tmp_hasher.hs[i], dst + 4 * i, 4, ZETA_BigEndian);
     }
 }
 

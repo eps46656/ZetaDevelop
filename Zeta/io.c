@@ -5,11 +5,11 @@
 
 static unsigned char lower_chars[] = "0123456789abcdef";
 
-// static unsigned char upper_chars[] = { "0123456789ABCDEF" };
+static unsigned char upper_chars[] = { "0123456789ABCDEF" };
 
 static void Pipe_WriteInt_(Zeta_Pipe* pipe, unsigned long long val,
                            unsigned char sign_char, unsigned base,
-                           unsigned char const* chars, int just_dir,
+                           unsigned char const* chars, bool_t just_left,
                            size_t just_width, unsigned char just_char) {
     ZETA_DebugAssert(pipe != NULL);
 
@@ -36,7 +36,7 @@ static void Pipe_WriteInt_(Zeta_Pipe* pipe, unsigned long long val,
 
     size_t width = buffer_i - &buffer[0];
 
-    if (just_dir == ZETA_io_l_just) {
+    if (just_left) {
         while (buffer_i-- != &buffer[0]) { Write(context, 1, buffer_i); }
     }
 
@@ -44,24 +44,28 @@ static void Pipe_WriteInt_(Zeta_Pipe* pipe, unsigned long long val,
         Write(context, 1, &just_char);
     }
 
-    if (just_dir == ZETA_io_r_just) {
+    if (!just_left) {
         while (buffer_i-- != &buffer[0]) { Write(context, 1, buffer_i); }
     }
 }
 
 void Zeta_Pipe_WriteUInt(Zeta_Pipe* pipe, unsigned long long val, bool_t sign,
-                         unsigned long long base, int just_dir,
-                         size_t just_width, unsigned char just_char) {
-    Pipe_WriteInt_(pipe, val, sign ? '+' : '\0', base, lower_chars, just_dir,
+                         unsigned long long base, bool_t lower_case,
+                         bool_t just_left, size_t just_width,
+                         unsigned char just_char) {
+    Pipe_WriteInt_(pipe, val, sign ? '+' : '\0', base,
+                   lower_case ? lower_chars : upper_chars, just_left,
                    just_width, just_char);
 }
 
 void Zeta_Pipe_WriteSInt(Zeta_Pipe* pipe, long long val, bool_t sign,
-                         unsigned long long base, int just_dir,
-                         size_t just_width, unsigned char just_char) {
+                         unsigned long long base, bool_t lower_case,
+                         bool_t just_left, size_t just_width,
+                         unsigned char just_char) {
     Pipe_WriteInt_(pipe, val < 0 ? -(unsigned long long)val : val,
-                   val < 0 ? '-' : (sign ? '+' : '\0'), base, lower_chars,
-                   just_dir, just_width, just_char);
+                   val < 0 ? '-' : (sign ? '+' : '\0'), base,
+                   lower_case ? lower_chars : upper_chars, just_left,
+                   just_width, just_char);
 }
 
 static size_t CountStrLength_(unsigned char const* str) {
@@ -74,8 +78,9 @@ static size_t CountStrLength_(unsigned char const* str) {
     return ret;
 }
 
-void Zeta_Pipe_WriteStr(Zeta_Pipe* pipe, unsigned char const* str, int just_dir,
-                        size_t just_width, unsigned char just_char) {
+void Zeta_Pipe_WriteStr(Zeta_Pipe* pipe, unsigned char const* str,
+                        bool_t just_left, size_t just_width,
+                        unsigned char just_char) {
     ZETA_DebugAssert(pipe != NULL);
 
     void* context = pipe->context;
@@ -87,11 +92,11 @@ void Zeta_Pipe_WriteStr(Zeta_Pipe* pipe, unsigned char const* str, int just_dir,
 
     size_t str_length = CountStrLength_(str);
 
-    if (just_dir == ZETA_io_l_just) { Write(context, str_length, str); }
+    if (just_left) { Write(context, str_length, str); }
 
     for (size_t i = str_length; i < just_width; ++i) {
         Write(context, 1, &just_char);
     }
 
-    if (just_dir == ZETA_io_r_just) { Write(context, str_length, str); }
+    if (!just_left) { Write(context, str_length, str); }
 }

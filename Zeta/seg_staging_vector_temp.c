@@ -3024,7 +3024,7 @@ static size_t RecordOffset_(Cntr* cntr, TreeNode* n, size_t dst_idx,
 
         if (ghtn == NULL) {
             offset_cnt_node = ZETA_Allocator_SafeAllocate(
-                zeta_cas_allocator, alignof(OffsetCntNode),
+                zeta_cascade_allocator, alignof(OffsetCntNode),
                 sizeof(OffsetCntNode));
 
             ghtn = &offset_cnt_node->ghtn;
@@ -3088,7 +3088,7 @@ static void WriteBack_LR_(Cntr* cntr, int write_back_strategy,
             ght.node_cmp_context = NULL;
             ght.NodeCompare = OffsetCntNodeCompare;
 
-            ght.table_node_allocator = zeta_cas_allocator;
+            ght.table_node_allocator = zeta_cascade_allocator;
 
             Zeta_GenericHashTable_Init(&ght);
 
@@ -3146,7 +3146,8 @@ static void WriteBack_LR_(Cntr* cntr, int write_back_strategy,
                     del_r_cnt = cur_del_r_cnt;
                 }
 
-                ZETA_Allocator_Deallocate(zeta_cas_allocator, offset_cnt_node);
+                ZETA_Allocator_Deallocate(zeta_cascade_allocator,
+                                          offset_cnt_node);
             }
 
             break;
@@ -3183,10 +3184,10 @@ static void WriteBack_LR_(Cntr* cntr, int write_back_strategy,
 
     size_t segs_cnt = Zeta_BinTree_Count(TreeNodeOpr, cntr->root) - 2;
 
-    WBSeg* wb_segs =
-        (WBSeg*)ZETA_Allocator_SafeAllocate(zeta_cas_allocator, alignof(WBSeg),
-                                            sizeof(WBSeg) * (segs_cnt + 1)) +
-        1;
+    WBSeg* wb_segs = (WBSeg*)ZETA_Allocator_SafeAllocate(
+                         zeta_cascade_allocator, alignof(WBSeg),
+                         sizeof(WBSeg) * (segs_cnt + 1)) +
+                     1;
 
     WBSeg* lb_wb_seg = wb_segs - 1;
 
@@ -3211,7 +3212,7 @@ static void WriteBack_LR_(Cntr* cntr, int write_back_strategy,
 
     WriteWBSeg_(cntr, &ca_seq_cntr, wb_segs, segs_cnt, 0, push_l_cnt);
 
-    ZETA_Allocator_Deallocate(zeta_cas_allocator, lb_wb_seg);
+    ZETA_Allocator_Deallocate(zeta_cascade_allocator, lb_wb_seg);
 
     if (0 < pop_l_cnt) { ZETA_SeqCntr_PopL(origin, pop_l_cnt); }
 
@@ -3237,10 +3238,10 @@ static void WriteBack_Random_(Cntr* cntr, unsigned long long cost_coeff_read,
 
     size_t segs_cnt = Zeta_BinTree_Count(TreeNodeOpr, cntr->root) - 2;
 
-    WBSeg* wb_segs =
-        (WBSeg*)ZETA_Allocator_SafeAllocate(zeta_cas_allocator, alignof(WBSeg),
-                                            sizeof(WBSeg) * (segs_cnt + 2)) +
-        1;
+    WBSeg* wb_segs = (WBSeg*)ZETA_Allocator_SafeAllocate(
+                         zeta_cascade_allocator, alignof(WBSeg),
+                         sizeof(WBSeg) * (segs_cnt + 2)) +
+                     1;
 
     WBSeg* lb_wb_seg = wb_segs - 1;
 
@@ -3298,7 +3299,7 @@ static void WriteBack_Random_(Cntr* cntr, unsigned long long cost_coeff_read,
 
         WriteWBSeg_(cntr, &ca_seq_cntr, wb_segs, segs_cnt, 0, 0);
 
-        ZETA_Allocator_Deallocate(zeta_cas_allocator, wb_segs - 1);
+        ZETA_Allocator_Deallocate(zeta_cascade_allocator, wb_segs - 1);
 
         InitTree_(cntr);
         RefOrigin_(cntr);
@@ -3310,7 +3311,7 @@ static void WriteBack_Random_(Cntr* cntr, unsigned long long cost_coeff_read,
         cost_coeff_read + cost_coeff_write;
 
     WBSeg** ref_wb_segs = (WBSeg**)ZETA_Allocator_SafeAllocate(
-                              zeta_cas_allocator, alignof(WBSeg*),
+                              zeta_cascade_allocator, alignof(WBSeg*),
                               sizeof(WBSeg*) * (ref_segs_cnt + 2)) +
                           1;
 
@@ -3326,11 +3327,11 @@ static void WriteBack_Random_(Cntr* cntr, unsigned long long cost_coeff_read,
     }
 
     size_t* acc_arr =
-        ZETA_Allocator_SafeAllocate(zeta_cas_allocator, alignof(size_t),
+        ZETA_Allocator_SafeAllocate(zeta_cascade_allocator, alignof(size_t),
                                     sizeof(size_t) * (ref_segs_cnt + 2));
 
     unsigned long long* acc_brr = ZETA_Allocator_SafeAllocate(
-        zeta_cas_allocator, alignof(unsigned long long),
+        zeta_cascade_allocator, alignof(unsigned long long),
         sizeof(unsigned long long) * (ref_segs_cnt + 1));
 
     acc_arr[0] = 0;
@@ -3359,18 +3360,18 @@ static void WriteBack_Random_(Cntr* cntr, unsigned long long cost_coeff_read,
 
 #if ZETA_EnableDebug
     unsigned long long* dp_best_cost = ZETA_Allocator_SafeAllocate(
-        zeta_cas_allocator, alignof(unsigned long long),
+        zeta_cascade_allocator, alignof(unsigned long long),
         sizeof(unsigned long long) * (ref_segs_cnt + 2));
 
     dp_best_cost[0] = 0;
 #endif
 
     unsigned long long* dp_cost = ZETA_Allocator_SafeAllocate(
-        zeta_cas_allocator, alignof(unsigned long long),
+        zeta_cascade_allocator, alignof(unsigned long long),
         sizeof(unsigned long long) * (ref_segs_cnt + 2));
 
     size_t* dp_prv =
-        ZETA_Allocator_SafeAllocate(zeta_cas_allocator, alignof(size_t),
+        ZETA_Allocator_SafeAllocate(zeta_cascade_allocator, alignof(size_t),
                                     sizeof(size_t) * (ref_segs_cnt + 2));
 
     dp_cost[0] = 0;
@@ -3499,17 +3500,17 @@ static void WriteBack_Random_(Cntr* cntr, unsigned long long cost_coeff_read,
 
     ZETA_SanitizeAssert(check_cost == dp_cost[ref_segs_cnt + 1]);
 
-    ZETA_Allocator_Deallocate(zeta_cas_allocator, wb_segs - 1);
-    ZETA_Allocator_Deallocate(zeta_cas_allocator, ref_wb_segs - 1);
-    ZETA_Allocator_Deallocate(zeta_cas_allocator, acc_arr);
-    ZETA_Allocator_Deallocate(zeta_cas_allocator, acc_brr);
+    ZETA_Allocator_Deallocate(zeta_cascade_allocator, wb_segs - 1);
+    ZETA_Allocator_Deallocate(zeta_cascade_allocator, ref_wb_segs - 1);
+    ZETA_Allocator_Deallocate(zeta_cascade_allocator, acc_arr);
+    ZETA_Allocator_Deallocate(zeta_cascade_allocator, acc_brr);
 
 #if ZETA_EnableDebug
-    ZETA_Allocator_Deallocate(zeta_cas_allocator, dp_best_cost);
+    ZETA_Allocator_Deallocate(zeta_cascade_allocator, dp_best_cost);
 #endif
 
-    ZETA_Allocator_Deallocate(zeta_cas_allocator, dp_cost);
-    ZETA_Allocator_Deallocate(zeta_cas_allocator, dp_prv);
+    ZETA_Allocator_Deallocate(zeta_cascade_allocator, dp_cost);
+    ZETA_Allocator_Deallocate(zeta_cascade_allocator, dp_prv);
 
     InitTree_(cntr);
     RefOrigin_(cntr);

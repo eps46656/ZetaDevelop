@@ -353,49 +353,6 @@ def AddDeps(builder: Builder, config: Config):
         )
     )
 
-    coroutine_s = {
-        utils.ArchEnum.INTEL64: f"{zeta_dir}/coroutine_intel64.s",
-    }[config.target.arch]
-
-    builder.Add(
-        coroutine_s,
-        {
-            f"{FILE}",
-        },
-        None
-    )
-
-    builder.Add(
-        f"{zeta_dir}/coroutine.h",
-        {
-            f"{FILE}",
-            f"{zeta_dir}/define.h",
-        },
-        None
-    )
-
-    builder.Add(
-        f"{zeta_dir}/coroutine.c",
-        {
-            f"{FILE}",
-            f"{zeta_dir}/coroutine.h",
-            f"{zeta_dir}/debugger.h",
-        },
-        None
-    )
-
-    builder.Add(
-        f"{zeta_build_dir}/coroutine.o",
-        {
-            f"{FILE}",
-            f"{zeta_dir}/coroutine.c",
-        },
-        lambda: compiler.c_to_obj(
-            f"{zeta_build_dir}/coroutine.o",
-            f"{zeta_dir}/coroutine.c",
-        )
-    )
-
     builder.Add(
         f"{zeta_dir}/crc.h",
         {
@@ -647,7 +604,7 @@ def AddDeps(builder: Builder, config: Config):
     )
 
     builder.Add(
-        f"{zeta_dir}/disk_part_mbt.h",
+        f"{zeta_dir}/disk_part_mbr.h",
         {
             f"{FILE}",
             f"{zeta_dir}/define.h",
@@ -656,24 +613,24 @@ def AddDeps(builder: Builder, config: Config):
     )
 
     builder.Add(
-        f"{zeta_dir}/disk_part_mbt.c",
+        f"{zeta_dir}/disk_part_mbr.c",
         {
             f"{FILE}",
-            f"{zeta_dir}/disk_part_mbt.h",
+            f"{zeta_dir}/disk_part_mbr.h",
             f"{zeta_dir}/utils.h",
         },
         None
     )
 
     builder.Add(
-        f"{zeta_build_dir}/disk_part_mbt.o",
+        f"{zeta_build_dir}/disk_part_mbr.o",
         {
             f"{FILE}",
-            f"{zeta_dir}/disk_part_mbt.c",
+            f"{zeta_dir}/disk_part_mbr.c",
         },
         lambda: compiler.c_to_obj(
-            f"{zeta_build_dir}/disk_part_mbt.o",
-            f"{zeta_dir}/disk_part_mbt.c",
+            f"{zeta_build_dir}/disk_part_mbr.o",
+            f"{zeta_dir}/disk_part_mbr.c",
         )
     )
 
@@ -910,6 +867,49 @@ def AddDeps(builder: Builder, config: Config):
         lambda: compiler.c_to_obj(
             f"{zeta_build_dir}/elf_utils.o",
             f"{zeta_dir}/elf_utils.c",
+        )
+    )
+
+    flow_s = {
+        utils.ArchEnum.INTEL64: f"{zeta_dir}/flow_intel64.s",
+    }[config.target.arch]
+
+    builder.Add(
+        flow_s,
+        {
+            f"{FILE}",
+        },
+        None
+    )
+
+    builder.Add(
+        f"{zeta_dir}/flow.h",
+        {
+            f"{FILE}",
+            f"{zeta_dir}/define.h",
+        },
+        None
+    )
+
+    builder.Add(
+        f"{zeta_dir}/flow.c",
+        {
+            f"{FILE}",
+            f"{zeta_dir}/flow.h",
+            f"{zeta_dir}/debugger.h",
+        },
+        None
+    )
+
+    builder.Add(
+        f"{zeta_build_dir}/flow.o",
+        {
+            f"{FILE}",
+            f"{zeta_dir}/flow.c",
+        },
+        lambda: compiler.c_to_obj(
+            f"{zeta_build_dir}/flow.o",
+            f"{zeta_dir}/flow.c",
         )
     )
 

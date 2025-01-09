@@ -45,17 +45,16 @@ struct Zeta_DiskPartGPT_PartEntry {
 };
 
 byte_t const* Zeta_DiskPartGPT_ReadHeader(Zeta_DiskPartGPT_Header* dst,
-                                          byte_t const* data,
-                                          byte_t const* data_end);
+                                          byte_t const* data, size_t data_size);
 
-byte_t* Zeta_DiskPartGPT_WriteHeader(byte_t* dst, byte_t* dst_end,
+byte_t* Zeta_DiskPartGPT_WriteHeader(byte_t* dst, size_t dst_size,
                                      Zeta_DiskPartGPT_Header* header);
 
 byte_t const* Zeta_DiskPartGPT_ReadPartEntry(Zeta_DiskPartGPT_PartEntry* dst,
                                              byte_t const* data,
-                                             byte_t const* data_end);
+                                             size_t data_size);
 
-byte_t* Zeta_DiskPartGPT_WritePartEntry(byte_t* dst, byte_t* dst_end,
+byte_t* Zeta_DiskPartGPT_WritePartEntry(byte_t* dst, size_t dst_size,
                                         Zeta_DiskPartGPT_PartEntry* part_entry);
 
 ZETA_ExternC_End;
