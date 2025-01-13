@@ -403,7 +403,7 @@ void F() {
         cur_task = nxt_task;
     }
 
-SCHEDULE_END:;
+SCHEDULE_END:
 
     std::cout << run << '\n';
 

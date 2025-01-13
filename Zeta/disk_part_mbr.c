@@ -3,16 +3,24 @@
 #include "debugger.h"
 #include "utils.h"
 
-#define READ_(tmp_ret, tmp_len, src, len)                               \
+#define READ_(tmp_ret, tmp_len, tmp_i, src, len)                        \
     ({                                                                  \
         ZETA_AutoVar(tmp_len, (len));                                   \
+                                                                        \
+        for (size_t tmp_i = 0; tmp_i < tmp_len; ++tmp_i) {              \
+            if (src[tmp_i] < 0 || 255 < src[tmp_i]) { goto ERR_RET; }   \
+        }                                                               \
+                                                                        \
         u64_t tmp_ret =                                                 \
             ZETA_BytesToUInt(u64_t, (src), tmp_len, ZETA_LittleEndian); \
+                                                                        \
         (src) += tmp_len;                                               \
+                                                                        \
         tmp_ret;                                                        \
     })
 
-#define READ(src, len) READ_(ZETA_TmpName, ZETA_TmpName, (src), (len))
+#define READ(src, len) \
+    READ_(ZETA_TmpName, ZETA_TmpName, ZETA_TmpName, (src), (len))
 
 #define WRITE_(tmp_len, val, dst, len)                          \
     ZETA_AutoVar(tmp_len, (len));                               \
@@ -41,6 +49,10 @@ static byte_t const* ReadPartInfo_(Zeta_DiskPartMBR_PartEntry* dst,
     dst->end = dst->beg + num_of_secs;
 
     return src;
+
+ERR_RET:
+
+    return NULL;
 }
 
 static byte_t* WritePartInfo_(byte_t* dst,

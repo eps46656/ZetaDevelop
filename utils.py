@@ -62,3 +62,49 @@ def ToListCommand(*cmd: typing.Iterable[typing.Optional[str | typing.Iterable]])
             q.extend(x)
 
     return list(reversed(ret))
+
+
+def ThreeWayCompare(x, y):
+    if x < y:
+        return -1
+
+    if y < x:
+        return 1
+
+    return 0
+
+
+@typechecked
+class CompareWrapper:
+    def __init__(self,
+                 obj: object,
+                 cmp: typing.Callable[[object, object], int]):
+        self.obj = obj
+        self.cmp = cmp
+
+    def __eq__(self, d: typing.Self):
+        return self.obj == d.obj
+
+    def __ne__(self, d: typing.Self):
+        return self.obj != d.obj
+
+    def __lt__(self, d: typing.Self):
+        assert self.cmp is d.cmp
+        return self.cmp(self.obj, d.obj) < 0
+
+    def __gt__(self, d: typing.Self):
+        assert self.cmp is d.cmp
+        return self.cmp(self.obj, d.obj) > 0
+
+    def __le__(self, d: typing.Self):
+        assert self.cmp is d.cmp
+        return self.cmp(self.obj, d.obj) <= 0
+
+    def __ge__(self, d: typing.Self):
+        assert self.cmp is d.cmp
+        return self.cmp(self.obj, d.obj) >= 0
+
+
+@typechecked
+def CompareToKey(cmp: typing.Callable[[object, object], int]):
+    return lambda obj: CompareWrapper(obj, cmp)

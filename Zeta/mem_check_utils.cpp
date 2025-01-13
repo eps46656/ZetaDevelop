@@ -1,17 +1,7 @@
 #include "mem_check_utils.h"
 
-#if ZETA_EnableDebug
-
-#include <stdio.h>
-
-#include <map>
-
 #include "debugger.h"
 #include "utils.h"
-
-struct Zeta_MemRecorder {
-    std::map<unsigned char const*, size_t> records;
-};
 
 Zeta_MemRecorder* Zeta_MemRecorder_Create() { return new Zeta_MemRecorder{}; }
 
@@ -26,10 +16,8 @@ size_t Zeta_MemRecorder_GetSize(Zeta_MemRecorder* mem_recorder) {
 }
 
 size_t Zeta_MemRecorder_GetRecordSize(Zeta_MemRecorder* mem_recorder,
-                                      void const* ptr_) {
+                                      void const* ptr) {
     ZETA_DebugAssert(mem_recorder != NULL);
-
-    unsigned char const* ptr = (unsigned char const*)ptr_;
 
     auto iter{ mem_recorder->records.find(ptr) };
 
@@ -37,30 +25,27 @@ size_t Zeta_MemRecorder_GetRecordSize(Zeta_MemRecorder* mem_recorder,
 }
 
 bool_t Zeta_MemRecorder_IsRecorded(Zeta_MemRecorder* mem_recorder,
-                                   void const* ptr_) {
+                                   void const* ptr) {
     ZETA_DebugAssert(mem_recorder != NULL);
-
-    unsigned char const* ptr = (unsigned char const*)ptr_;
 
     return mem_recorder->records.find(ptr) != mem_recorder->records.end();
 }
 
-void Zeta_MemRecorder_Record(Zeta_MemRecorder* mem_recorder, void const* ptr_,
+void Zeta_MemRecorder_Record(Zeta_MemRecorder* mem_recorder, void const* ptr,
                              size_t size) {
     ZETA_DebugAssert(mem_recorder != NULL);
-
-    unsigned char const* ptr = (unsigned char const*)ptr_;
 
     auto iter{ mem_recorder->records.lower_bound(ptr) };
 
     if (iter != mem_recorder->records.end()) {
         ZETA_DebugAssert(iter->first != ptr);
-        ZETA_DebugAssert(ptr + size <= iter->first);
+        ZETA_DebugAssert((unsigned char const*)ptr + size <= iter->first);
     }
 
     if (iter != mem_recorder->records.begin()) {
         --iter;
-        ZETA_DebugAssert(iter->first + iter->second <= ptr);
+        ZETA_DebugAssert((unsigned char const*)iter->first + iter->second <=
+                         ptr);
     }
 
     mem_recorder->records.insert({ ptr, size });
@@ -70,7 +55,7 @@ bool_t Zeta_MemRecorder_Unrecord(Zeta_MemRecorder* mem_recorder,
                                  void const* ptr) {
     ZETA_DebugAssert(mem_recorder != NULL);
 
-    return mem_recorder->records.erase((unsigned char const*)ptr) != 0;
+    return mem_recorder->records.erase(ptr) != 0;
 }
 
 void Zeta_MemRecorder_Clear(Zeta_MemRecorder* mem_recorder) {
@@ -101,5 +86,3 @@ void Zeta_MemCheck_MatchRecords(Zeta_MemRecorder const* src_mem_recorder,
         // overflow: dst uses more than allocated memory.
     }
 }
-
-#endif

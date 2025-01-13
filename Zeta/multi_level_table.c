@@ -16,22 +16,25 @@
 
 #endif
 
-#define TestHot_(hot, idx) (((hot) >> (idx)) % 2 != 0)
+#define TestActiveMap_(active_map, idx) (((active_map) >> (idx)) % 2 != 0)
 
-static int FindPrevHot_(unsigned long long hot, size_t idx) {
+static int FindPrevActive_(unsigned long long active_map, size_t idx) {
     if (idx == (size_t)(-1)) { return -1; }
 
-    hot = hot << (ZETA_ULLONG_WIDTH - 1 - idx) >> (ZETA_ULLONG_WIDTH - 1 - idx);
+    active_map = active_map << (ZETA_ULLONG_WIDTH - 1 - idx) >>
+                 (ZETA_ULLONG_WIDTH - 1 - idx);
 
-    return hot == 0 ? -1 : ZETA_ULLONG_WIDTH - 1 - __builtin_clzll(hot);
+    return active_map == 0
+               ? -1
+               : ZETA_ULLONG_WIDTH - 1 - __builtin_clzll(active_map);
 }
 
-static int FindNextHot_(unsigned long long hot, size_t idx) {
+static int FindNextActive_(unsigned long long active_map, size_t idx) {
     if (idx == ZETA_ULLONG_WIDTH) { return -1; }
 
-    hot = hot >> idx << idx;
+    active_map = active_map >> idx << idx;
 
-    return hot == 0 ? -1 : __builtin_ctzll(hot);
+    return active_map == 0 ? -1 : __builtin_ctzll(active_map);
 }
 
 void Zeta_MultiLevelTable_Init(void* mlt_) {
@@ -104,13 +107,14 @@ void** Zeta_MultiLevelTable_Access(void* mlt_, size_t* idxes) {
 
     for (int level_i = level - 1; 0 < level_i; --level_i) {
         size_t cur_idx = idxes[level_i];
-        if (!TestHot_(node->hot, cur_idx)) { return NULL; }
+        if (!TestActiveMap_(node->active_map, cur_idx)) { return NULL; }
         node = node->ptrs[cur_idx];
     }
 
     size_t last_idx = idxes[0];
 
-    return TestHot_(node->hot, last_idx) ? node->ptrs + last_idx : NULL;
+    return TestActiveMap_(node->active_map, last_idx) ? node->ptrs + last_idx
+                                                      : NULL;
 }
 
 void** Zeta_MultiLevelTable_FindFirst(void* mlt_, size_t* dst_idxes) {
@@ -179,7 +183,7 @@ void** Zeta_MultiLevelTable_FindPrev(void* mlt_, size_t* idxes,
         return NULL;
     }
 
-L1:;
+L1:
 
     Zeta_MultiLevelTable_Node* root = mlt->root;
 
@@ -198,7 +202,7 @@ L1:;
 
     for (;; --level_i) {
         nodes[level_i] = node;
-        if (!TestHot_(node->hot, idxes[level_i])) { break; }
+        if (!TestActiveMap_(node->active_map, idxes[level_i])) { break; }
 
         void** nxt_node = node->ptrs + idxes[level_i];
         if (level_i == 0) { return nxt_node; }
@@ -209,7 +213,7 @@ L1:;
     for (; level_i < level; ++level_i) {
         node = nodes[level_i];
 
-        int found_idx = FindPrevHot_(node->hot, idxes[level_i] - 1);
+        int found_idx = FindPrevActive_(node->active_map, idxes[level_i] - 1);
 
         if (0 <= found_idx) {
             idxes[level_i] = found_idx;
@@ -229,7 +233,8 @@ L1:;
         node = node->ptrs[idxes[level_i]];
         --level_i;
         nodes[level_i] = node;
-        idxes[level_i] = FindPrevHot_(node->hot, branch_nums[level_i] - 1);
+        idxes[level_i] =
+            FindPrevActive_(node->active_map, branch_nums[level_i] - 1);
     }
 
     return nodes[0]->ptrs + idxes[0];
@@ -256,7 +261,7 @@ void** Zeta_MultiLevelTable_FindNext(void* mlt_, size_t* idxes,
         return NULL;
     }
 
-L1:;
+L1:
 
     Zeta_MultiLevelTable_Node* root = mlt->root;
 
@@ -275,7 +280,7 @@ L1:;
 
     for (;; --level_i) {
         nodes[level_i] = node;
-        if (!TestHot_(node->hot, idxes[level_i])) { break; }
+        if (!TestActiveMap_(node->active_map, idxes[level_i])) { break; }
 
         void** nxt_node = node->ptrs + idxes[level_i];
         if (level_i == 0) { return nxt_node; }
@@ -286,7 +291,7 @@ L1:;
     for (; level_i < level; ++level_i) {
         node = nodes[level_i];
 
-        int found_idx = FindNextHot_(node->hot, idxes[level_i] + 1);
+        int found_idx = FindNextActive_(node->active_map, idxes[level_i] + 1);
 
         if (0 <= found_idx) {
             idxes[level_i] = found_idx;
@@ -306,7 +311,7 @@ L1:;
         node = node->ptrs[idxes[level_i]];
         --level_i;
         nodes[level_i] = node;
-        idxes[level_i] = FindNextHot_(node->hot, 0);
+        idxes[level_i] = FindNextActive_(node->active_map, 0);
     }
 
     return nodes[0]->ptrs + idxes[0];
@@ -318,7 +323,7 @@ static Zeta_MultiLevelTable_Node* AllocateNode_(
         node_allocator, alignof(Zeta_MultiLevelTable_Node),
         offsetof(Zeta_MultiLevelTable_Node, ptrs[branch_num]));
 
-    node->hot = 0;
+    node->active_map = 0;
 
     return node;
 }
@@ -338,12 +343,13 @@ void** Zeta_MultiLevelTable_Insert(void* mlt_, size_t* idxes) {
 
     int level_i = level - 1;
 
-    for (; 0 < level_i && TestHot_(node->hot, idxes[level_i]); --level_i) {
+    for (; 0 < level_i && TestActiveMap_(node->active_map, idxes[level_i]);
+         --level_i) {
         node = node->ptrs[idxes[level_i]];
     }
 
     for (; 0 < level_i; --level_i) {
-        node->hot = node->hot + (1ULL << idxes[level_i]);
+        node->active_map = node->active_map + (1ULL << idxes[level_i]);
 
         node = node->ptrs[idxes[level_i]] =
             AllocateNode_(branch_nums[level_i + 1], mlt->node_allocator);
@@ -351,11 +357,11 @@ void** Zeta_MultiLevelTable_Insert(void* mlt_, size_t* idxes) {
 
     void** ret = node->ptrs + idxes[0];
 
-    if (TestHot_(node->hot, idxes[0])) { return ret; }
+    if (TestActiveMap_(node->active_map, idxes[0])) { return ret; }
 
     ++mlt->size;
 
-    node->hot = node->hot + (1ULL << idxes[0]);
+    node->active_map = node->active_map + (1ULL << idxes[0]);
     *ret = NULL;
 
     return ret;
@@ -375,11 +381,11 @@ void* Zeta_MultiLevelTable_Erase(void* mlt_, size_t* idxes) {
     for (int level_i = level - 1;; --level_i) {
         nodes[level_i] = node;
         if (level_i == 0) { break; }
-        if (!TestHot_(node->hot, idxes[level_i])) { return NULL; }
+        if (!TestActiveMap_(node->active_map, idxes[level_i])) { return NULL; }
         node = node->ptrs[idxes[level_i]];
     }
 
-    if (!TestHot_(node->hot, idxes[0])) { return NULL; }
+    if (!TestActiveMap_(node->active_map, idxes[0])) { return NULL; }
 
     void* ret = node->ptrs[idxes[0]];
 
@@ -388,9 +394,9 @@ void* Zeta_MultiLevelTable_Erase(void* mlt_, size_t* idxes) {
     for (int level_i = 0; level_i < level; ++level_i) {
         node = nodes[level_i];
 
-        node->hot = node->hot - (1ULL << idxes[level_i]);
+        node->active_map = node->active_map - (1ULL << idxes[level_i]);
 
-        if (node->hot != 0) { return ret; }
+        if (node->active_map != 0) { return ret; }
 
         ZETA_Allocator_Deallocate(mlt->node_allocator, node);
     }
@@ -411,7 +417,7 @@ static void EraseAll_(int level, unsigned short const* branch_nums,
     size_t branch_num = branch_nums[level];
 
     for (size_t idx = 0; idx < branch_num; ++idx) {
-        if (TestHot_(node->hot, idx)) {
+        if (TestActiveMap_(node->active_map, idx)) {
             EraseAll_(level - 1, branch_nums, node->ptrs[idx], node_allocator);
         }
     }
@@ -469,7 +475,7 @@ void Zeta_MultiLevelTable_CheckIdxes(void* mlt_, size_t const* idxes) {
 static size_t Sanitize_(Zeta_MemRecorder* dst_node, int level_i,
                         unsigned short const* branch_nums,
                         Zeta_MultiLevelTable_Node* node) {
-    ZETA_DebugAssert(node->hot != 0);
+    ZETA_DebugAssert(node->active_map != 0);
 
     size_t branch_num = branch_nums[level_i];
 
@@ -483,7 +489,7 @@ static size_t Sanitize_(Zeta_MemRecorder* dst_node, int level_i,
         size_t size = 0;
 
         for (size_t idx = 0; idx < branch_num; ++idx) {
-            if (TestHot_(node->hot, idx)) { ++size; }
+            if (TestActiveMap_(node->active_map, idx)) { ++size; }
         }
 
         return size;
@@ -492,11 +498,11 @@ static size_t Sanitize_(Zeta_MemRecorder* dst_node, int level_i,
     size_t size = 0;
 
     for (size_t idx = 0; idx < branch_num;) {
-        idx = FindNextHot_(node->hot, idx);
+        idx = FindNextActive_(node->active_map, idx);
 
         if (idx == (size_t)(-1)) { break; }
 
-        ZETA_DebugAssert(TestHot_(node->hot, idx));
+        ZETA_DebugAssert(TestActiveMap_(node->active_map, idx));
 
         size += Sanitize_(dst_node, level_i - 1, branch_nums, node->ptrs[idx]);
 

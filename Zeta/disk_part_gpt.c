@@ -6,13 +6,21 @@
 #define READ_(tmp_ret, tmp_len, src, len)                               \
     ({                                                                  \
         ZETA_AutoVar(tmp_len, (len));                                   \
+                                                                        \
+        for (size_t tmp_i = 0; tmp_i < tmp_len; ++tmp_i) {              \
+            if (src[tmp_i] < 0 || 255 < src[tmp_i]) { goto ERR_RET; }   \
+        }                                                               \
+                                                                        \
         u64_t tmp_ret =                                                 \
             ZETA_BytesToUInt(u64_t, (src), tmp_len, ZETA_LittleEndian); \
+                                                                        \
         (src) += tmp_len;                                               \
+                                                                        \
         tmp_ret;                                                        \
     })
 
-#define READ(src, len) READ_(ZETA_TmpName, ZETA_TmpName, (src), (len))
+#define READ(src, len) \
+    READ_(ZETA_TmpName, ZETA_TmpName, ZETA_TmpName, (src), (len))
 
 #define WRITE_(tmp_len, val, dst, len)                          \
     ZETA_AutoVar(tmp_len, (len));                               \
@@ -58,6 +66,10 @@ byte_t const* Zeta_DiskPartGPT_ReadHeader(Zeta_DiskPartGPT_Header* dst,
     dst->crc32_of_part_entries = READ(data, 4);
 
     return data;
+
+ERR_RET:
+
+    return NULL;
 }
 
 byte_t* Zeta_DiskPartGPT_WriteHeader(byte_t* dst, size_t dst_size,

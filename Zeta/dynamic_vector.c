@@ -252,13 +252,13 @@ static void* Push_(void* dv_, void* dst_cursor_, int dir, size_t cnt) {
         dv->size_c += seg_cnt;
     }
 
-PUSH_SEG_END:;
+PUSH_SEG_END:
 
     TryMigrate_(dv, &cur_ca, &nxt_ca, seg_cnt);
 
     UpdateCA_(dv, &cur_ca, &nxt_ca);
 
-RET:;
+RET:
 
     if (dir == 0) {
         dv->offset = offset =
@@ -456,7 +456,7 @@ static void Pop_(void* dv_, int dir, size_t cnt) {
         dv->nxt_offset = nxt_ca.offset;
     }
 
-POP_SEG_END:;
+POP_SEG_END:
 
     if (dir == 1) { dv->offset = (offset + cnt) % seg_capacity; }
 

@@ -71,7 +71,7 @@ void PrintGPTPartEntry(Zeta_DiskPartGPT_PartEntry* gpt_part_entry) {
 
     return;
 
-L1:;
+L1:
 
     PRINT_LINE;
 

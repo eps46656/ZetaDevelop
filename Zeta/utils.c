@@ -419,7 +419,7 @@ unsigned Zeta_FloorLog(unsigned long long val, unsigned long long base) {
         val /= Zeta_Power(base, cur_ret);
     }
 
-RES:;
+RES:
 
     for (; base <= val; val /= base) { ++ret; }
 
@@ -436,20 +436,20 @@ unsigned Zeta_CeilLog(unsigned long long val, unsigned long long base) {
 
 unsigned long long Zeta_FixedPoint2Power(long long val_) {
 #if ZETA_ULLONG_WIDTH == 32
-    const unsigned long long c_base_order = 15;
+    unsigned long long const c_base_order = 15;
 
-    const unsigned long long c_base = 1ULL << c_base_order;
+    unsigned long long const c_base = 1ULL << c_base_order;
 
-    const unsigned long long coeffs[] = {
+    unsigned long long const coeffs[] = {
         46341, 38968, 35734, 34219, 33486, 33125, 32946, 32857,
         32812, 32790, 32779, 32774, 32771, 32769, 32769,
     };
 #elif ZETA_ULLONG_WIDTH == 64
-    const unsigned long long c_base_order = 31;
+    unsigned long long const c_base_order = 31;
 
-    const unsigned long long c_base = 1ULL << c_base_order;
+    unsigned long long const c_base = 1ULL << c_base_order;
 
-    const unsigned long long coeffs[] = {
+    unsigned long long const coeffs[] = {
         3037000500, 2553802834, 2341847524, 2242560872, 2194507417, 2170868212,
         2159144272, 2153306067, 2150392887, 2148937775, 2148210589, 2147847087,
         2147665360, 2147574502, 2147529075, 2147506361, 2147495005, 2147489326,
@@ -463,7 +463,7 @@ unsigned long long Zeta_FixedPoint2Power(long long val_) {
 
     ZETA_StaticAssert(ZETA_FixedPoint_BaseOrder <= c_base_order);
 
-    const unsigned long long base = ZETA_FixedPoint_Base;
+    unsigned long long const base = ZETA_FixedPoint_Base;
 
     bool_t is_neg = val_ < 0;
 
@@ -495,9 +495,9 @@ unsigned long long Zeta_FixedPoint2Power(long long val_) {
 long long Zeta_FixedPointLog2(unsigned long long val) {
     ZETA_DebugAssert(0 < val);
 
-    const unsigned long long c_base_order = ZETA_ULLONG_WIDTH / 2 - 1;
+    unsigned long long const c_base_order = ZETA_ULLONG_WIDTH / 2 - 1;
 
-    const unsigned long long c_base = 1ULL << c_base_order;
+    unsigned long long const c_base = 1ULL << c_base_order;
 
     if (val == 0) { return ZETA_SLLONG_MIN; }
 
@@ -554,9 +554,9 @@ unsigned long long Zeta_CeilSqrt(unsigned long long val) {
 unsigned long long Zeta_FixedPointSqrt(unsigned long long val) {
     unsigned long long base = ZETA_FixedPoint_Base;
 
-    const unsigned long long c_base_order = ZETA_ULLONG_WIDTH / 2 - 1;
+    unsigned long long const c_base_order = ZETA_ULLONG_WIDTH / 2 - 1;
 
-    const unsigned long long c_base = 1ULL << c_base_order;
+    unsigned long long const c_base = 1ULL << c_base_order;
 
     unsigned long long k = Zeta_FloorSqrt(val / base);
 

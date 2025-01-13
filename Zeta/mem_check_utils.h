@@ -2,11 +2,25 @@
 
 #include "define.h"
 
+#if defined(__cplusplus)
+
+#include <map>
+
+#endif
+
 ZETA_ExternC_Beg;
 
 ZETA_DeclareStruct(Zeta_MemRecorder);
 
 struct Zeta_MemRecorder;
+
+#if defined(__cplusplus)
+
+struct Zeta_MemRecorder {
+    std::map<void const*, size_t> records;
+};
+
+#endif
 
 Zeta_MemRecorder* Zeta_MemRecorder_Create();
 

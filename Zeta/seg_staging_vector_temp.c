@@ -1215,7 +1215,7 @@ void Cntr_(Write)(void* cntr_, void* pos_cursor_, size_t cnt, void const* src,
         }
     }
 
-WRITE_INTO_REF_SEG_END:;
+WRITE_INTO_REF_SEG_END:
 
 #endif
 
@@ -1659,7 +1659,7 @@ void* Cntr_(Insert)(void* cntr_, void* pos_cursor_, size_t cnt) {
 
         return pos_cursor->ref;
 
-    SPLIT:;
+    SPLIT:
 
         if (ml_size <= l_vacant) {
 #if STAGING
@@ -1838,7 +1838,7 @@ void* Cntr_(Insert)(void* cntr_, void* pos_cursor_, size_t cnt) {
         m_seg = NULL;
     }
 
-INS:;
+INS:
 
 #if STAGING
     bool_t l_is_ref = cntr->lb != l_n && GetNColor_(l_n) == ref_color;
@@ -2494,7 +2494,7 @@ UPDATE: {
     if (ret_n == NULL) { ret_n = &d_seg->n; }
 }
 
-UPDATE_END:;
+UPDATE_END:
 
     pos_cursor->n = ret_n;
     pos_cursor->seg_idx = ret_seg_idx;

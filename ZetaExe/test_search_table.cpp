@@ -15,7 +15,7 @@
     std::cout << __FILE__ << ":" << __LINE__ << "\t\t" << #var << ": " \
               << (var) << "\n";
 
-void Print(const int* x) {
+void Print(int const* x) {
     if (x == nullptr) {
         PRINT_VAR("nullptr");
     } else {
@@ -33,10 +33,10 @@ template <typename STA, typename STB>
 int SyncLowerBound(STA& sta, STB& stb, int val) {
     assert(sta.size() == stb.size());
 
-    const int* sta_val{ sta.LowerBound(val) };
+    int const* sta_val{ sta.LowerBound(val) };
     sta.Sanitize();
 
-    const int* stb_val{ stb.LowerBound(val) };
+    int const* stb_val{ stb.LowerBound(val) };
     stb.Sanitize();
 
     ZETA_DebugAssert((sta_val == nullptr) == (stb_val == nullptr));
@@ -52,10 +52,10 @@ template <typename STA, typename STB>
 int SyncUpperBound(STA& sta, STB& stb, int val) {
     assert(sta.size() == stb.size());
 
-    const int* sta_val{ sta.UpperBound(val) };
+    int const* sta_val{ sta.UpperBound(val) };
     sta.Sanitize();
 
-    const int* stb_val{ stb.UpperBound(val) };
+    int const* stb_val{ stb.UpperBound(val) };
     stb.Sanitize();
 
     ZETA_DebugAssert((sta_val == nullptr) == (stb_val == nullptr));

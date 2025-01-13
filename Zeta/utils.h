@@ -64,10 +64,16 @@ void* Zeta_ElemRotate(void* data, size_t width, size_t stride, size_t l_size,
 
 // -----------------------------------------------------------------------------
 
+#define ZETA_BytesToUInt_LE_case_(len) \
+    case (len): tmp_ret = tmp_ret * 256 + tmp_src[(len) - 1]
+
+#define ZETA_BytesToUInt_BE_case_(len) \
+    case (len): tmp_ret = tmp_ret * 256 + tmp_src[tmp_len - (len)]
+
 #define ZETA_BytesToUInt_(tmp_ret, tmp_src, tmp_len, tmp_endian, val_type, \
                           src, len, endian)                                \
     ({                                                                     \
-        ZETA_StaticAssert(ZETA_WidthOf(val_type) <= 8 * 8);                \
+        ZETA_StaticAssert(ZETA_WidthOf(val_type) <= 8 * 16);               \
                                                                            \
         ZETA_AutoVar(tmp_src, (src));                                      \
         ZETA_DebugAssert(tmp_src != NULL);                                 \
@@ -84,27 +90,43 @@ void* Zeta_ElemRotate(void* data, size_t width, size_t stride, size_t l_size,
                                                                            \
         if (tmp_endian == ZETA_LittleEndian) {                             \
             switch (tmp_len) {                                             \
-                case 8: tmp_ret = tmp_ret * 256 + tmp_src[7];              \
-                case 7: tmp_ret = tmp_ret * 256 + tmp_src[6];              \
-                case 6: tmp_ret = tmp_ret * 256 + tmp_src[5];              \
-                case 5: tmp_ret = tmp_ret * 256 + tmp_src[4];              \
-                case 4: tmp_ret = tmp_ret * 256 + tmp_src[3];              \
-                case 3: tmp_ret = tmp_ret * 256 + tmp_src[2];              \
-                case 2: tmp_ret = tmp_ret * 256 + tmp_src[1];              \
-                case 1: tmp_ret = tmp_ret * 256 + tmp_src[0];              \
-                case 0:                                                    \
+                ZETA_BytesToUInt_LE_case_(0x10);                           \
+                ZETA_BytesToUInt_LE_case_(0x0F);                           \
+                ZETA_BytesToUInt_LE_case_(0x0E);                           \
+                ZETA_BytesToUInt_LE_case_(0x0D);                           \
+                ZETA_BytesToUInt_LE_case_(0x0C);                           \
+                ZETA_BytesToUInt_LE_case_(0x0B);                           \
+                ZETA_BytesToUInt_LE_case_(0x0A);                           \
+                ZETA_BytesToUInt_LE_case_(0x09);                           \
+                ZETA_BytesToUInt_LE_case_(0x08);                           \
+                ZETA_BytesToUInt_LE_case_(0x07);                           \
+                ZETA_BytesToUInt_LE_case_(0x06);                           \
+                ZETA_BytesToUInt_LE_case_(0x05);                           \
+                ZETA_BytesToUInt_LE_case_(0x04);                           \
+                ZETA_BytesToUInt_LE_case_(0x03);                           \
+                ZETA_BytesToUInt_LE_case_(0x02);                           \
+                ZETA_BytesToUInt_LE_case_(0x01);                           \
+                case 0x0:                                                  \
             }                                                              \
         } else {                                                           \
             switch (tmp_len) {                                             \
-                case 8: tmp_ret = tmp_ret * 256 + tmp_src[tmp_len - 8];    \
-                case 7: tmp_ret = tmp_ret * 256 + tmp_src[tmp_len - 7];    \
-                case 6: tmp_ret = tmp_ret * 256 + tmp_src[tmp_len - 6];    \
-                case 5: tmp_ret = tmp_ret * 256 + tmp_src[tmp_len - 5];    \
-                case 4: tmp_ret = tmp_ret * 256 + tmp_src[tmp_len - 4];    \
-                case 3: tmp_ret = tmp_ret * 256 + tmp_src[tmp_len - 3];    \
-                case 2: tmp_ret = tmp_ret * 256 + tmp_src[tmp_len - 2];    \
-                case 1: tmp_ret = tmp_ret * 256 + tmp_src[tmp_len - 1];    \
-                case 0:                                                    \
+                ZETA_BytesToUInt_BE_case_(0x10);                           \
+                ZETA_BytesToUInt_BE_case_(0x0F);                           \
+                ZETA_BytesToUInt_BE_case_(0x0E);                           \
+                ZETA_BytesToUInt_BE_case_(0x0D);                           \
+                ZETA_BytesToUInt_BE_case_(0x0C);                           \
+                ZETA_BytesToUInt_BE_case_(0x0B);                           \
+                ZETA_BytesToUInt_BE_case_(0x0A);                           \
+                ZETA_BytesToUInt_BE_case_(0x09);                           \
+                ZETA_BytesToUInt_BE_case_(0x08);                           \
+                ZETA_BytesToUInt_BE_case_(0x07);                           \
+                ZETA_BytesToUInt_BE_case_(0x06);                           \
+                ZETA_BytesToUInt_BE_case_(0x05);                           \
+                ZETA_BytesToUInt_BE_case_(0x04);                           \
+                ZETA_BytesToUInt_BE_case_(0x03);                           \
+                ZETA_BytesToUInt_BE_case_(0x02);                           \
+                ZETA_BytesToUInt_BE_case_(0x01);                           \
+                case 0x0:                                                  \
             }                                                              \
         }                                                                  \
                                                                            \
@@ -117,49 +139,71 @@ void* Zeta_ElemRotate(void* data, size_t width, size_t stride, size_t l_size,
 
 // -----------------------------------------------------------------------------
 
-#define ZETA_UIntToBytes_(tmp_ret, tmp_src, tmp_len, tmp_endian, val, dst,    \
-                          len, endian)                                        \
-    ({                                                                        \
-        ZETA_AutoVar(tmp_val, (val));                                         \
-                                                                              \
-        ZETA_AutoVar(tmp_dst, (dst));                                         \
-        ZETA_DebugAssert(tmp_dst != NULL);                                    \
-                                                                              \
-        ZETA_AutoVar(tmp_len, (len));                                         \
-        ZETA_DebugAssert(0 <= tmp_len);                                       \
-        ZETA_DebugAssert(tmp_len <= 8);                                       \
-                                                                              \
-        ZETA_AutoVar(tmp_endian, (endian));                                   \
-        ZETA_DebugAssert(tmp_endian == ZETA_LittleEndian ||                   \
-                         tmp_endian == ZETA_BigEndian);                       \
-                                                                              \
-        if (tmp_endian == ZETA_LittleEndian) {                                \
-            switch (tmp_len) {                                                \
-                case 8: tmp_dst[tmp_len - 8] = tmp_val % 256; tmp_val /= 256; \
-                case 7: tmp_dst[tmp_len - 7] = tmp_val % 256; tmp_val /= 256; \
-                case 6: tmp_dst[tmp_len - 6] = tmp_val % 256; tmp_val /= 256; \
-                case 5: tmp_dst[tmp_len - 5] = tmp_val % 256; tmp_val /= 256; \
-                case 4: tmp_dst[tmp_len - 4] = tmp_val % 256; tmp_val /= 256; \
-                case 3: tmp_dst[tmp_len - 3] = tmp_val % 256; tmp_val /= 256; \
-                case 2: tmp_dst[tmp_len - 2] = tmp_val % 256; tmp_val /= 256; \
-                case 1: tmp_dst[tmp_len - 1] = tmp_val % 256; tmp_val /= 256; \
-                case 0:                                                       \
-            }                                                                 \
-        } else {                                                              \
-            switch (tmp_len) {                                                \
-                case 8: tmp_dst[8] = tmp_val % 256; tmp_val /= 256;           \
-                case 7: tmp_dst[7] = tmp_val % 256; tmp_val /= 256;           \
-                case 6: tmp_dst[6] = tmp_val % 256; tmp_val /= 256;           \
-                case 5: tmp_dst[5] = tmp_val % 256; tmp_val /= 256;           \
-                case 4: tmp_dst[4] = tmp_val % 256; tmp_val /= 256;           \
-                case 3: tmp_dst[3] = tmp_val % 256; tmp_val /= 256;           \
-                case 2: tmp_dst[2] = tmp_val % 256; tmp_val /= 256;           \
-                case 1: tmp_dst[1] = tmp_val % 256; tmp_val /= 256;           \
-                case 0:                                                       \
-            }                                                                 \
-        }                                                                     \
-                                                                              \
-        tmp_val;                                                              \
+#define ZETA_UIntToBytes_LE_case_(len) \
+    case (len): tmp_dst[tmp_len - (len)] = tmp_val % 256; tmp_val /= 256
+
+#define ZETA_UIntToBytes_BE_case_(len) \
+    case (len): tmp_dst[(len) - 1] = tmp_val % 256; tmp_val /= 256
+
+#define ZETA_UIntToBytes_(tmp_ret, tmp_src, tmp_len, tmp_endian, val, dst, \
+                          len, endian)                                     \
+    ({                                                                     \
+        ZETA_AutoVar(tmp_val, (val));                                      \
+                                                                           \
+        ZETA_AutoVar(tmp_dst, (dst));                                      \
+        ZETA_DebugAssert(tmp_dst != NULL);                                 \
+                                                                           \
+        ZETA_AutoVar(tmp_len, (len));                                      \
+        ZETA_DebugAssert(0 <= tmp_len);                                    \
+        ZETA_DebugAssert(tmp_len <= 16);                                   \
+                                                                           \
+        ZETA_AutoVar(tmp_endian, (endian));                                \
+        ZETA_DebugAssert(tmp_endian == ZETA_LittleEndian ||                \
+                         tmp_endian == ZETA_BigEndian);                    \
+                                                                           \
+        if (tmp_endian == ZETA_LittleEndian) {                             \
+            switch (tmp_len) {                                             \
+                ZETA_UIntToBytes_LE_case_(0x10);                           \
+                ZETA_UIntToBytes_LE_case_(0x0F);                           \
+                ZETA_UIntToBytes_LE_case_(0x0E);                           \
+                ZETA_UIntToBytes_LE_case_(0x0D);                           \
+                ZETA_UIntToBytes_LE_case_(0x0C);                           \
+                ZETA_UIntToBytes_LE_case_(0x0B);                           \
+                ZETA_UIntToBytes_LE_case_(0x0A);                           \
+                ZETA_UIntToBytes_LE_case_(0x09);                           \
+                ZETA_UIntToBytes_LE_case_(0x08);                           \
+                ZETA_UIntToBytes_LE_case_(0x07);                           \
+                ZETA_UIntToBytes_LE_case_(0x06);                           \
+                ZETA_UIntToBytes_LE_case_(0x05);                           \
+                ZETA_UIntToBytes_LE_case_(0x04);                           \
+                ZETA_UIntToBytes_LE_case_(0x03);                           \
+                ZETA_UIntToBytes_LE_case_(0x02);                           \
+                ZETA_UIntToBytes_LE_case_(0x01);                           \
+                case 0x0:                                                  \
+            }                                                              \
+        } else {                                                           \
+            switch (tmp_len) {                                             \
+                ZETA_UIntToBytes_BE_case_(0x10);                           \
+                ZETA_UIntToBytes_BE_case_(0x0F);                           \
+                ZETA_UIntToBytes_BE_case_(0x0E);                           \
+                ZETA_UIntToBytes_BE_case_(0x0D);                           \
+                ZETA_UIntToBytes_BE_case_(0x0C);                           \
+                ZETA_UIntToBytes_BE_case_(0x0B);                           \
+                ZETA_UIntToBytes_BE_case_(0x0A);                           \
+                ZETA_UIntToBytes_BE_case_(0x09);                           \
+                ZETA_UIntToBytes_BE_case_(0x08);                           \
+                ZETA_UIntToBytes_BE_case_(0x07);                           \
+                ZETA_UIntToBytes_BE_case_(0x06);                           \
+                ZETA_UIntToBytes_BE_case_(0x05);                           \
+                ZETA_UIntToBytes_BE_case_(0x04);                           \
+                ZETA_UIntToBytes_BE_case_(0x03);                           \
+                ZETA_UIntToBytes_BE_case_(0x02);                           \
+                ZETA_UIntToBytes_BE_case_(0x01);                           \
+                case 0x0:                                                  \
+            }                                                              \
+        }                                                                  \
+                                                                           \
+        tmp_val;                                                           \
     })
 
 #define ZETA_UIntToBytes(val, dst, len, endian)                               \

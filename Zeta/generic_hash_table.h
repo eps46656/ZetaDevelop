@@ -65,6 +65,8 @@ void* Zeta_GenericHashTable_ExtractAny(void* ght);
 
 void Zeta_GenericHashTable_ExtractAll(void* ght);
 
+bool_t Zeta_GenericHashTable_RunPending(void* lrucm, size_t quata);
+
 unsigned long long Zeta_GenericHashTable_GetEffFactor(void const* ght);
 
 void Zeta_GenericHashTable_Check(void const* ght);

@@ -227,7 +227,7 @@ static bool_t TryExtract_(Zeta_GenericHashTable* ght,
 
 static void TryTransfer_(Zeta_GenericHashTable const* ght,
                          Zeta_MultiLevelTable* cur_table,
-                         Zeta_MultiLevelTable* nxt_table) {
+                         Zeta_MultiLevelTable* nxt_table, size_t quata) {
     if (cur_table->level == 0 || nxt_table->level == 0 ||
         cur_table->size == 0) {
         return;
@@ -237,7 +237,7 @@ static void TryTransfer_(Zeta_GenericHashTable const* ght,
 
     void** root_entry = NULL;
 
-    for (int quata = 4; 0 < quata && 0 < cur_table->size; --quata) {
+    for (; 0 < quata && 0 < cur_table->size; --quata) {
         if (root_entry == NULL) {
             root_entry = Zeta_MultiLevelTable_FindFirst(cur_table, idxes);
         }
@@ -295,9 +295,9 @@ size_t Zeta_GenericHashTable_GetSize(void const* ght_) {
     return ght->size;
 }
 
-#define TryDo_                                                              \
+#define TryDo_(quata)                                                       \
     for (;;) {                                                              \
-        TryTransfer_(ght, &cur_table, &nxt_table);                          \
+        TryTransfer_(ght, &cur_table, &nxt_table, (quata));                 \
                                                                             \
         if (nxt_capacity == 0) {                                            \
             ((Zeta_GenericHashTable*)ght)->cur_table_size = cur_table.size; \
@@ -396,7 +396,7 @@ bool_t Zeta_GenericHashTable_Contain(void const* ght_, void const* node_) {
               *root_entry == root;
     }
 
-    TryDo_;
+    TryDo_(4);
 
     return ret;
 }
@@ -438,7 +438,7 @@ void* Zeta_GenericHashTable_Find(void const* ght_, void const* key,
                     KeyNodeCompare);
     }
 
-    TryDo_;
+    TryDo_(4);
 
     return ret;
 }
@@ -475,7 +475,7 @@ void Zeta_GenericHashTable_Insert(void* ght_, void* node_) {
 
     ++ght->size;
 
-    TryDo_;
+    TryDo_(4);
 }
 
 void Zeta_GenericHashTable_Extract(void* ght_, void* node_) {
@@ -513,7 +513,7 @@ void Zeta_GenericHashTable_Extract(void* ght_, void* node_) {
 
     --ght->size;
 
-    TryDo_;
+    TryDo_(4);
 }
 
 void* Zeta_GenericHashTable_ExtractAny(void* ght_) {
@@ -553,7 +553,7 @@ void* Zeta_GenericHashTable_ExtractAny(void* ght_) {
 
     --ght->size;
 
-    TryDo_;
+    TryDo_(4);
 
     return node;
 }
@@ -594,6 +594,34 @@ void Zeta_GenericHashTable_ExtractAll(void* ght_) {
     ght->cur_capacity = capacities[0];
 
     ght->size = 0;
+}
+
+bool_t Zeta_GenericHashTable_RunPending(void* ght_, size_t quata) {
+    Zeta_GenericHashTable* ght = ght_;
+    CheckCntr_(ght);
+
+    size_t cur_capacity = ght->cur_capacity;
+    size_t nxt_capacity = ght->nxt_capacity;
+
+    if (nxt_capacity == 0) { return FALSE; }
+
+    Zeta_MultiLevelTable cur_table;
+    cur_table.level = Zeta_CeilLog(cur_capacity, branch_num);
+    cur_table.branch_nums = branch_nums;
+    cur_table.size = ght->cur_table_size;
+    cur_table.root = ght->cur_table_root;
+    cur_table.node_allocator = ght->table_node_allocator;
+
+    Zeta_MultiLevelTable nxt_table;
+    nxt_table.level = Zeta_CeilLog(nxt_capacity, branch_num);
+    nxt_table.branch_nums = branch_nums;
+    nxt_table.size = ght->nxt_table_size;
+    nxt_table.root = ght->nxt_table_root;
+    nxt_table.node_allocator = ght->table_node_allocator;
+
+    TryDo_(ZETA_GetMaxOf(4, quata));
+
+    return 0 < nxt_capacity;
 }
 
 unsigned long long Zeta_GenericHashTable_GetEffFactor(void const* ght_) {

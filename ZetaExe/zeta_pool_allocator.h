@@ -73,7 +73,7 @@ void ZetaPoolAllocator_Deallocate(void* pa_, void* ptr) {
     }
 }
 
-size_t ZetaPoolAllocator_GetUsage(const void* pa_) {
+size_t ZetaPoolAllocator_GetUsage(void const* pa_) {
     ZetaPoolAllocator* pa = (ZetaPoolAllocator*)pa_;
     ZETA_DebugAssert(pa != NULL);
 

@@ -32,7 +32,7 @@ struct Zeta_MultiLevelTable {
 };
 
 struct Zeta_MultiLevelTable_Node {
-    unsigned long long hot;
+    unsigned long long active_map;
     void* ptrs[];
 };
 
