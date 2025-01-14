@@ -217,6 +217,24 @@ def AddDeps(builder: Builder, config: Config):
     )
 
     builder.Add(
+        f"{zeta_exe_dir}/key_value_pair.h",
+        {
+            f"{zeta_dir}/define.h",
+            f"{zeta_exe_dir}/random.h",
+        },
+        None
+    )
+
+    builder.Add(
+        f"{zeta_exe_dir}/lru_cache_manager_utils.h",
+        {
+            f"{zeta_dir}/lru_cache_manager.h",
+            f"{zeta_exe_dir}/std_allocator.h",
+        },
+        None
+    )
+
+    builder.Add(
         f"{zeta_exe_dir}/file_block_vector.h",
         {
             f"{zeta_dir}/block_vector.h",
@@ -1332,7 +1350,6 @@ def AddDeps(builder: Builder, config: Config):
             f"{zeta_build_dir}/debug_hash_table.o",
             f"{zeta_build_dir}/debug_str_pipe.o",
             f"{zeta_build_dir}/debugger.o",
-            f"{zeta_build_dir}/dummy_vector.o",
             f"{zeta_build_dir}/dynamic_hash_table.o",
             # f"{zeta_build_dir}/dynamic_vector.o",
             f"{zeta_build_dir}/generic_hash_table.o",
@@ -1369,7 +1386,6 @@ def AddDeps(builder: Builder, config: Config):
                 f"{zeta_build_dir}/debug_hash_table.o",
                 f"{zeta_build_dir}/debug_str_pipe.o",
                 f"{zeta_build_dir}/debugger.o",
-                f"{zeta_build_dir}/dummy_vector.o",
                 f"{zeta_build_dir}/dynamic_hash_table.o",
                 # f"{zeta_build_dir}/dynamic_vector.o",
                 f"{zeta_build_dir}/generic_hash_table.o",
@@ -1433,7 +1449,6 @@ def AddDeps(builder: Builder, config: Config):
             f"{zeta_build_dir}/debug_hash_table.o",
             f"{zeta_build_dir}/debug_str_pipe.o",
             f"{zeta_build_dir}/debugger.o",
-            f"{zeta_build_dir}/dummy_vector.o",
             f"{zeta_build_dir}/io.o",
             f"{zeta_build_dir}/logger.o",
             f"{zeta_build_dir}/ord_cnt_3rb_tree_node.o",
@@ -1454,7 +1469,6 @@ def AddDeps(builder: Builder, config: Config):
                 f"{zeta_build_dir}/debug_hash_table.o",
                 f"{zeta_build_dir}/debug_str_pipe.o",
                 f"{zeta_build_dir}/debugger.o",
-                f"{zeta_build_dir}/dummy_vector.o",
                 f"{zeta_build_dir}/io.o",
                 f"{zeta_build_dir}/logger.o",
                 f"{zeta_build_dir}/ord_cnt_3rb_tree_node.o",
@@ -1627,12 +1641,7 @@ def AddDeps(builder: Builder, config: Config):
         f"{zeta_exe_dir}/test_lrucm.cpp",
         {
             f"{FILE}",
-            f"{zeta_dir}/dummy_block_vector.h",
-            f"{zeta_dir}/dummy_cache_manager.h",
-            f"{zeta_dir}/lru_cache_manager.h",
-            f"{zeta_dir}/rbtree.h",
-            f"{zeta_exe_dir}/file_block_vector.h",
-            f"{zeta_exe_dir}/std_allocator.h",
+            f"{zeta_exe_dir}/lru_cache_manager_utils.h",
         },
         None
     )

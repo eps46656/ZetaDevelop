@@ -5,6 +5,7 @@
 
 #include <unordered_map>
 
+#include "buffer.h"
 #include "ptr_iter.h"
 #include "random.h"
 
@@ -16,59 +17,76 @@ size_t SeqCntrUtils_GetRandomStride() {
     return sizeof(Elem) + alignof(Elem) * GetRandomInt<size_t, size_t>(1, 4);
 }
 
-auto& SeqCntrUtils_GetSanitizeFuncs() {
-    static std::unordered_map<size_t (*)(void const* constext),
-                              void (*)(Zeta_SeqCntr const* seq_cntr)>
-        instance;
-    return instance;
-}
-
-void SeqCntrUtils_AddSanitizeFunc(
-    size_t (*GetWidth)(void const* context),
-    void (*Sanitize)(Zeta_SeqCntr const* seq_cntr)) {
-    auto& map{ SeqCntrUtils_GetSanitizeFuncs() };
-
-    auto iter{ map.insert({ GetWidth, Sanitize }).first };
-    ZETA_DebugAssert(iter->second == Sanitize);
-}
-
-void SeqCntrUtils_Sanitize(Zeta_SeqCntr const* seq_cntr) {
-    if (seq_cntr == NULL) { return; }
-
-    auto& map{ SeqCntrUtils_GetSanitizeFuncs() };
-
-    auto iter{ map.find(seq_cntr->GetWidth) };
-    ZETA_DebugAssert(iter != map.end());
-
-    iter->second(seq_cntr);
-}
-
 // -----------------------------------------------------------------------------
 
-auto& SeqCntrUtils_GetDestroyFuncs() {
+struct SeqCntrUtils_Funcs {
+    void (*Destroy)(Zeta_SeqCntr* seq_cntr) = NULL;
+
+    void (*Sanitize)(Zeta_SeqCntr const* seq_cntr) = NULL;
+};
+
+auto& SeqCntrUtils_GetFuncs() {
     static std::unordered_map<size_t (*)(void const* constext),
-                              void (*)(Zeta_SeqCntr* seq_cntr)>
+                              SeqCntrUtils_Funcs>
         instance;
     return instance;
 }
+
+// ---
 
 void SeqCntrUtils_AddDestroyFunc(size_t (*GetWidth)(void const* context),
                                  void (*Destroy)(Zeta_SeqCntr* seq_cntr)) {
-    auto& map{ SeqCntrUtils_GetDestroyFuncs() };
+    auto& map{ SeqCntrUtils_GetFuncs() };
 
-    auto iter{ map.insert({ GetWidth, Destroy }).first };
-    ZETA_DebugAssert(iter->second == Destroy);
+    SeqCntrUtils_Funcs& funcs{ map.insert({ GetWidth, {} }).first->second };
+
+    ZETA_DebugAssert(funcs.Destroy == NULL || funcs.Destroy == Destroy);
+
+    funcs.Destroy = Destroy;
 }
 
 void SeqCntrUtils_Destroy(Zeta_SeqCntr* seq_cntr) {
     if (seq_cntr == NULL) { return; }
 
-    auto& map{ SeqCntrUtils_GetDestroyFuncs() };
+    auto& map{ SeqCntrUtils_GetFuncs() };
 
     auto iter{ map.find(seq_cntr->GetWidth) };
     ZETA_DebugAssert(iter != map.end());
 
-    iter->second(seq_cntr);
+    auto Destroy{ iter->second.Destroy };
+
+    ZETA_DebugAssert(Destroy != NULL);
+
+    Destroy(seq_cntr);
+}
+
+// ---
+
+void SeqCntrUtils_AddSanitizeFunc(
+    size_t (*GetWidth)(void const* context),
+    void (*Sanitize)(Zeta_SeqCntr const* seq_cntr)) {
+    auto& map{ SeqCntrUtils_GetFuncs() };
+
+    SeqCntrUtils_Funcs& funcs{ map.insert({ GetWidth, {} }).first->second };
+
+    ZETA_DebugAssert(funcs.Sanitize == NULL || funcs.Sanitize == Sanitize);
+
+    funcs.Sanitize = Sanitize;
+}
+
+void SeqCntrUtils_Sanitize(Zeta_SeqCntr const* seq_cntr) {
+    if (seq_cntr == NULL) { return; }
+
+    auto& map{ SeqCntrUtils_GetFuncs() };
+
+    auto iter{ map.find(seq_cntr->GetWidth) };
+    ZETA_DebugAssert(iter != map.end());
+
+    auto Sanitize{ iter->second.Sanitize };
+
+    ZETA_DebugAssert(Sanitize != NULL);
+
+    Sanitize(seq_cntr);
 }
 
 // -----------------------------------------------------------------------------

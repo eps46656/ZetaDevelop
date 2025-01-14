@@ -21,30 +21,24 @@ struct MultiLevelCircularArrayPack {
 template <typename Elem>
 void MultiLevelCircularArray_Init(Zeta_SeqCntr* seq_cntr, size_t stride,
                                   size_t seg_capacity) {
-    MultiLevelCircularArrayPack* mlca_pack{
-        static_cast<MultiLevelCircularArrayPack*>(
-            std::malloc(sizeof(MultiLevelCircularArrayPack)))
-    };
+    MultiLevelCircularArrayPack* pack{ new MultiLevelCircularArrayPack{} };
 
-    new (&mlca_pack->node_allocator_instance) StdAllocator{};
-    new (&mlca_pack->seg_allocator_instance) StdAllocator{};
+    StdAllocator_DeployAllocator(&pack->node_allocator_instance,
+                                 &pack->node_allocator);
+    StdAllocator_DeployAllocator(&pack->seg_allocator_instance,
+                                 &pack->seg_allocator);
 
-    StdAllocator_DeployAllocator(&mlca_pack->node_allocator_instance,
-                                 &mlca_pack->node_allocator);
-    StdAllocator_DeployAllocator(&mlca_pack->seg_allocator_instance,
-                                 &mlca_pack->seg_allocator);
+    pack->mlca.width = sizeof(Elem);
+    pack->mlca.stride = stride;
+    pack->mlca.seg_capacity = seg_capacity;
 
-    mlca_pack->mlca.width = sizeof(Elem);
-    mlca_pack->mlca.stride = stride;
-    mlca_pack->mlca.seg_capacity = seg_capacity;
+    pack->mlca.node_allocator = &pack->node_allocator;
 
-    mlca_pack->mlca.node_allocator = &mlca_pack->node_allocator;
+    pack->mlca.seg_allocator = &pack->seg_allocator;
 
-    mlca_pack->mlca.seg_allocator = &mlca_pack->seg_allocator;
+    Zeta_MultiLevelCircularArray_Init(&pack->mlca);
 
-    Zeta_MultiLevelCircularArray_Init(&mlca_pack->mlca);
-
-    Zeta_MultiLevelCircularArray_DeploySeqCntr(&mlca_pack->mlca, seq_cntr);
+    Zeta_MultiLevelCircularArray_DeploySeqCntr(&pack->mlca, seq_cntr);
 
     SeqCntrUtils_AddSanitizeFunc(Zeta_MultiLevelCircularArray_GetWidth,
                                  MultiLevelCircularArray_Sanitize);
@@ -59,12 +53,12 @@ void MultiLevelCircularArray_Deinit(Zeta_SeqCntr* seq_cntr) {
         return;
     }
 
-    MultiLevelCircularArrayPack* mlca_pack{ ZETA_MemberToStruct(
+    MultiLevelCircularArrayPack* pack{ ZETA_MemberToStruct(
         MultiLevelCircularArrayPack, mlca, seq_cntr->context) };
 
     Zeta_MultiLevelCircularArray_Deinit(seq_cntr->context);
 
-    std::free(mlca_pack);
+    delete pack;
 }
 
 template <typename Elem>

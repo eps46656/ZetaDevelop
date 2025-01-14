@@ -61,7 +61,7 @@ void GetRandomVals(std::vector<Val>& dst) {
 
 #define SEG_CAPACITY (32)
 
-struct StagingVectorPack {
+struct StagingVectorUtils_Pack {
     StdAllocator seg_allocator_;
     Zeta_Allocator seg_allocator;
 
@@ -72,8 +72,10 @@ struct StagingVectorPack {
 };
 
 void InitStageVec(Zeta_SeqCntr* seq_cntr, Zeta_SeqCntr* origin_seq_cntr) {
-    StagingVectorPack* stage_vec_pack{ static_cast<StagingVectorPack*>(
-        std::malloc(sizeof(StagingVectorPack))) };
+    StagingVectorUtils_Pack* stage_vec_pack{
+        static_cast<StagingVectorUtils_Pack*>(
+            std::malloc(sizeof(StagingVectorUtils_Pack)))
+    };
 
     ZETA_PrintCurPos;
 

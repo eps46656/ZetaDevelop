@@ -108,7 +108,11 @@ struct Zeta_LRUCacheManager {
 
 void Zeta_LRUCacheManager_Init(void* lrucm);
 
-size_t Zeta_LRUCacheManager_GetWidth(void* lrucm);
+void Zeta_LRUCacheManager_Deinit(void* lrucm);
+
+Zeta_SeqCntr* Zeta_LRUCacheManager_GetOrigin(void const* lrucm);
+
+size_t Zeta_LRUCacheManager_GetCacheSize(void const* lrucm);
 
 void* Zeta_LRUCacheManager_Open(void* lrucm, size_t max_cache_cnt);
 
@@ -123,16 +127,14 @@ void Zeta_LRUCacheManager_Read(void* lrucm, void* sd, size_t idx, size_t cnt,
 void Zeta_LRUCacheManager_Write(void* lrucm, void* sd, size_t idx, size_t cnt,
                                 void const* src, size_t src_stride);
 
-void Zeta_LRUCacheManager_FlushAll(void* lrucm);
+size_t Zeta_LRUCacheManager_Flush(void* lrucm, size_t quata);
 
 bool_t Zeta_LRUCacheManager_RunPending(void* lrucm, size_t calc_quata,
                                        size_t write_quata);
 
-void Zeta_LRUCacheManager_Check(void* lrucm);
+void Zeta_LRUCacheManager_Check(void const* lrucm);
 
-void Zeta_LRUCacheManager_CheckSessionDescriptor(void* lrucm, void* sd);
-
-void Zeta_LRUCacheManager_Sanitize(void* lrucm);
+void Zeta_LRUCacheManager_CheckSessionDescriptor(void const* lrucm, void* sd);
 
 void Zeta_LRUCacheManager_DeployCacheManager(void* lrucm,
                                              Zeta_CacheManager* dst);

@@ -694,8 +694,9 @@ void Zeta_CircularArray_Cursor_AdvanceL(void const* ca_, void* cursor_,
 
     CheckCursor_(ca, cursor);
 
+    ZETA_DebugAssert(step <= cursor->idx + 1);
+
     size_t idx = cursor->idx - step;
-    ZETA_DebugAssert(idx + 1 < ca->size + 2);
 
     cursor->idx = idx;
 
@@ -711,8 +712,9 @@ void Zeta_CircularArray_Cursor_AdvanceR(void const* ca_, void* cursor_,
 
     CheckCursor_(ca, cursor);
 
+    ZETA_DebugAssert(step <= ca->size - cursor->idx);
+
     size_t idx = cursor->idx + step;
-    ZETA_DebugAssert(idx + 1 < ca->size + 2);
 
     cursor->idx = idx;
 

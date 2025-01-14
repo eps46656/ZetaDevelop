@@ -42,18 +42,18 @@ void test_seq_cntr() {
 
     SetRandomSeed(seed);
 
-    Zeta_SeqCntr* seq_cntr_a_origin{ DebugDeque_Create<PODValue>() };
+    Zeta_SeqCntr* seq_cntr_a_origin{ DebugDequeUtils_Create<PODValue>() };
 
     size_t origin_size{ 1024 * 1024 };
 
     SeqCntrUtils_SyncRandomInit<PODValue>({ seq_cntr_a_origin }, origin_size);
 
-    Zeta_SeqCntr* seq_cntr_a{ DebugDeque_Create<PODValue>() };
+    Zeta_SeqCntr* seq_cntr_a{ DebugDequeUtils_Create<PODValue>() };
 
-    // Zeta_SeqCntr* seq_cntr_b{ SegVector_Create<PODValue>(7) };
+    // Zeta_SeqCntr* seq_cntr_b{ SegVectorUtils_Create<PODValue>(7) };
     Zeta_SeqCntr* seq_cntr_b{ MultiLevelCircularArray_Create<PODValue>(
         sizeof(PODValue) * 3, 7) };
-    /*Zeta_SeqCntr* seq_cntr_b{ SegVector_Create<PODValue>(,
+    /*Zeta_SeqCntr* seq_cntr_b{ SegVectorUtils_Create<PODValue>(,
                                                          7) };*/
 
     size_t max_op_size = 1024;
@@ -106,16 +106,16 @@ void test_staging_vector() {
 
     SetRandomSeed(seed);
 
-    Zeta_SeqCntr* seq_cntr_a_origin{ DebugDeque_Create<PODValue>() };
-    Zeta_SeqCntr* seq_cntr_b_origin{ DebugDeque_Create<PODValue>() };
+    Zeta_SeqCntr* seq_cntr_a_origin{ DebugDequeUtils_Create<PODValue>() };
+    Zeta_SeqCntr* seq_cntr_b_origin{ DebugDequeUtils_Create<PODValue>() };
 
     size_t origin_size{ 1024 * 1024 };
 
     SeqCntrUtils_SyncRandomInit<PODValue>({ seq_cntr_a_origin }, origin_size);
 
-    Zeta_SeqCntr* seq_cntr_a{ DebugDeque_Create<PODValue>() };
+    Zeta_SeqCntr* seq_cntr_a{ DebugDequeUtils_Create<PODValue>() };
 
-    Zeta_SeqCntr* seq_cntr_b{ StagingVector_Create<PODValue>(
+    Zeta_SeqCntr* seq_cntr_b{ StagingVectorUtils_Create<PODValue>(
         seq_cntr_b_origin, sizeof(PODValue) * 3, 7) };
 
     size_t max_op_size = 1024;
@@ -171,20 +171,20 @@ void test_staging_vector_copy() {
 
     SetRandomSeed(seed);
 
-    Zeta_SeqCntr* seq_cntr_a_origin{ DebugDeque_Create<PODValue>() };
-    Zeta_SeqCntr* seq_cntr_b_origin{ DebugDeque_Create<PODValue>() };
-    Zeta_SeqCntr* seq_cntr_c_origin{ DebugDeque_Create<PODValue>() };
+    Zeta_SeqCntr* seq_cntr_a_origin{ DebugDequeUtils_Create<PODValue>() };
+    Zeta_SeqCntr* seq_cntr_b_origin{ DebugDequeUtils_Create<PODValue>() };
+    Zeta_SeqCntr* seq_cntr_c_origin{ DebugDequeUtils_Create<PODValue>() };
 
     size_t origin_size{ 1024 * 1024 };
 
     SeqCntrUtils_SyncRandomInit<PODValue>({ seq_cntr_a_origin }, origin_size);
 
-    Zeta_SeqCntr* seq_cntr_a{ DebugDeque_Create<PODValue>() };
+    Zeta_SeqCntr* seq_cntr_a{ DebugDequeUtils_Create<PODValue>() };
 
-    Zeta_SeqCntr* seq_cntr_b{ StagingVector_Create<PODValue>(
+    Zeta_SeqCntr* seq_cntr_b{ StagingVectorUtils_Create<PODValue>(
         seq_cntr_b_origin, sizeof(PODValue) * 3, 7) };
 
-    Zeta_SeqCntr* seq_cntr_c{ StagingVector_Create<PODValue>(
+    Zeta_SeqCntr* seq_cntr_c{ StagingVectorUtils_Create<PODValue>(
         seq_cntr_c_origin, sizeof(PODValue) * 3, 7) };
 
     for (size_t _ = 0; _ < 16; ++_) {
@@ -303,15 +303,15 @@ void test_staging_vector_collapse() {
 
     */
 
-    Zeta_SeqCntr* seq_cntr_base{ DebugDeque_Create<PODValue>() };
+    Zeta_SeqCntr* seq_cntr_base{ DebugDequeUtils_Create<PODValue>() };
 
     size_t origin_size{ 1024 * 1024 };
 
     SeqCntrUtils_SyncRandomInit<PODValue>({ seq_cntr_base }, origin_size);
 
-    Zeta_SeqCntr* seq_cntr_a{ DebugDeque_Create<PODValue>() };
+    Zeta_SeqCntr* seq_cntr_a{ DebugDequeUtils_Create<PODValue>() };
 
-    Zeta_SeqCntr* seq_cntr_b{ StagingVector_Create<PODValue>(
+    Zeta_SeqCntr* seq_cntr_b{ StagingVectorUtils_Create<PODValue>(
         seq_cntr_base, sizeof(PODValue) * 3, 7) };
 
     for (size_t _ = 0; _ < 16; ++_) {
@@ -342,7 +342,7 @@ void test_staging_vector_collapse() {
 
         ZETA_PrintCurPos;
 
-        Zeta_SeqCntr* seq_cntr_c{ StagingVector_Create<PODValue>(
+        Zeta_SeqCntr* seq_cntr_c{ StagingVectorUtils_Create<PODValue>(
             seq_cntr_b, sizeof(PODValue) * 3, 7) };
 
         ZETA_PrintCurPos;
@@ -424,13 +424,13 @@ void test_staging_vector_write_back() {
 
     InitCasAllocator();
 
-    Zeta_SeqCntr* seq_cntr_base{ DebugDeque_Create<PODValue>() };
+    Zeta_SeqCntr* seq_cntr_base{ DebugDequeUtils_Create<PODValue>() };
 
-    Zeta_SeqCntr* seq_cntr_a_origin{ DebugDeque_Create<PODValue>() };
-    Zeta_SeqCntr* seq_cntr_a{ StagingVector_Create<PODValue>(
+    Zeta_SeqCntr* seq_cntr_a_origin{ DebugDequeUtils_Create<PODValue>() };
+    Zeta_SeqCntr* seq_cntr_a{ StagingVectorUtils_Create<PODValue>(
         seq_cntr_a_origin, sizeof(PODValue) * 3, 7) };
 
-    Zeta_SeqCntr* seq_cntr_b{ DebugDeque_Create<PODValue>() };
+    Zeta_SeqCntr* seq_cntr_b{ DebugDequeUtils_Create<PODValue>() };
 
     size_t origin_size{ 1024 * 1024 };
 

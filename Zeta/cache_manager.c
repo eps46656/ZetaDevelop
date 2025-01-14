@@ -9,17 +9,11 @@ void Zeta_CacheManager_Init(Zeta_CacheManager* cm) {
 
     cm->Close = NULL;
 
-    cm->GetWidth = NULL;
+    cm->GetOrigin = NULL;
 
     cm->SetMaxCacheCnt = NULL;
 
     cm->Read = NULL;
 
     cm->Write = NULL;
-
-    cm->FlushBlock = NULL;
-
-    cm->Flush = NULL;
-
-    cm->FlushAll = NULL;
 }

@@ -289,6 +289,37 @@ def AddDeps(builder: Builder, config: Config):
     )
 
     builder.Add(
+        f"{zeta_dir}/caching_array.h",
+        {
+            f"{FILE}",
+            f"{zeta_dir}/cache_manager.h",
+        },
+        None
+    )
+
+    builder.Add(
+        f"{zeta_dir}/caching_array.c",
+        {
+            f"{FILE}",
+            f"{zeta_dir}/caching_array.h",
+            f"{zeta_dir}/debugger.h",
+        },
+        None
+    )
+
+    builder.Add(
+        f"{zeta_build_dir}/caching_array.o",
+        {
+            f"{FILE}",
+            f"{zeta_dir}/caching_array.c",
+        },
+        lambda: compiler.c_to_obj(
+            f"{zeta_build_dir}/caching_array.o",
+            f"{zeta_dir}/caching_array.c",
+        )
+    )
+
+    builder.Add(
         f"{zeta_dir}/cascade_allocator.h",
         {
             f"{FILE}",
@@ -695,37 +726,6 @@ def AddDeps(builder: Builder, config: Config):
         lambda: compiler.c_to_obj(
             f"{zeta_build_dir}/dummy_cache_manager.o",
             f"{zeta_dir}/dummy_cache_manager.c",
-        )
-    )
-
-    builder.Add(
-        f"{zeta_dir}/dummy_vector.h",
-        {
-            f"{FILE}",
-            f"{zeta_dir}/seq_cntr.h",
-        },
-        None
-    )
-
-    builder.Add(
-        f"{zeta_dir}/dummy_vector.c",
-        {
-            f"{FILE}",
-            f"{zeta_dir}/dummy_vector.h",
-            f"{zeta_dir}/debugger.h",
-        },
-        None
-    )
-
-    builder.Add(
-        f"{zeta_build_dir}/dummy_vector.o",
-        {
-            f"{FILE}",
-            f"{zeta_dir}/dummy_vector.c",
-        },
-        lambda: compiler.c_to_obj(
-            f"{zeta_build_dir}/dummy_vector.o",
-            f"{zeta_dir}/dummy_vector.c",
         )
     )
 
