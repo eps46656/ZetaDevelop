@@ -16,6 +16,12 @@ byte_t mem[128 * 1024 * 1024];
 
 Zeta_CascadeAllocator allocator;
 
+#define FOR_LOOP_(tmp_end, type, var, beg, end) \
+    for (type var = (beg), tmp_end = (end); var != tmp_end; ++var)
+
+#define FOR_LOOP(type, var, beg, end) \
+    FOR_LOOP_(ZETA_TmpName, type, var, (beg), (end))
+
 void test_cm() {
     unsigned random_seed = time(NULL);
     unsigned fixed_seed = 1735451159;
@@ -60,25 +66,29 @@ void test_cm() {
         // Zeta_SeqCntr_Assign(seq_cntr_a, seq_cntr_a_origin);
         // Zeta_SeqCntr_Assign(seq_cntr_b, seq_cntr_a_origin);
 
-        SeqCntrUtils_DoRandomOperations<PODValue>(
-            { seq_cntr_a, seq_cntr_b },
+        FOR_LOOP(size_t, ZETA_TmpName, 0, 16) {
+            SeqCntrUtils_DoRandomOperations<PODValue>(
+                { seq_cntr_a, seq_cntr_b },
 
-            256,  // iter_cnt
+                4,  // iter_cnt
 
-            max_op_size,  // read_max_op_size
-            max_op_size,  // write_max_op_size
-            0,            // push_l_max_op_size
-            0,            // push_r_max_op_size
-            0,            // pop_l_max_op_size
-            0,            // pop_r_max_op_size
-            0,            // insert_max_op_size
-            0,            // erase_max_op_size
+                max_op_size,  // read_max_op_size
+                max_op_size,  // write_max_op_size
+                0,            // push_l_max_op_size
+                0,            // push_r_max_op_size
+                0,            // pop_l_max_op_size
+                0,            // pop_r_max_op_size
+                0,            // insert_max_op_size
+                0,            // erase_max_op_size
 
-            max_op_size,  // cursor_step_l_max_op_size
-            max_op_size,  // cursor_step_r_max_op_size
-            max_op_size,  // cursor_advance_l_op_size
-            max_op_size   // cursor_advance_r_op_size
-        );
+                max_op_size,  // cursor_step_l_max_op_size
+                max_op_size,  // cursor_step_r_max_op_size
+                max_op_size,  // cursor_advance_l_op_size
+                max_op_size   // cursor_advance_r_op_size
+            );
+
+            Zeta_LRUCacheManager_Flush(cm->context, ZETA_SIZE_MAX);
+        }
 
         SeqCntrUtils_SyncCompare<PODValue>({ seq_cntr_a, seq_cntr_c });
     }

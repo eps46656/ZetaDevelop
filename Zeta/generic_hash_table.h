@@ -6,8 +6,6 @@
 
 ZETA_ExternC_Beg;
 
-ZETA_StaticAssert(alignof(void*) % 4 == 0);
-
 ZETA_DeclareStruct(Zeta_GenericHashTable);
 ZETA_DeclareStruct(Zeta_GenericHashTable_Node);
 

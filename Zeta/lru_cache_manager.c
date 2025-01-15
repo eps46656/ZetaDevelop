@@ -178,17 +178,18 @@ static XNode* AllocateXNode_(Zeta_LRUCacheManager* lrucm) {
 static bool_t WriteBack_(Zeta_LRUCacheManager* lrucm, CNode* cn) {
     if (!cn->dirty) { return FALSE; }
 
-    size_t width = ZETA_SeqCntr_GetWidth(lrucm->origin);
-
     size_t cache_size = lrucm->cache_size;
 
-    void* origin_cursor = ZETA_SeqCntr_AllocaCursor(lrucm->origin);
+    void* cursor = ZETA_SeqCntr_AllocaCursor(lrucm->origin);
 
-    ZETA_SeqCntr_Access(lrucm->origin, cache_size * cn->cache_idx,
-                        &origin_cursor, NULL);
+    size_t k = cache_size * cn->cache_idx;
 
-    ZETA_SeqCntr_Write(lrucm->origin, origin_cursor, cache_size, cn->frame,
-                       width, NULL);
+    ZETA_SeqCntr_Access(lrucm->origin, k, cursor, NULL);
+
+    ZETA_SeqCntr_Write(lrucm->origin, cursor,
+                       ZETA_GetMinOf(ZETA_SeqCntr_GetSize(lrucm->origin) - k,
+                                     lrucm->cache_size),
+                       cn->frame, ZETA_SeqCntr_GetWidth(lrucm->origin), NULL);
 
     cn->dirty = FALSE;
 
@@ -367,9 +368,7 @@ static unsigned TryRelease_(Zeta_LRUCacheManager* lrucm, SNode* sn,
     return cnt;
 }
 
-static bool_t RunPending_(Zeta_LRUCacheManager* lrucm, size_t quata) {
-    size_t old_quata = quata;
-
+static void RunPending_(Zeta_LRUCacheManager* lrucm, size_t quata) {
     while (0 < quata) {
         Zeta_OrdLinkedListNode* sln =
             Zeta_OrdLinkedListNode_GetR(lrucm->over_sl);
@@ -409,8 +408,6 @@ static bool_t RunPending_(Zeta_LRUCacheManager* lrucm, size_t quata) {
 
         --lrucm->cn_cnt;
     }
-
-    return old_quata - quata;
 }
 
 #define FMode_Find 0
@@ -797,7 +794,7 @@ size_t Zeta_LRUCacheManager_Flush(void* lrucm_, size_t quata) {
     Zeta_LRUCacheManager* lrucm = lrucm_;
     CheckLRUCM_(lrucm);
 
-    if (quata == 0) { return FALSE; }
+    if (quata == 0) { return 0; }
 
     RunPending_(lrucm, quata * 8);
 
@@ -815,8 +812,6 @@ size_t Zeta_LRUCacheManager_Flush(void* lrucm_, size_t quata) {
         WriteBack_(lrucm, cn);
 
         Zeta_OrdRBLinkedListNode_Extract(ln);
-
-        Zeta_OrdRBLinkedListNode_InsertL(lrucm->cold_clear_cl, &cn->bn.ln);
 
         Zeta_OrdRBLinkedListNode_InsertL(lrucm->cold_clear_cl, &cn->bn.ln);
     }

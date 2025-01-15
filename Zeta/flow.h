@@ -17,10 +17,9 @@ struct Zeta_FlowBlock {
 typedef __attribute__((sysv_abi, noreturn)) void (*Zeta_FlowFunc)(void* context,
                                                                   void* code);
 
-__attribute__((sysv_abi)) void Zeta_Flow_SetFunc_(Zeta_FlowBlock* flow_blk,
-                                                  void* flow_context,
-                                                  Zeta_FlowFunc flow_func,
-                                                  void* stack_top);
+__attribute__((sysv_abi, optnone)) void Zeta_Flow_SetFunc_(
+    Zeta_FlowBlock* flow_blk, void* flow_context, Zeta_FlowFunc flow_func,
+    void* stack_top);
 
 #define ZETA_Flow_SetFunc_(tmp_flow_blk, tmp_flow_func, tmp_stack_top,   \
                            flow_blk, flow_context, flow_func, stack_top) \
@@ -42,7 +41,7 @@ __attribute__((sysv_abi)) void Zeta_Flow_SetFunc_(Zeta_FlowBlock* flow_blk,
     ZETA_Flow_SetFunc_(ZETA_TmpName, ZETA_TmpName, ZETA_TmpName, (flow_blk), \
                        (flow_context), (flow_func), (stack_top))
 
-__attribute__((sysv_abi, noreturn)) void Zeta_Flow_Jump_(
+__attribute__((sysv_abi, noreturn, optnone)) void Zeta_Flow_Jump_(
     Zeta_FlowBlock* dst_flow_blk, void* code);
 
 #define ZETA_Flow_Jump_(tmp_dst_flow_blk, dst_flow_blk, code) \
@@ -56,9 +55,8 @@ __attribute__((sysv_abi, noreturn)) void Zeta_Flow_Jump_(
 #define ZETA_Flow_Jump(dst_flow_blk, code) \
     ZETA_Flow_Jump_(ZETA_TmpName, (dst_flow_blk), (code))
 
-__attribute__((sysv_abi)) void* Zeta_Flow_Switch_(Zeta_FlowBlock* src_flow_blk,
-                                                  Zeta_FlowBlock* dst_flow_blk,
-                                                  void* code);
+__attribute__((sysv_abi, optnone)) void* Zeta_Flow_Switch_(
+    Zeta_FlowBlock* src_flow_blk, Zeta_FlowBlock* dst_flow_blk, void* code);
 
 #define ZETA_Flow_Switch_(tmp_src_flow_blk, tmp_dst_flow_blk, src_flow_blk, \
                           dst_flow_blk, code)                               \
