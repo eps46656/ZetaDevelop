@@ -11,7 +11,7 @@
 #include <unordered_set>
 
 #include "buffer.h"
-#include "cas_alloc_utils.h"
+#include "cascade_alloc_utils.h"
 #include "circular_array_utils.h"
 #include "debug_deque_utils.h"
 // #include "dynamic_vector_utils.h"
@@ -422,7 +422,7 @@ void test_staging_vector_write_back() {
 
     SetRandomSeed(seed);
 
-    InitCasAllocator();
+    InitCascadeAllocator();
 
     Zeta_SeqCntr* seq_cntr_base{ DebugDequeUtils_Create<PODValue>() };
 
@@ -490,7 +490,7 @@ int main() {
 
     unsigned long long beg_time{ GetTime() };
 
-    test_staging_vector_write_back();
+    test_staging_vector();
 
     unsigned long long end_time{ GetTime() };
 

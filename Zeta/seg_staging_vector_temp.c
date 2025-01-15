@@ -3401,7 +3401,7 @@ static void WriteBack_Random_(Cntr* cntr, unsigned long long cost_coeff_read,
         unsigned long long ans_cost = ZETA_ULLONG_MAX;
         unsigned long long ans_prv = 0;
 
-        for (size_t j = i, j_end = ZETA_GetMaxOf(8, i) - 8; j_end < j--;) {
+        for (size_t j = i, j_end = ZETA_GetMaxOf(8ULL, i) - 8; j_end < j--;) {
             size_t sum_arr = acc_arr[i] - acc_arr[j];
 
             unsigned long long cur_cost =

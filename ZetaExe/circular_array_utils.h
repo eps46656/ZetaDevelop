@@ -40,6 +40,7 @@ Zeta_SeqCntr* CircularArray_Create(size_t capacity) {
 }
 
 void CircularArray_Destroy(Zeta_SeqCntr* seq_cntr) {
+    ZETA_DebugAssert(seq_cntr != NULL);
     ZETA_DebugAssert(seq_cntr->GetWidth == Zeta_CircularArray_GetWidth);
 
     CircularArray_Deinit(seq_cntr);

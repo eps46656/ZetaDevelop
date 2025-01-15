@@ -8,7 +8,7 @@
 #include <random>
 #include <vector>
 
-#include "cas_alloc_utils.h"
+#include "cascade_alloc_utils.h"
 #include "timer.h"
 
 // -----------------------------------------------------------------------------
@@ -87,7 +87,7 @@ void main1() {
     ZETA_PrintVar(fixed_seed);
     ZETA_PrintVar(seed);
 
-    InitCasAllocator();
+    InitCascadeAllocator();
 
     SetRandomSeed(seed);
 
@@ -135,7 +135,7 @@ void main2() {
     ZETA_PrintVar(fixed_seed);
     ZETA_PrintVar(seed);
 
-    InitCasAllocator();
+    InitCascadeAllocator();
 
     SetRandomSeed(seed);
 

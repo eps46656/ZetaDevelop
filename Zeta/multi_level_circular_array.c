@@ -585,7 +585,7 @@ static size_t PushSegs_(Zeta_MultiLevelCircularArray* mlca, int level_i,
         while (acc_cnt < cnt && idx < branch_num) {
             size_t i = (rotation + idx) % branch_num;
 
-            mlt_node->hot += 1ULL << i;
+            mlt_node->active_map += 1ULL << i;
 
             Zeta_MultiLevelCircularArray_Seg* ins_seg =
                 ZETA_Allocator_SafeAllocate(
@@ -619,13 +619,13 @@ static size_t PushSegs_(Zeta_MultiLevelCircularArray* mlca, int level_i,
 
         void** ptr = mlt_node->ptrs + i;
 
-        if ((mlt_node->hot >> i) % 2 == 0) {
-            mlt_node->hot += 1ULL << i;
+        if ((mlt_node->active_map >> i) % 2 == 0) {
+            mlt_node->active_map += 1ULL << i;
 
             Zeta_MultiLevelTable_Node* ins_mlt_node =
                 AllocateMLTNode_(node_allocator);
 
-            ins_mlt_node->hot = 0;
+            ins_mlt_node->active_map = 0;
 
             *ptr = ins_mlt_node;
         }
@@ -722,10 +722,10 @@ static void* Push_(void* mlca_, size_t cnt, void* dst_cursor_, int dir) {
                 AllocateMLTNode_(node_allocator);
 
             if (dir == L) {
-                new_root->hot = 1ULL << (branch_num - 1);
+                new_root->active_map = 1ULL << (branch_num - 1);
                 new_root->ptrs[branch_num - 1] = mlt.root;
             } else {
-                new_root->hot = 1ULL;
+                new_root->active_map = 1ULL;
                 new_root->ptrs[0] = mlt.root;
             }
 
@@ -745,7 +745,7 @@ static void* Push_(void* mlca_, size_t cnt, void* dst_cursor_, int dir) {
 
     if (mlt.root == NULL) {
         mlt.root = AllocateMLTNode_(node_allocator);
-        mlt.root->hot = 0;
+        mlt.root->active_map = 0;
     }
 
     if (dir == L) {
@@ -790,7 +790,7 @@ static size_t PopSegs_(Zeta_MultiLevelCircularArray* mlca, int level_i,
         while (acc_cnt < cnt && idx < branch_num) {
             size_t i = (rotation + idx) % branch_num;
 
-            mlt_node->hot -= 1ULL << i;
+            mlt_node->active_map -= 1ULL << i;
 
             Zeta_MultiLevelCircularArray_Seg* era_seg = mlt_node->ptrs[i];
 
@@ -822,8 +822,8 @@ static size_t PopSegs_(Zeta_MultiLevelCircularArray* mlca, int level_i,
         size_t cur_cnt =
             PopSegs_(mlca, level_i - 1, sub_mlt_node, sub_idx, cnt - acc_cnt);
 
-        if (sub_mlt_node->hot == 0) {
-            mlt_node->hot -= 1ULL << i;
+        if (sub_mlt_node->active_map == 0) {
+            mlt_node->active_map -= 1ULL << i;
             ZETA_Allocator_Deallocate(node_allocator, sub_mlt_node);
         }
 
@@ -908,7 +908,7 @@ static void Pop_(void* mlca_, size_t cnt, int dir) {
 
         size_t r_node_idx = (top_rotation + 1) % branch_num;
 
-        if ((mlt.root->hot >> r_node_idx) % 2 == 0) {
+        if ((mlt.root->active_map >> r_node_idx) % 2 == 0) {
             ZETA_Allocator_Deallocate(node_allocator, mlt.root);
 
             --mlt.level;
@@ -930,8 +930,8 @@ static void Pop_(void* mlca_, size_t cnt, int dir) {
 
         Zeta_MultiLevelTable_Node* r_node = mlt.root->ptrs[r_node_idx];
 
-        size_t l_node_size = __builtin_popcountll(l_node->hot);
-        size_t r_node_size = __builtin_popcountll(r_node->hot);
+        size_t l_node_size = __builtin_popcountll(l_node->active_map);
+        size_t r_node_size = __builtin_popcountll(r_node->active_map);
 
         for (size_t i = 0; i < l_node_size; ++i) {
             mlt.root->ptrs[i] =
@@ -944,7 +944,7 @@ static void Pop_(void* mlca_, size_t cnt, int dir) {
                 r_node->ptrs[(sub_rotation + i) % branch_num];
         }
 
-        mlt.root->hot = (1ULL << (l_node_size + r_node_size)) - 1;
+        mlt.root->active_map = (1ULL << (l_node_size + r_node_size)) - 1;
 
         ZETA_Allocator_Deallocate(node_allocator, l_node);
         ZETA_Allocator_Deallocate(node_allocator, r_node);

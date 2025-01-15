@@ -8,20 +8,6 @@
 #include "cache_manager_utils.h"
 #include "std_allocator.h"
 
-namespace std {
-
-template <typename First, typename Second>
-struct hash<pair<First, Second>> {
-    hash<First> first_hash;
-    hash<Second> second_hash;
-
-    auto operator()(const pair<First, Second>& p) const {
-        return this->first_hash(p.first) * 23 + this->second_hash(p.second);
-    }
-};
-
-}  // namespace std
-
 struct LRUCacheManagerPack {
     StdAllocator sn_allocator_instance;
     StdAllocator cn_allocator_instance;
@@ -56,6 +42,10 @@ void LRUCacheManagerUtils_Sanitize(Zeta_CacheManager const* cm);
 
 void LRUCacheManagerUtils_Init(Zeta_CacheManager* cm, Zeta_SeqCntr* origin,
                                size_t cache_size) {
+    ZETA_DebugAssert(cm != NULL);
+    ZETA_DebugAssert(origin != NULL);
+    ZETA_DebugAssert(0 < cache_size);
+
     LRUCacheManagerPack* pack{ new LRUCacheManagerPack{} };
 
     StdAllocator_DeployAllocator(&pack->sn_allocator_instance,
@@ -92,9 +82,8 @@ void LRUCacheManagerUtils_Init(Zeta_CacheManager* cm, Zeta_SeqCntr* origin,
 }
 
 void LRUCacheManagerUtils_Deinit(Zeta_CacheManager* cm) {
-    if (cm == NULL || cm->GetCacheSize != Zeta_LRUCacheManager_GetCacheSize) {
-        return;
-    }
+    ZETA_DebugAssert(cm != NULL);
+    ZETA_DebugAssert(cm->GetCacheSize == Zeta_LRUCacheManager_GetCacheSize);
 
     LRUCacheManagerPack* pack{ ZETA_MemberToStruct(LRUCacheManagerPack, lrucm,
                                                    cm->context) };
@@ -114,19 +103,14 @@ Zeta_CacheManager* LRUCacheManagerUtils_Create(Zeta_SeqCntr* origin,
 }
 
 void LRUCacheManagerUtils_Destroy(Zeta_CacheManager* cm) {
-    if (cm == NULL || cm->GetCacheSize != Zeta_LRUCacheManager_GetCacheSize) {
-        return;
-    }
-
     LRUCacheManagerUtils_Deinit(cm);
 
     delete cm;
 }
 
 void LRUCacheManagerUtils_Sanitize(Zeta_CacheManager const* cm) {
-    if (cm == NULL || cm->GetCacheSize != Zeta_LRUCacheManager_GetCacheSize) {
-        return;
-    }
+    ZETA_DebugAssert(cm != NULL);
+    ZETA_DebugAssert(cm->GetCacheSize == Zeta_LRUCacheManager_GetCacheSize);
 
     Zeta_LRUCacheManager* lrucm = (Zeta_LRUCacheManager*)cm->context;
 
@@ -218,7 +202,7 @@ void LRUCacheManagerUtils_Sanitize(Zeta_CacheManager const* cm) {
 
         ZETA_DebugAssert(sn->cn_cnt <= sn->max_cn_cnt);
 
-        if (sn->max_cn_cnt != NULL) { ZETA_DebugAssert(0 < sn->cn_cnt); }
+        if (sn->max_cn_cnt == 0) { ZETA_DebugAssert(0 < sn->cn_cnt); }
 
         ZETA_DebugAssert(fit_sns.insert(sn).second);
         ZETA_DebugAssert(union_sns.insert(sn).second);

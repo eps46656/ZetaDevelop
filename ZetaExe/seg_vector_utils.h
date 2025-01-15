@@ -23,9 +23,6 @@ void SegVectorUtils_Init(Zeta_SeqCntr* seq_cntr, size_t stride,
                          size_t seg_capacity) {
     SegVectorUtils_Pack* pack{ new SegVectorUtils_Pack{} };
 
-    new (&pack->seg_allocator_instance) StdAllocator{};
-    new (&pack->data_allocator_instance) StdAllocator{};
-
     StdAllocator_DeployAllocator(&pack->seg_allocator_instance,
                                  &pack->seg_allocator);
     StdAllocator_DeployAllocator(&pack->data_allocator_instance,
@@ -49,9 +46,8 @@ void SegVectorUtils_Init(Zeta_SeqCntr* seq_cntr, size_t stride,
 }
 
 void SegVectorUtils_Deinit(Zeta_SeqCntr* seq_cntr) {
-    if (seq_cntr == NULL || seq_cntr->GetSize != Zeta_SegVector_GetSize) {
-        return;
-    }
+    ZETA_DebugAssert(seq_cntr != NULL);
+    ZETA_DebugAssert(seq_cntr->GetSize == Zeta_SegVector_GetSize);
 
     SegVectorUtils_Pack* pack{ ZETA_MemberToStruct(
         SegVectorUtils_Pack, seg_vector, seq_cntr->context) };
@@ -71,17 +67,14 @@ Zeta_SeqCntr* SegVectorUtils_Create(size_t stride, size_t seg_capacity) {
 }
 
 void SegVectorUtils_Destroy(Zeta_SeqCntr* seq_cntr) {
-    if (seq_cntr == NULL || seq_cntr->GetSize != Zeta_SegVector_GetSize) {
-        return;
-    }
-
     SegVectorUtils_Deinit(seq_cntr);
 
     delete seq_cntr;
 }
 
 void SegVectorUtils_Sanitize(Zeta_SeqCntr const* seq_cntr) {
-    if (seq_cntr->GetSize != Zeta_SegVector_GetSize) { return; }
+    ZETA_DebugAssert(seq_cntr != NULL);
+    ZETA_DebugAssert(seq_cntr->GetSize == Zeta_SegVector_GetSize);
 
     SegVectorUtils_Pack* pack{ ZETA_MemberToStruct(
         SegVectorUtils_Pack, seg_vector, seq_cntr->context) };

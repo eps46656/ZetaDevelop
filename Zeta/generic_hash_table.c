@@ -619,7 +619,7 @@ bool_t Zeta_GenericHashTable_RunPending(void* ght_, size_t quata) {
     nxt_table.root = ght->nxt_table_root;
     nxt_table.node_allocator = ght->table_node_allocator;
 
-    TryDo_(ZETA_GetMaxOf(4, quata));
+    TryDo_(ZETA_GetMaxOf(4ULL, quata));
 
     return 0 < nxt_capacity;
 }

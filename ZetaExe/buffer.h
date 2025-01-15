@@ -1,5 +1,7 @@
 #pragma once
 
+#include <utility>
+
 class Buffer {
 public:
     Buffer() : buffer_{ nullptr }, size_{ 0 } {}

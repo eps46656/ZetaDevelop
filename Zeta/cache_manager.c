@@ -1,5 +1,7 @@
 #include "cache_manager.h"
 
+#include "debugger.h"
+
 void Zeta_CacheManager_Init(Zeta_CacheManager* cm) {
     ZETA_DebugAssert(cm != NULL);
 

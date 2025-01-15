@@ -54,9 +54,8 @@ void StagingVectorUtils_Init(Zeta_SeqCntr* seq_cntr,
 }
 
 void StagingVectorUtils_Deinit(Zeta_SeqCntr* seq_cntr) {
-    if (seq_cntr == NULL || seq_cntr->GetSize != Zeta_StagingVector_GetSize) {
-        return;
-    }
+    ZETA_DebugAssert(seq_cntr != NULL);
+    ZETA_DebugAssert(seq_cntr->GetSize == Zeta_StagingVector_GetSize);
 
     StagingVectorUtils_Pack* pack{ ZETA_MemberToStruct(
         StagingVectorUtils_Pack, staging_vector, seq_cntr->context) };
@@ -78,19 +77,14 @@ Zeta_SeqCntr* StagingVectorUtils_Create(Zeta_SeqCntr* origin_seq_cntr,
 }
 
 void StagingVectorUtils_Destroy(Zeta_SeqCntr* seq_cntr) {
-    if (seq_cntr == NULL || seq_cntr->GetSize != Zeta_StagingVector_GetSize) {
-        return;
-    }
-
     StagingVectorUtils_Deinit(seq_cntr);
 
     delete seq_cntr;
 }
 
 void StagingVectorUtils_Sanitize(Zeta_SeqCntr const* seq_cntr) {
-    if (seq_cntr == NULL || seq_cntr->GetSize != Zeta_StagingVector_GetSize) {
-        return;
-    }
+    ZETA_DebugAssert(seq_cntr != NULL);
+    ZETA_DebugAssert(seq_cntr->GetSize == Zeta_StagingVector_GetSize);
 
     StagingVectorUtils_Pack* pack{ ZETA_MemberToStruct(
         StagingVectorUtils_Pack, staging_vector, seq_cntr->context) };

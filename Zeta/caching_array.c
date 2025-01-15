@@ -32,11 +32,9 @@ void Zeta_CachingArray_Init(void* ca_) {
     ca->origin = ZETA_CacheManager_GetOrigin(ca->cm);
 }
 
-void Zeta_CachingArray_Denit(void* ca_) {
+void Zeta_CachingArray_Deinit(void* ca_) {
     Zeta_CachingArray* ca = ca_;
     CheckCntr_(ca);
-
-    //
 }
 
 size_t Zeta_CachingArray_GetWidth(void const* ca_) {
@@ -60,9 +58,27 @@ size_t Zeta_CachingArray_GetCapacity(void const* ca_) {
     return ZETA_SeqCntr_GetCapacity(ca->origin);
 }
 
-void Zeta_CachingArray_GetLBCursor(void const* ca_, void* dst_cursor);
+void Zeta_CachingArray_GetLBCursor(void const* ca_, void* dst_cursor_) {
+    Zeta_CachingArray const* ca = ca_;
+    CheckCntr_(ca);
 
-void Zeta_CachingArray_GetRBCursor(void const* ca_, void* dst_cursor);
+    Zeta_CachingArray_Cursor* dst_cursor = dst_cursor_;
+    ZETA_DebugAssert(dst_cursor != NULL);
+
+    dst_cursor->ca = ca;
+    dst_cursor->idx = -1;
+}
+
+void Zeta_CachingArray_GetRBCursor(void const* ca_, void* dst_cursor_) {
+    Zeta_CachingArray const* ca = ca_;
+    CheckCntr_(ca);
+
+    Zeta_CachingArray_Cursor* dst_cursor = dst_cursor_;
+    ZETA_DebugAssert(dst_cursor != NULL);
+
+    dst_cursor->ca = ca;
+    dst_cursor->idx = ZETA_SeqCntr_GetSize(ca->origin);
+}
 
 void* Zeta_CachingArray_PeekL(void* ca_, void* dst_cursor, void* dst_elem) {
     Zeta_CachingArray* ca = ca_;

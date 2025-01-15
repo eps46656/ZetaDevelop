@@ -46,8 +46,6 @@ void SeqCntrUtils_AddDestroyFunc(size_t (*GetWidth)(void const* context),
 }
 
 void SeqCntrUtils_Destroy(Zeta_SeqCntr* seq_cntr) {
-    if (seq_cntr == NULL) { return; }
-
     auto& map{ SeqCntrUtils_GetFuncs() };
 
     auto iter{ map.find(seq_cntr->GetWidth) };
@@ -409,7 +407,7 @@ void SeqCntrUtils_SyncRandomRead(const std::vector<Zeta_SeqCntr*>& seq_cntrs,
     bool_t read{ FALSE };
 
     for (auto seq_cntr : seq_cntrs) {
-        SeqCntrUtils_Write(seq_cntr, idx, cnt, ba, stride);
+        SeqCntrUtils_Read(seq_cntr, idx, cnt, ba, stride);
 
         if (read) {
             ZETA_DebugAssert(std::memcmp(ba, bb, sizeof(Elem) * cnt) == 0);

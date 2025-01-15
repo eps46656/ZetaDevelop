@@ -46,6 +46,8 @@ void CachingArrayUtils_Init(Zeta_SeqCntr* seq_cntr, Zeta_CacheManager* cm,
     StdAllocator_DeployAllocator(&pack->data_allocator_instance,
                                  &pack->data_allocator);
 
+    pack->cm = cm;
+
     pack->ca.cm = cm;
 
     pack->ca.sd = ZETA_CacheManager_Open(cm, max_cache_cnt);
@@ -62,9 +64,8 @@ void CachingArrayUtils_Init(Zeta_SeqCntr* seq_cntr, Zeta_CacheManager* cm,
 }
 
 void CachingArrayUtils_Deinit(Zeta_SeqCntr* seq_cntr) {
-    if (seq_cntr == NULL || seq_cntr->GetSize != Zeta_CachingArray_GetSize) {
-        return;
-    }
+    ZETA_DebugAssert(seq_cntr == NULL);
+    ZETA_DebugAssert(seq_cntr->GetSize == Zeta_CachingArray_GetSize);
 
     CachingArrayPack* pack{ ZETA_MemberToStruct(CachingArrayPack, ca,
                                                 seq_cntr->context) };
@@ -86,17 +87,14 @@ Zeta_SeqCntr* CachingArrayUtils_Create(Zeta_CacheManager* cm,
 }
 
 void CachingArrayUtils_Destroy(Zeta_SeqCntr* seq_cntr) {
-    if (seq_cntr == NULL || seq_cntr->GetSize != Zeta_CachingArray_GetSize) {
-        return;
-    }
-
     CachingArrayUtils_Deinit(seq_cntr);
 
     delete seq_cntr;
 }
 
 void CachingArrayUtils_Sanitize(Zeta_SeqCntr const* seq_cntr) {
-    if (seq_cntr->GetSize != Zeta_CachingArray_GetSize) { return; }
+    ZETA_DebugAssert(seq_cntr != NULL);
+    ZETA_DebugAssert(seq_cntr->GetSize == Zeta_CachingArray_GetSize);
 
     CachingArrayPack* pack{ ZETA_MemberToStruct(CachingArrayPack, ca,
                                                 seq_cntr->context) };

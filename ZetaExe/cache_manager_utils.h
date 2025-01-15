@@ -66,8 +66,6 @@ void CacheManagerUtils_AddSanitizeFunc(
 }
 
 void CacheManagerUtils_Sanitize(Zeta_CacheManager const* cm) {
-    if (cm == NULL) { return; }
-
     auto& map{ CacheManagerUtils_GetFuncs() };
 
     auto iter{ map.find(cm->GetCacheSize) };

@@ -102,7 +102,7 @@ void Zeta_SeqCntr_RangeAssign(Zeta_SeqCntr* dst_seq_cntr,
 
     size_t width = ZETA_SeqCntr_GetWidth(dst_seq_cntr);
 
-    size_t buffer_capacity = ZETA_GetMaxOf(1, (sizeof(void*) * 64) / width);
+    size_t buffer_capacity = ZETA_GetMaxOf(1ULL, (sizeof(void*) * 64) / width);
 
     size_t dst_size = ZETA_SeqCntr_GetSize(dst_seq_cntr);
     size_t src_size = ZETA_SeqCntr_GetSize(src_seq_cntr);
