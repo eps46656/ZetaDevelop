@@ -258,6 +258,8 @@ unsigned long long Zeta_ULLHash(unsigned long long x, unsigned long long salt);
 
 unsigned long long Zeta_LLHash(long long x, unsigned long long salt);
 
+unsigned long long Zeta_GetRandom();
+
 unsigned long long Zeta_SimpleRandom(unsigned long long x);
 
 unsigned long long Zeta_SimpleRandomRotate(unsigned long long* x);
@@ -310,9 +312,9 @@ unsigned long long Zeta_FindNextConMod(unsigned long long beg,
 void* Zeta_GetMostLink(void const* context,
                        void* (*GetLink)(void const* context, void* n), void* n);
 
-int Zeta_Choose2(bool_t a_cond, bool_t b_cond, unsigned long long* rand_seed);
+int Zeta_Choose2(bool_t a_cond, bool_t b_cond, unsigned long long* random_seed);
 
 int Zeta_Choose3(bool_t a_cond, bool_t b_cond, bool_t c_cond,
-                 unsigned long long* rand_seed);
+                 unsigned long long* random_seed);
 
 ZETA_ExternC_End;

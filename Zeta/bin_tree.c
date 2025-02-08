@@ -143,7 +143,7 @@ static void EraseAll_B_(Zeta_BinTreeNodeOperator const* btn_opr, void* n,
 
     void* head = NULL;
 
-    unsigned long long seed = ZETA_PtrToAddr(n);
+    unsigned long long random_seed = Zeta_GetRandom();
 
     for (;;) {
         if (n == NULL) {
@@ -167,7 +167,7 @@ static void EraseAll_B_(Zeta_BinTreeNodeOperator const* btn_opr, void* n,
             continue;
         }
 
-        if (Zeta_SimpleRandomRotate(&seed) % 2 == 0) {
+        if (Zeta_SimpleRandomRotate(&random_seed) % 2 == 0) {
             ZETA_BinTreeNodeOperator_SetP(btn_opr, nl, head);
             head = nl;
             n = nr;

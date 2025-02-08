@@ -361,10 +361,9 @@ void* Zeta_CircularArray_Insert(void* ca_, void* pos_cursor_, size_t cnt) {
 
     ca->size = size += cnt;
 
-    unsigned long long rand_seed =
-        ZETA_PtrToAddr(data) + ZETA_PtrToAddr(pos_cursor) + idx + cnt;
+    unsigned long long random_seed = Zeta_GetRandom();
 
-    if (Zeta_Choose2(l_size <= r_size, r_size <= l_size, &rand_seed) == 0) {
+    if (Zeta_Choose2(l_size <= r_size, r_size <= l_size, &random_seed) == 0) {
         ca->offset = offset = (offset + capacity - cnt) % capacity;
         Zeta_CircularArray_Assign(ca, ca, 0, cnt, l_size);
     } else {
@@ -422,10 +421,9 @@ void Zeta_CircularArray_Erase(void* ca_, void* pos_cursor_, size_t cnt) {
     size_t l_size = idx;
     size_t r_size = size - idx - cnt;
 
-    unsigned long long rand_seed =
-        ZETA_PtrToAddr(data) + ZETA_PtrToAddr(pos_cursor) + idx + cnt;
+    unsigned long long random_seed = Zeta_GetRandom();
 
-    if (Zeta_Choose2(l_size <= r_size, r_size <= l_size, &rand_seed)) {
+    if (Zeta_Choose2(l_size <= r_size, r_size <= l_size, &random_seed)) {
         Zeta_CircularArray_Assign(ca, ca, cnt, 0, l_size);
         ca->offset = offset = (offset + cnt) % capacity;
     } else {

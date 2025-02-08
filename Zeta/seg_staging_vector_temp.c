@@ -103,7 +103,7 @@
     ({                                                                   \
         size_t tmp_x = (x);                                              \
         size_t tmp_seg_cnt = ZETA_UnsafeCeilIntDiv(tmp_x, seg_capacity); \
-        (tmp_x + Zeta_SimpleRandomRotate(&rand_seed) % tmp_seg_cnt) /    \
+        (tmp_x + Zeta_SimpleRandomRotate(&random_seed) % tmp_seg_cnt) /  \
             tmp_seg_cnt;                                                 \
     })
 
@@ -333,8 +333,7 @@ static void Merge2_(Cntr* cntr, Cntr_(Seg) * a_seg, Cntr_(Seg) * b_seg) {
     size_t stride = cntr->stride;
     size_t seg_capacity = cntr->seg_capacity;
 
-    unsigned long long rand_seed =
-        ZETA_PtrToAddr(a_seg) + ZETA_PtrToAddr(b_seg);
+    unsigned long long random_seed = Zeta_GerRandom();
 
 #if STAGING
     void* origin_cursor = ZETA_SeqCntr_AllocaCursor(origin);
@@ -354,7 +353,7 @@ static void Merge2_(Cntr* cntr, Cntr_(Seg) * a_seg, Cntr_(Seg) * b_seg) {
 
         Cntr_(Seg) * dst_seg;
 
-        switch (Zeta_SimpleRandomRotate(&rand_seed) % 2) {
+        switch (Zeta_SimpleRandomRotate(&random_seed) % 2) {
             case 0: dst_seg = a_seg; break;
             case 1: dst_seg = b_seg; break;
         }
@@ -388,7 +387,7 @@ static void Merge2_(Cntr* cntr, Cntr_(Seg) * a_seg, Cntr_(Seg) * b_seg) {
     size_t merge_b_cost = StagingThreeWay(b_c == ref_color, b_size, 0) + a_size;
 
     if (Zeta_Choose2(merge_a_cost <= merge_b_cost, merge_b_cost <= merge_a_cost,
-                     &rand_seed) == 0) {
+                     &random_seed) == 0) {
 #if STAGING
         if (b_c == ref_color) {
             PushRefR_(cntr, &a_ca, b_seg->ref.beg, b_size);
@@ -1094,7 +1093,7 @@ void Cntr_(Write)(void* cntr_, void* pos_cursor_, size_t cnt, void const* src,
 #if STAGING
     void* origin_cursor = ZETA_SeqCntr_AllocaCursor(origin);
 
-    unsigned long long rand_seed = ZETA_PtrToAddr(n);
+    unsigned long long random_seed = Zeta_GetRandom();
 
     if (GetNColor_(n) == ref_color && 0 < seg_idx) {
         seg = NToSeg_(n);
@@ -1417,7 +1416,7 @@ void* Cntr_(Insert)(void* cntr_, void* pos_cursor_, size_t cnt) {
 
     ZETA_DebugAssert(cntr->lb != m_n);
 
-    unsigned long long rand_seed = ZETA_PtrToAddr(m_n);
+    unsigned long long random_seed = Zeta_GetRandom();
 
     void* l_n;
     void* r_n;
@@ -1545,7 +1544,7 @@ void* Cntr_(Insert)(void* cntr_, void* pos_cursor_, size_t cnt) {
 
         int shove_dir = Zeta_Choose2(
             l_m_ok && (!m_r_ok || m_r_vacant <= l_m_vacant),
-            m_r_ok && (!l_m_ok || l_m_vacant <= m_r_vacant), &rand_seed);
+            m_r_ok && (!l_m_ok || l_m_vacant <= m_r_vacant), &random_seed);
 
         if (shove_dir == 0) {
 #if STAGING
@@ -1743,7 +1742,7 @@ void* Cntr_(Insert)(void* cntr_, void* pos_cursor_, size_t cnt) {
         }
 
         int split_dir =
-            Zeta_Choose2(ml_size <= mr_size, mr_size <= ml_size, &rand_seed);
+            Zeta_Choose2(ml_size <= mr_size, mr_size <= ml_size, &random_seed);
 
         if (split_dir == 0) {
 #if STAGING
@@ -1856,7 +1855,7 @@ INS:
             l_shove = TRUE;
             r_shove = TRUE;
         } else if (Zeta_Choose2(l_ca.size <= r_ca.size, r_ca.size <= l_ca.size,
-                                &rand_seed) == 0) {
+                                &random_seed) == 0) {
             l_shove = l_ca.size <= res_size;
             r_shove = FALSE;
         } else {
@@ -1897,7 +1896,7 @@ INS:
 
     if (l_shove && r_shove && total_size <= seg_capacity) {
         if (Zeta_Choose2(r_ca.size <= l_ca.size, l_ca.size <= r_ca.size,
-                         &rand_seed) == 0) {
+                         &random_seed) == 0) {
             SegShoveL(&l_ca, &r_ca, 0, cnt, cnt + r_ca.size);
 
             EraseSeg_(cntr, r_seg);
@@ -2204,7 +2203,7 @@ void Cntr_(Erase)(void* cntr_, void* pos_cursor_, size_t cnt) {
     void* ret_n = m_n;
     size_t ret_seg_idx = seg_idx;
 
-    unsigned long long rand_seed = ZETA_PtrToAddr(m_n);
+    unsigned long long random_seed = Zeta_GetRandom();
 
     bool_t first_exist = first_seg_idx != 0 || &first_seg->n == m_n;
     bool_t last_exist = &last_seg->n == m_n;
@@ -2389,7 +2388,7 @@ MERGE_3: {
 
     if (seg_capacity < max_vacant) {
         if (Zeta_Choose2(bc_vacant <= ab_vacant, ab_vacant <= bc_vacant,
-                         &rand_seed) == 0) {
+                         &random_seed) == 0) {
             Merge2_(cntr, a_seg, b_seg);
         } else {
             Merge2_(cntr, b_seg, c_seg);
@@ -2414,7 +2413,7 @@ MERGE_4: {
         if (seg_capacity <= max_vacant) {
             switch (Zeta_Choose3(ab_vacant == max_vacant,
                                  bc_vacant == max_vacant,
-                                 cd_vacant == max_vacant, &rand_seed)) {
+                                 cd_vacant == max_vacant, &random_seed)) {
                 case 0: Merge2_(cntr, a_seg, b_seg); break;
                 case 1: Merge2_(cntr, b_seg, c_seg); break;
                 case 2: Merge2_(cntr, c_seg, d_seg); break;
@@ -2707,7 +2706,7 @@ void Cntr_(Collapse)(void* cntr_) {
     Cntr_(Cursor) origin_cursor;
     Cntr_(Access)(origin, 0, &origin_cursor, NULL);
 
-    unsigned long long rand_seed = ZETA_PtrToAddr(cntr);
+    unsigned long long random_seed = Zeta_GetRandom();
 
     Zeta_CircularArray origin_ca;
     origin_ca.width = ZETA_SeqCntr_GetWidth(origin->origin);

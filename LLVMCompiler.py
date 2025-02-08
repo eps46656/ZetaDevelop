@@ -225,6 +225,8 @@ class LLVMCompiler:
             # "-lstdc++",
             # "-lm",
 
+            "-lC:/Program Files/clang+llvm-19.1.4-x86_64-pc-windows-msvc/lib/clang/19/lib/windows/clang_rt.builtins-x86_64",
+
             # f"-frandomize-layout-seed={self.randomize_layout_seed}",
         ]
 

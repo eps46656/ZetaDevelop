@@ -21,6 +21,18 @@
 #define ZETA_EnableDebug 0
 #endif
 
+#define ZETA_UCHAR_WIDTH (__CHAR_BIT__)
+#define ZETA_USHRT_WIDTH (__SHRT_WIDTH__)
+#define ZETA_UINT_WIDTH (__INT_WIDTH__)
+#define ZETA_ULONG_WIDTH (__LONG_WIDTH__)
+#define ZETA_ULLONG_WIDTH (__LLONG_WIDTH__)
+#define ZETA_UBIT8_WIDTH (8)
+#define ZETA_UBIT16_WIDTH (16)
+#define ZETA_UBIT32_WIDTH (32)
+#define ZETA_UBIT64_WIDTH (64)
+#define ZETA_UBIT128_WIDTH (128)
+#define ZETA_SIZE_WIDTH (__SIZE_WIDTH__)
+
 typedef unsigned char byte_t;
 
 typedef unsigned _BitInt(8) ubit8_t;
@@ -96,6 +108,22 @@ typedef sbit64_t s64_t;
 typedef __INT128_TYPE__ s128_t;
 #else
 typedef sbit128_t s128_t;
+#endif
+
+#if ZETA_ULLONG_WIDTH == 32
+
+typedef s64_t sdllong_t;
+typedef u64_t udllong_t;
+
+#elif ZETA_ULLONG_WIDTH == 64
+
+typedef s128_t sdllong_t;
+typedef u128_t udllong_t;
+
+#else
+
+#error "Unsupported architecture."
+
 #endif
 
 typedef unsigned unichar_t;
@@ -337,18 +365,6 @@ typedef unsigned unichar_t;
                                              \
         ubit128_t: ZETA_UBIT128_MAX,         \
         sbit128_t: ZETA_SBIT128_MAX)
-
-#define ZETA_UCHAR_WIDTH (__CHAR_BIT__)
-#define ZETA_USHRT_WIDTH (__SHRT_WIDTH__)
-#define ZETA_UINT_WIDTH (__INT_WIDTH__)
-#define ZETA_ULONG_WIDTH (__LONG_WIDTH__)
-#define ZETA_ULLONG_WIDTH (__LLONG_WIDTH__)
-#define ZETA_UBIT8_WIDTH (8)
-#define ZETA_UBIT16_WIDTH (16)
-#define ZETA_UBIT32_WIDTH (32)
-#define ZETA_UBIT64_WIDTH (64)
-#define ZETA_UBIT128_WIDTH (812)
-#define ZETA_SIZE_WIDTH (__SIZE_WIDTH__)
 
 #define ZETA_WidthOf(type)                     \
     _Generic((type)0,                          \

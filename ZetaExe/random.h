@@ -9,7 +9,9 @@ std::mt19937_64& GetRandomEngine() {
     return en;
 }
 
-void SetRandomSeed(unsigned seed) { GetRandomEngine().seed(seed); }
+void SetRandomSeed(unsigned random_seed) {
+    GetRandomEngine().seed(random_seed);
+}
 
 template <typename Int>
 constexpr bool_t IsInteger() {

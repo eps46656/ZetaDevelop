@@ -11,7 +11,7 @@
 
 #else
 
-#error "Unsupported machine."
+#error "Unsupported system."
 
 #endif
 

@@ -155,13 +155,15 @@ void main5() {
     unsigned long long test_num = 1000 * 1000;
 
     for (unsigned long long test_i = 0; test_i < test_num; ++test_i) {
-        unsigned long long val = randint(0, ZETA_ULLONG_MAX / (1024 * 1024));
+        // unsigned long long val = randint(0, ZETA_ULLONG_MAX / (1024 * 1024));
+
+        unsigned long long k = randint(0, 1024 * 1024);
+
+        unsigned long long val = k * k;
 
         ZETA_PrintCurPos;
 
         unsigned long long x = Zeta_CeilSqrt(val);
-
-        ZETA_PrintCurPos;
 
         ZETA_DebugAssert(val <= x * x);
 
@@ -172,7 +174,7 @@ void main5() {
 }
 
 int main() {
-    main2();
+    main5();
     printf("ok\n");
     return 0;
 }

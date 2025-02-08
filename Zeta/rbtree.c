@@ -261,9 +261,7 @@ void* Zeta_RBTree_Extract(Zeta_BinTreeNodeOperator const* btn_opr, void* pos) {
     void* nr = ZETA_BinTreeNodeOperator_GetR(btn_opr, n);
 
     if (nl != NULL && nr != NULL) {
-        unsigned long long rand_seed = ZETA_PtrToAddr(nl) + ZETA_PtrToAddr(nr);
-
-        void* m = Zeta_SimpleRandomRotate(&rand_seed) % 2 == 0
+        void* m = Zeta_GetRandom() % 2 == 0
                       ? Zeta_GetMostLink(context, btn_opr->GetL, nr)
                       : Zeta_GetMostLink(context, btn_opr->GetR, nl);
 

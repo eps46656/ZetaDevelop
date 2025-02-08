@@ -33,10 +33,10 @@ static void TryMigrate_(Zeta_DynamicVector* dv, Zeta_CircularArray* cur_ca,
 
     if (nxt_ca->data == NULL || move_cnt == 0) { return; }
 
-    unsigned long long rand_seed = __builtin_readcyclecounter();
+    unsigned long long random_seed = Zeta_GetRandom();
 
     if (Zeta_Choose2(dv->size_c <= dv->size_a, dv->size_a <= dv->size_c,
-                     &rand_seed) == 0) {
+                     &random_seed) == 0) {
         Zeta_CircularArray_Assign(nxt_ca, cur_ca, dv->size_a, 0, move_cnt);
         Zeta_CircularArray_PopL(cur_ca, move_cnt);
 

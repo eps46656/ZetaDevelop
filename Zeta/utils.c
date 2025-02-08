@@ -295,7 +295,7 @@ unsigned long long Zeta_ULLHash(unsigned long long x, unsigned long long salt) {
     x = (x ^ (x >> 27)) * 0x94d049bb133111ebULL;
     x = x ^ (x >> 31);
 #else
-#error "Unsupported machine architecture."
+#error "Unsupported architecture."
 #endif
 
     x ^= salt;
@@ -307,20 +307,27 @@ unsigned long long Zeta_LLHash(long long x, unsigned long long salt) {
     return Zeta_ULLHash(x, salt);
 }
 
-unsigned long long Zeta_SimpleRandom(unsigned long long x) {
-    unsigned long long mask = 0xFFFF;  // 2^16 - 1
-    unsigned long long a = 25214903917;
-    unsigned long long c = 11;
+#if ZETA_ULLONG_WIDTH == 32
+#define LCG_MUL (0x1010101ULL)
+#define LCG_INC (0x24924907ULL)
+#elif ZETA_ULLONG_WIDTH == 64
+#define LCG_MUL (0x1010101ULL)
+#define LCG_INC (0x2492492492492479ULL)
+#else
+#error "Unsupported architecture."
+#endif
 
-    return ((x * a + c) >> 16) & mask;
+static unsigned long long random_seed_ = ZETA_PtrToAddr(&random_seed_) - 1;
+
+unsigned long long Zeta_GetRandom() {
+    random_seed_ =
+        ((random_seed_ + __builtin_readcyclecounter()) * LCG_MUL + LCG_INC);
+
+    return Zeta_ULLHash(random_seed_, __builtin_readcyclecounter());
 }
 
 unsigned long long Zeta_SimpleRandomRotate(unsigned long long* x) {
-    unsigned long long m = 0x80000000;
-    unsigned long long a = 0x41C64E6D;
-    unsigned long long c = 3039;
-
-    return (*x = (*x * a + c) % m) / 0x10000;
+    return Zeta_ULLHash(*x = (*x * LCG_MUL + LCG_INC), 0);
 }
 
 unsigned long long Zeta_GCD(unsigned long long x, unsigned long long y) {
@@ -401,19 +408,18 @@ unsigned Zeta_FloorLog(unsigned long long val, unsigned long long base) {
 
     if (base == 2) { return ZETA_FloorLog2(val); }
 
-    unsigned floor_log2_base = ZETA_CeilLog2(base);
+    unsigned ceil_log2_base = ZETA_CeilLog2(base);
 
     unsigned ret = 0;
 
     for (;;) {
-        unsigned cur_ret = ZETA_FloorLog2(val) / floor_log2_base;
+        unsigned cur_ret = ZETA_FloorLog2(val) / ceil_log2_base;
 
         ret += cur_ret;
 
         switch (cur_ret) {
             case 1: val /= base;
             case 0: goto RES;
-            default:
         }
 
         val /= Zeta_Power(base, cur_ret);
@@ -458,7 +464,7 @@ unsigned long long Zeta_FixedPoint2Power(long long val_) {
         2147483649,
     };
 #else
-#error "Unsupported machine architecture."
+#error "Unsupported architecture."
 #endif
 
     ZETA_StaticAssert(ZETA_FixedPoint_BaseOrder <= c_base_order);
@@ -489,7 +495,7 @@ unsigned long long Zeta_FixedPoint2Power(long long val_) {
 
     long long l = k - c_base_order + ZETA_FixedPoint_BaseOrder;
 
-    return l < 0 ? y / (1ULL << -l) : y * (1ULL << l);
+    return l < 0 ? (y >> -l) : (y << l);
 }
 
 long long Zeta_FixedPointLog2(unsigned long long val) {
@@ -506,7 +512,7 @@ long long Zeta_FixedPointLog2(unsigned long long val) {
     unsigned long long k = ZETA_FloorLog2(val);
 
     unsigned long long mantissa =
-        k <= c_base_order ? val * (1ULL << (c_base_order - k))
+        k <= c_base_order ? (val << (c_base_order - k))
                           : ZETA_RoundIntDiv(val, 1ULL << (k - c_base_order));
 
     long long y = 0;
@@ -533,11 +539,11 @@ unsigned long long Zeta_FloorSqrt(unsigned long long val) {
 
     unsigned long long x = 1ULL << ((ZETA_CeilLog2(val) + 1) / 2);
 
-    unsigned long long y = (val / x + x) / 2;
+    unsigned long long y = (x + val / x) / 2;
 
     while (y < x) {
         x = y;
-        y = (val / x + x) / 2;
+        y = (x + val / x) / 2;
     }
 
     return x;
@@ -548,34 +554,27 @@ unsigned long long Zeta_CeilSqrt(unsigned long long val) {
 
     unsigned long long k = Zeta_FloorSqrt(val);
 
-    return k + (k * k <= val);
+    return k + (k * k < val);
 }
 
 unsigned long long Zeta_FixedPointSqrt(unsigned long long val) {
-    unsigned long long base = ZETA_FixedPoint_Base;
-
-    unsigned long long const c_base_order = ZETA_ULLONG_WIDTH / 2 - 1;
-
-    unsigned long long const c_base = 1ULL << c_base_order;
-
-    unsigned long long k = Zeta_FloorSqrt(val / base);
-
-    unsigned long long res = (val - k * k * base) * (c_base / base);
-
-    unsigned long long lb = 0;
-    unsigned long long rb = c_base - 1;
-
-    while (lb < rb) {
-        unsigned long long mb = (lb + rb + 1) / 2;
-
-        if (2 * k * mb + ZETA_RoundIntDiv(mb * mb, c_base) < res) {
-            lb = mb;
-        } else {
-            rb = mb - 1;
-        }
+    if (ZETA_FixedPoint_BaseOrder <= __builtin_clzll(val)) {
+        return Zeta_FloorSqrt(val << ZETA_FixedPoint_BaseOrder);
     }
 
-    return k * base + ZETA_RoundIntDiv(lb * base, c_base);
+    udllong_t ex_val = (udllong_t)(val) << ZETA_FixedPoint_BaseOrder;
+
+    udllong_t x = (udllong_t)(1)
+                  << ((ZETA_CeilLog2(val) + ZETA_FixedPoint_BaseOrder + 1) / 2);
+
+    udllong_t y = (x + ex_val / x) / 2;
+
+    while (y < x) {
+        x = y;
+        y = (x + ex_val / x) / 2;
+    }
+
+    return x;
 }
 
 unsigned long long Zeta_FindNextConMod(unsigned long long beg,
@@ -600,18 +599,19 @@ void* Zeta_GetMostLink(void const* context,
     return n;
 }
 
-int Zeta_Choose2(bool_t a_cond, bool_t b_cond, unsigned long long* rand_seed) {
+int Zeta_Choose2(bool_t a_cond, bool_t b_cond,
+                 unsigned long long* random_seed) {
     switch ((int)b_cond * 2 + (int)a_cond) {
         case 0b00: return -1;
         case 0b01: return 0;
         case 0b10: return 1;
     }
 
-    return Zeta_SimpleRandomRotate(rand_seed) % 2;
+    return Zeta_SimpleRandomRotate(random_seed) % 2;
 }
 
 int Zeta_Choose3(bool_t a_cond, bool_t b_cond, bool_t c_cond,
-                 unsigned long long* rand_seed) {
+                 unsigned long long* random_seed) {
     int vec = (int)c_cond * 4 + (int)b_cond * 2 + (int)(a_cond);
 
     switch (vec) {
@@ -621,7 +621,7 @@ int Zeta_Choose3(bool_t a_cond, bool_t b_cond, bool_t c_cond,
         case 0b100: return 2;
     }
 
-    int k = Zeta_SimpleRandomRotate(rand_seed);
+    int k = Zeta_SimpleRandomRotate(random_seed);
 
     switch (vec) {
         case 0b011: return k % 2;
@@ -632,27 +632,27 @@ int Zeta_Choose3(bool_t a_cond, bool_t b_cond, bool_t c_cond,
     return k % 3;
 }
 
-int Zeta_ChooseN(bool_t* conds, size_t n, unsigned long long* rand_seed) {
-    if (n == 2) { return Zeta_Choose2(conds[0], conds[1], rand_seed); }
+int Zeta_ChooseN(bool_t* conds, size_t n, unsigned long long* random_seed) {
+    if (n == 2) { return Zeta_Choose2(conds[0], conds[1], random_seed); }
 
     if (n == 3) {
-        return Zeta_Choose3(conds[0], conds[1], conds[2], rand_seed);
+        return Zeta_Choose3(conds[0], conds[1], conds[2], random_seed);
     }
 
     size_t ln = n / 2;
     size_t rn = n - ln;
 
-    if (Zeta_SimpleRandomRotate(rand_seed) % n < ln) {
-        int ret = Zeta_ChooseN(conds, ln, rand_seed);
+    if (Zeta_SimpleRandomRotate(random_seed) % n < ln) {
+        int ret = Zeta_ChooseN(conds, ln, random_seed);
         if (0 <= ret) { return ret; }
 
-        ret = Zeta_ChooseN(conds + ln, rn, rand_seed);
+        ret = Zeta_ChooseN(conds + ln, rn, random_seed);
         return 0 <= ret ? ln + ret : -1;
     } else {
-        int ret = Zeta_ChooseN(conds + ln, rn, rand_seed);
+        int ret = Zeta_ChooseN(conds + ln, rn, random_seed);
         if (0 <= ret) { return ln + ret; }
 
-        ret = Zeta_ChooseN(conds, ln, rand_seed);
+        ret = Zeta_ChooseN(conds, ln, random_seed);
         return 0 <= ret ? ret : -1;
     }
 }

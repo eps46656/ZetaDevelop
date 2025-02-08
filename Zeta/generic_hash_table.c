@@ -32,14 +32,25 @@ static unsigned short branch_nums[] = { [0 ... ZETA_MultiLevelTable_max_level -
                                          1] = branch_num };
 
 static size_t capacities[] = {
-    61ULL,       251ULL,       1021ULL,       4093ULL,       16381ULL,
-    65521ULL,    262139ULL,    1048573ULL,    4194301ULL,    16777213ULL,
-    67108859ULL, 268435399ULL, 1073741789ULL, 4294967291ULL,
+    61ULL,
+    251ULL,
+    1021ULL,
+    4093ULL,
+    16381ULL,
+    65521ULL,
 
-#if ZETA_SIZE_WIDTH == 32
-};
-#else
+#if 32 <= ZETA_SIZE_WIDTH
+    262139ULL,
+    1048573ULL,
+    4194301ULL,
+    16777213ULL,
+    67108859ULL,
+    268435399ULL,
+    1073741789ULL,
+    4294967291ULL,
+#endif
 
+#if 48 <= ZETA_SIZE_WIDTH
     17179869143ULL,
     68719476731ULL,
     274877906899ULL,
@@ -48,11 +59,9 @@ static size_t capacities[] = {
     17592186044399ULL,
     70368744177643ULL,
     281474976710597ULL,
+#endif
 
-#if ZETA_SIZE_WIDTH == 48
-};
-#else
-
+#if 64 <= ZETA_SIZE_WIDTH
     1125899906842597ULL,
     4503599627370449ULL,
     18014398509481951ULL,
@@ -61,15 +70,9 @@ static size_t capacities[] = {
     1152921504606846883ULL,
     4611686018427387847ULL,
     18446744073709551557ULL,
+#endif
+
 };
-
-#endif
-#endif
-
-static unsigned long long GetSalt_(Zeta_GenericHashTable const* ght) {
-    unsigned long long ret = ght->cur_salt;
-    return Zeta_SimpleRandomRotate(&ret);
-}
 
 static size_t GetBucketIdx_(unsigned long long hash_code, size_t capacity) {
     return Zeta_ULLHash(hash_code, 0) % capacity;
@@ -260,7 +263,7 @@ void Zeta_GenericHashTable_Init(void* ght_) {
     Zeta_GenericHashTable* ght = ght_;
     ZETA_DebugAssert(ght != NULL);
 
-    ght->cur_salt = GetSalt_(ght);
+    ght->cur_salt = Zeta_GetRandom();
 
     ght->cur_table_root = NULL;
     ght->nxt_table_root = NULL;
@@ -306,11 +309,11 @@ size_t Zeta_GenericHashTable_GetSize(void const* ght_) {
             if (cur_table.size * 2 < cur_capacity) {                        \
                 ((Zeta_GenericHashTable*)ght)->nxt_capacity =               \
                     FindPrvCapacity_(cur_capacity);                         \
-                ((Zeta_GenericHashTable*)ght)->nxt_salt = GetSalt_(ght);    \
+                ((Zeta_GenericHashTable*)ght)->nxt_salt = Zeta_GetRandom(); \
             } else if (cur_capacity * 8 <= ght->size) {                     \
                 ((Zeta_GenericHashTable*)ght)->nxt_capacity =               \
                     FindNxtCapacity_(cur_capacity);                         \
-                ((Zeta_GenericHashTable*)ght)->nxt_salt = GetSalt_(ght);    \
+                ((Zeta_GenericHashTable*)ght)->nxt_salt = Zeta_GetRandom(); \
             }                                                               \
                                                                             \
             break;                                                          \
@@ -583,7 +586,7 @@ void Zeta_GenericHashTable_ExtractAll(void* ght_) {
 
     if (0 < nxt_capacity) { Zeta_MultiLevelTable_Deinit(&nxt_table); }
 
-    ght->cur_salt = GetSalt_(ght);
+    ght->cur_salt = Zeta_GetRandom();
 
     ght->cur_table_root = NULL;
     ght->nxt_table_root = NULL;

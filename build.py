@@ -35,7 +35,7 @@ elif os.name == "posix":
         env=EnvEnum.ELF,
     )
 else:
-    assert False, "Unsupported architecture."
+    assert False, "Unsupported system."
 
 zeta_debug_config = Zeta.Config(
     name="debug",

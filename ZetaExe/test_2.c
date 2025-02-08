@@ -37,7 +37,7 @@ void main2() {
 
     double max_k_err = 0;
 
-    for (double x = 0.0001; x <= 20; x += 0.0000001) {
+    for (double x = 0.0001; x <= 20; x += 0.00001) {
         double zetay = Zeta_FixedPointLog2(x * base) / base;
 
         // double stdy = pow(2, x);
@@ -66,7 +66,9 @@ void main3() {
 
     double max_k_err = 0;
 
-    for (double x = 0; x <= 1024 * 16; x += 0.0001) {
+    double x_base = 1e9;
+
+    for (double x = x_base; x <= x_base + 1024 * 16; x += 0.0001) {
         double zetay = Zeta_FixedPointSqrt(x * base) / base;
 
         // double stdy = pow(2, x);
@@ -75,12 +77,14 @@ void main3() {
         double err = fabs(zetay - stdy);
         double rel_err = fabs(err / stdy);
 
-        double k_err = min(err, rel_err);
+        double k_err = rel_err;
 
-        max_k_err = max(max_k_err, k_err);
+        max_k_err = rel_err;
 
         if (1e-3 <= k_err) {
             printf("x: %e\n", x);
+            printf("zetay: %e\n", zetay);
+            printf(" stdy: %e\n", stdy);
             printf("k err: %e\n", k_err);
         }
     }

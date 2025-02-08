@@ -14,7 +14,7 @@ ZETA_DeclareStruct(Zeta_DateTime);
 #elif ZETA_ULLONG_WIDTH == 64
 #define ZETA_DateTime_max_year (ZETA_DateTime_min_year + 400 * 1024)
 #else
-#error "Unsupported machine architecture."
+#error "Unsupported architecture."
 #endif
 
 ZETA_StaticAssert(ZETA_DateTime_min_year % 400 == 0);
