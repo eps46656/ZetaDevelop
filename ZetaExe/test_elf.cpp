@@ -170,12 +170,12 @@ void ELF_PrintHeader(ELF_Header* header) {
         TMP(ei_osabi_str, 0x07, "AIX");
         TMP(ei_osabi_str, 0x08, "IRIX");
         TMP(ei_osabi_str, 0x09, "FreeBSD");
-        TMP(ei_osabi_str, 0x0A, "Tru64");
-        TMP(ei_osabi_str, 0x0B, "Movell Modesto");
-        TMP(ei_osabi_str, 0x0C, "OpenBSD");
-        TMP(ei_osabi_str, 0x0D, "OpenVMS");
-        TMP(ei_osabi_str, 0x0E, "NonStop Kernel");
-        TMP(ei_osabi_str, 0x0F, "AROS");
+        TMP(ei_osabi_str, 0x0a, "Tru64");
+        TMP(ei_osabi_str, 0x0b, "Movell Modesto");
+        TMP(ei_osabi_str, 0x0c, "OpenBSD");
+        TMP(ei_osabi_str, 0x0d, "OpenVMS");
+        TMP(ei_osabi_str, 0x0e, "NonStop Kernel");
+        TMP(ei_osabi_str, 0x0f, "AROS");
         TMP(ei_osabi_str, 0x10, "FenixOS");
         TMP(ei_osabi_str, 0x11, "Nuxi CloudABI");
         TMP(ei_osabi_str, 0x12, "Stratus Technologies OpenVOS");
@@ -215,14 +215,14 @@ void ELF_PrintHeader(ELF_Header* header) {
         TMP(e_machine_str, 0x07, "Intel 8086");
         TMP(e_machine_str, 0x08, "MIPS");
         TMP(e_machine_str, 0x09, "IBM System/370");
-        TMP(e_machine_str, 0x0A, "MIPS RS3000 Little-endian");
+        TMP(e_machine_str, 0x0a, "MIPS RS3000 Little-endian");
 
         TMP(e_machine_str, 0x14, "PowerPC");
         TMP(e_machine_str, 0x28, "Arm");
         TMP(e_machine_str, 0x32, "IA-64");
-        TMP(e_machine_str, 0x3E, "AMD x86-64");
+        TMP(e_machine_str, 0x3e, "AMD x86-64");
 
-        TMP(e_machine_str, 0xF3, "RISC-V");
+        TMP(e_machine_str, 0xf3, "RISC-V");
 
         default: e_machine_str = "Unknown"; break;
     }
@@ -281,7 +281,7 @@ void ELF_PrintProgramHeader(ELF_ProgramHeader* prog_header) {
         TMP(p_type_str, 0x00000006, "PT_PHDR");
         TMP(p_type_str, 0x00000007, "PT_TLS");
         TMP(p_type_str, 0x60000000, "PT_LOOS");
-        TMP(p_type_str, 0x6FFFFFFF, "PT_HIOS");
+        TMP(p_type_str, 0x6fffffff, "PT_HIOS");
         TMP(p_type_str, 0x70000000, "PT_LOPROC");
         default: p_type_str = "Unknown"; break;
     }

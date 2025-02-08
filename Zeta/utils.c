@@ -287,8 +287,8 @@ unsigned long long Zeta_ULLHash(unsigned long long x, unsigned long long salt) {
     x ^= salt;
 
 #if ZETA_ULLONG_WIDTH == 32
-    x = (x ^ (x >> 16)) * 0x45d9f3b;
-    x = (x ^ (x >> 16)) * 0x45d9f3b;
+    x = (x ^ (x >> 16)) * 0x45d9f3bULL;
+    x = (x ^ (x >> 16)) * 0x45d9f3bULL;
     x = x ^ (x >> 16);
 #elif ZETA_ULLONG_WIDTH == 64
     x = (x ^ (x >> 30)) * 0xbf58476d1ce4e5b9ULL;

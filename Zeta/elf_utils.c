@@ -31,7 +31,7 @@ byte_t const* Zeta_ELF_ReadHeader(Zeta_ELF_Header* dst, byte_t const* src,
     u128_t (*ReadFunc)(byte_t const* src, unsigned length) =
         Zeta_ReadLittleEndian;
 
-    if (src[0] != 0x7F || src[1] != 'E' || src[2] != 'L' || src[3] != 'F') {
+    if (src[0] != 0x7f || src[1] != 'E' || src[2] != 'L' || src[3] != 'F') {
         return NULL;
     }
 
@@ -97,7 +97,7 @@ byte_t* Zeta_ELF_WriteHeader(byte_t* dst, size_t dst_size,
     u128_t (*WriteFunc)(byte_t* dst, u128_t val, unsigned length) =
         header->ei_data == 1 ? Zeta_WriteLittleEndian : Zeta_WriteBigEndian;
 
-    Write_(dst, 0x7F, 1);
+    Write_(dst, 0x7f, 1);
     Write_(dst, 'E', 1);
     Write_(dst, 'L', 1);
     Write_(dst, 'F', 1);

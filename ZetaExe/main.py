@@ -932,7 +932,7 @@ def AddDeps(builder: Builder, config: Config):
             f"{zeta_exe_dir}/test_utf8.c",
             f"{zeta_dir}/utf8.h",
         },
-        lambda: compiler.cpp_to_obj(
+        lambda: compiler.c_to_obj(
             f"{zeta_exe_build_dir}/test_utf8.o",
             f"{zeta_exe_dir}/test_utf8.c",
         )
@@ -981,7 +981,7 @@ def AddDeps(builder: Builder, config: Config):
             f"{zeta_exe_dir}/test_utf16.c",
             f"{zeta_dir}/utf16.h",
         },
-        lambda: compiler.cpp_to_obj(
+        lambda: compiler.c_to_obj(
             f"{zeta_exe_build_dir}/test_utf16.o",
             f"{zeta_exe_dir}/test_utf16.c",
         )

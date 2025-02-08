@@ -64,11 +64,11 @@ void* Zeta_ElemRotate(void* data, size_t width, size_t stride, size_t l_size,
 
 // -----------------------------------------------------------------------------
 
-#define ZETA_BytesToUInt_LE_case_(len) \
+#define ZETA_BytesToUInt_LE_case_(tmp_ret, tmp_src, len) \
     case (len): tmp_ret = tmp_ret * 256 + tmp_src[(len) - 1]
 
-#define ZETA_BytesToUInt_BE_case_(len) \
-    case (len): tmp_ret = tmp_ret * 256 + tmp_src[tmp_len - (len)]
+#define ZETA_BytesToUInt_BE_case_(tmp_ret, tmp_src, len) \
+    case (len): tmp_ret = tmp_ret * 256 + tmp_src[-(len)]
 
 #define ZETA_BytesToUInt_(tmp_ret, tmp_src, tmp_len, tmp_endian, val_type, \
                           src, len, endian)                                \
@@ -90,42 +90,44 @@ void* Zeta_ElemRotate(void* data, size_t width, size_t stride, size_t l_size,
                                                                            \
         if (tmp_endian == ZETA_LittleEndian) {                             \
             switch (tmp_len) {                                             \
-                ZETA_BytesToUInt_LE_case_(0x10);                           \
-                ZETA_BytesToUInt_LE_case_(0x0F);                           \
-                ZETA_BytesToUInt_LE_case_(0x0E);                           \
-                ZETA_BytesToUInt_LE_case_(0x0D);                           \
-                ZETA_BytesToUInt_LE_case_(0x0C);                           \
-                ZETA_BytesToUInt_LE_case_(0x0B);                           \
-                ZETA_BytesToUInt_LE_case_(0x0A);                           \
-                ZETA_BytesToUInt_LE_case_(0x09);                           \
-                ZETA_BytesToUInt_LE_case_(0x08);                           \
-                ZETA_BytesToUInt_LE_case_(0x07);                           \
-                ZETA_BytesToUInt_LE_case_(0x06);                           \
-                ZETA_BytesToUInt_LE_case_(0x05);                           \
-                ZETA_BytesToUInt_LE_case_(0x04);                           \
-                ZETA_BytesToUInt_LE_case_(0x03);                           \
-                ZETA_BytesToUInt_LE_case_(0x02);                           \
-                ZETA_BytesToUInt_LE_case_(0x01);                           \
+                ZETA_BytesToUInt_LE_case_(tmp_ret, tmp_src, 0x10);         \
+                ZETA_BytesToUInt_LE_case_(tmp_ret, tmp_src, 0x0f);         \
+                ZETA_BytesToUInt_LE_case_(tmp_ret, tmp_src, 0x0e);         \
+                ZETA_BytesToUInt_LE_case_(tmp_ret, tmp_src, 0x0d);         \
+                ZETA_BytesToUInt_LE_case_(tmp_ret, tmp_src, 0x0c);         \
+                ZETA_BytesToUInt_LE_case_(tmp_ret, tmp_src, 0x0b);         \
+                ZETA_BytesToUInt_LE_case_(tmp_ret, tmp_src, 0x0a);         \
+                ZETA_BytesToUInt_LE_case_(tmp_ret, tmp_src, 0x09);         \
+                ZETA_BytesToUInt_LE_case_(tmp_ret, tmp_src, 0x08);         \
+                ZETA_BytesToUInt_LE_case_(tmp_ret, tmp_src, 0x07);         \
+                ZETA_BytesToUInt_LE_case_(tmp_ret, tmp_src, 0x06);         \
+                ZETA_BytesToUInt_LE_case_(tmp_ret, tmp_src, 0x05);         \
+                ZETA_BytesToUInt_LE_case_(tmp_ret, tmp_src, 0x04);         \
+                ZETA_BytesToUInt_LE_case_(tmp_ret, tmp_src, 0x03);         \
+                ZETA_BytesToUInt_LE_case_(tmp_ret, tmp_src, 0x02);         \
+                ZETA_BytesToUInt_LE_case_(tmp_ret, tmp_src, 0x01);         \
                 case 0x0:                                                  \
             }                                                              \
         } else {                                                           \
+            tmp_src += tmp_len;                                            \
+                                                                           \
             switch (tmp_len) {                                             \
-                ZETA_BytesToUInt_BE_case_(0x10);                           \
-                ZETA_BytesToUInt_BE_case_(0x0F);                           \
-                ZETA_BytesToUInt_BE_case_(0x0E);                           \
-                ZETA_BytesToUInt_BE_case_(0x0D);                           \
-                ZETA_BytesToUInt_BE_case_(0x0C);                           \
-                ZETA_BytesToUInt_BE_case_(0x0B);                           \
-                ZETA_BytesToUInt_BE_case_(0x0A);                           \
-                ZETA_BytesToUInt_BE_case_(0x09);                           \
-                ZETA_BytesToUInt_BE_case_(0x08);                           \
-                ZETA_BytesToUInt_BE_case_(0x07);                           \
-                ZETA_BytesToUInt_BE_case_(0x06);                           \
-                ZETA_BytesToUInt_BE_case_(0x05);                           \
-                ZETA_BytesToUInt_BE_case_(0x04);                           \
-                ZETA_BytesToUInt_BE_case_(0x03);                           \
-                ZETA_BytesToUInt_BE_case_(0x02);                           \
-                ZETA_BytesToUInt_BE_case_(0x01);                           \
+                ZETA_BytesToUInt_BE_case_(tmp_ret, tmp_src, 0x10);         \
+                ZETA_BytesToUInt_BE_case_(tmp_ret, tmp_src, 0x0f);         \
+                ZETA_BytesToUInt_BE_case_(tmp_ret, tmp_src, 0x0e);         \
+                ZETA_BytesToUInt_BE_case_(tmp_ret, tmp_src, 0x0d);         \
+                ZETA_BytesToUInt_BE_case_(tmp_ret, tmp_src, 0x0c);         \
+                ZETA_BytesToUInt_BE_case_(tmp_ret, tmp_src, 0x0b);         \
+                ZETA_BytesToUInt_BE_case_(tmp_ret, tmp_src, 0x0a);         \
+                ZETA_BytesToUInt_BE_case_(tmp_ret, tmp_src, 0x09);         \
+                ZETA_BytesToUInt_BE_case_(tmp_ret, tmp_src, 0x08);         \
+                ZETA_BytesToUInt_BE_case_(tmp_ret, tmp_src, 0x07);         \
+                ZETA_BytesToUInt_BE_case_(tmp_ret, tmp_src, 0x06);         \
+                ZETA_BytesToUInt_BE_case_(tmp_ret, tmp_src, 0x05);         \
+                ZETA_BytesToUInt_BE_case_(tmp_ret, tmp_src, 0x04);         \
+                ZETA_BytesToUInt_BE_case_(tmp_ret, tmp_src, 0x03);         \
+                ZETA_BytesToUInt_BE_case_(tmp_ret, tmp_src, 0x02);         \
+                ZETA_BytesToUInt_BE_case_(tmp_ret, tmp_src, 0x01);         \
                 case 0x0:                                                  \
             }                                                              \
         }                                                                  \
@@ -139,10 +141,10 @@ void* Zeta_ElemRotate(void* data, size_t width, size_t stride, size_t l_size,
 
 // -----------------------------------------------------------------------------
 
-#define ZETA_UIntToBytes_LE_case_(len) \
-    case (len): tmp_dst[tmp_len - (len)] = tmp_val % 256; tmp_val /= 256
+#define ZETA_UIntToBytes_LE_case_(tmp_val, tmp_dst, len) \
+    case (len): tmp_dst[-(len)] = tmp_val % 256; tmp_val /= 256
 
-#define ZETA_UIntToBytes_BE_case_(len) \
+#define ZETA_UIntToBytes_BE_case_(tmp_val, tmp_dst, len) \
     case (len): tmp_dst[(len) - 1] = tmp_val % 256; tmp_val /= 256
 
 #define ZETA_UIntToBytes_(tmp_ret, tmp_src, tmp_len, tmp_endian, val, dst, \
@@ -162,48 +164,48 @@ void* Zeta_ElemRotate(void* data, size_t width, size_t stride, size_t l_size,
                          tmp_endian == ZETA_BigEndian);                    \
                                                                            \
         if (tmp_endian == ZETA_LittleEndian) {                             \
+            tmp_dst += tmp_len;                                            \
+                                                                           \
             switch (tmp_len) {                                             \
-                ZETA_UIntToBytes_LE_case_(0x10);                           \
-                ZETA_UIntToBytes_LE_case_(0x0F);                           \
-                ZETA_UIntToBytes_LE_case_(0x0E);                           \
-                ZETA_UIntToBytes_LE_case_(0x0D);                           \
-                ZETA_UIntToBytes_LE_case_(0x0C);                           \
-                ZETA_UIntToBytes_LE_case_(0x0B);                           \
-                ZETA_UIntToBytes_LE_case_(0x0A);                           \
-                ZETA_UIntToBytes_LE_case_(0x09);                           \
-                ZETA_UIntToBytes_LE_case_(0x08);                           \
-                ZETA_UIntToBytes_LE_case_(0x07);                           \
-                ZETA_UIntToBytes_LE_case_(0x06);                           \
-                ZETA_UIntToBytes_LE_case_(0x05);                           \
-                ZETA_UIntToBytes_LE_case_(0x04);                           \
-                ZETA_UIntToBytes_LE_case_(0x03);                           \
-                ZETA_UIntToBytes_LE_case_(0x02);                           \
-                ZETA_UIntToBytes_LE_case_(0x01);                           \
+                ZETA_UIntToBytes_LE_case_(tmp_val, tmp_dst, 0x10);         \
+                ZETA_UIntToBytes_LE_case_(tmp_val, tmp_dst, 0x0f);         \
+                ZETA_UIntToBytes_LE_case_(tmp_val, tmp_dst, 0x0e);         \
+                ZETA_UIntToBytes_LE_case_(tmp_val, tmp_dst, 0x0d);         \
+                ZETA_UIntToBytes_LE_case_(tmp_val, tmp_dst, 0x0c);         \
+                ZETA_UIntToBytes_LE_case_(tmp_val, tmp_dst, 0x0b);         \
+                ZETA_UIntToBytes_LE_case_(tmp_val, tmp_dst, 0x0a);         \
+                ZETA_UIntToBytes_LE_case_(tmp_val, tmp_dst, 0x09);         \
+                ZETA_UIntToBytes_LE_case_(tmp_val, tmp_dst, 0x08);         \
+                ZETA_UIntToBytes_LE_case_(tmp_val, tmp_dst, 0x07);         \
+                ZETA_UIntToBytes_LE_case_(tmp_val, tmp_dst, 0x06);         \
+                ZETA_UIntToBytes_LE_case_(tmp_val, tmp_dst, 0x05);         \
+                ZETA_UIntToBytes_LE_case_(tmp_val, tmp_dst, 0x04);         \
+                ZETA_UIntToBytes_LE_case_(tmp_val, tmp_dst, 0x03);         \
+                ZETA_UIntToBytes_LE_case_(tmp_val, tmp_dst, 0x02);         \
+                ZETA_UIntToBytes_LE_case_(tmp_val, tmp_dst, 0x01);         \
                 case 0x0:                                                  \
             }                                                              \
         } else {                                                           \
             switch (tmp_len) {                                             \
-                ZETA_UIntToBytes_BE_case_(0x10);                           \
-                ZETA_UIntToBytes_BE_case_(0x0F);                           \
-                ZETA_UIntToBytes_BE_case_(0x0E);                           \
-                ZETA_UIntToBytes_BE_case_(0x0D);                           \
-                ZETA_UIntToBytes_BE_case_(0x0C);                           \
-                ZETA_UIntToBytes_BE_case_(0x0B);                           \
-                ZETA_UIntToBytes_BE_case_(0x0A);                           \
-                ZETA_UIntToBytes_BE_case_(0x09);                           \
-                ZETA_UIntToBytes_BE_case_(0x08);                           \
-                ZETA_UIntToBytes_BE_case_(0x07);                           \
-                ZETA_UIntToBytes_BE_case_(0x06);                           \
-                ZETA_UIntToBytes_BE_case_(0x05);                           \
-                ZETA_UIntToBytes_BE_case_(0x04);                           \
-                ZETA_UIntToBytes_BE_case_(0x03);                           \
-                ZETA_UIntToBytes_BE_case_(0x02);                           \
-                ZETA_UIntToBytes_BE_case_(0x01);                           \
+                ZETA_UIntToBytes_BE_case_(tmp_val, tmp_dst, 0x10);         \
+                ZETA_UIntToBytes_BE_case_(tmp_val, tmp_dst, 0x0f);         \
+                ZETA_UIntToBytes_BE_case_(tmp_val, tmp_dst, 0x0e);         \
+                ZETA_UIntToBytes_BE_case_(tmp_val, tmp_dst, 0x0d);         \
+                ZETA_UIntToBytes_BE_case_(tmp_val, tmp_dst, 0x0c);         \
+                ZETA_UIntToBytes_BE_case_(tmp_val, tmp_dst, 0x0b);         \
+                ZETA_UIntToBytes_BE_case_(tmp_val, tmp_dst, 0x0a);         \
+                ZETA_UIntToBytes_BE_case_(tmp_val, tmp_dst, 0x09);         \
+                ZETA_UIntToBytes_BE_case_(tmp_val, tmp_dst, 0x08);         \
+                ZETA_UIntToBytes_BE_case_(tmp_val, tmp_dst, 0x07);         \
+                ZETA_UIntToBytes_BE_case_(tmp_val, tmp_dst, 0x06);         \
+                ZETA_UIntToBytes_BE_case_(tmp_val, tmp_dst, 0x05);         \
+                ZETA_UIntToBytes_BE_case_(tmp_val, tmp_dst, 0x04);         \
+                ZETA_UIntToBytes_BE_case_(tmp_val, tmp_dst, 0x03);         \
+                ZETA_UIntToBytes_BE_case_(tmp_val, tmp_dst, 0x02);         \
+                ZETA_UIntToBytes_BE_case_(tmp_val, tmp_dst, 0x01);         \
                 case 0x0:                                                  \
             }                                                              \
         }                                                                  \
-                                                                           \
-        tmp_val;                                                           \
     })
 
 #define ZETA_UIntToBytes(val, dst, len, endian)                               \

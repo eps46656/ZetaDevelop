@@ -38,9 +38,9 @@ ZETA_DeclareStruct(Zeta_ELF);
 #define ZETA_ELF_SHT_SHLIB 10
 #define ZETA_ELF_SHT_DYNSYM 11
 #define ZETA_ELF_SHT_LOPROC 0x70000000
-#define ZETA_ELF_SHT_HIPROC 0x7FFFFFFF
+#define ZETA_ELF_SHT_HIPROC 0x7fffffff
 #define ZETA_ELF_SHT_LOUSER 0x80000000
-#define ZETA_ELF_SHT_HIUSER 0xFFFFFFFF
+#define ZETA_ELF_SHT_HIUSER 0xffffffff
 
 struct Zeta_ELF_Ret {
     int rc;

@@ -4,7 +4,7 @@
 #include "utils.h"
 
 static byte_t* EncodeChar_(byte_t* dst, unichar_t data) {
-    if (data < 0 || 0x7FFFFFFF < data) { return NULL; }
+    if (data < 0 || 0x7fffffff < data) { return NULL; }
 
     if (data <= 0b01111111) {
         *dst = data;
@@ -31,22 +31,23 @@ static byte_t* EncodeChar_(byte_t* dst, unichar_t data) {
     return dst;
 }
 
-Zeta_UTF8_EncodeRet Zeta_UTF8_Encode(byte_t* dst, size_t dst_size,
-                                     unichar_t const* src, size_t src_size) {
+Zeta_UTF8_Result Zeta_UTF8_Encode(byte_t* dst, size_t dst_size,
+                                  unichar_t const* src, size_t src_size) {
     ZETA_DebugAssert(src != NULL);
 
     byte_t tmp[6];
 
     size_t dst_cnt = 0;
+    unichar_t const* origin_src = src;
 
     for (; dst_cnt < dst_size && 0 < src_size; ++src, --src_size) {
         byte_t* tmp_p = EncodeChar_(tmp, *src);
 
         if (tmp_p == NULL) {
-            return (Zeta_UTF8_EncodeRet){
+            return (Zeta_UTF8_Result){
                 .success = FALSE,
                 .dst_cnt = dst_cnt,
-                .nxt_src = src,
+                .src_cnt = src - origin_src,
             };
         }
 
@@ -62,10 +63,10 @@ Zeta_UTF8_EncodeRet Zeta_UTF8_Encode(byte_t* dst, size_t dst_size,
         dst_cnt += tmp_size;
     }
 
-    return (Zeta_UTF8_EncodeRet){
+    return (Zeta_UTF8_Result){
         .success = TRUE,
         .dst_cnt = dst_cnt,
-        .nxt_src = src,
+        .src_cnt = src - origin_src,
     };
 }
 
@@ -122,11 +123,12 @@ static byte_t const* DecodeChar_(unichar_t* dst, byte_t const* src,
     return src;
 }
 
-Zeta_UTF8_DecodeRet Zeta_UTF8_Decode(unichar_t* dst, size_t dst_size,
-                                     byte_t const* src, size_t src_size) {
+Zeta_UTF8_Result Zeta_UTF8_Decode(unichar_t* dst, size_t dst_size,
+                                  byte_t const* src, size_t src_size) {
     ZETA_DebugAssert(src != NULL);
 
     size_t dst_cnt = 0;
+    byte_t const* origin_src = src;
 
     while (dst_cnt < dst_size && 0 < src_size) {
         unichar_t tmp;
@@ -134,10 +136,10 @@ Zeta_UTF8_DecodeRet Zeta_UTF8_Decode(unichar_t* dst, size_t dst_size,
         byte_t const* nxt_src = DecodeChar_(&tmp, src, src_size);
 
         if (nxt_src == NULL) {
-            return (Zeta_UTF8_DecodeRet){
+            return (Zeta_UTF8_Result){
                 .success = FALSE,
                 .dst_cnt = dst_cnt,
-                .nxt_src = src,
+                .src_cnt = src - origin_src,
             };
         }
 
@@ -151,9 +153,9 @@ Zeta_UTF8_DecodeRet Zeta_UTF8_Decode(unichar_t* dst, size_t dst_size,
         src = nxt_src;
     }
 
-    return (Zeta_UTF8_DecodeRet){
+    return (Zeta_UTF8_Result){
         .success = TRUE,
         .dst_cnt = dst_cnt,
-        .nxt_src = src,
+        .src_cnt = src - origin_src,
     };
 }

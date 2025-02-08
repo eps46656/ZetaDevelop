@@ -59,11 +59,11 @@ static byte_t* WritePartInfo_(byte_t* dst,
                               Zeta_DiskPartMBR_PartEntry const* part_entry) {
     WRITE(part_entry->state, dst, 1);
 
-    WRITE(0xFFFFFE, dst, 3);
+    WRITE(0xfffffe, dst, 3);
 
     WRITE(part_entry->type, dst, 1);
 
-    WRITE(0xFFFFFE, dst, 3);
+    WRITE(0xfffffe, dst, 3);
 
     WRITE(part_entry->beg, dst, 4);
 
@@ -88,7 +88,7 @@ byte_t const* Zeta_DiskPartMBR_ReadMBR(Zeta_DiskPartMBR_MBR* dst,
         data = ReadPartInfo_(dst->part_entries + i, data);
     }
 
-    if (data[0] != 0x55 || data[1] != 0xAA) { return NULL; }
+    if (data[0] != 0x55 || data[1] != 0xaa) { return NULL; }
 
     return data + 2;
 }
@@ -109,7 +109,7 @@ byte_t* Zeta_DiskPartMBR_WriteMBR(byte_t* dst, size_t dst_size,
         dst = WritePartInfo_(dst, mbr->part_entries + i);
     }
 
-    WRITE(0xAA55, dst, 2);
+    WRITE(0xaa55, dst, 2);
 
     return dst;
 }
