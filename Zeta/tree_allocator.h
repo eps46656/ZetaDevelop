@@ -2,7 +2,7 @@
 
 #include "allocator.h"
 #include "mem_check_utils.h"
-#include "ord_rb_linked_list_node.h"
+#include "ord_rb_llist_node.h"
 #include "ord_rb_tree_node.h"
 
 ZETA_ExternC_Beg;
@@ -38,7 +38,7 @@ struct Zeta_TreeAllocator {
     void* data_beg;
     void* data_end;
 
-    Zeta_OrdRBLinkedListNode hn_head;
+    Zeta_OrdRBLListNode hn_head;
 
     Zeta_OrdRBTreeNode* sn_root;
 };

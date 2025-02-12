@@ -85,10 +85,10 @@ void Zeta_DynamicHashTable_Init(void* dht_) {
                      0);
 
     dht->lln = ZETA_Allocator_SafeAllocate(dht->node_allocator,
-                                           alignof(Zeta_OrdLinkedListNode),
-                                           sizeof(Zeta_OrdLinkedListNode));
+                                           alignof(Zeta_OrdLListNode),
+                                           sizeof(Zeta_OrdLListNode));
 
-    Zeta_OrdLinkedListNode_Init(dht->lln);
+    Zeta_OrdLListNode_Init(dht->lln);
 
     dht->ght.node_hash_context = dht;
     dht->ght.NodeHash = GHTNodeHash_;
@@ -163,7 +163,7 @@ void* Zeta_DynamicHashTable_PeekL(void* dht_, void* dst_cursor_) {
 
     Zeta_DynamicHashTable_Cursor cursor;
     cursor.dht = dht;
-    cursor.lln = Zeta_OrdLinkedListNode_GetR(dht->lln);
+    cursor.lln = Zeta_OrdLListNode_GetR(dht->lln);
 
     if (dst_cursor != NULL) {
         dst_cursor->dht = cursor.dht;
@@ -185,7 +185,7 @@ void* Zeta_DynamicHashTable_PeekR(void* dht_, void* dst_cursor_) {
 
     Zeta_DynamicHashTable_Cursor cursor;
     cursor.dht = dht;
-    cursor.lln = Zeta_OrdLinkedListNode_GetL(dht->lln);
+    cursor.lln = Zeta_OrdLListNode_GetL(dht->lln);
 
     if (dst_cursor != NULL) {
         dst_cursor->dht = cursor.dht;
@@ -267,7 +267,7 @@ void* Zeta_DynamicHashTable_Insert(void* dht_, void const* elem,
         dht->node_allocator, alignof(Zeta_DynamicHashTable_Node*),
         offsetof(Zeta_DynamicHashTable_Node, data[dht->width])));
 
-    Zeta_OrdLinkedListNode_Init(&node->lln);
+    Zeta_OrdLListNode_Init(&node->lln);
 
     Zeta_GenericHashTable_Node_Init(&node->htn);
 
@@ -275,7 +275,7 @@ void* Zeta_DynamicHashTable_Insert(void* dht_, void const* elem,
 
     Zeta_GenericHashTable_Insert(&dht->ght, &node->htn);
 
-    Zeta_OrdLinkedListNode_InsertL(dht->lln, &node->lln);
+    Zeta_LList_OrdLListNode_InsertL(dht->lln, &node->lln);
 
     if (dst_cursor != NULL) {
         dst_cursor->dht = dht;
@@ -293,14 +293,14 @@ void Zeta_DynamicHashTable_Erase(void* dht_, void* pos_cursor_) {
 
     ZETA_DebugAssert(dht->lln != pos_cursor->lln);
 
-    Zeta_OrdLinkedListNode* lln = pos_cursor->lln;
+    Zeta_OrdLListNode* lln = pos_cursor->lln;
 
-    pos_cursor->lln = Zeta_OrdLinkedListNode_GetR(pos_cursor->lln);
+    pos_cursor->lln = Zeta_OrdLListNode_GetR(pos_cursor->lln);
 
     Zeta_DynamicHashTable_Node* node =
         ZETA_MemberToStruct(Zeta_DynamicHashTable_Node, lln, lln);
 
-    Zeta_OrdLinkedListNode_Extract(&node->lln);
+    Zeta_LList_OrdLListNode_Extract(&node->lln);
 
     Zeta_GenericHashTable_Extract(&dht->ght, &node->htn);
 
@@ -312,13 +312,13 @@ void Zeta_DynamicHashTable_EraseAll(void* dht_) {
     ZETA_DebugAssert(dht);
 
     for (;;) {
-        Zeta_OrdLinkedListNode* nxt_lln = Zeta_OrdLinkedListNode_GetR(dht->lln);
+        Zeta_OrdLListNode* nxt_lln = Zeta_OrdLListNode_GetR(dht->lln);
         if (nxt_lln == dht->lln) { break; }
 
         Zeta_DynamicHashTable_Node* nxt_node =
             ZETA_MemberToStruct(Zeta_DynamicHashTable_Node, lln, nxt_lln);
 
-        Zeta_OrdLinkedListNode_Extract(nxt_lln);
+        Zeta_LList_OrdLListNode_Extract(nxt_lln);
 
         Zeta_GenericHashTable_Extract(&dht->ght, &nxt_node->htn);
 
@@ -366,12 +366,12 @@ void Zeta_DynamicHashTable_Sanitize(void* dht_, Zeta_MemRecorder* dst_table,
 
     Zeta_GenericHashTable_Sanitize(&dht->ght, dst_table, htn_records);
 
-    Zeta_MemRecorder_Record(dst_node, dht->lln, sizeof(Zeta_OrdLinkedListNode));
+    Zeta_MemRecorder_Record(dst_node, dht->lln, sizeof(Zeta_OrdLListNode));
 
     size_t node_size = offsetof(Zeta_DynamicHashTable_Node, data[dht->width]);
 
-    for (Zeta_OrdLinkedListNode* lln = dht->lln;;) {
-        lln = Zeta_OrdLinkedListNode_GetR(lln);
+    for (Zeta_OrdLListNode* lln = dht->lln;;) {
+        lln = Zeta_OrdLListNode_GetR(lln);
         if (lln == dht->lln) { break; }
 
         Zeta_DynamicHashTable_Node* node =
@@ -407,7 +407,7 @@ void Zeta_DynamicHashTable_Cursor_StepL(void const* dht_, void* cursor_) {
 
     CheckCursor_(dht, cursor);
 
-    cursor->lln = Zeta_OrdLinkedListNode_GetL(cursor->lln);
+    cursor->lln = Zeta_OrdLListNode_GetL(cursor->lln);
 }
 
 void Zeta_DynamicHashTable_Cursor_StepR(void const* dht_, void* cursor_) {
@@ -416,7 +416,7 @@ void Zeta_DynamicHashTable_Cursor_StepR(void const* dht_, void* cursor_) {
 
     CheckCursor_(dht, cursor);
 
-    cursor->lln = Zeta_OrdLinkedListNode_GetR(cursor->lln);
+    cursor->lln = Zeta_OrdLListNode_GetR(cursor->lln);
 }
 
 void Zeta_DynamicHashTable_Cursor_Check(void const* dht_, void const* cursor_) {

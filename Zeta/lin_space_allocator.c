@@ -2,7 +2,6 @@
 
 #include "debugger.h"
 #include "ptr_utils.h"
-#include "rbtree.h"
 #include "utils.h"
 
 #if ZETA_EnableDebug
@@ -18,8 +17,7 @@
 #define VacantColor (0)
 #define OccupiedColor (1)
 
-static void* NodeGetGP_(void const* context, void* n) {
-    ZETA_Unused(context);
+static void* NodeGetGP_(void* n) {
     ZETA_DebugAssert(n != NULL);
 
     void* m = ZETA_RelColorPtr_GetPtr(&((Zeta_LinSpaceAllocator_Node*)n)->gpc,
@@ -28,8 +26,7 @@ static void* NodeGetGP_(void const* context, void* n) {
     return m == n ? NULL : m;
 }
 
-static void NodeSetGP_(void const* context, void* n, void* m) {
-    ZETA_Unused(context);
+static void NodeSetGP_(void* n, void* m) {
     ZETA_DebugAssert(n != NULL);
 
     ZETA_RelColorPtr_SetPtr(&((Zeta_LinSpaceAllocator_Node*)n)->gpc,
@@ -37,25 +34,21 @@ static void NodeSetGP_(void const* context, void* n, void* m) {
                             m == NULL ? n : m);
 }
 
-static int NodeGetGPC_(void const* context, void* n) {
-    ZETA_Unused(context);
-
+static int NodeGetGPC_(void* n) {
     return n == NULL ? 0
                      : ZETA_RelColorPtr_GetColor(
                            &((Zeta_LinSpaceAllocator_Node*)n)->gpc,
                            alignof(Zeta_LinSpaceAllocator_Node), n);
 }
 
-static void NodeSetGPC_(void const* context, void* n, int color) {
-    ZETA_Unused(context);
+static void NodeSetGPC_(void* n, int color) {
     ZETA_DebugAssert(n != NULL);
 
     ZETA_RelColorPtr_SetColor(&((Zeta_LinSpaceAllocator_Node*)n)->gpc,
                               alignof(Zeta_LinSpaceAllocator_Node), n, color);
 }
 
-static void* NodeGetGL_(void const* context, void* n) {
-    ZETA_Unused(context);
+static void* NodeGetGL_(void* n) {
     ZETA_DebugAssert(n != NULL);
 
     void* m = ZETA_RelColorPtr_GetPtr(&((Zeta_LinSpaceAllocator_Node*)n)->glc,
@@ -64,8 +57,7 @@ static void* NodeGetGL_(void const* context, void* n) {
     return m == n ? NULL : m;
 }
 
-static void NodeSetGL_(void const* context, void* n, void* m) {
-    ZETA_Unused(context);
+static void NodeSetGL_(void* n, void* m) {
     ZETA_DebugAssert(n != NULL);
 
     ZETA_RelColorPtr_SetPtr(&((Zeta_LinSpaceAllocator_Node*)n)->glc,
@@ -73,25 +65,21 @@ static void NodeSetGL_(void const* context, void* n, void* m) {
                             m == NULL ? n : m);
 }
 
-static int NodeGetGLC_(void const* context, void* n) {
-    ZETA_Unused(context);
-
+static int NodeGetGLC_(void* n) {
     return n == NULL ? 0
                      : ZETA_RelColorPtr_GetColor(
                            &((Zeta_LinSpaceAllocator_Node*)n)->glc,
                            alignof(Zeta_LinSpaceAllocator_Node), n);
 }
 
-static void NodeSetGLC_(void const* context, void* n, int color) {
-    ZETA_Unused(context);
+static void NodeSetGLC_(void* n, int color) {
     ZETA_DebugAssert(n != NULL);
 
     ZETA_RelColorPtr_SetColor(&((Zeta_LinSpaceAllocator_Node*)n)->glc,
                               alignof(Zeta_LinSpaceAllocator_Node), n, color);
 }
 
-static void* NodeGetGR_(void const* context, void* n) {
-    ZETA_Unused(context);
+static void* NodeGetGR_(void* n) {
     ZETA_DebugAssert(n != NULL);
 
     void* m = ZETA_RelPtr_GetPtr(&((Zeta_LinSpaceAllocator_Node*)n)->gr, n);
@@ -99,8 +87,7 @@ static void* NodeGetGR_(void const* context, void* n) {
     return m == n ? NULL : m;
 }
 
-static void NodeSetGR_(void const* context, void* n, void* m) {
-    ZETA_Unused(context);
+static void NodeSetGR_(void* n, void* m) {
     ZETA_DebugAssert(n != NULL);
 
     ZETA_RelPtr_SetPtr(&((Zeta_LinSpaceAllocator_Node*)n)->gr, n,
@@ -108,7 +95,6 @@ static void NodeSetGR_(void const* context, void* n, void* m) {
 }
 
 static void* NodeGetSP_(void const* context, void* n) {
-    ZETA_Unused(context);
     ZETA_DebugAssert(n != NULL);
 
     void* m = ZETA_RelColorPtr_GetPtr(&((Zeta_LinSpaceAllocator_Node*)n)->spc,
@@ -117,8 +103,7 @@ static void* NodeGetSP_(void const* context, void* n) {
     return m == n ? NULL : m;
 }
 
-static void NodeSetSP_(void const* context, void* n, void* m) {
-    ZETA_Unused(context);
+static void NodeSetSP_(void* n, void* m) {
     ZETA_DebugAssert(n != NULL);
 
     ZETA_RelColorPtr_SetPtr(&((Zeta_LinSpaceAllocator_Node*)n)->spc,
@@ -126,25 +111,21 @@ static void NodeSetSP_(void const* context, void* n, void* m) {
                             m == NULL ? n : m);
 }
 
-static int NodeGetSPC_(void const* context, void* n) {
-    ZETA_Unused(context);
-
+static int NodeGetSPC_(void* n) {
     return n == NULL ? 0
                      : ZETA_RelColorPtr_GetColor(
                            &((Zeta_LinSpaceAllocator_Node*)n)->spc,
                            alignof(Zeta_LinSpaceAllocator_Node), n);
 }
 
-static void NodeSetSPC_(void const* context, void* n, int color) {
-    ZETA_Unused(context);
+static void NodeSetSPC_(void* n, int color) {
     ZETA_DebugAssert(n != NULL);
 
     ZETA_RelColorPtr_SetColor(&((Zeta_LinSpaceAllocator_Node*)n)->spc,
                               alignof(Zeta_LinSpaceAllocator_Node), n, color);
 }
 
-static void* NodeGetSL_(void const* context, void* n) {
-    ZETA_Unused(context);
+static void* NodeGetSL_(void* n) {
     ZETA_DebugAssert(n != NULL);
 
     void* m = ZETA_RelPtr_GetPtr(&((Zeta_LinSpaceAllocator_Node*)n)->sl, n);
@@ -152,16 +133,14 @@ static void* NodeGetSL_(void const* context, void* n) {
     return m == n ? NULL : m;
 }
 
-static void NodeSetSL_(void const* context, void* n, void* m) {
-    ZETA_Unused(context);
+static void NodeSetSL_(void* n, void* m) {
     ZETA_DebugAssert(n != NULL);
 
     ZETA_RelPtr_SetPtr(&((Zeta_LinSpaceAllocator_Node*)n)->sl, n,
                        m == NULL ? n : m);
 }
 
-static void* NodeGetSR_(void const* context, void* n) {
-    ZETA_Unused(context);
+static void* NodeGetSR_(void* n) {
     ZETA_DebugAssert(n != NULL);
 
     void* m = ZETA_RelPtr_GetPtr(&((Zeta_LinSpaceAllocator_Node*)n)->sr, n);
@@ -169,22 +148,18 @@ static void* NodeGetSR_(void const* context, void* n) {
     return m == n ? NULL : m;
 }
 
-static void NodeSetSR_(void const* context, void* n, void* m) {
-    ZETA_Unused(context);
+static void NodeSetSR_(void* n, void* m) {
     ZETA_DebugAssert(n != NULL);
 
     ZETA_RelPtr_SetPtr(&((Zeta_LinSpaceAllocator_Node*)n)->sr, n,
                        m == NULL ? n : m);
 }
 
-static size_t NodeGetAccSize_(void const* context, void* n) {
-    ZETA_Unused(context);
-
+static size_t NodeGetAccSize_(void* n) {
     return n == NULL ? 0 : ((Zeta_LinSpaceAllocator_Node*)n)->acc_size;
 }
 
-static void NodeSetAccSize_(void const* context, void* n, size_t acc_size) {
-    ZETA_Unused(context);
+static void NodeSetAccSize_(void* n, size_t acc_size) {
     ZETA_DebugAssert(n != NULL);
 
     ZETA_DebugAssert(acc_size <= ZETA_UINT_MAX);
@@ -271,9 +246,8 @@ static Zeta_LinSpaceAllocator_Node* FindNiceNode_(Zeta_LinSpaceAllocator* lsa,
 
     Zeta_LinSpaceAllocator_Node* twice_best_fit_n = FindNode_(lsa, size * 2);
 
-    return twice_best_fit_n == NULL
-               ? Zeta_GetMostLink(NULL, NodeGetSR_, lsa->st_root)
-               : twice_best_fit_n;
+    return twice_best_fit_n == NULL ? Zeta_GetMostLink(lsa->st_root, NodeGetSR_)
+                                    : twice_best_fit_n;
 }
 
 static Zeta_LinSpaceAllocator_Node* AllocateNode_(Zeta_LinSpaceAllocator* lsa) {

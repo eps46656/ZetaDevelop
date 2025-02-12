@@ -7,15 +7,40 @@
 #include "memory.h"
 #include "pool_allocator.h"
 #include "ptr_utils.h"
-#include "rbtree.h"
 #include "seg_utils.h"
 #include "utils.h"
 
+#if STAGING
+
+#define Cntr StagingVector
+
+#define TreeNode OrdCnt3RBTreeNode
+
+#else
+
+#define Cntr SegVector
+
+#define TreeNode OrdCntRBTreeNode
+
+#endif
+
+#define Zeta_Cntr ZETA_Concat(Zeta_, Cntr)
+#define Zeta_Cntr_(x) ZETA_Concat(ZETA_Concat(Zeta_Cntr, _), x)
+
+#define Zeta_TreeNode ZETA_Concat(Zeta_, TreeNode)
+#define Zeta_TreeNode_(x) ZETA_Concat(ZETA_Concat(Zeta_TreeNode, _), x)
+
+#define Zeta_BinTree_TreeNode_(x) \
+    ZETA_Concat(ZETA_Concat(ZETA_Concat(Zeta_BinTree_, TreeNode), _), x)
+
+#define Zeta_RBTree_TreeNode_(x) \
+    ZETA_Concat(ZETA_Concat(ZETA_Concat(Zeta_RBTree_, TreeNode), _), x)
+
 #if ZETA_EnableDebug
 
-#define CheckCntr_(cntr) Cntr_(Check)((cntr))
+#define CheckCntr_(cntr) Zeta_Cntr_(Check)((cntr))
 
-#define CheckCursor_(cntr, cursor) Cntr_(Cursor_Check)((cntr), (cursor))
+#define CheckCursor_(cntr, cursor) Zeta_Cntr_(Cursor_Check)((cntr), (cursor))
 
 #else
 
@@ -30,45 +55,30 @@
 
 #endif
 
-#define Cntr_(x) ZETA_Concat(Cntr, ZETA_Concat(_, x))
-
 #if STAGING
-
-#define Cntr Zeta_StagingVector
 
 #define GetWidth_(cntr) ZETA_SeqCntr_GetWidth((cntr)->origin)
 
 #define ref_color (ZETA_StagingVector_ref_color)
 #define dat_color (ZETA_StagingVector_dat_color)
 
-#define TreeNode Zeta_OrdCnt3RBTreeNode
-
-#define TreeNodeOpr (&zeta_ord_cnt_3rb_tree_node_opr)
-
 #define GetNColor__(tmp, n)                                     \
     ({                                                          \
-        int tmp = ZETA_Concat(TreeNode, _GetLColor)(NULL, (n)); \
+        int tmp = Zeta_TreeNode_(GetLColor)((n));               \
         ZETA_DebugAssert(tmp == ref_color || tmp == dat_color); \
         tmp;                                                    \
     })
 
-#define DirectlySetNColor_(n, c) \
-    ZETA_Concat(TreeNode, _SetLColor)(NULL, (n), (c))
+#define DirectlySetNColor_(n, c) Zeta_TreeNode_(SetLColor)((n), (c))
 
 #define StagingThreeWay(cond, x, y) ((cond) ? (x) : (y))
 
 #else
 
-#define Cntr Zeta_SegVector
-
 #define GetWidth_(cntr) (cntr)->width
 
 #define ref_color 0
 #define dat_color 1
-
-#define TreeNode Zeta_OrdCntRBTreeNode
-
-#define TreeNodeOpr &zeta_ord_cnt_rb_tree_node_opr
 
 #define GetNColor__(tmp, n) dat_color
 
@@ -80,11 +90,11 @@
 
 #define GetNColor_(n) GetNColor__(ZETA_TmpName, n)
 
-#define NToSeg__(tmp_n, n_)                        \
-    ({                                             \
-        ZETA_AutoVar(tmp_n, n_);                   \
-        ZETA_DebugAssert(0 <= GetNColor_(tmp_n));  \
-        ZETA_MemberToStruct(Cntr_(Seg), n, tmp_n); \
+#define NToSeg__(tmp_n, n_)                             \
+    ({                                                  \
+        ZETA_AutoVar(tmp_n, n_);                        \
+        ZETA_DebugAssert(0 <= GetNColor_(tmp_n));       \
+        ZETA_MemberToStruct(Zeta_Cntr_(Seg), n, tmp_n); \
     })
 
 #define NToSeg_(n) NToSeg__(ZETA_TmpName, (n))
@@ -109,24 +119,22 @@
 
 #define GetAvgCnt_(x) GetAvgCnt__(ZETA_TmpName, ZETA_TmpName, (x))
 
-static void InitTree_(Cntr* cntr) {
-    Zeta_BinTreeNodeOperator const* btn_opr = TreeNodeOpr;
+static void InitTree_(Zeta_Cntr* cntr) {
+    Zeta_TreeNode_(Init)(cntr->lb);
+    Zeta_TreeNode_(Init)(cntr->rb);
 
-    ZETA_Concat(TreeNode, _Init)(NULL, cntr->lb);
-    ZETA_Concat(TreeNode, _Init)(NULL, cntr->rb);
-
-    ZETA_Concat(TreeNode, _SetAccSize)(NULL, cntr->lb, 1);
-    ZETA_Concat(TreeNode, _SetAccSize)(NULL, cntr->rb, 1);
+    Zeta_TreeNode_(SetAccSize)(cntr->lb, 1);
+    Zeta_TreeNode_(SetAccSize)(cntr->rb, 1);
 
     void* root = NULL;
 
-    root = Zeta_RBTree_InsertR(btn_opr, root, cntr->lb);
-    root = Zeta_RBTree_InsertR(btn_opr, root, cntr->rb);
+    root = Zeta_RBTree_TreeNode_(InsertR)(root, cntr->lb);
+    root = Zeta_RBTree_TreeNode_(InsertR)(root, cntr->rb);
 
     cntr->root = root;
 }
 
-static void* AllocateData_(Cntr* cntr, Zeta_PoolAllocator* datas) {
+static void* AllocateData_(Zeta_Cntr* cntr, Zeta_PoolAllocator* datas) {
     void* data = NULL;
 
     if (datas != NULL) { data = Zeta_PoolAllocator_Allocate(datas, 1); }
@@ -139,28 +147,29 @@ static void* AllocateData_(Cntr* cntr, Zeta_PoolAllocator* datas) {
     return data;
 }
 
-static void* AllocateSeg_(Cntr* cntr, Zeta_PoolAllocator* segs) {
-    Cntr_(Seg)* seg = NULL;
+static void* AllocateSeg_(Zeta_Cntr* cntr, Zeta_PoolAllocator* segs) {
+    Zeta_Cntr_(Seg)* seg = NULL;
 
     if (segs != NULL) { seg = Zeta_PoolAllocator_Allocate(segs, 1); }
 
     if (seg == NULL) {
-        seg = ZETA_Allocator_SafeAllocate(
-            cntr->seg_allocator, alignof(Cntr_(Seg)), sizeof(Cntr_(Seg)));
+        seg = ZETA_Allocator_SafeAllocate(cntr->seg_allocator,
+                                          alignof(Zeta_Cntr_(Seg)),
+                                          sizeof(Zeta_Cntr_(Seg)));
     }
 
-    ZETA_Concat(TreeNode, _Init)(NULL, &seg->n);
+    Zeta_TreeNode_(Init)(&seg->n);
 
     return seg;
 }
 
 #if STAGING
 
-static Cntr_(Seg) * AllocateRefSeg_(Cntr* cntr) {
-    Cntr_(Seg)* seg = AllocateSeg_(cntr, NULL);
+static Zeta_Cntr_(Seg) * AllocateRefSeg_(Zeta_Cntr* cntr) {
+    Zeta_Cntr_(Seg)* seg = AllocateSeg_(cntr, NULL);
 
-    ZETA_Concat(TreeNode, _Init)(NULL, &seg->n);
-    ZETA_Concat(TreeNode, _SetAccSize)(NULL, &seg->n, 0);
+    Zeta_TreeNode_(Init)(&seg->n);
+    Zeta_TreeNode_(SetAccSize)(&seg->n, 0);
 
     DirectlySetNColor_(&seg->n, ref_color);
 
@@ -172,11 +181,11 @@ static Cntr_(Seg) * AllocateRefSeg_(Cntr* cntr) {
 
 #endif
 
-static Cntr_(Seg) * AllocateDatSeg_(Cntr* cntr) {
-    Cntr_(Seg)* seg = AllocateSeg_(cntr, NULL);
+static Zeta_Cntr_(Seg) * AllocateDatSeg_(Zeta_Cntr* cntr) {
+    Zeta_Cntr_(Seg)* seg = AllocateSeg_(cntr, NULL);
 
-    ZETA_Concat(TreeNode, _Init)(NULL, &seg->n);
-    ZETA_Concat(TreeNode, _SetAccSize)(NULL, &seg->n, 0);
+    Zeta_TreeNode_(Init)(&seg->n);
+    Zeta_TreeNode_(SetAccSize)(&seg->n, 0);
 
     DirectlySetNColor_(&seg->n, dat_color);
 
@@ -190,7 +199,7 @@ static Cntr_(Seg) * AllocateDatSeg_(Cntr* cntr) {
 
 #if STAGING
 
-static void TransRefSegToDatSeg_(Cntr* cntr, Cntr_(Seg) * seg) {
+static void TransRefSegToDatSeg_(Zeta_Cntr* cntr, Zeta_Cntr_(Seg) * seg) {
     Zeta_SeqCntr* origin = cntr->origin;
 
     void* data = AllocateData_(cntr, NULL);
@@ -211,13 +220,11 @@ static void TransRefSegToDatSeg_(Cntr* cntr, Cntr_(Seg) * seg) {
 
 #endif
 
-static void EraseSeg_(Cntr* cntr, Cntr_(Seg) * seg) {
-    Zeta_BinTreeNodeOperator const* btn_opr = TreeNodeOpr;
-
+static void EraseSeg_(Zeta_Cntr* cntr, Zeta_Cntr_(Seg) * seg) {
     int color = GetNColor_(&seg->n);
     ZETA_DebugAssert(color == ref_color || color == dat_color);
 
-    cntr->root = Zeta_RBTree_Extract(btn_opr, &seg->n);
+    cntr->root = Zeta_RBTree_TreeNode_(Extract)(&seg->n);
 
     if (color == dat_color) {
         ZETA_Allocator_Deallocate(cntr->data_allocator, seg->dat.data);
@@ -226,12 +233,12 @@ static void EraseSeg_(Cntr* cntr, Cntr_(Seg) * seg) {
     ZETA_Allocator_Deallocate(cntr->seg_allocator, seg);
 }
 
-static void EraseAllSeg_(Cntr* cntr, void* n) {
-    void* nl = ZETA_Concat(TreeNode, _GetL)(NULL, n);
-    void* nr = ZETA_Concat(TreeNode, _GetR)(NULL, n);
+static void EraseAllSeg_(Zeta_Cntr* cntr, void* n) {
+    void* nl = Zeta_TreeNode_(GetL)(n);
+    void* nr = Zeta_TreeNode_(GetR)(n);
 
     if (cntr->lb != n && cntr->rb != n) {
-        Cntr_(Seg)* seg = NToSeg_(n);
+        Zeta_Cntr_(Seg)* seg = NToSeg_(n);
 
         if (GetNColor_(n) == dat_color) {
             ZETA_Allocator_Deallocate(cntr->data_allocator, seg->dat.data);
@@ -246,22 +253,20 @@ static void EraseAllSeg_(Cntr* cntr, void* n) {
 
 #if STAGING
 
-static void RefOrigin_(Cntr* cntr) {
+static void RefOrigin_(Zeta_Cntr* cntr) {
     Zeta_SeqCntr* origin = cntr->origin;
-
-    Zeta_BinTreeNodeOperator const* btn_opr = TreeNodeOpr;
 
     size_t origin_size = ZETA_SeqCntr_GetSize(origin);
 
     if (origin_size == 0) { return; }
 
-    Cntr_(Seg)* seg = AllocateRefSeg_(cntr);
-    cntr->root = Zeta_RBTree_Insert(btn_opr, cntr->lb, cntr->rb, &seg->n);
+    Zeta_Cntr_(Seg)* seg = AllocateRefSeg_(cntr);
+    cntr->root = Zeta_RBTree_TreeNode_(Insert)(cntr->lb, cntr->rb, &seg->n);
 
     seg->ref.beg = 0;
     seg->ref.size = origin_size;
 
-    Zeta_BinTree_SetSize(btn_opr, &seg->n, origin_size);
+    Zeta_BinTree_TreeNode_(SetSize)(&seg->n, origin_size);
 }
 
 #else
@@ -272,7 +277,7 @@ static void RefOrigin_(Cntr* cntr) {
 
 #if STAGING
 
-static void PushRefL_(Cntr* cntr, Zeta_CircularArray* ca, size_t beg,
+static void PushRefL_(Zeta_Cntr* cntr, Zeta_CircularArray* ca, size_t beg,
                       size_t size) {
     Zeta_SeqCntr* origin = cntr->origin;
 
@@ -288,7 +293,7 @@ static void PushRefL_(Cntr* cntr, Zeta_CircularArray* ca, size_t beg,
                                          size);
 }
 
-static void PushRefR_(Cntr* cntr, Zeta_CircularArray* ca, size_t beg,
+static void PushRefR_(Zeta_Cntr* cntr, Zeta_CircularArray* ca, size_t beg,
                       size_t size) {
     Zeta_SeqCntr* origin = cntr->origin;
 
@@ -312,7 +317,8 @@ static void PushRefR_(Cntr* cntr, Zeta_CircularArray* ca, size_t beg,
 
 #endif
 
-static void Merge2_(Cntr* cntr, Cntr_(Seg) * a_seg, Cntr_(Seg) * b_seg) {
+static void Merge2_(Zeta_Cntr* cntr, Zeta_Cntr_(Seg) * a_seg,
+                    Zeta_Cntr_(Seg) * b_seg) {
 #if STAGING
     Zeta_SeqCntr* origin = cntr->origin;
 
@@ -333,7 +339,7 @@ static void Merge2_(Cntr* cntr, Cntr_(Seg) * a_seg, Cntr_(Seg) * b_seg) {
     size_t stride = cntr->stride;
     size_t seg_capacity = cntr->seg_capacity;
 
-    unsigned long long random_seed = Zeta_GerRandom();
+    unsigned long long random_seed = Zeta_GetRandom();
 
 #if STAGING
     void* origin_cursor = ZETA_SeqCntr_AllocaCursor(origin);
@@ -351,7 +357,7 @@ static void Merge2_(Cntr* cntr, Cntr_(Seg) * a_seg, Cntr_(Seg) * b_seg) {
         a_seg->ref.size = 0;
         b_seg->ref.size = 0;
 
-        Cntr_(Seg) * dst_seg;
+        Zeta_Cntr_(Seg) * dst_seg;
 
         switch (Zeta_SimpleRandomRotate(&random_seed) % 2) {
             case 0: dst_seg = a_seg; break;
@@ -432,7 +438,7 @@ static void Merge2_(Cntr* cntr, Cntr_(Seg) * a_seg, Cntr_(Seg) * b_seg) {
 
 #define SetSegState_(seg_tmp, ca_tmp, vacant_tmp, seg, ca, vacant)        \
     {                                                                     \
-        Cntr_(Seg)* seg_tmp = (seg);                                      \
+        Zeta_Cntr_(Seg)* seg_tmp = (seg);                                 \
         Zeta_CircularArray* ca_tmp = (ca);                                \
         size_t* vacant_tmp = (vacant);                                    \
                                                                           \
@@ -452,7 +458,7 @@ static void Merge2_(Cntr* cntr, Cntr_(Seg) * a_seg, Cntr_(Seg) * b_seg) {
 
 #define SetSegState_(seg_tmp, ca_tmp, vacant_tmp, seg, ca, vacant) \
     {                                                              \
-        Cntr_(Seg)* seg_tmp = (seg);                               \
+        Zeta_Cntr_(Seg)* seg_tmp = (seg);                          \
         Zeta_CircularArray* ca_tmp = (ca);                         \
         size_t* vacant_tmp = (vacant);                             \
                                                                    \
@@ -471,8 +477,9 @@ static void Merge2_(Cntr* cntr, Cntr_(Seg) * a_seg, Cntr_(Seg) * b_seg) {
 
 #if STAGING
 
-static void RefShoveL_(Cntr* cntr, Zeta_CircularArray* l_ca, Cntr_(Seg) * r_seg,
-                       size_t rl_size, size_t ins_cnt, size_t shove_cnt) {
+static void RefShoveL_(Zeta_Cntr* cntr, Zeta_CircularArray* l_ca,
+                       Zeta_Cntr_(Seg) * r_seg, size_t rl_size, size_t ins_cnt,
+                       size_t shove_cnt) {
 #if STAGING
     Zeta_SeqCntr* origin = cntr->origin;
 #endif
@@ -549,8 +556,9 @@ static void RefShoveL_(Cntr* cntr, Zeta_CircularArray* l_ca, Cntr_(Seg) * r_seg,
     }
 }
 
-static void RefShoveR_(Cntr* cntr, Cntr_(Seg) * l_seg, Zeta_CircularArray* r_ca,
-                       size_t lr_size, size_t ins_cnt, size_t shove_cnt) {
+static void RefShoveR_(Zeta_Cntr* cntr, Zeta_Cntr_(Seg) * l_seg,
+                       Zeta_CircularArray* r_ca, size_t lr_size, size_t ins_cnt,
+                       size_t shove_cnt) {
 #if STAGING
     Zeta_SeqCntr* origin = cntr->origin;
 #endif
@@ -639,22 +647,22 @@ static void RefShoveR_(Cntr* cntr, Cntr_(Seg) * l_seg, Zeta_CircularArray* r_ca,
 
 #endif
 
-void Cntr_(Init)(void* cntr_) {
-    Cntr* cntr = cntr_;
+void Zeta_Cntr_(Init)(void* cntr_) {
+    Zeta_Cntr* cntr = cntr_;
     CheckCntr_(cntr);
 
-    cntr->lb = ZETA_Allocator_SafeAllocate(cntr->seg_allocator,
-                                           alignof(TreeNode), sizeof(TreeNode));
+    cntr->lb = ZETA_Allocator_SafeAllocate(
+        cntr->seg_allocator, alignof(Zeta_TreeNode), sizeof(Zeta_TreeNode));
 
-    cntr->rb = ZETA_Allocator_SafeAllocate(cntr->seg_allocator,
-                                           alignof(TreeNode), sizeof(TreeNode));
+    cntr->rb = ZETA_Allocator_SafeAllocate(
+        cntr->seg_allocator, alignof(Zeta_TreeNode), sizeof(Zeta_TreeNode));
 
     InitTree_(cntr);
     RefOrigin_(cntr);
 }
 
-void Cntr_(Deinit)(void* cntr_) {
-    Cntr* cntr = cntr_;
+void Zeta_Cntr_(Deinit)(void* cntr_) {
+    Zeta_Cntr* cntr = cntr_;
     CheckCntr_(cntr);
 
     EraseAllSeg_(cntr, cntr->root);
@@ -663,32 +671,32 @@ void Cntr_(Deinit)(void* cntr_) {
     ZETA_Allocator_Deallocate(cntr->seg_allocator, cntr->rb);
 }
 
-size_t Cntr_(GetWidth)(void const* cntr_) {
-    Cntr const* cntr = cntr_;
+size_t Zeta_Cntr_(GetWidth)(void const* cntr_) {
+    Zeta_Cntr const* cntr = cntr_;
     CheckCntr_(cntr);
 
     return GetWidth_(cntr);
 }
 
-size_t Cntr_(GetSize)(void const* cntr_) {
-    Cntr const* cntr = cntr_;
+size_t Zeta_Cntr_(GetSize)(void const* cntr_) {
+    Zeta_Cntr const* cntr = cntr_;
     CheckCntr_(cntr);
 
-    return ZETA_Concat(TreeNode, _GetAccSize)(NULL, cntr->root) - 2;
+    return Zeta_TreeNode_(GetAccSize)(cntr->root) - 2;
 }
 
-size_t Cntr_(GetCapacity)(void const* cntr_) {
-    Cntr const* cntr = cntr_;
+size_t Zeta_Cntr_(GetCapacity)(void const* cntr_) {
+    Zeta_Cntr const* cntr = cntr_;
     CheckCntr_(cntr);
 
     return ZETA_max_capacity;
 }
 
-void Cntr_(GetLBCursor)(void const* cntr_, void* dst_cursor_) {
-    Cntr const* cntr = cntr_;
+void Zeta_Cntr_(GetLBCursor)(void const* cntr_, void* dst_cursor_) {
+    Zeta_Cntr const* cntr = cntr_;
     CheckCntr_(cntr);
 
-    Cntr_(Cursor)* dst_cursor = dst_cursor_;
+    Zeta_Cntr_(Cursor)* dst_cursor = dst_cursor_;
 
     if (dst_cursor == NULL) { return; }
 
@@ -699,38 +707,36 @@ void Cntr_(GetLBCursor)(void const* cntr_, void* dst_cursor_) {
     dst_cursor->ref = NULL;
 }
 
-void Cntr_(GetRBCursor)(void const* cntr_, void* dst_cursor_) {
-    Cntr const* cntr = cntr_;
+void Zeta_Cntr_(GetRBCursor)(void const* cntr_, void* dst_cursor_) {
+    Zeta_Cntr const* cntr = cntr_;
     CheckCntr_(cntr);
 
-    Cntr_(Cursor)* dst_cursor = dst_cursor_;
+    Zeta_Cntr_(Cursor)* dst_cursor = dst_cursor_;
 
     if (dst_cursor == NULL) { return; }
 
     dst_cursor->cntr = cntr;
-    dst_cursor->idx = Cntr_(GetSize)(cntr);
+    dst_cursor->idx = Zeta_Cntr_(GetSize)(cntr);
     dst_cursor->n = cntr->rb;
     dst_cursor->seg_idx = 0;
     dst_cursor->ref = NULL;
 }
 
-void* Cntr_(PeekL)(void* cntr_, void* dst_cursor_, void* dst_elem) {
-    Cntr* cntr = cntr_;
+void* Zeta_Cntr_(PeekL)(void* cntr_, void* dst_cursor_, void* dst_elem) {
+    Zeta_Cntr* cntr = cntr_;
     CheckCntr_(cntr);
 
 #if STAGING
     Zeta_SeqCntr* origin = cntr->origin;
 #endif
 
-    Cntr_(Cursor)* dst_cursor = dst_cursor_;
-
-    Zeta_BinTreeNodeOperator const* btn_opr = TreeNodeOpr;
+    Zeta_Cntr_(Cursor)* dst_cursor = dst_cursor_;
 
     size_t width = GetWidth_(cntr);
     size_t stride = cntr->stride;
     size_t seg_capacity = cntr->seg_capacity;
 
-    void* n = Zeta_BinTree_StepR(btn_opr, cntr->lb);
+    void* n = Zeta_BinTree_TreeNode_(StepR)(cntr->lb);
 
     if (cntr->rb == n) {
         if (dst_cursor != NULL) {
@@ -744,7 +750,7 @@ void* Cntr_(PeekL)(void* cntr_, void* dst_cursor_, void* dst_elem) {
         return NULL;
     }
 
-    Cntr_(Seg)* seg = NToSeg_(n);
+    Zeta_Cntr_(Seg)* seg = NToSeg_(n);
 
     void* ref = NULL;
 
@@ -776,24 +782,22 @@ void* Cntr_(PeekL)(void* cntr_, void* dst_cursor_, void* dst_elem) {
     return ref;
 }
 
-void* Cntr_(PeekR)(void* cntr_, void* dst_cursor_, void* dst_elem) {
-    Cntr* cntr = cntr_;
+void* Zeta_Cntr_(PeekR)(void* cntr_, void* dst_cursor_, void* dst_elem) {
+    Zeta_Cntr* cntr = cntr_;
     CheckCntr_(cntr);
 
 #if STAGING
     Zeta_SeqCntr* origin = cntr->origin;
 #endif
 
-    Cntr_(Cursor)* dst_cursor = dst_cursor_;
-
-    Zeta_BinTreeNodeOperator const* btn_opr = TreeNodeOpr;
+    Zeta_Cntr_(Cursor)* dst_cursor = dst_cursor_;
 
     size_t width = GetWidth_(cntr);
     size_t stride = cntr->stride;
     size_t seg_capacity = cntr->seg_capacity;
-    size_t size = Cntr_(GetSize)(cntr);
+    size_t size = Zeta_Cntr_(GetSize)(cntr);
 
-    void* n = Zeta_BinTree_StepL(btn_opr, cntr->rb);
+    void* n = Zeta_BinTree_TreeNode_(StepL)(cntr->rb);
 
     if (cntr->lb == n) {
         if (dst_cursor != NULL) {
@@ -807,7 +811,7 @@ void* Cntr_(PeekR)(void* cntr_, void* dst_cursor_, void* dst_elem) {
         return NULL;
     }
 
-    Cntr_(Seg)* seg = NToSeg_(n);
+    Zeta_Cntr_(Seg)* seg = NToSeg_(n);
 
     void* ref = NULL;
 
@@ -846,31 +850,29 @@ void* Cntr_(PeekR)(void* cntr_, void* dst_cursor_, void* dst_elem) {
     return ref;
 }
 
-void* Cntr_(Access)(void* cntr_, size_t idx, void* dst_cursor_,
-                    void* dst_elem) {
-    Cntr* cntr = cntr_;
+void* Zeta_Cntr_(Access)(void* cntr_, size_t idx, void* dst_cursor_,
+                         void* dst_elem) {
+    Zeta_Cntr* cntr = cntr_;
     CheckCntr_(cntr);
 
 #if STAGING
     Zeta_SeqCntr* origin = cntr->origin;
 #endif
 
-    Cntr_(Cursor)* dst_cursor = dst_cursor_;
-
-    Zeta_BinTreeNodeOperator const* btn_opr = TreeNodeOpr;
+    Zeta_Cntr_(Cursor)* dst_cursor = dst_cursor_;
 
     size_t width = GetWidth_(cntr);
     size_t stride = cntr->stride;
     size_t seg_capacity = cntr->seg_capacity;
-    size_t size = Cntr_(GetSize)(cntr);
+    size_t size = Zeta_Cntr_(GetSize)(cntr);
 
     ZETA_DebugAssert(idx + 1 < size + 2);
 
     void* n;
-    Cntr_(Seg) * seg;
+    Zeta_Cntr_(Seg) * seg;
     size_t seg_idx;
 
-    Zeta_BinTree_AccessL(&n, &seg_idx, btn_opr, cntr->root, idx + 1);
+    Zeta_BinTree_TreeNode_(AccessL)(&n, &seg_idx, cntr->root, idx + 1);
 
     void* ref = NULL;
 
@@ -906,25 +908,25 @@ void* Cntr_(Access)(void* cntr_, size_t idx, void* dst_cursor_,
     return ref;
 }
 
-void* Cntr_(Refer)(void* cntr_, void const* pos_cursor_) {
-    Cntr* cntr = cntr_;
-    Cntr_(Cursor) const* pos_cursor = pos_cursor_;
-    Cntr_(Cursor_Check)(cntr, pos_cursor);
+void* Zeta_Cntr_(Refer)(void* cntr_, void const* pos_cursor_) {
+    Zeta_Cntr* cntr = cntr_;
+    Zeta_Cntr_(Cursor) const* pos_cursor = pos_cursor_;
+    Zeta_Cntr_(Cursor_Check)(cntr, pos_cursor);
 
     return pos_cursor->ref;
 }
 
-void Cntr_(Read)(void const* cntr_, void const* pos_cursor_, size_t cnt,
-                 void* dst, size_t dst_stride, void* dst_cursor_) {
-    Cntr const* cntr = cntr_;
-    Cntr_(Cursor) const* pos_cursor = pos_cursor_;
-    Cntr_(Cursor_Check)(cntr, pos_cursor);
+void Zeta_Cntr_(Read)(void const* cntr_, void const* pos_cursor_, size_t cnt,
+                      void* dst, size_t dst_stride, void* dst_cursor_) {
+    Zeta_Cntr const* cntr = cntr_;
+    Zeta_Cntr_(Cursor) const* pos_cursor = pos_cursor_;
+    Zeta_Cntr_(Cursor_Check)(cntr, pos_cursor);
 
 #if STAGING
     Zeta_SeqCntr* origin = cntr->origin;
 #endif
 
-    Cntr_(Cursor)* dst_cursor = dst_cursor_;
+    Zeta_Cntr_(Cursor)* dst_cursor = dst_cursor_;
 
     if (cnt == 0) {
         if (dst_cursor != NULL) {
@@ -938,12 +940,10 @@ void Cntr_(Read)(void const* cntr_, void const* pos_cursor_, size_t cnt,
         return;
     }
 
-    Zeta_BinTreeNodeOperator const* btn_opr = TreeNodeOpr;
-
     size_t width = GetWidth_(cntr);
     size_t stride = cntr->stride;
     size_t seg_capacity = cntr->seg_capacity;
-    size_t size = Cntr_(GetSize)(cntr);
+    size_t size = Zeta_Cntr_(GetSize)(cntr);
 
     size_t idx = pos_cursor->idx;
 
@@ -955,7 +955,7 @@ void Cntr_(Read)(void const* cntr_, void const* pos_cursor_, size_t cnt,
     ZETA_DebugAssert(dst != NULL);
 
     void* n = pos_cursor->n;
-    Cntr_(Seg) * seg;
+    Zeta_Cntr_(Seg) * seg;
 
     size_t seg_idx = pos_cursor->seg_idx;
 
@@ -1005,7 +1005,7 @@ void Cntr_(Read)(void const* cntr_, void const* pos_cursor_, size_t cnt,
         cnt -= cur_cnt;
 
         if (seg_idx == seg_size) {
-            n = Zeta_BinTree_StepR(btn_opr, n);
+            n = Zeta_BinTree_TreeNode_(StepR)(n);
             seg_idx = 0;
         }
     }
@@ -1035,17 +1035,17 @@ void Cntr_(Read)(void const* cntr_, void const* pos_cursor_, size_t cnt,
     dst_cursor->ref = Zeta_CircularArray_Access(&ca, seg_idx, NULL, NULL);
 }
 
-void Cntr_(Write)(void* cntr_, void* pos_cursor_, size_t cnt, void const* src,
-                  size_t src_stride, void* dst_cursor_) {
-    Cntr* cntr = cntr_;
-    Cntr_(Cursor)* pos_cursor = pos_cursor_;
-    Cntr_(Cursor_Check)(cntr, pos_cursor);
+void Zeta_Cntr_(Write)(void* cntr_, void* pos_cursor_, size_t cnt,
+                       void const* src, size_t src_stride, void* dst_cursor_) {
+    Zeta_Cntr* cntr = cntr_;
+    Zeta_Cntr_(Cursor)* pos_cursor = pos_cursor_;
+    Zeta_Cntr_(Cursor_Check)(cntr, pos_cursor);
 
 #if STAGING
     Zeta_SeqCntr* origin = cntr->origin;
 #endif
 
-    Cntr_(Cursor)* dst_cursor = dst_cursor_;
+    Zeta_Cntr_(Cursor)* dst_cursor = dst_cursor_;
 
     if (cnt == 0) {
         if (dst_cursor != NULL) {
@@ -1059,12 +1059,10 @@ void Cntr_(Write)(void* cntr_, void* pos_cursor_, size_t cnt, void const* src,
         return;
     }
 
-    Zeta_BinTreeNodeOperator const* btn_opr = TreeNodeOpr;
-
     size_t width = GetWidth_(cntr);
     size_t stride = cntr->stride;
     size_t seg_capacity = cntr->seg_capacity;
-    size_t size = Cntr_(GetSize)(cntr);
+    size_t size = Zeta_Cntr_(GetSize)(cntr);
 
     size_t idx = pos_cursor->idx;
 
@@ -1080,10 +1078,10 @@ void Cntr_(Write)(void* cntr_, void* pos_cursor_, size_t cnt, void const* src,
     void* n = pos_cursor->n;
 
 #if STAGING
-    void* l_n = Zeta_BinTree_StepL(btn_opr, n);
+    void* l_n = Zeta_BinTree_TreeNode_(StepL)(n);
 #endif
 
-    Cntr_(Seg) * seg;
+    Zeta_Cntr_(Seg) * seg;
 
     Zeta_CircularArray ca;
     ca.width = width;
@@ -1111,8 +1109,8 @@ void Cntr_(Write)(void* cntr_, void* pos_cursor_, size_t cnt, void const* src,
         seg_idx -= l_seg_size;
 
         if (0 < l_seg_size) {
-            Cntr_(Seg)* new_seg = AllocateRefSeg_(cntr);
-            cntr->root = Zeta_RBTree_Insert(btn_opr, l_n, n, &new_seg->n);
+            Zeta_Cntr_(Seg)* new_seg = AllocateRefSeg_(cntr);
+            cntr->root = Zeta_RBTree_TreeNode_(Insert)(l_n, n, &new_seg->n);
 
             new_seg->ref.beg = seg->ref.beg;
             new_seg->ref.size = l_seg_size;
@@ -1120,7 +1118,7 @@ void Cntr_(Write)(void* cntr_, void* pos_cursor_, size_t cnt, void const* src,
             seg->ref.beg += l_seg_size;
             seg->ref.size -= l_seg_size;
 
-            Zeta_BinTree_SetSize(btn_opr, &new_seg->n, new_seg->ref.size);
+            Zeta_BinTree_TreeNode_(SetSize)(&new_seg->n, new_seg->ref.size);
 
             l_n = &new_seg->n;
         }
@@ -1163,16 +1161,16 @@ void Cntr_(Write)(void* cntr_, void* pos_cursor_, size_t cnt, void const* src,
             src += src_stride * cnt_b;
 
             if (seg_idx == avg_seg_size) {
-                Zeta_BinTree_SetSize(btn_opr, n, avg_seg_size);
+                Zeta_BinTree_TreeNode_(SetSize)(n, avg_seg_size);
 
                 l_n = n;
-                n = Zeta_BinTree_StepR(btn_opr, n);
+                n = Zeta_BinTree_TreeNode_(StepR)(n);
 
                 seg_idx = 0;
             }
         } else {
-            Cntr_(Seg)* new_seg = AllocateDatSeg_(cntr);
-            cntr->root = Zeta_RBTree_Insert(btn_opr, l_n, n, &new_seg->n);
+            Zeta_Cntr_(Seg)* new_seg = AllocateDatSeg_(cntr);
+            cntr->root = Zeta_RBTree_TreeNode_(Insert)(l_n, n, &new_seg->n);
 
             new_seg->dat.size = avg_seg_size;
 
@@ -1202,11 +1200,11 @@ void Cntr_(Write)(void* cntr_, void* pos_cursor_, size_t cnt, void const* src,
             src += src_stride * cnt_b;
 
             if (seg_idx < new_seg->dat.size) {
-                Zeta_BinTree_SetSize(btn_opr, n, seg->ref.size);
+                Zeta_BinTree_TreeNode_(SetSize)(n, seg->ref.size);
 
                 n = &new_seg->n;
             } else {
-                Zeta_BinTree_SetSize(btn_opr, &new_seg->n, new_seg->dat.size);
+                Zeta_BinTree_TreeNode_(SetSize)(&new_seg->n, new_seg->dat.size);
 
                 l_n = &new_seg->n;
                 seg_idx = 0;
@@ -1242,7 +1240,7 @@ WRITE_INTO_REF_SEG_END:
 #if STAGING
                 l_n = n;
 #endif
-                n = Zeta_BinTree_StepR(btn_opr, n);
+                n = Zeta_BinTree_TreeNode_(StepR)(n);
                 seg_idx = 0;
             }
 
@@ -1257,8 +1255,8 @@ WRITE_INTO_REF_SEG_END:
         if (seg_capacity < seg_size) {
             size_t split_cnt = GetAvgCnt_(seg_size);
 
-            Cntr_(Seg)* new_seg = AllocateRefSeg_(cntr);
-            cntr->root = Zeta_RBTree_Insert(btn_opr, l_n, n, &new_seg->n);
+            Zeta_Cntr_(Seg)* new_seg = AllocateRefSeg_(cntr);
+            cntr->root = Zeta_RBTree_TreeNode_(Insert)(l_n, n, &new_seg->n);
 
             new_seg->ref.beg = seg->ref.beg;
             new_seg->ref.size = split_cnt;
@@ -1274,7 +1272,7 @@ WRITE_INTO_REF_SEG_END:
             seg_size = seg->ref.size;
         }
 
-        Zeta_BinTree_SetSize(btn_opr, &seg->n, seg_size);
+        Zeta_BinTree_TreeNode_(SetSize)(&seg->n, seg_size);
 
         size_t cur_cnt = ZETA_GetMinOf(cnt, seg_size);
 
@@ -1293,7 +1291,7 @@ WRITE_INTO_REF_SEG_END:
 
             cnt -= cur_cnt;
             l_n = n;
-            n = r_n == NULL ? Zeta_BinTree_StepR(btn_opr, n) : r_n;
+            n = r_n == NULL ? Zeta_BinTree_TreeNode_(StepR)(n) : r_n;
             continue;
         }
 
@@ -1308,12 +1306,11 @@ WRITE_INTO_REF_SEG_END:
         seg->dat.size = seg_size;
 
         if (r_n != NULL) {
-            Cntr_(Seg)* r_seg = NToSeg_(r_n);
+            Zeta_Cntr_(Seg)* r_seg = NToSeg_(r_n);
 
-            Zeta_BinTree_SetSize(btn_opr, r_n,
-                                 GetNColor_(r_n) == ref_color
-                                     ? r_seg->ref.size
-                                     : r_seg->dat.size);
+            Zeta_BinTree_TreeNode_(SetSize)(r_n, GetNColor_(r_n) == ref_color
+                                                     ? r_seg->ref.size
+                                                     : r_seg->dat.size);
         }
 
         seg_idx = cur_cnt;
@@ -1325,9 +1322,9 @@ WRITE_INTO_REF_SEG_END:
     if (cntr->rb != n) {
         seg = NToSeg_(n);
 
-        Zeta_BinTree_SetSize(btn_opr, n,
-                             StagingThreeWay(GetNColor_(n) == ref_color,
-                                             seg->ref.size, seg->dat.size));
+        Zeta_BinTree_TreeNode_(SetSize)(
+            n, StagingThreeWay(GetNColor_(n) == ref_color, seg->ref.size,
+                               seg->dat.size));
     }
 
     if (dst_cursor == NULL) { return; }
@@ -1351,16 +1348,16 @@ WRITE_INTO_REF_SEG_END:
     dst_cursor->ref = Zeta_CircularArray_Access(&ca, seg_idx, NULL, NULL);
 }
 
-void* Cntr_(PushL)(void* cntr_, size_t cnt, void* dst_cursor_) {
-    Cntr* cntr = cntr_;
+void* Zeta_Cntr_(PushL)(void* cntr_, size_t cnt, void* dst_cursor_) {
+    Zeta_Cntr* cntr = cntr_;
     CheckCntr_(cntr);
 
-    Cntr_(Cursor)* dst_cursor = dst_cursor_;
+    Zeta_Cntr_(Cursor)* dst_cursor = dst_cursor_;
 
-    Cntr_(Cursor) pos_cursor;
-    Cntr_(PeekL)(cntr, &pos_cursor, NULL);
+    Zeta_Cntr_(Cursor) pos_cursor;
+    Zeta_Cntr_(PeekL)(cntr, &pos_cursor, NULL);
 
-    Cntr_(Insert)(cntr, &pos_cursor, cnt);
+    Zeta_Cntr_(Insert)(cntr, &pos_cursor, cnt);
 
     if (dst_cursor != NULL) {
         dst_cursor->cntr = cntr;
@@ -1373,16 +1370,16 @@ void* Cntr_(PushL)(void* cntr_, size_t cnt, void* dst_cursor_) {
     return pos_cursor.ref;
 }
 
-void* Cntr_(PushR)(void* cntr_, size_t cnt, void* dst_cursor_) {
-    Cntr* cntr = cntr_;
+void* Zeta_Cntr_(PushR)(void* cntr_, size_t cnt, void* dst_cursor_) {
+    Zeta_Cntr* cntr = cntr_;
     CheckCntr_(cntr);
 
-    Cntr_(Cursor)* dst_cursor = dst_cursor_;
+    Zeta_Cntr_(Cursor)* dst_cursor = dst_cursor_;
 
-    Cntr_(Cursor) pos_cursor;
-    Cntr_(GetRBCursor)(cntr, &pos_cursor);
+    Zeta_Cntr_(Cursor) pos_cursor;
+    Zeta_Cntr_(GetRBCursor)(cntr, &pos_cursor);
 
-    Cntr_(Insert)(cntr, &pos_cursor, cnt);
+    Zeta_Cntr_(Insert)(cntr, &pos_cursor, cnt);
 
     if (dst_cursor != NULL) {
         dst_cursor->cntr = cntr;
@@ -1395,17 +1392,16 @@ void* Cntr_(PushR)(void* cntr_, size_t cnt, void* dst_cursor_) {
     return pos_cursor.ref;
 }
 
-void* Cntr_(Insert)(void* cntr_, void* pos_cursor_, size_t cnt) {
-    Cntr* cntr = cntr_;
-    Cntr_(Cursor)* pos_cursor = pos_cursor_;
-    Cntr_(Cursor_Check)(cntr, pos_cursor);
+void* Zeta_Cntr_(Insert)(void* cntr_, void* pos_cursor_, size_t cnt) {
+    Zeta_Cntr* cntr = cntr_;
+    Zeta_Cntr_(Cursor)* pos_cursor = pos_cursor_;
+    Zeta_Cntr_(Cursor_Check)(cntr, pos_cursor);
 
     if (cnt == 0) { return pos_cursor->ref; }
 
-    ZETA_SeqCntr_CheckInsertable(pos_cursor->idx, cnt, Cntr_(GetSize)(cntr),
-                                 Cntr_(GetCapacity)(cntr));
-
-    Zeta_BinTreeNodeOperator const* btn_opr = TreeNodeOpr;
+    ZETA_SeqCntr_CheckInsertable(pos_cursor->idx, cnt,
+                                 Zeta_Cntr_(GetSize)(cntr),
+                                 Zeta_Cntr_(GetCapacity)(cntr));
 
     size_t width = GetWidth_(cntr);
     size_t stride = cntr->stride;
@@ -1421,9 +1417,9 @@ void* Cntr_(Insert)(void* cntr_, void* pos_cursor_, size_t cnt) {
     void* l_n;
     void* r_n;
 
-    Cntr_(Seg) * l_seg;
-    Cntr_(Seg) * m_seg;
-    Cntr_(Seg) * r_seg;
+    Zeta_Cntr_(Seg) * l_seg;
+    Zeta_Cntr_(Seg) * m_seg;
+    Zeta_Cntr_(Seg) * r_seg;
 
     size_t l_vacant;
     size_t m_vacant;
@@ -1447,7 +1443,7 @@ void* Cntr_(Insert)(void* cntr_, void* pos_cursor_, size_t cnt) {
     Zeta_CircularArray_Cursor ca_cursor;
 
     if (seg_idx == 0) {
-        l_n = Zeta_BinTree_StepL(btn_opr, m_n);
+        l_n = Zeta_BinTree_TreeNode_(StepL)(m_n);
 
         r_n = m_n;
 
@@ -1499,7 +1495,7 @@ void* Cntr_(Insert)(void* cntr_, void* pos_cursor_, size_t cnt) {
 
             m_seg->dat.offset = m_ca.offset;
             m_seg->dat.size = m_ca.size;
-            Zeta_BinTree_SetSize(btn_opr, m_n, m_ca.size);
+            Zeta_BinTree_TreeNode_(SetSize)(m_n, m_ca.size);
 
             pos_cursor->n = m_n;
             pos_cursor->seg_idx = seg_idx;
@@ -1508,8 +1504,8 @@ void* Cntr_(Insert)(void* cntr_, void* pos_cursor_, size_t cnt) {
             return ref;
         }
 
-        l_n = Zeta_BinTree_StepL(btn_opr, m_n);
-        r_n = Zeta_BinTree_StepR(btn_opr, m_n);
+        l_n = Zeta_BinTree_TreeNode_(StepL)(m_n);
+        r_n = Zeta_BinTree_TreeNode_(StepR)(m_n);
 
         if (cntr->lb == l_n) {
             l_ca.size = 0;
@@ -1580,11 +1576,11 @@ void* Cntr_(Insert)(void* cntr_, void* pos_cursor_, size_t cnt) {
                 m_seg->dat.size = m_ca.size;
             }
 
-            Zeta_BinTree_SetSize(btn_opr, m_n, m_ca.size);
+            Zeta_BinTree_TreeNode_(SetSize)(m_n, m_ca.size);
 
             l_seg->dat.offset = l_ca.offset;
             l_seg->dat.size = l_ca.size;
-            Zeta_BinTree_SetSize(btn_opr, l_n, l_ca.size);
+            Zeta_BinTree_TreeNode_(SetSize)(l_n, l_ca.size);
 
             if (ret_seg_idx < l_ca.size) {
                 pos_cursor->n = l_n;
@@ -1634,11 +1630,11 @@ void* Cntr_(Insert)(void* cntr_, void* pos_cursor_, size_t cnt) {
                 m_seg->dat.size = m_ca.size;
             }
 
-            Zeta_BinTree_SetSize(btn_opr, m_n, m_ca.size);
+            Zeta_BinTree_TreeNode_(SetSize)(m_n, m_ca.size);
 
             r_seg->dat.offset = r_ca.offset;
             r_seg->dat.size = r_ca.size;
-            Zeta_BinTree_SetSize(btn_opr, r_n, r_ca.size);
+            Zeta_BinTree_TreeNode_(SetSize)(r_n, r_ca.size);
 
             if (ret_seg_idx < m_ca.size) {
                 pos_cursor->n = m_n;
@@ -1747,9 +1743,9 @@ void* Cntr_(Insert)(void* cntr_, void* pos_cursor_, size_t cnt) {
         if (split_dir == 0) {
 #if STAGING
             if (GetNColor_(m_n) == ref_color) {
-                Cntr_(Seg)* new_l_seg = AllocateRefSeg_(cntr);
+                Zeta_Cntr_(Seg)* new_l_seg = AllocateRefSeg_(cntr);
                 cntr->root =
-                    Zeta_RBTree_Insert(btn_opr, l_n, m_n, &new_l_seg->n);
+                    Zeta_RBTree_TreeNode_(Insert)(l_n, m_n, &new_l_seg->n);
 
                 l_n = &new_l_seg->n;
                 l_seg = new_l_seg;
@@ -1767,9 +1763,9 @@ void* Cntr_(Insert)(void* cntr_, void* pos_cursor_, size_t cnt) {
             } else
 #endif
             {
-                Cntr_(Seg)* new_l_seg = AllocateDatSeg_(cntr);
+                Zeta_Cntr_(Seg)* new_l_seg = AllocateDatSeg_(cntr);
                 cntr->root =
-                    Zeta_RBTree_Insert(btn_opr, l_n, m_n, &new_l_seg->n);
+                    Zeta_RBTree_TreeNode_(Insert)(l_n, m_n, &new_l_seg->n);
 
                 l_n = &new_l_seg->n;
                 l_seg = new_l_seg;
@@ -1791,9 +1787,9 @@ void* Cntr_(Insert)(void* cntr_, void* pos_cursor_, size_t cnt) {
         } else {
 #if STAGING
             if (GetNColor_(m_n) == ref_color) {
-                Cntr_(Seg)* new_r_seg = AllocateRefSeg_(cntr);
+                Zeta_Cntr_(Seg)* new_r_seg = AllocateRefSeg_(cntr);
                 cntr->root =
-                    Zeta_RBTree_Insert(btn_opr, m_n, r_n, &new_r_seg->n);
+                    Zeta_RBTree_TreeNode_(Insert)(m_n, r_n, &new_r_seg->n);
 
                 l_n = m_n;
                 l_seg = m_seg;
@@ -1810,9 +1806,9 @@ void* Cntr_(Insert)(void* cntr_, void* pos_cursor_, size_t cnt) {
             } else
 #endif
             {
-                Cntr_(Seg)* new_r_seg = AllocateDatSeg_(cntr);
+                Zeta_Cntr_(Seg)* new_r_seg = AllocateDatSeg_(cntr);
                 cntr->root =
-                    Zeta_RBTree_Insert(btn_opr, m_n, r_n, &new_r_seg->n);
+                    Zeta_RBTree_TreeNode_(Insert)(m_n, r_n, &new_r_seg->n);
 
                 l_n = m_n;
                 l_seg = m_seg;
@@ -1903,7 +1899,7 @@ INS:
 
             l_seg->dat.offset = l_ca.offset;
             l_seg->dat.size = l_ca.size;
-            Zeta_BinTree_SetSize(btn_opr, l_n, l_ca.size);
+            Zeta_BinTree_TreeNode_(SetSize)(l_n, l_ca.size);
 
             pos_cursor->n = l_n;
             pos_cursor->seg_idx = ret_seg_idx;
@@ -1916,7 +1912,7 @@ INS:
 
             r_seg->dat.offset = r_ca.offset;
             r_seg->dat.size = r_ca.size;
-            Zeta_BinTree_SetSize(btn_opr, r_n, r_ca.size);
+            Zeta_BinTree_TreeNode_(SetSize)(r_n, r_ca.size);
 
             pos_cursor->n = r_n;
             pos_cursor->seg_idx = ret_seg_idx;
@@ -1967,7 +1963,7 @@ INS:
             l_seg->dat.size = l_ca.size;
         }
 
-        Zeta_BinTree_SetSize(btn_opr, l_n, l_ca.size);
+        Zeta_BinTree_TreeNode_(SetSize)(l_n, l_ca.size);
     }
 
     if (cntr->rb != r_n) {
@@ -1981,7 +1977,7 @@ INS:
             r_seg->dat.size = r_ca.size;
         }
 
-        Zeta_BinTree_SetSize(btn_opr, r_n, r_ca.size);
+        Zeta_BinTree_TreeNode_(SetSize)(r_n, r_ca.size);
     }
 
     if (0 < total_size && m_n != NULL) {
@@ -1997,7 +1993,7 @@ INS:
 
         m_seg->dat.offset = 0;
         m_seg->dat.size = cur_size;
-        Zeta_BinTree_SetSize(btn_opr, m_n, cur_size);
+        Zeta_BinTree_TreeNode_(SetSize)(m_n, cur_size);
 
         r_n = m_n;
         r_seg = m_seg;
@@ -2010,12 +2006,12 @@ INS:
         size_t cur_size = GetAvgCnt_(total_size);
         total_size -= cur_size;
 
-        Cntr_(Seg)* new_r_seg = AllocateDatSeg_(cntr);
+        Zeta_Cntr_(Seg)* new_r_seg = AllocateDatSeg_(cntr);
 
-        cntr->root = Zeta_RBTree_Insert(btn_opr, l_n, r_n, &new_r_seg->n);
+        cntr->root = Zeta_RBTree_TreeNode_(Insert)(l_n, r_n, &new_r_seg->n);
 
         new_r_seg->dat.size = cur_size;
-        Zeta_BinTree_SetSize(btn_opr, &new_r_seg->n, cur_size);
+        Zeta_BinTree_TreeNode_(SetSize)(&new_r_seg->n, cur_size);
 
         r_n = &new_r_seg->n;
         r_seg = new_r_seg;
@@ -2066,51 +2062,49 @@ INS:
     return pos_cursor->ref;
 }
 
-void Cntr_(PopL)(void* cntr, size_t cnt) {
-    Cntr_(Cursor) pos_cursor;
-    Cntr_(PeekL)(cntr, &pos_cursor, NULL);
+void Zeta_Cntr_(PopL)(void* cntr, size_t cnt) {
+    Zeta_Cntr_(Cursor) pos_cursor;
+    Zeta_Cntr_(PeekL)(cntr, &pos_cursor, NULL);
 
-    Cntr_(Erase)(cntr, &pos_cursor, cnt);
+    Zeta_Cntr_(Erase)(cntr, &pos_cursor, cnt);
 }
 
-void Cntr_(PopR)(void* cntr, size_t cnt) {
-    size_t size = Cntr_(GetSize)(cntr);
+void Zeta_Cntr_(PopR)(void* cntr, size_t cnt) {
+    size_t size = Zeta_Cntr_(GetSize)(cntr);
 
     ZETA_DebugAssert(cnt <= size);
 
-    Cntr_(Cursor) pos_cursor;
-    Cntr_(Access)(cntr, size - cnt, &pos_cursor, NULL);
+    Zeta_Cntr_(Cursor) pos_cursor;
+    Zeta_Cntr_(Access)(cntr, size - cnt, &pos_cursor, NULL);
 
-    Cntr_(Erase)(cntr, &pos_cursor, cnt);
+    Zeta_Cntr_(Erase)(cntr, &pos_cursor, cnt);
 }
 
-void Cntr_(Erase)(void* cntr_, void* pos_cursor_, size_t cnt) {
-    Cntr* cntr = cntr_;
-    Cntr_(Cursor)* pos_cursor = pos_cursor_;
-    Cntr_(Cursor_Check)(cntr, pos_cursor);
+void Zeta_Cntr_(Erase)(void* cntr_, void* pos_cursor_, size_t cnt) {
+    Zeta_Cntr* cntr = cntr_;
+    Zeta_Cntr_(Cursor)* pos_cursor = pos_cursor_;
+    Zeta_Cntr_(Cursor_Check)(cntr, pos_cursor);
 
     if (cnt == 0) { return; }
-
-    Zeta_BinTreeNodeOperator const* btn_opr = TreeNodeOpr;
 
     size_t width = GetWidth_(cntr);
     size_t stride = cntr->stride;
     size_t seg_capacity = cntr->seg_capacity;
-    size_t size = Cntr_(GetSize)(cntr);
+    size_t size = Zeta_Cntr_(GetSize)(cntr);
 
     ZETA_SeqCntr_CheckErasable(pos_cursor->idx, cnt, size);
 
     void* m_n = pos_cursor->n;
     size_t seg_idx = pos_cursor->seg_idx;
 
-    void* l_n = Zeta_BinTree_StepL(btn_opr, m_n);
+    void* l_n = Zeta_BinTree_TreeNode_(StepL)(m_n);
 
-    Cntr_(Seg)* m_seg = NToSeg_(m_n);
+    Zeta_Cntr_(Seg)* m_seg = NToSeg_(m_n);
 
-    Cntr_(Seg)* first_seg = m_seg;
+    Zeta_Cntr_(Seg)* first_seg = m_seg;
     size_t first_seg_idx = seg_idx;
 
-    Cntr_(Seg)* last_seg = m_n;
+    Zeta_Cntr_(Seg)* last_seg = m_n;
 
     Zeta_CircularArray m_ca;
     m_ca.width = width;
@@ -2127,11 +2121,11 @@ void Cntr_(Erase)(void* cntr_, void* pos_cursor_, size_t cnt) {
         if (ref_size - seg_idx <= cnt) {
             m_seg->ref.size = seg_idx;
             cnt -= ref_size - seg_idx;
-            m_n = Zeta_BinTree_StepR(btn_opr, m_n);
+            m_n = Zeta_BinTree_TreeNode_(StepR)(m_n);
         } else {
-            Cntr_(Seg)* pre_m_seg = AllocateRefSeg_(cntr);
+            Zeta_Cntr_(Seg)* pre_m_seg = AllocateRefSeg_(cntr);
             cntr->root =
-                Zeta_RBTree_Insert(btn_opr, l_n, &m_seg->n, &pre_m_seg->n);
+                Zeta_RBTree_TreeNode_(Insert)(l_n, &m_seg->n, &pre_m_seg->n);
 
             first_seg = pre_m_seg;
 
@@ -2156,7 +2150,7 @@ void Cntr_(Erase)(void* cntr_, void* pos_cursor_, size_t cnt) {
         if (GetNColor_(m_n) == ref_color) {
             if (m_seg->ref.size <= cnt) {
                 cnt -= m_seg->ref.size;
-                void* nxt_m_n = Zeta_BinTree_StepR(btn_opr, m_n);
+                void* nxt_m_n = Zeta_BinTree_TreeNode_(StepR)(m_n);
                 EraseSeg_(cntr, m_seg);
                 m_n = nxt_m_n;
 
@@ -2172,7 +2166,7 @@ void Cntr_(Erase)(void* cntr_, void* pos_cursor_, size_t cnt) {
 
         if (seg_idx == 0 && m_seg->dat.size <= cnt) {
             cnt -= m_seg->dat.size;
-            void* nxt_m_n = Zeta_BinTree_StepR(btn_opr, m_n);
+            void* nxt_m_n = Zeta_BinTree_TreeNode_(StepR)(m_n);
             EraseSeg_(cntr, m_seg);
             m_n = nxt_m_n;
 
@@ -2195,7 +2189,7 @@ void Cntr_(Erase)(void* cntr_, void* pos_cursor_, size_t cnt) {
         cnt -= cur_cnt;
 
         if (seg_idx == m_seg->dat.size) {
-            m_n = Zeta_BinTree_StepR(btn_opr, m_n);
+            m_n = Zeta_BinTree_TreeNode_(StepR)(m_n);
             seg_idx = 0;
         }
     }
@@ -2208,10 +2202,10 @@ void Cntr_(Erase)(void* cntr_, void* pos_cursor_, size_t cnt) {
     bool_t first_exist = first_seg_idx != 0 || &first_seg->n == m_n;
     bool_t last_exist = &last_seg->n == m_n;
 
-    Cntr_(Seg) * a_seg;
-    Cntr_(Seg) * b_seg;
-    Cntr_(Seg) * c_seg;
-    Cntr_(Seg) * d_seg;
+    Zeta_Cntr_(Seg) * a_seg;
+    Zeta_Cntr_(Seg) * b_seg;
+    Zeta_Cntr_(Seg) * c_seg;
+    Zeta_Cntr_(Seg) * d_seg;
 
     size_t a_size;
     size_t b_size;
@@ -2223,10 +2217,10 @@ void Cntr_(Erase)(void* cntr_, void* pos_cursor_, size_t cnt) {
     size_t c_vacant;
     size_t d_vacant;
 
-    void* r_n = last_exist ? Zeta_BinTree_StepR(btn_opr, m_n) : m_n;
+    void* r_n = last_exist ? Zeta_BinTree_TreeNode_(StepR)(m_n) : m_n;
 
     {
-        Cntr_(Seg) * segs_buffer[4] = { NULL, NULL, NULL, NULL };
+        Zeta_Cntr_(Seg) * segs_buffer[4] = { NULL, NULL, NULL, NULL };
         size_t segs_buffer_i = 0;
 
         if (cntr->lb != l_n) { segs_buffer[segs_buffer_i++] = NToSeg_(l_n); }
@@ -2433,7 +2427,7 @@ UPDATE: {
     if (a_size == 0) {
         EraseSeg_(cntr, a_seg);
     } else {
-        Zeta_BinTree_SetSize(btn_opr, &a_seg->n, a_size);
+        Zeta_BinTree_TreeNode_(SetSize)(&a_seg->n, a_size);
     }
 
     if (ret_n != NULL) {
@@ -2451,7 +2445,7 @@ UPDATE: {
     if (b_size == 0) {
         EraseSeg_(cntr, b_seg);
     } else {
-        Zeta_BinTree_SetSize(btn_opr, &b_seg->n, b_size);
+        Zeta_BinTree_TreeNode_(SetSize)(&b_seg->n, b_size);
     }
 
     if (ret_n != NULL) {
@@ -2469,7 +2463,7 @@ UPDATE: {
     if (c_size == 0) {
         EraseSeg_(cntr, c_seg);
     } else {
-        Zeta_BinTree_SetSize(btn_opr, &c_seg->n, c_size);
+        Zeta_BinTree_TreeNode_(SetSize)(&c_seg->n, c_size);
     }
 
     if (ret_n != NULL) {
@@ -2487,7 +2481,7 @@ UPDATE: {
     if (d_size == 0) {
         EraseSeg_(cntr, d_seg);
     } else {
-        Zeta_BinTree_SetSize(btn_opr, &d_seg->n, d_size);
+        Zeta_BinTree_TreeNode_(SetSize)(&d_seg->n, d_size);
     }
 
     if (ret_n == NULL) { ret_n = &d_seg->n; }
@@ -2507,7 +2501,7 @@ UPDATE_END:
         return;
     }
 
-    Cntr_(Seg)* seg = NToSeg_(pos_cursor->n);
+    Zeta_Cntr_(Seg)* seg = NToSeg_(pos_cursor->n);
 
     m_ca.data = seg->dat.data;
     m_ca.offset = seg->dat.offset;
@@ -2517,8 +2511,8 @@ UPDATE_END:
         Zeta_CircularArray_Access(&m_ca, pos_cursor->seg_idx, NULL, NULL);
 }
 
-void Cntr_(EraseAll)(void* cntr_) {
-    Cntr* cntr = cntr_;
+void Zeta_Cntr_(EraseAll)(void* cntr_) {
+    Zeta_Cntr* cntr = cntr_;
     CheckCntr_(cntr);
 
     EraseAllSeg_(cntr, cntr->root);
@@ -2526,8 +2520,8 @@ void Cntr_(EraseAll)(void* cntr_) {
     InitTree_(cntr);
 }
 
-void Cntr_(Reset)(void* cntr_) {
-    Cntr* cntr = cntr_;
+void Zeta_Cntr_(Reset)(void* cntr_) {
+    Zeta_Cntr* cntr = cntr_;
     CheckCntr_(cntr);
 
     EraseAllSeg_(cntr, cntr->root);
@@ -2536,18 +2530,18 @@ void Cntr_(Reset)(void* cntr_) {
     RefOrigin_(cntr);
 }
 
-static void CollectAllResources_(Cntr* cntr, void* n,
+static void CollectAllResources_(Zeta_Cntr* cntr, void* n,
                                  Zeta_PoolAllocator* dst_segs,
                                  Zeta_PoolAllocator* dst_datas) {
-    void* nl = ZETA_Concat(TreeNode, _GetL)(NULL, n);
-    void* nr = ZETA_Concat(TreeNode, _GetR)(NULL, n);
+    void* nl = Zeta_TreeNode_(GetL)(n);
+    void* nr = Zeta_TreeNode_(GetR)(n);
 
     if (nl != NULL) { CollectAllResources_(cntr, nl, dst_segs, dst_datas); }
     if (nr != NULL) { CollectAllResources_(cntr, nr, dst_segs, dst_datas); }
 
     if (cntr->lb == n || cntr->rb == n) { return; }
 
-    Cntr_(Seg)* seg = NToSeg_(n);
+    Zeta_Cntr_(Seg)* seg = NToSeg_(n);
 
     if (GetNColor_(n) == dat_color) {
         if (dst_datas == NULL) {
@@ -2560,13 +2554,11 @@ static void CollectAllResources_(Cntr* cntr, void* n,
     Zeta_PoolAllocator_Deallocate(dst_segs, seg);
 }
 
-static inline void* CopySegs_(Cntr* cntr, Cntr* src_cntr, void* src_n,
+static inline void* CopySegs_(Zeta_Cntr* cntr, Zeta_Cntr* src_cntr, void* src_n,
                               Zeta_PoolAllocator* segs,
                               Zeta_PoolAllocator* datas) {
-    Zeta_BinTreeNodeOperator const* btn_opr = TreeNodeOpr;
-
-    void* src_nl = ZETA_Concat(TreeNode, _GetL)(NULL, src_n);
-    void* src_nr = ZETA_Concat(TreeNode, _GetR)(NULL, src_n);
+    void* src_nl = Zeta_TreeNode_(GetL)(src_n);
+    void* src_nr = Zeta_TreeNode_(GetR)(src_n);
 
     void* nl =
         src_nl == NULL ? NULL : CopySegs_(cntr, src_cntr, src_nl, segs, datas);
@@ -2578,19 +2570,19 @@ static inline void* CopySegs_(Cntr* cntr, Cntr* src_cntr, void* src_n,
 
     if (src_cntr->lb == src_n) {
         n = cntr->lb;
-        ZETA_Concat(TreeNode, _Init)(NULL, n);
-        Zeta_BinTree_SetSize(btn_opr, n, 1);
+        Zeta_TreeNode_(Init)(n);
+        Zeta_BinTree_TreeNode_(SetSize)(n, 1);
     } else if (src_cntr->rb == src_n) {
         n = cntr->rb;
-        ZETA_Concat(TreeNode, _Init)(NULL, n);
-        Zeta_BinTree_SetSize(btn_opr, n, 1);
+        Zeta_TreeNode_(Init)(n);
+        Zeta_BinTree_TreeNode_(SetSize)(n, 1);
     } else {
-        Cntr_(Seg)* seg = AllocateSeg_(cntr, segs);
+        Zeta_Cntr_(Seg)* seg = AllocateSeg_(cntr, segs);
         n = &seg->n;
 
-        ZETA_Concat(TreeNode, _Init)(NULL, n);
+        Zeta_TreeNode_(Init)(n);
 
-        Cntr_(Seg)* src_seg = NToSeg_(src_n);
+        Zeta_Cntr_(Seg)* src_seg = NToSeg_(src_n);
 
 #if STAGING
         int color = GetNColor_(src_n);
@@ -2600,7 +2592,7 @@ static inline void* CopySegs_(Cntr* cntr, Cntr* src_cntr, void* src_n,
             seg->ref.beg = src_seg->ref.beg;
             seg->ref.size = src_seg->ref.size;
 
-            Zeta_BinTree_SetSize(btn_opr, n, seg->ref.size);
+            Zeta_BinTree_TreeNode_(SetSize)(n, seg->ref.size);
         } else
 #endif
         {
@@ -2623,22 +2615,21 @@ static inline void* CopySegs_(Cntr* cntr, Cntr* src_cntr, void* src_n,
             Zeta_CircularArray_Read(&ca, &ca_cursor, ca.size, seg->dat.data,
                                     cntr->stride, NULL);
 
-            Zeta_BinTree_SetSize(btn_opr, n, ca.size);
+            Zeta_BinTree_TreeNode_(SetSize)(n, ca.size);
         }
     }
 
-    ZETA_Concat(TreeNode, _SetPColor)(
-        NULL, n, ZETA_Concat(TreeNode, _GetPColor)(NULL, src_n));
+    Zeta_TreeNode_(SetPColor)(n, Zeta_TreeNode_(GetPColor)(src_n));
 
-    Zeta_BinTree_AttatchL(btn_opr, n, nl);
-    Zeta_BinTree_AttatchR(btn_opr, n, nr);
+    Zeta_BinTree_TreeNode_(AttatchL)(n, nl);
+    Zeta_BinTree_TreeNode_(AttatchR)(n, nr);
 
     return n;
 }
 
-void Cntr_(Copy)(void* cntr_, void* src_cntr_) {
-    Cntr* cntr = cntr_;
-    Cntr* src_cntr = src_cntr_;
+void Zeta_Cntr_(Copy)(void* cntr_, void* src_cntr_) {
+    Zeta_Cntr* cntr = cntr_;
+    Zeta_Cntr* src_cntr = src_cntr_;
 
     CheckCntr_(cntr);
     CheckCntr_(src_cntr);
@@ -2687,24 +2678,22 @@ void Cntr_(Copy)(void* cntr_, void* src_cntr_) {
 
 #if STAGING
 
-void Cntr_(Collapse)(void* cntr_) {
-    Cntr* cntr = cntr_;
+void Zeta_Cntr_(Collapse)(void* cntr_) {
+    Zeta_Cntr* cntr = cntr_;
     CheckCntr_(cntr);
 
-    ZETA_DebugAssert(cntr->origin->GetWidth == Cntr_(GetWidth));
+    ZETA_DebugAssert(cntr->origin->GetWidth == Zeta_Cntr_(GetWidth));
 
-    Cntr* origin = cntr->origin->context;
+    Zeta_Cntr* origin = cntr->origin->context;
     cntr->origin = origin->origin;
 
     size_t stride = cntr->stride;
     size_t seg_capacity = cntr->seg_capacity;
 
-    Zeta_BinTreeNodeOperator const* btn_opr = TreeNodeOpr;
+    Zeta_TreeNode* n = Zeta_BinTree_TreeNode_(StepR)(cntr->lb);
 
-    TreeNode* n = Zeta_BinTree_StepR(btn_opr, cntr->lb);
-
-    Cntr_(Cursor) origin_cursor;
-    Cntr_(Access)(origin, 0, &origin_cursor, NULL);
+    Zeta_Cntr_(Cursor) origin_cursor;
+    Zeta_Cntr_(Access)(origin, 0, &origin_cursor, NULL);
 
     unsigned long long random_seed = Zeta_GetRandom();
 
@@ -2716,17 +2705,17 @@ void Cntr_(Collapse)(void* cntr_) {
     Zeta_CircularArray_Cursor origin_ca_cursor;
 
     while (n != cntr->rb) {
-        Cntr_(Seg)* seg = NToSeg_(n);
+        Zeta_Cntr_(Seg)* seg = NToSeg_(n);
 
         if (GetNColor_(n) == dat_color) { goto NEXT; }
 
-        Cntr_(Cursor_AdvanceR)(origin, &origin_cursor,
-                               seg->ref.beg - origin_cursor.idx);
+        Zeta_Cntr_(Cursor_AdvanceR)(origin, &origin_cursor,
+                                    seg->ref.beg - origin_cursor.idx);
 
-        TreeNode* origin_n = origin_cursor.n;
+        Zeta_TreeNode* origin_n = origin_cursor.n;
         size_t origin_seg_idx = origin_cursor.seg_idx;
 
-        Cntr_(Seg)* origin_seg = NToSeg_(origin_n);
+        Zeta_Cntr_(Seg)* origin_seg = NToSeg_(origin_n);
 
         int origin_seg_color = GetNColor_(&origin_seg->n);
 
@@ -2742,20 +2731,20 @@ void Cntr_(Collapse)(void* cntr_) {
                 goto NEXT;
             }
 
-            Cntr_(Seg)* new_ref_seg = AllocateRefSeg_(cntr);
+            Zeta_Cntr_(Seg)* new_ref_seg = AllocateRefSeg_(cntr);
 
             new_ref_seg->ref.beg = origin_seg->ref.beg + origin_seg_idx;
             new_ref_seg->ref.size = origin_res_size;
 
-            Zeta_BinTree_SetSize(btn_opr, &new_ref_seg->n,
-                                 new_ref_seg->ref.size);
+            Zeta_BinTree_TreeNode_(SetSize)(&new_ref_seg->n,
+                                            new_ref_seg->ref.size);
 
             seg->ref.beg += origin_res_size;
             seg->ref.size -= origin_res_size;
 
-            Zeta_BinTree_SetSize(btn_opr, seg, seg->ref.size);
+            Zeta_BinTree_TreeNode_(SetSize)(seg, seg->ref.size);
 
-            cntr->root = Zeta_RBTree_InsertL(btn_opr, n, &new_ref_seg->n);
+            cntr->root = Zeta_RBTree_TreeNode_(InsertL)(n, &new_ref_seg->n);
 
             continue;
         }
@@ -2769,18 +2758,18 @@ void Cntr_(Collapse)(void* cntr_) {
             seg->dat.offset = 0;
             seg->dat.size = cur_cnt;
         } else {
-            Cntr_(Seg)* new_dat_seg = AllocateDatSeg_(cntr);
+            Zeta_Cntr_(Seg)* new_dat_seg = AllocateDatSeg_(cntr);
 
             new_dat_seg->dat.size = cur_cnt;
 
-            Zeta_BinTree_SetSize(btn_opr, &new_dat_seg->n, cur_cnt);
+            Zeta_BinTree_TreeNode_(SetSize)(&new_dat_seg->n, cur_cnt);
 
             seg->ref.beg += origin_res_size;
             seg->ref.size -= origin_res_size;
 
-            Zeta_BinTree_SetSize(btn_opr, n, seg->ref.size);
+            Zeta_BinTree_TreeNode_(SetSize)(n, seg->ref.size);
 
-            cntr->root = Zeta_RBTree_InsertL(btn_opr, n, &new_dat_seg->n);
+            cntr->root = Zeta_RBTree_TreeNode_(InsertL)(n, &new_dat_seg->n);
 
             n = &new_dat_seg->n;
             seg = new_dat_seg;
@@ -2796,7 +2785,7 @@ void Cntr_(Collapse)(void* cntr_) {
         Zeta_CircularArray_Read(&origin_ca, &origin_ca_cursor, cur_cnt,
                                 seg->dat.data, stride, NULL);
 
-    NEXT: { n = Zeta_BinTree_StepR(btn_opr, n); }
+    NEXT: { n = Zeta_BinTree_TreeNode_(StepR)(n); }
     }
 }
 
@@ -2828,12 +2817,13 @@ struct ToWBSegRet {
     size_t dat_segs_cnt;
 };
 
-static inline ToWBSegRet ToWBSeg_(Cntr* cntr, TreeNode* n, WBSeg* dst) {
+static inline ToWBSegRet ToWBSeg_(Zeta_Cntr* cntr, Zeta_TreeNode* n,
+                                  WBSeg* dst) {
     ToWBSegRet ret = { 0, 0 };
 
     while (n != NULL) {
-        TreeNode* nl = ZETA_Concat(TreeNode, _GetL)(NULL, n);
-        TreeNode* nr = ZETA_Concat(TreeNode, _GetR)(NULL, n);
+        Zeta_TreeNode* nl = Zeta_TreeNode_(GetL)(n);
+        Zeta_TreeNode* nr = Zeta_TreeNode_(GetR)(n);
 
         ToWBSegRet l_ret = ToWBSeg_(cntr, nl, dst);
         dst += l_ret.ref_segs_cnt + l_ret.dat_segs_cnt;
@@ -2846,7 +2836,7 @@ static inline ToWBSegRet ToWBSeg_(Cntr* cntr, TreeNode* n, WBSeg* dst) {
             continue;
         }
 
-        Cntr_(Seg)* seg = NToSeg_(n);
+        Zeta_Cntr_(Seg)* seg = NToSeg_(n);
 
         if (GetNColor_(n) == ref_color) {
             ++ret.ref_segs_cnt;
@@ -2883,7 +2873,7 @@ static inline ToWBSegRet ToWBSeg_(Cntr* cntr, TreeNode* n, WBSeg* dst) {
 
 #if STAGING
 
-static inline void WriteWBSeg_(Cntr* cntr, Zeta_SeqCntr* ca_seq_cntr,
+static inline void WriteWBSeg_(Zeta_Cntr* cntr, Zeta_SeqCntr* ca_seq_cntr,
                                WBSeg* wb_segs, size_t segs_cnt,
                                size_t dst_offset, size_t ref_offset) {
     if (segs_cnt == 0) { return; }
@@ -2992,11 +2982,11 @@ static int OffsetOffsetCntNodeCompare(void const* context, void const* offset,
 
 #if STAGING
 
-static size_t RecordOffset_(Cntr* cntr, TreeNode* n, size_t dst_idx,
+static size_t RecordOffset_(Zeta_Cntr* cntr, Zeta_TreeNode* n, size_t dst_idx,
                             Zeta_GenericHashTable* ght) {
     while (n != NULL) {
-        TreeNode* nl = ZETA_Concat(TreeNode, _GetL)(NULL, n);
-        TreeNode* nr = ZETA_Concat(TreeNode, _GetR)(NULL, n);
+        Zeta_TreeNode* nl = Zeta_TreeNode_(GetL)(n);
+        Zeta_TreeNode* nr = Zeta_TreeNode_(GetR)(n);
 
         if (nl != NULL) { dst_idx = RecordOffset_(cntr, nl, dst_idx, ght); }
 
@@ -3006,13 +2996,13 @@ static size_t RecordOffset_(Cntr* cntr, TreeNode* n, size_t dst_idx,
         }
 
         if (GetNColor_(n) == dat_color) {
-            Cntr_(Seg)* seg = NToSeg_(n);
+            Zeta_Cntr_(Seg)* seg = NToSeg_(n);
             dst_idx += seg->dat.size;
             n = nr;
             continue;
         }
 
-        Cntr_(Seg)* seg = NToSeg_(n);
+        Zeta_Cntr_(Seg)* seg = NToSeg_(n);
 
         size_t offset = seg->ref.beg - dst_idx;
 
@@ -3052,14 +3042,14 @@ static size_t RecordOffset_(Cntr* cntr, TreeNode* n, size_t dst_idx,
 
 #if STAGING
 
-static void WriteBack_LR_(Cntr* cntr, int write_back_strategy,
+static void WriteBack_LR_(Zeta_Cntr* cntr, int write_back_strategy,
                           unsigned long long cost_coeff_read,
                           unsigned long long cost_coeff_write,
                           unsigned long long cost_coeff_insert,
                           unsigned long long cost_coeff_erase) {
     size_t stride = cntr->stride;
 
-    size_t size = Cntr_(GetSize)(cntr);
+    size_t size = Zeta_Cntr_(GetSize)(cntr);
 
     Zeta_SeqCntr* origin = cntr->origin;
     size_t origin_size = ZETA_SeqCntr_GetSize(origin);
@@ -3181,7 +3171,7 @@ static void WriteBack_LR_(Cntr* cntr, int write_back_strategy,
 
     if (0 < push_r_cnt) { ZETA_SeqCntr_PushR(origin, push_r_cnt, NULL); }
 
-    size_t segs_cnt = Zeta_BinTree_Count(TreeNodeOpr, cntr->root) - 2;
+    size_t segs_cnt = Zeta_BinTree_TreeNode_(Count)(cntr->root) - 2;
 
     WBSeg* wb_segs = (WBSeg*)ZETA_Allocator_SafeAllocate(
                          zeta_cascade_allocator, alignof(WBSeg),
@@ -3225,17 +3215,18 @@ static void WriteBack_LR_(Cntr* cntr, int write_back_strategy,
 
 #if STAGING
 
-static void WriteBack_Random_(Cntr* cntr, unsigned long long cost_coeff_read,
+static void WriteBack_Random_(Zeta_Cntr* cntr,
+                              unsigned long long cost_coeff_read,
                               unsigned long long cost_coeff_write,
                               unsigned long long cost_coeff_insert,
                               unsigned long long cost_coeff_erase) {
     size_t stride = cntr->stride;
-    size_t size = Cntr_(GetSize)(cntr);
+    size_t size = Zeta_Cntr_(GetSize)(cntr);
 
     Zeta_SeqCntr* origin = cntr->origin;
     size_t origin_size = ZETA_SeqCntr_GetSize(origin);
 
-    size_t segs_cnt = Zeta_BinTree_Count(TreeNodeOpr, cntr->root) - 2;
+    size_t segs_cnt = Zeta_BinTree_TreeNode_(Count)(cntr->root) - 2;
 
     WBSeg* wb_segs = (WBSeg*)ZETA_Allocator_SafeAllocate(
                          zeta_cascade_allocator, alignof(WBSeg),
@@ -3519,12 +3510,12 @@ static void WriteBack_Random_(Cntr* cntr, unsigned long long cost_coeff_read,
 
 #if STAGING
 
-void Cntr_(WriteBack)(void* cntr_, int write_back_strategy,
-                      unsigned long long cost_coeff_read,
-                      unsigned long long cost_coeff_write,
-                      unsigned long long cost_coeff_insert,
-                      unsigned long long cost_coeff_erase) {
-    Cntr* cntr = cntr_;
+void Zeta_Cntr_(WriteBack)(void* cntr_, int write_back_strategy,
+                           unsigned long long cost_coeff_read,
+                           unsigned long long cost_coeff_write,
+                           unsigned long long cost_coeff_insert,
+                           unsigned long long cost_coeff_erase) {
+    Zeta_Cntr* cntr = cntr_;
     CheckCntr_(cntr);
 
     Zeta_SeqCntr* origin = cntr->origin;
@@ -3536,7 +3527,7 @@ void Cntr_(WriteBack)(void* cntr_, int write_back_strategy,
         write_back_strategy == ZETA_StagingVector_WriteBackStrategy_Random  //
     );
 
-    if (Cntr_(GetSize)(cntr) == 0) {
+    if (Zeta_Cntr_(GetSize)(cntr) == 0) {
         ZETA_SeqCntr_EraseAll(origin);
         return;
     }
@@ -3552,8 +3543,8 @@ void Cntr_(WriteBack)(void* cntr_, int write_back_strategy,
 
 #endif
 
-void Cntr_(Check)(void const* cntr_) {
-    Cntr const* cntr = cntr_;
+void Zeta_Cntr_(Check)(void const* cntr_) {
+    Zeta_Cntr const* cntr = cntr_;
     ZETA_DebugAssert(cntr != NULL);
 
 #if STAGING
@@ -3581,7 +3572,7 @@ void Cntr_(Check)(void const* cntr_) {
     ZETA_DebugAssert(cntr->seg_allocator->Allocate != NULL);
     ZETA_DebugAssert(cntr->seg_allocator->Deallocate != NULL);
     ZETA_DebugAssert(ZETA_Allocator_GetAlign(cntr->seg_allocator) %
-                         alignof(Cntr_(Seg)) ==
+                         alignof(Zeta_Cntr_(Seg)) ==
                      0);
 
     ZETA_DebugAssert(cntr->data_allocator != NULL);
@@ -3599,10 +3590,8 @@ struct SanitizeRet {
     size_t ref_end;
 };
 
-static SanitizeRet Sanitize_(Cntr const* cntr, Zeta_MemRecorder* dst_seg,
+static SanitizeRet Sanitize_(Zeta_Cntr const* cntr, Zeta_MemRecorder* dst_seg,
                              Zeta_MemRecorder* dst_data, void* n) {
-    Zeta_BinTreeNodeOperator const* btn_opr = TreeNodeOpr;
-
     size_t stride = cntr->stride;
 
 #if STAGING
@@ -3611,26 +3600,26 @@ static SanitizeRet Sanitize_(Cntr const* cntr, Zeta_MemRecorder* dst_seg,
     size_t origin_size = ZETA_SeqCntr_GetSize(origin);
 #endif
 
-    void* l_n = Zeta_BinTree_StepL(btn_opr, n);
-    void* r_n = Zeta_BinTree_StepR(btn_opr, n);
+    void* l_n = Zeta_BinTree_TreeNode_(StepL)(n);
+    void* r_n = Zeta_BinTree_TreeNode_(StepR)(n);
 
     if (cntr->lb == n) {
         ZETA_DebugAssert(l_n == NULL);
         ZETA_DebugAssert(r_n != NULL);
 
-        ZETA_DebugAssert(Zeta_BinTree_GetSize(btn_opr, n) == 1);
+        ZETA_DebugAssert(Zeta_BinTree_TreeNode_(GetSize)(n) == 1);
 
         if (dst_seg != NULL) {
-            Zeta_MemRecorder_Record(dst_seg, cntr->lb, sizeof(TreeNode));
+            Zeta_MemRecorder_Record(dst_seg, cntr->lb, sizeof(Zeta_TreeNode));
         }
     } else if (cntr->rb == n) {
         ZETA_DebugAssert(l_n != NULL);
         ZETA_DebugAssert(r_n == NULL);
 
-        ZETA_DebugAssert(Zeta_BinTree_GetSize(btn_opr, n) == 1);
+        ZETA_DebugAssert(Zeta_BinTree_TreeNode_(GetSize)(n) == 1);
 
         if (dst_seg != NULL) {
-            Zeta_MemRecorder_Record(dst_seg, cntr->rb, sizeof(TreeNode));
+            Zeta_MemRecorder_Record(dst_seg, cntr->rb, sizeof(Zeta_TreeNode));
         }
     }
 #if STAGING
@@ -3638,10 +3627,10 @@ static SanitizeRet Sanitize_(Cntr const* cntr, Zeta_MemRecorder* dst_seg,
         ZETA_DebugAssert(l_n != NULL);
         ZETA_DebugAssert(r_n != NULL);
 
-        Cntr_(Seg)* seg = NToSeg_(n);
+        Zeta_Cntr_(Seg)* seg = NToSeg_(n);
 
         if (dst_seg != NULL) {
-            Zeta_MemRecorder_Record(dst_seg, seg, sizeof(Cntr_(Seg)));
+            Zeta_MemRecorder_Record(dst_seg, seg, sizeof(Zeta_Cntr_(Seg)));
         }
 
         ZETA_DebugAssert(0 < seg->ref.size);
@@ -3651,10 +3640,10 @@ static SanitizeRet Sanitize_(Cntr const* cntr, Zeta_MemRecorder* dst_seg,
 
         size_t size = seg->ref.size;
 
-        ZETA_DebugAssert(size == Zeta_BinTree_GetSize(btn_opr, n));
+        ZETA_DebugAssert(size == Zeta_BinTree_TreeNode_(GetSize)(n));
 
         if (cntr->lb != l_n) {
-            Cntr_(Seg)* l_seg = NToSeg_(l_n);
+            Zeta_Cntr_(Seg)* l_seg = NToSeg_(l_n);
 
             if (GetNColor_(&l_seg->n) == ref_color) {
                 ZETA_DebugAssert(l_seg->ref.beg + l_seg->ref.size <
@@ -3663,7 +3652,7 @@ static SanitizeRet Sanitize_(Cntr const* cntr, Zeta_MemRecorder* dst_seg,
         }
 
         if (cntr->rb != r_n) {
-            Cntr_(Seg)* r_seg = NToSeg_(r_n);
+            Zeta_Cntr_(Seg)* r_seg = NToSeg_(r_n);
 
             if (GetNColor_(&r_seg->n) == ref_color) {
                 ZETA_DebugAssert(seg->ref.beg + seg->ref.size < r_seg->ref.beg);
@@ -3677,15 +3666,15 @@ static SanitizeRet Sanitize_(Cntr const* cntr, Zeta_MemRecorder* dst_seg,
         ZETA_DebugAssert(l_n != NULL);
         ZETA_DebugAssert(r_n != NULL);
 
-        Cntr_(Seg)* seg = NToSeg_(n);
+        Zeta_Cntr_(Seg)* seg = NToSeg_(n);
 
         if (dst_seg != NULL) {
-            Zeta_MemRecorder_Record(dst_seg, seg, sizeof(Cntr_(Seg)));
+            Zeta_MemRecorder_Record(dst_seg, seg, sizeof(Zeta_Cntr_(Seg)));
         }
 
         size_t size = seg->dat.size;
 
-        ZETA_DebugAssert(size == Zeta_BinTree_GetSize(btn_opr, n));
+        ZETA_DebugAssert(size == Zeta_BinTree_TreeNode_(GetSize)(n));
 
         ZETA_DebugAssert(0 < size);
         ZETA_DebugAssert(size <= cntr->seg_capacity);
@@ -3702,7 +3691,7 @@ static SanitizeRet Sanitize_(Cntr const* cntr, Zeta_MemRecorder* dst_seg,
         if (cntr->lb == l_n) {
             l_vacant = 0;
         } else {
-            Cntr_(Seg)* l_seg = NToSeg_(l_n);
+            Zeta_Cntr_(Seg)* l_seg = NToSeg_(l_n);
 
             l_vacant = cntr->seg_capacity -
                        StagingThreeWay(
@@ -3714,7 +3703,7 @@ static SanitizeRet Sanitize_(Cntr const* cntr, Zeta_MemRecorder* dst_seg,
         if (cntr->rb == r_n) {
             r_vacant = 0;
         } else {
-            Cntr_(Seg)* r_seg = NToSeg_(r_n);
+            Zeta_Cntr_(Seg)* r_seg = NToSeg_(r_n);
 
             r_vacant = cntr->seg_capacity -
                        StagingThreeWay(
@@ -3727,8 +3716,8 @@ static SanitizeRet Sanitize_(Cntr const* cntr, Zeta_MemRecorder* dst_seg,
         ZETA_DebugAssert(0 <= r_vacant);
     }
 
-    void* sub_l_n = ZETA_Concat(TreeNode, _GetL)(NULL, n);
-    void* sub_r_n = ZETA_Concat(TreeNode, _GetR)(NULL, n);
+    void* sub_l_n = Zeta_TreeNode_(GetL)(n);
+    void* sub_r_n = Zeta_TreeNode_(GetR)(n);
 
     SanitizeRet l_check_ret = (SanitizeRet){ FALSE, 0, 0 };
     SanitizeRet r_check_ret = (SanitizeRet){ FALSE, 0, 0 };
@@ -3758,7 +3747,7 @@ static SanitizeRet Sanitize_(Cntr const* cntr, Zeta_MemRecorder* dst_seg,
     if (cntr->lb == n || cntr->rb == n) { return ret; }
 
 #if STAGING
-    Cntr_(Seg)* seg = NToSeg_(n);
+    Zeta_Cntr_(Seg)* seg = NToSeg_(n);
 
     if (GetNColor_(n) == dat_color) { return ret; }
 
@@ -3783,9 +3772,9 @@ static SanitizeRet Sanitize_(Cntr const* cntr, Zeta_MemRecorder* dst_seg,
 
 #endif
 
-void Cntr_(Sanitize)(void const* cntr_, Zeta_MemRecorder* dst_seg,
-                     Zeta_MemRecorder* dst_data) {
-    Cntr const* cntr = cntr_;
+void Zeta_Cntr_(Sanitize)(void const* cntr_, Zeta_MemRecorder* dst_seg,
+                          Zeta_MemRecorder* dst_data) {
+    Zeta_Cntr const* cntr = cntr_;
     CheckCntr_(cntr);
 
 #if !ZETA_EnableDebug
@@ -3796,14 +3785,14 @@ void Cntr_(Sanitize)(void const* cntr_, Zeta_MemRecorder* dst_seg,
 #endif
 }
 
-static void PrintState_(Cntr* cntr, void* n) {
-    void* l_n = ZETA_Concat(TreeNode, _GetL)(NULL, n);
-    void* r_n = ZETA_Concat(TreeNode, _GetR)(NULL, n);
+static void PrintState_(Zeta_Cntr* cntr, void* n) {
+    void* l_n = Zeta_TreeNode_(GetL)(n);
+    void* r_n = Zeta_TreeNode_(GetR)(n);
 
     if (l_n != NULL) { PrintState_(cntr, l_n); }
 
     if (cntr->lb != n && cntr->rb != n) {
-        Cntr_(Seg)* seg = NToSeg_(n);
+        Zeta_Cntr_(Seg)* seg = NToSeg_(n);
 
 #if STAGING
         if (GetNColor_(&seg->n) == ref_color) {
@@ -3819,15 +3808,15 @@ static void PrintState_(Cntr* cntr, void* n) {
     if (r_n != NULL) { PrintState_(cntr, r_n); }
 }
 
-void Cntr_(PrintState)(void* cntr_) {
-    Cntr* cntr = cntr_;
+void Zeta_Cntr_(PrintState)(void* cntr_) {
+    Zeta_Cntr* cntr = cntr_;
     CheckCntr_(cntr);
 
     PrintState_(cntr, cntr->root);
 }
 
-static Cntr_(Stats) GetStats_(Cntr* cntr, void* n) {
-    Cntr_(Stats) ret;
+static Zeta_Cntr_(Stats) GetStats_(Zeta_Cntr* cntr, void* n) {
+    Zeta_Cntr_(Stats) ret;
     ret.ref_seg_cnt = 0;
     ret.dat_seg_cnt = 0;
     ret.ref_size = 0;
@@ -3835,14 +3824,14 @@ static Cntr_(Stats) GetStats_(Cntr* cntr, void* n) {
 
     if (n == NULL) { return ret; }
 
-    void* l_n = ZETA_Concat(TreeNode, _GetL)(NULL, n);
-    void* r_n = ZETA_Concat(TreeNode, _GetR)(NULL, n);
+    void* l_n = Zeta_TreeNode_(GetL)(n);
+    void* r_n = Zeta_TreeNode_(GetR)(n);
 
-    Cntr_(Stats) l_stats = GetStats_(cntr, l_n);
-    Cntr_(Stats) r_stats = GetStats_(cntr, r_n);
+    Zeta_Cntr_(Stats) l_stats = GetStats_(cntr, l_n);
+    Zeta_Cntr_(Stats) r_stats = GetStats_(cntr, r_n);
 
     if (cntr->lb != n && cntr->rb != n) {
-        Cntr_(Seg)* seg = NToSeg_(n);
+        Zeta_Cntr_(Seg)* seg = NToSeg_(n);
 
 #if STAGING
         if (GetNColor_(n) == ref_color) {
@@ -3864,19 +3853,19 @@ static Cntr_(Stats) GetStats_(Cntr* cntr, void* n) {
     return ret;
 }
 
-Cntr_(Stats) Cntr_(GetStats)(void* cntr_) {
-    Cntr* cntr = cntr_;
+Zeta_Cntr_(Stats) Zeta_Cntr_(GetStats)(void* cntr_) {
+    Zeta_Cntr* cntr = cntr_;
     CheckCntr_(cntr);
 
     return GetStats_(cntr, cntr->root);
 }
 
-bool_t Cntr_(Cursor_AreEqual)(void const* cntr_, void const* cursor_a_,
-                              void const* cursor_b_) {
-    Cntr const* cntr = cntr_;
+bool_t Zeta_Cntr_(Cursor_AreEqual)(void const* cntr_, void const* cursor_a_,
+                                   void const* cursor_b_) {
+    Zeta_Cntr const* cntr = cntr_;
 
-    Cntr_(Cursor) const* cursor_a = cursor_a_;
-    Cntr_(Cursor) const* cursor_b = cursor_b_;
+    Zeta_Cntr_(Cursor) const* cursor_a = cursor_a_;
+    Zeta_Cntr_(Cursor) const* cursor_b = cursor_b_;
 
     CheckCursor_(cntr, cursor_a);
     CheckCursor_(cntr, cursor_b);
@@ -3884,12 +3873,12 @@ bool_t Cntr_(Cursor_AreEqual)(void const* cntr_, void const* cursor_a_,
     return cursor_a->idx == cursor_b->idx;
 }
 
-int Cntr_(Cursor_Compare)(void const* cntr_, void const* cursor_a_,
-                          void const* cursor_b_) {
-    Cntr const* cntr = cntr_;
+int Zeta_Cntr_(Cursor_Compare)(void const* cntr_, void const* cursor_a_,
+                               void const* cursor_b_) {
+    Zeta_Cntr const* cntr = cntr_;
 
-    Cntr_(Cursor) const* cursor_a = cursor_a_;
-    Cntr_(Cursor) const* cursor_b = cursor_b_;
+    Zeta_Cntr_(Cursor) const* cursor_a = cursor_a_;
+    Zeta_Cntr_(Cursor) const* cursor_b = cursor_b_;
 
     CheckCursor_(cntr, cursor_a);
     CheckCursor_(cntr, cursor_b);
@@ -3897,12 +3886,12 @@ int Cntr_(Cursor_Compare)(void const* cntr_, void const* cursor_a_,
     return ZETA_ThreeWayCompare(cursor_a->idx + 1, cursor_b->idx + 1);
 }
 
-size_t Cntr_(Cursor_GetDist)(void const* cntr_, void const* cursor_a_,
-                             void const* cursor_b_) {
-    Cntr const* cntr = cntr_;
+size_t Zeta_Cntr_(Cursor_GetDist)(void const* cntr_, void const* cursor_a_,
+                                  void const* cursor_b_) {
+    Zeta_Cntr const* cntr = cntr_;
 
-    Cntr_(Cursor) const* cursor_a = cursor_a_;
-    Cntr_(Cursor) const* cursor_b = cursor_b_;
+    Zeta_Cntr_(Cursor) const* cursor_a = cursor_a_;
+    Zeta_Cntr_(Cursor) const* cursor_b = cursor_b_;
 
     CheckCursor_(cntr, cursor_a);
     CheckCursor_(cntr, cursor_b);
@@ -3910,30 +3899,29 @@ size_t Cntr_(Cursor_GetDist)(void const* cntr_, void const* cursor_a_,
     return cursor_b->idx - cursor_a->idx;
 }
 
-size_t Cntr_(Cursor_GetIdx)(void const* cntr_, void const* cursor_) {
-    Cntr const* cntr = cntr_;
-    Cntr_(Cursor) const* cursor = cursor_;
+size_t Zeta_Cntr_(Cursor_GetIdx)(void const* cntr_, void const* cursor_) {
+    Zeta_Cntr const* cntr = cntr_;
+    Zeta_Cntr_(Cursor) const* cursor = cursor_;
     CheckCursor_(cntr, cursor);
 
     return cursor->idx;
 }
 
-void Cntr_(Cursor_StepL)(void const* cntr, void* cursor) {
-    Cntr_(Cursor_AdvanceL)(cntr, cursor, 1);
+void Zeta_Cntr_(Cursor_StepL)(void const* cntr, void* cursor) {
+    Zeta_Cntr_(Cursor_AdvanceL)(cntr, cursor, 1);
 }
 
-void Cntr_(Cursor_StepR)(void const* cntr, void* cursor) {
-    Cntr_(Cursor_AdvanceR)(cntr, cursor, 1);
+void Zeta_Cntr_(Cursor_StepR)(void const* cntr, void* cursor) {
+    Zeta_Cntr_(Cursor_AdvanceR)(cntr, cursor, 1);
 }
 
-void Cntr_(Cursor_AdvanceL)(void const* cntr_, void* cursor_, size_t step) {
-    Cntr const* cntr = cntr_;
-    Cntr_(Cursor)* cursor = cursor_;
+void Zeta_Cntr_(Cursor_AdvanceL)(void const* cntr_, void* cursor_,
+                                 size_t step) {
+    Zeta_Cntr const* cntr = cntr_;
+    Zeta_Cntr_(Cursor)* cursor = cursor_;
     CheckCursor_(cntr, cursor);
 
     if (step == 0) { return; }
-
-    Zeta_BinTreeNodeOperator const* btn_opr = TreeNodeOpr;
 
     ZETA_DebugAssert(step <= cursor->idx + 1);
 
@@ -3943,7 +3931,7 @@ void Cntr_(Cursor_AdvanceL)(void const* cntr_, void* cursor_, size_t step) {
     void* n = cursor->n;
 
     size_t n_size = n == cntr->rb ? 1 : ({
-        Cntr_(Seg)* seg = NToSeg_(n);
+        Zeta_Cntr_(Seg)* seg = NToSeg_(n);
 
         (cntr->lb == n || cntr->rb == n)
             ? 1
@@ -3951,8 +3939,8 @@ void Cntr_(Cursor_AdvanceL)(void const* cntr_, void* cursor_, size_t step) {
                               seg->dat.size);
     });
 
-    Zeta_BinTree_AdvanceL(&dst_n, &dst_seg_idx, btn_opr, n,
-                          n_size - 1 - cursor->seg_idx + step);
+    Zeta_BinTree_TreeNode_(AdvanceL)(&dst_n, &dst_seg_idx, n,
+                                     n_size - 1 - cursor->seg_idx + step);
 
     ZETA_DebugAssert(dst_n != NULL);
 
@@ -3965,7 +3953,7 @@ void Cntr_(Cursor_AdvanceL)(void const* cntr_, void* cursor_, size_t step) {
         return;
     }
 
-    Cntr_(Seg)* dst_seg = NToSeg_(dst_n);
+    Zeta_Cntr_(Seg)* dst_seg = NToSeg_(dst_n);
 
     cursor->seg_idx = StagingThreeWay(GetNColor_(dst_n) == ref_color,
                                       dst_seg->ref.size, dst_seg->dat.size) -
@@ -3989,24 +3977,23 @@ void Cntr_(Cursor_AdvanceL)(void const* cntr_, void* cursor_, size_t step) {
     cursor->ref = Zeta_CircularArray_Access(&ca, cursor->seg_idx, NULL, NULL);
 }
 
-void Cntr_(Cursor_AdvanceR)(void const* cntr_, void* cursor_, size_t step) {
-    Cntr const* cntr = cntr_;
-    Cntr_(Cursor)* cursor = cursor_;
+void Zeta_Cntr_(Cursor_AdvanceR)(void const* cntr_, void* cursor_,
+                                 size_t step) {
+    Zeta_Cntr const* cntr = cntr_;
+    Zeta_Cntr_(Cursor)* cursor = cursor_;
     CheckCursor_(cntr, cursor);
 
     if (step == 0) { return; }
 
-    Zeta_BinTreeNodeOperator const* btn_opr = TreeNodeOpr;
-
-    size_t size = Cntr_(GetSize)(cntr);
+    size_t size = Zeta_Cntr_(GetSize)(cntr);
 
     ZETA_DebugAssert(step <= size - cursor->idx);
 
     void* dst_n;
     size_t dst_seg_idx;
 
-    Zeta_BinTree_AdvanceR(&dst_n, &dst_seg_idx, btn_opr, cursor->n,
-                          cursor->seg_idx + step);
+    Zeta_BinTree_TreeNode_(AdvanceR)(&dst_n, &dst_seg_idx, cursor->n,
+                                     cursor->seg_idx + step);
 
     ZETA_DebugAssert(dst_n != NULL);
 
@@ -4023,7 +4010,7 @@ void Cntr_(Cursor_AdvanceR)(void const* cntr_, void* cursor_, size_t step) {
         return;
     }
 
-    Cntr_(Seg)* dst_seg = NToSeg_(dst_n);
+    Zeta_Cntr_(Seg)* dst_seg = NToSeg_(dst_n);
 
     Zeta_CircularArray ca;
     ca.data = dst_seg->dat.data;
@@ -4036,15 +4023,15 @@ void Cntr_(Cursor_AdvanceR)(void const* cntr_, void* cursor_, size_t step) {
     cursor->ref = Zeta_CircularArray_Access(&ca, cursor->seg_idx, NULL, NULL);
 }
 
-void Cntr_(Cursor_Check)(void const* cntr_, void const* cursor_) {
-    Cntr const* cntr = cntr_;
+void Zeta_Cntr_(Cursor_Check)(void const* cntr_, void const* cursor_) {
+    Zeta_Cntr const* cntr = cntr_;
     CheckCntr_(cntr);
 
-    Cntr_(Cursor) const* cursor = cursor_;
+    Zeta_Cntr_(Cursor) const* cursor = cursor_;
     ZETA_DebugAssert(cursor != NULL);
 
-    Cntr_(Cursor) re_cursor;
-    Cntr_(Access)((void*)cntr, cursor->idx, &re_cursor, NULL);
+    Zeta_Cntr_(Cursor) re_cursor;
+    Zeta_Cntr_(Access)((void*)cntr, cursor->idx, &re_cursor, NULL);
 
     ZETA_DebugAssert(re_cursor.cntr == cursor->cntr);
     ZETA_DebugAssert(re_cursor.idx == cursor->idx);
@@ -4053,8 +4040,8 @@ void Cntr_(Cursor_Check)(void const* cntr_, void const* cursor_) {
     ZETA_DebugAssert(re_cursor.ref == cursor->ref);
 }
 
-void Cntr_(DeploySeqCntr)(void* cntr_, Zeta_SeqCntr* seq_cntr) {
-    Cntr* cntr = cntr_;
+void Zeta_Cntr_(DeploySeqCntr)(void* cntr_, Zeta_SeqCntr* seq_cntr) {
+    Zeta_Cntr* cntr = cntr_;
     CheckCntr_(cntr);
 
     Zeta_SeqCntr_Init(seq_cntr);
@@ -4063,57 +4050,57 @@ void Cntr_(DeploySeqCntr)(void* cntr_, Zeta_SeqCntr* seq_cntr) {
 
     seq_cntr->const_context = cntr;
 
-    seq_cntr->cursor_size = sizeof(Cntr_(Cursor));
+    seq_cntr->cursor_size = sizeof(Zeta_Cntr_(Cursor));
 
-    seq_cntr->GetWidth = Cntr_(GetWidth);
+    seq_cntr->GetWidth = Zeta_Cntr_(GetWidth);
 
-    seq_cntr->GetSize = Cntr_(GetSize);
+    seq_cntr->GetSize = Zeta_Cntr_(GetSize);
 
-    seq_cntr->GetCapacity = Cntr_(GetCapacity);
+    seq_cntr->GetCapacity = Zeta_Cntr_(GetCapacity);
 
-    seq_cntr->GetLBCursor = Cntr_(GetLBCursor);
+    seq_cntr->GetLBCursor = Zeta_Cntr_(GetLBCursor);
 
-    seq_cntr->GetRBCursor = Cntr_(GetRBCursor);
+    seq_cntr->GetRBCursor = Zeta_Cntr_(GetRBCursor);
 
-    seq_cntr->PeekL = Cntr_(PeekL);
+    seq_cntr->PeekL = Zeta_Cntr_(PeekL);
 
-    seq_cntr->PeekR = Cntr_(PeekR);
+    seq_cntr->PeekR = Zeta_Cntr_(PeekR);
 
-    seq_cntr->Access = Cntr_(Access);
+    seq_cntr->Access = Zeta_Cntr_(Access);
 
-    seq_cntr->Refer = Cntr_(Refer);
+    seq_cntr->Refer = Zeta_Cntr_(Refer);
 
-    seq_cntr->Read = Cntr_(Read);
+    seq_cntr->Read = Zeta_Cntr_(Read);
 
-    seq_cntr->Write = Cntr_(Write);
+    seq_cntr->Write = Zeta_Cntr_(Write);
 
-    seq_cntr->PushL = Cntr_(PushL);
+    seq_cntr->PushL = Zeta_Cntr_(PushL);
 
-    seq_cntr->PushR = Cntr_(PushR);
+    seq_cntr->PushR = Zeta_Cntr_(PushR);
 
-    seq_cntr->Insert = Cntr_(Insert);
+    seq_cntr->Insert = Zeta_Cntr_(Insert);
 
-    seq_cntr->PopL = Cntr_(PopL);
+    seq_cntr->PopL = Zeta_Cntr_(PopL);
 
-    seq_cntr->PopR = Cntr_(PopR);
+    seq_cntr->PopR = Zeta_Cntr_(PopR);
 
-    seq_cntr->Erase = Cntr_(Erase);
+    seq_cntr->Erase = Zeta_Cntr_(Erase);
 
-    seq_cntr->EraseAll = Cntr_(EraseAll);
+    seq_cntr->EraseAll = Zeta_Cntr_(EraseAll);
 
-    seq_cntr->Cursor_AreEqual = Cntr_(Cursor_AreEqual);
+    seq_cntr->Cursor_AreEqual = Zeta_Cntr_(Cursor_AreEqual);
 
-    seq_cntr->Cursor_Compare = Cntr_(Cursor_Compare);
+    seq_cntr->Cursor_Compare = Zeta_Cntr_(Cursor_Compare);
 
-    seq_cntr->Cursor_GetDist = Cntr_(Cursor_GetDist);
+    seq_cntr->Cursor_GetDist = Zeta_Cntr_(Cursor_GetDist);
 
-    seq_cntr->Cursor_GetIdx = Cntr_(Cursor_GetIdx);
+    seq_cntr->Cursor_GetIdx = Zeta_Cntr_(Cursor_GetIdx);
 
-    seq_cntr->Cursor_StepL = Cntr_(Cursor_StepL);
+    seq_cntr->Cursor_StepL = Zeta_Cntr_(Cursor_StepL);
 
-    seq_cntr->Cursor_StepR = Cntr_(Cursor_StepR);
+    seq_cntr->Cursor_StepR = Zeta_Cntr_(Cursor_StepR);
 
-    seq_cntr->Cursor_AdvanceL = Cntr_(Cursor_AdvanceL);
+    seq_cntr->Cursor_AdvanceL = Zeta_Cntr_(Cursor_AdvanceL);
 
-    seq_cntr->Cursor_AdvanceR = Cntr_(Cursor_AdvanceR);
+    seq_cntr->Cursor_AdvanceR = Zeta_Cntr_(Cursor_AdvanceR);
 }

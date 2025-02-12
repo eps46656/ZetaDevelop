@@ -311,8 +311,7 @@ unsigned long long Zeta_FindNextConMod(unsigned long long beg,
                                        unsigned long long target,
                                        unsigned long long mod);
 
-void* Zeta_GetMostLink(void const* context,
-                       void* (*GetLink)(void const* context, void* n), void* n);
+void* Zeta_GetMostLink(void* n, void* (*GetLink)(void* n));
 
 int Zeta_Choose2(bool_t a_cond, bool_t b_cond, unsigned long long* random_seed);
 

@@ -4,7 +4,7 @@
 
 ZETA_ExternC_Beg;
 
-typedef unsigned _BitInt(32) Zeta_SHA256Hasher_word_t;
+typedef u32_t Zeta_SHA256Hasher_word_t;
 
 ZETA_DeclareStruct(Zeta_SHA256Hasher);
 

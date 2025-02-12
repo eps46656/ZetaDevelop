@@ -28,11 +28,11 @@ static unsigned short branch_nums[] = { [0 ... ZETA_MultiLevelTable_max_level -
 
 #define GetLSeg_(seg)                                         \
     ZETA_MemberToStruct(Zeta_MultiLevelCircularArray_Seg, ln, \
-                        Zeta_OrdLinkedListNode_GetL(&(seg)->ln))
+                        Zeta_OrdLListNode_GetL(&(seg)->ln))
 
 #define GetRSeg_(seg)                                         \
     ZETA_MemberToStruct(Zeta_MultiLevelCircularArray_Seg, ln, \
-                        Zeta_OrdLinkedListNode_GetR(&(seg)->ln))
+                        Zeta_OrdLListNode_GetR(&(seg)->ln))
 
 #define AllocateMLTNode_(node_allocator)                      \
     ZETA_Allocator_SafeAllocate(                              \
@@ -78,7 +78,7 @@ void Zeta_MultiLevelCircularArray_Init(void* mlca_) {
         seg_allocator, alignof(Zeta_MultiLevelCircularArray_Seg),
         offsetof(Zeta_MultiLevelCircularArray_Seg, data[0]));
 
-    Zeta_OrdLinkedListNode_Init(mlca->seg_head);
+    Zeta_OrdLListNode_Init(mlca->seg_head);
 }
 
 void Zeta_MultiLevelCircularArray_Deinit(void* mlca_) {
@@ -595,8 +595,8 @@ static size_t PushSegs_(Zeta_MultiLevelCircularArray* mlca, int level_i,
 
             mlt_node->ptrs[i] = ins_seg;
 
-            Zeta_OrdLinkedListNode_Init(&ins_seg->ln);
-            Zeta_OrdLinkedListNode_InsertL(&tail->ln, &ins_seg->ln);
+            Zeta_OrdLListNode_Init(&ins_seg->ln);
+            Zeta_LList_OrdLListNode_InsertL(&tail->ln, &ins_seg->ln);
 
             ++idx;
             ++acc_cnt;
@@ -794,7 +794,7 @@ static size_t PopSegs_(Zeta_MultiLevelCircularArray* mlca, int level_i,
 
             Zeta_MultiLevelCircularArray_Seg* era_seg = mlt_node->ptrs[i];
 
-            Zeta_OrdLinkedListNode_Extract(&era_seg->ln);
+            Zeta_LList_OrdLListNode_Extract(&era_seg->ln);
 
             ZETA_Allocator_Deallocate(seg_allocator, era_seg);
 
@@ -1121,7 +1121,7 @@ void Zeta_MultiLevelCircularArray_EraseAll(void* mlca_) {
     for (;;) {
         Zeta_MultiLevelCircularArray_Seg* seg = GetRSeg_(seg_head);
         if (seg == seg_head) { break; }
-        Zeta_OrdLinkedListNode_Extract(&seg->ln);
+        Zeta_LList_OrdLListNode_Extract(&seg->ln);
         ZETA_Allocator_Deallocate(seg_allocator, seg);
     }
 

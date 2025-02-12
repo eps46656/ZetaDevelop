@@ -1,43 +1,29 @@
 #pragma once
 
-#include "bin_tree.h"
+#pragma push_macro("TreeNode")
+#pragma push_macro("PColor")
+#pragma push_macro("LColor")
+#pragma push_macro("RColor")
+#pragma push_macro("AccSize")
 
-ZETA_ExternC_Beg;
+#define TreeNode OrdCnt3RBTreeNode
+#define PColor 1
+#define LColor 1
+#define RColor 1
+#define AccSize 1
 
-ZETA_DeclareStruct(Zeta_OrdCnt3RBTreeNode);
+#include "bin_tree_node_temp.h"
 
-struct Zeta_OrdCnt3RBTreeNode {
-    void* p;
-    void* l;
-    void* r;
-    size_t acc_size;
-} __attribute__((aligned(2)));
+//
 
-void Zeta_OrdCnt3RBTreeNode_Init(void const* context, void* n);
+#include "bin_tree_temp.h"
 
-void* Zeta_OrdCnt3RBTreeNode_GetP(void const* context, void* n);
-void* Zeta_OrdCnt3RBTreeNode_GetL(void const* context, void* n);
-void* Zeta_OrdCnt3RBTreeNode_GetR(void const* context, void* n);
+//
 
-void Zeta_OrdCnt3RBTreeNode_SetP(void const* context, void* n, void* m);
-void Zeta_OrdCnt3RBTreeNode_SetL(void const* context, void* n, void* m);
-void Zeta_OrdCnt3RBTreeNode_SetR(void const* context, void* n, void* m);
+#include "rbtree_temp.h"
 
-int Zeta_OrdCnt3RBTreeNode_GetPColor(void const* context, void* n);
-int Zeta_OrdCnt3RBTreeNode_GetLColor(void const* context, void* n);
-int Zeta_OrdCnt3RBTreeNode_GetRColor(void const* context, void* n);
-
-void Zeta_OrdCnt3RBTreeNode_SetPColor(void const* context, void* n, int color);
-void Zeta_OrdCnt3RBTreeNode_SetLColor(void const* context, void* n, int color);
-void Zeta_OrdCnt3RBTreeNode_SetRColor(void const* context, void* n, int color);
-
-size_t Zeta_OrdCnt3RBTreeNode_GetAccSize(void const* context, void* n);
-void Zeta_OrdCnt3RBTreeNode_SetAccSize(void const* context, void* n,
-                                       size_t acc_size);
-
-void Zeta_OrdCnt3RBTreeNode_DeployBinTreeNodeOperator(
-    void const* context, Zeta_BinTreeNodeOperator* btn_opr);
-
-extern Zeta_BinTreeNodeOperator const zeta_ord_cnt_3rb_tree_node_opr;
-
-ZETA_ExternC_End;
+#pragma pop_macro("TreeNode")
+#pragma pop_macro("PColor")
+#pragma pop_macro("LColor")
+#pragma pop_macro("RColor")
+#pragma pop_macro("AccSize")

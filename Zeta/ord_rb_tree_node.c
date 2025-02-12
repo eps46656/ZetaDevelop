@@ -1,125 +1,23 @@
 #include "ord_rb_tree_node.h"
 
-#include "debugger.h"
-#include "ptr_utils.h"
+#pragma push_macro("TreeNode")
+#pragma push_macro("PColor")
+#pragma push_macro("LColor")
+#pragma push_macro("RColor")
+#pragma push_macro("AccSize")
 
-void Zeta_OrdRBTreeNode_Init(void const* context, void* n_) {
-    ZETA_Unused(context);
+#define TreeNode OrdRBTreeNode
+#define PColor 1
+#define LColor 0
+#define RColor 0
+#define AccSize 0
 
-    Zeta_OrdRBTreeNode* n = n_;
-    ZETA_DebugAssert(n != NULL);
+#include "bin_tree_node_temp.c"
+#include "bin_tree_temp.c"
+#include "rbtree_temp.c"
 
-    n->p = (void*)n;
-    n->l = NULL;
-    n->r = NULL;
-}
-
-void* Zeta_OrdRBTreeNode_GetP(void const* context, void* n_) {
-    ZETA_Unused(context);
-
-    Zeta_OrdRBTreeNode* n = n_;
-    ZETA_DebugAssert(n != NULL);
-
-    void* p = ZETA_ColorPtr_GetPtr(&n->p, alignof(Zeta_OrdRBTreeNode));
-
-    return n == p ? NULL : p;
-}
-
-void* Zeta_OrdRBTreeNode_GetL(void const* context, void* n_) {
-    ZETA_Unused(context);
-
-    Zeta_OrdRBTreeNode* n = n_;
-    ZETA_DebugAssert(n != NULL);
-
-    return n->l;
-}
-
-void* Zeta_OrdRBTreeNode_GetR(void const* context, void* n_) {
-    ZETA_Unused(context);
-
-    Zeta_OrdRBTreeNode* n = n_;
-    ZETA_DebugAssert(n != NULL);
-
-    return n->r;
-}
-
-void Zeta_OrdRBTreeNode_SetP(void const* context, void* n_, void* m) {
-    ZETA_Unused(context);
-
-    Zeta_OrdRBTreeNode* n = n_;
-    ZETA_DebugAssert(n != NULL);
-
-    ZETA_ColorPtr_SetPtr(&n->p, alignof(Zeta_OrdRBTreeNode), m == NULL ? n : m);
-}
-
-void Zeta_OrdRBTreeNode_SetL(void const* context, void* n_, void* m) {
-    ZETA_Unused(context);
-
-    Zeta_OrdRBTreeNode* n = n_;
-    ZETA_DebugAssert(n != NULL);
-
-    n->l = m;
-}
-
-void Zeta_OrdRBTreeNode_SetR(void const* context, void* n_, void* m) {
-    ZETA_Unused(context);
-
-    Zeta_OrdRBTreeNode* n = n_;
-    ZETA_DebugAssert(n != NULL);
-
-    n->r = m;
-}
-
-int Zeta_OrdRBTreeNode_GetPColor(void const* context, void* n_) {
-    ZETA_Unused(context);
-
-    Zeta_OrdRBTreeNode* n = n_;
-
-    return n == NULL
-               ? 0
-               : ZETA_ColorPtr_GetColor(&n->p, alignof(Zeta_OrdRBTreeNode));
-}
-
-void Zeta_OrdRBTreeNode_SetPColor(void const* context, void* n_, int color) {
-    ZETA_Unused(context);
-
-    Zeta_OrdRBTreeNode* n = n_;
-    ZETA_DebugAssert(n != NULL);
-
-    ZETA_ColorPtr_SetColor(&n->p, alignof(Zeta_OrdRBTreeNode), color);
-}
-
-void Zeta_OrdRBTreeNode_DeployBinTreeNodeOperator(
-    void const* context, Zeta_BinTreeNodeOperator* btn_opr) {
-    ZETA_Unused(context);
-
-    Zeta_BinTree_InitOpr(btn_opr);
-
-    btn_opr->context = NULL;
-
-    btn_opr->GetP = Zeta_OrdRBTreeNode_GetP;
-    btn_opr->GetL = Zeta_OrdRBTreeNode_GetL;
-    btn_opr->GetR = Zeta_OrdRBTreeNode_GetR;
-
-    btn_opr->SetP = Zeta_OrdRBTreeNode_SetP;
-    btn_opr->SetL = Zeta_OrdRBTreeNode_SetL;
-    btn_opr->SetR = Zeta_OrdRBTreeNode_SetR;
-
-    btn_opr->GetColor = Zeta_OrdRBTreeNode_GetPColor;
-    btn_opr->SetColor = Zeta_OrdRBTreeNode_SetPColor;
-}
-
-Zeta_BinTreeNodeOperator const zeta_ord_rb_tree_node_opr = {
-    .context = NULL,  //
-
-    .GetP = Zeta_OrdRBTreeNode_GetP,  //
-    .GetL = Zeta_OrdRBTreeNode_GetL,  //
-    .GetR = Zeta_OrdRBTreeNode_GetR,  //
-
-    .SetP = Zeta_OrdRBTreeNode_SetP,  //
-    .SetL = Zeta_OrdRBTreeNode_SetL,  //
-    .SetR = Zeta_OrdRBTreeNode_SetR,  //
-
-    .GetColor = Zeta_OrdRBTreeNode_GetPColor,  //
-    .SetColor = Zeta_OrdRBTreeNode_SetPColor,  //
-};
+#pragma pop_macro("TreeNode")
+#pragma pop_macro("PColor")
+#pragma pop_macro("LColor")
+#pragma pop_macro("RColor")
+#pragma pop_macro("AccSize")

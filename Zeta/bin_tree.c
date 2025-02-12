@@ -21,14 +21,15 @@ void Zeta_BinTree_InitOpr(Zeta_BinTreeNodeOperator* btn_opr) {
     btn_opr->SetAccSize = NULL;
 }
 
-static size_t Count_(Zeta_BinTreeNodeOperator const* btn_opr, void* n) {
+static size_t Zeta_BinTree_TreeNode_(Count_)(
+    Zeta_BinTreeNodeOperator const* btn_opr, void* n) {
     size_t ret = 1;
 
     void* nl = ZETA_BinTreeNodeOperator_GetL(btn_opr, n);
     void* nr = ZETA_BinTreeNodeOperator_GetR(btn_opr, n);
 
-    if (nl != NULL) { ret += Count_(btn_opr, nl); }
-    if (nr != NULL) { ret += Count_(btn_opr, nr); }
+    if (nl != NULL) { ret += Zeta_BinTree_TreeNode_(Count_)(btn_opr, nl); }
+    if (nr != NULL) { ret += Zeta_BinTree_TreeNode_(Count_)(btn_opr, nr); }
 
     return ret;
 }
@@ -36,11 +37,11 @@ static size_t Count_(Zeta_BinTreeNodeOperator const* btn_opr, void* n) {
 size_t Zeta_BinTree_Count(Zeta_BinTreeNodeOperator const* btn_opr, void* n) {
     if (n == NULL) { return 0; }
 
-    return Count_(btn_opr, n);
+    return Zeta_BinTree_TreeNode_(Count_)(btn_opr, n);
 }
 
-static void AddDiffSize_(Zeta_BinTreeNodeOperator const* btn_opr, void* n,
-                         size_t diff_size) {
+static void Zeta_BinTree_TreeNode_(AddDiffSize_)(
+    Zeta_BinTreeNodeOperator const* btn_opr, void* n, size_t diff_size) {
     if (diff_size == 0) { return; }
 
     for (; n != NULL; n = ZETA_BinTreeNodeOperator_GetP(btn_opr, n)) {

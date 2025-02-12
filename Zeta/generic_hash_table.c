@@ -1,10 +1,8 @@
 #include "generic_hash_table.h"
 
-#include "bin_tree.h"
 #include "debugger.h"
 #include "mem_check_utils.h"
 #include "multi_level_table.h"
-#include "rbtree.h"
 #include "utils.h"
 
 #if ZETA_EnableDebug
@@ -159,9 +157,9 @@ static void* Find_(unsigned long long salt, Zeta_MultiLevelTable* table,
         if (cmp == 0) { target_n = n; }
 
         if (cmp <= 0) {
-            n = Zeta_OrdRBTreeNode_GetL(NULL, n);
+            n = Zeta_OrdRBTreeNode_GetL(n);
         } else {
-            n = Zeta_OrdRBTreeNode_GetR(NULL, n);
+            n = Zeta_OrdRBTreeNode_GetR(n);
         }
     }
 
@@ -193,15 +191,14 @@ static void Insert_(Zeta_GenericHashTable* ght, Zeta_MultiLevelTable* table,
 
         if (cmp < 0) {
             gt_n = n;
-            n = Zeta_OrdRBTreeNode_GetL(NULL, n);
+            n = Zeta_OrdRBTreeNode_GetL(n);
         } else {
             le_n = n;
-            n = Zeta_OrdRBTreeNode_GetR(NULL, n);
+            n = Zeta_OrdRBTreeNode_GetR(n);
         }
     }
 
-    *root_entry =
-        Zeta_RBTree_Insert(&zeta_ord_rb_tree_node_opr, le_n, gt_n, &node->n);
+    *root_entry = Zeta_RBTree_OrdRBTreeNode_Insert(le_n, gt_n, &node->n);
 }
 
 static bool_t TryExtract_(Zeta_GenericHashTable* ght,
@@ -220,8 +217,7 @@ static bool_t TryExtract_(Zeta_GenericHashTable* ght,
 
     if (root_entry == NULL || *root_entry != root) { return FALSE; }
 
-    if ((*root_entry = Zeta_RBTree_Extract(&zeta_ord_rb_tree_node_opr,
-                                           &node->n)) == NULL) {
+    if ((*root_entry = Zeta_RBTree_OrdRBTreeNode_Extract(&node->n)) == NULL) {
         Zeta_MultiLevelTable_Erase(table, idxes);
     }
 
@@ -248,8 +244,8 @@ static void TryTransfer_(Zeta_GenericHashTable const* ght,
         Zeta_GenericHashTable_Node* trans_node =
             ZETA_MemberToStruct(Zeta_GenericHashTable_Node, n, *root_entry);
 
-        if ((*root_entry = Zeta_RBTree_Extract(&zeta_ord_rb_tree_node_opr,
-                                               &trans_node->n)) == NULL) {
+        if ((*root_entry = Zeta_RBTree_OrdRBTreeNode_Extract(&trans_node->n)) ==
+            NULL) {
             Zeta_MultiLevelTable_Erase(cur_table, idxes);
             root_entry = NULL;
         }
@@ -371,8 +367,7 @@ bool_t Zeta_GenericHashTable_Contain(void const* ght_, void const* node_) {
     nxt_table.root = ght->nxt_table_root;
     nxt_table.node_allocator = ght->table_node_allocator;
 
-    void* root =
-        Zeta_GetMostLink(NULL, Zeta_OrdRBTreeNode_GetP, (void*)&node->n);
+    void* root = Zeta_GetMostLink((void*)&node->n, Zeta_OrdRBTreeNode_GetP);
 
     size_t idxes[ZETA_MultiLevelTable_max_level];
 
@@ -505,7 +500,7 @@ void Zeta_GenericHashTable_Extract(void* ght_, void* node_) {
     nxt_table.root = ght->nxt_table_root;
     nxt_table.node_allocator = ght->table_node_allocator;
 
-    void* root = Zeta_GetMostLink(NULL, Zeta_OrdRBTreeNode_GetP, &node->n);
+    void* root = Zeta_GetMostLink(&node->n, Zeta_OrdRBTreeNode_GetP);
 
     if (!TryExtract_(ght, &cur_table, ght->cur_salt, cur_capacity, node,
                      root) &&
@@ -549,8 +544,7 @@ void* Zeta_GenericHashTable_ExtractAny(void* ght_) {
     Zeta_GenericHashTable_Node* node =
         ZETA_MemberToStruct(Zeta_GenericHashTable_Node, n, *root_entry);
 
-    if ((*root_entry = Zeta_RBTree_Extract(&zeta_ord_rb_tree_node_opr,
-                                           &node->n)) == NULL) {
+    if ((*root_entry = Zeta_RBTree_OrdRBTreeNode_Extract(&node->n)) == NULL) {
         Zeta_MultiLevelTable_Erase(&cur_table, idxes);
     }
 
@@ -658,8 +652,7 @@ unsigned long long Zeta_GenericHashTable_GetEffFactor(void const* ght_) {
         void** root_entry = Zeta_MultiLevelTable_FindFirst(&cur_table, idxes);
 
         while (root_entry != NULL) {
-            size_t tree_size =
-                Zeta_BinTree_Count(&zeta_ord_rb_tree_node_opr, *root_entry);
+            size_t tree_size = Zeta_BinTree_OrdRBTreeNode_Count(*root_entry);
 
             total_height += ZETA_CeilLog2(tree_size) * tree_size;
 
@@ -672,8 +665,7 @@ unsigned long long Zeta_GenericHashTable_GetEffFactor(void const* ght_) {
         void** root_entry = Zeta_MultiLevelTable_FindFirst(&nxt_table, idxes);
 
         while (root_entry != NULL) {
-            size_t tree_size =
-                Zeta_BinTree_Count(&zeta_ord_rb_tree_node_opr, *root_entry);
+            size_t tree_size = Zeta_BinTree_OrdRBTreeNode_Count(*root_entry);
 
             total_height += ZETA_CeilLog2(tree_size) * tree_size;
 
@@ -733,8 +725,8 @@ static SanitizeTreeRet SanitizeTree_(Zeta_GenericHashTable const* ght,
                                 sizeof(Zeta_GenericHashTable_Node));
     }
 
-    void* nl = Zeta_OrdRBTreeNode_GetL(NULL, &node->n);
-    void* nr = Zeta_OrdRBTreeNode_GetR(NULL, &node->n);
+    void* nl = Zeta_OrdRBTreeNode_GetL(&node->n);
+    void* nr = Zeta_OrdRBTreeNode_GetR(&node->n);
 
     SanitizeTreeRet l_ret =
         SanitizeTree_(ght, dst_node, salt, capacity, bucket_idx, nl);
@@ -810,8 +802,7 @@ void Zeta_GenericHashTable_Sanitize(void const* ght_,
         void** root_entry = Zeta_MultiLevelTable_FindFirst(&cur_table, idxes);
 
         while (root_entry != NULL) {
-            total_size +=
-                Zeta_BinTree_Count(&zeta_ord_rb_tree_node_opr, *root_entry);
+            total_size += Zeta_BinTree_OrdRBTreeNode_Count(*root_entry);
 
             SanitizeTree_(ght, dst_node, ght->cur_salt, cur_capacity,
                           GetIdx_(cur_table.level, idxes), *root_entry);
@@ -825,8 +816,7 @@ void Zeta_GenericHashTable_Sanitize(void const* ght_,
         void** root_entry = Zeta_MultiLevelTable_FindFirst(&nxt_table, idxes);
 
         while (root_entry != NULL) {
-            total_size +=
-                Zeta_BinTree_Count(&zeta_ord_rb_tree_node_opr, *root_entry);
+            total_size += Zeta_BinTree_OrdRBTreeNode_Count(*root_entry);
 
             SanitizeTree_(ght, dst_node, ght->nxt_salt, nxt_capacity,
                           GetIdx_(nxt_table.level, idxes), *root_entry);
@@ -843,5 +833,5 @@ void Zeta_GenericHashTable_Node_Init(void* node_) {
     Zeta_GenericHashTable_Node* node = node_;
     ZETA_DebugAssert(node != NULL);
 
-    Zeta_OrdRBTreeNode_Init(NULL, &node->n);
+    Zeta_OrdRBTreeNode_Init(&node->n);
 }

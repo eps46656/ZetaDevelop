@@ -4,8 +4,8 @@
 #include "cache_manager.h"
 #include "generic_hash_table.h"
 #include "ord_bin_tree_node.h"
-#include "ord_linked_list_node.h"
-#include "ord_rb_linked_list_node.h"
+#include "ord_llist_node.h"
+#include "ord_rb_llist_node.h"
 #include "ord_rb_tree_node.h"
 #include "seq_cntr.h"
 
@@ -34,7 +34,7 @@ struct Zeta_LRUCacheManager_BNode {
 
     ZETA_DebugStructPadding;
 
-    Zeta_OrdRBLinkedListNode ln;
+    Zeta_OrdRBLListNode ln;
     // p: color
 };
 
@@ -45,7 +45,7 @@ struct Zeta_LRUCacheManager_SNode {
 
     ZETA_DebugStructPadding;
 
-    Zeta_OrdLinkedListNode sln;
+    Zeta_OrdLListNode sln;
 
     ZETA_DebugStructPadding;
 
@@ -93,13 +93,13 @@ struct Zeta_LRUCacheManager {
 
     Zeta_GenericHashTable ght;
 
-    Zeta_OrdLinkedListNode* fit_sl;
-    Zeta_OrdLinkedListNode* over_sl;
+    Zeta_OrdLListNode* fit_sl;
+    Zeta_OrdLListNode* over_sl;
 
-    Zeta_OrdRBLinkedListNode* hot_clear_cl;
-    Zeta_OrdRBLinkedListNode* hot_dirty_cl;
-    Zeta_OrdRBLinkedListNode* cold_clear_cl;
-    Zeta_OrdRBLinkedListNode* cold_dirty_cl;
+    Zeta_OrdRBLListNode* hot_clear_cl;
+    Zeta_OrdRBLListNode* hot_dirty_cl;
+    Zeta_OrdRBLListNode* cold_clear_cl;
+    Zeta_OrdRBLListNode* cold_dirty_cl;
 };
 
 // -----------------------------------------------------------------------------

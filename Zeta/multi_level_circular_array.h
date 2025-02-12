@@ -2,7 +2,7 @@
 
 #include "allocator.h"
 #include "multi_level_table.h"
-#include "ord_linked_list_node.h"
+#include "ord_llist_node.h"
 #include "seq_cntr.h"
 
 ZETA_ExternC_Beg;
@@ -42,7 +42,7 @@ struct Zeta_MultiLevelCircularArray {
 struct Zeta_MultiLevelCircularArray_Seg {
     ZETA_DebugStructPadding;
 
-    Zeta_OrdLinkedListNode ln;
+    Zeta_OrdLListNode ln;
 
     ZETA_DebugStructPadding;
 

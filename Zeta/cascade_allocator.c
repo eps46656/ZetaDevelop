@@ -1,7 +1,7 @@
 #include "cascade_allocator.h"
 
 #include "debugger.h"
-#include "ord_linked_list_node.h"
+#include "ord_llist_node.h"
 #include "utils.h"
 
 #if ZETA_EnableDebug
@@ -21,7 +21,7 @@ void Zeta_CascadeAllocator_Init(void* ca_) {
     size_t align = ca->align;
     ZETA_DebugAssert(0 < align);
 
-    align = Zeta_GCD(alignof(Zeta_OrdLinkedListNode), align);
+    align = Zeta_GCD(alignof(Zeta_OrdLListNode), align);
 
     void* mem_beg = __builtin_align_up(ca->mem, align);
     void* mem_end = __builtin_align_down(ca->mem + ca->size, align);
@@ -32,11 +32,11 @@ void Zeta_CascadeAllocator_Init(void* ca_) {
 
     ZETA_DebugAssert(sizeof(void*) * 1024 <= size);
 
-    size_t node_size = ZETA_IntRoundUp(sizeof(Zeta_OrdLinkedListNode), align);
+    size_t node_size = ZETA_IntRoundUp(sizeof(Zeta_OrdLListNode), align);
 
     void* first_node = mem_end - node_size;
 
-    Zeta_OrdLinkedListNode_Init(first_node);
+    Zeta_OrdLListNode_Init(first_node);
 
     ca->align = align;
 
@@ -72,7 +72,7 @@ void* Zeta_CascadeAllocator_Allocate(void* ca_, size_t size) {
 
     void* mem_beg = ca->mem;
 
-    size_t node_size = ZETA_IntRoundUp(sizeof(Zeta_OrdLinkedListNode), align);
+    size_t node_size = ZETA_IntRoundUp(sizeof(Zeta_OrdLListNode), align);
 
     size = ZETA_IntRoundUp(size, align);
 
@@ -84,9 +84,9 @@ void* Zeta_CascadeAllocator_Allocate(void* ca_, size_t size) {
 
     void* new_first_node = first_node - (node_size + size);
 
-    Zeta_OrdLinkedListNode_Init(new_first_node);
+    Zeta_OrdLListNode_Init(new_first_node);
 
-    Zeta_OrdLinkedListNode_InsertL(first_node, new_first_node);
+    Zeta_LList_OrdLListNode_InsertL(first_node, new_first_node);
 
     ca->first_node = new_first_node;
 
@@ -101,15 +101,15 @@ void Zeta_CascadeAllocator_Deallocate(void* ca_, void* ptr) {
 
     size_t align = ca->align;
 
-    size_t node_size = ZETA_IntRoundUp(sizeof(Zeta_OrdLinkedListNode), align);
+    size_t node_size = ZETA_IntRoundUp(sizeof(Zeta_OrdLListNode), align);
 
     void* node = ptr - node_size;
 
     if (ca->first_node == node) {
-        ca->first_node = Zeta_OrdLinkedListNode_GetR(ca->first_node);
+        ca->first_node = Zeta_OrdLListNode_GetR(ca->first_node);
     }
 
-    Zeta_OrdLinkedListNode_Extract(ptr - node_size);
+    Zeta_LList_OrdLListNode_Extract(ptr - node_size);
 }
 
 void Zeta_CascadeAllocator_Check(void const* ca_) {
@@ -119,7 +119,7 @@ void Zeta_CascadeAllocator_Check(void const* ca_) {
     size_t align = ca->align;
 
     ZETA_DebugAssert(0 < align);
-    ZETA_DebugAssert(align % alignof(Zeta_OrdLinkedListNode) == 0);
+    ZETA_DebugAssert(align % alignof(Zeta_OrdLListNode) == 0);
 
     void* mem_beg = ca->mem;
     void* mem_end = mem_beg + ca->size;
@@ -134,13 +134,13 @@ void Zeta_CascadeAllocator_Sanitize(void const* ca_, Zeta_MemRecorder* dst) {
 
     size_t align = ca->align;
 
-    size_t node_size = ZETA_IntRoundUp(sizeof(Zeta_OrdLinkedListNode), align);
+    size_t node_size = ZETA_IntRoundUp(sizeof(Zeta_OrdLListNode), align);
 
     void* first_node = ca->first_node;
 
     for (void* node = first_node;;) {
-        void* nxt_node = Zeta_OrdLinkedListNode_GetR(node);
-        ZETA_DebugAssert(Zeta_OrdLinkedListNode_GetL(nxt_node) == node);
+        void* nxt_node = Zeta_OrdLListNode_GetR(node);
+        ZETA_DebugAssert(Zeta_OrdLListNode_GetL(nxt_node) == node);
 
         if (nxt_node == first_node) { break; }
 
@@ -156,7 +156,7 @@ void Zeta_CascadeAllocator_Sanitize(void const* ca_, Zeta_MemRecorder* dst) {
     }
 
     ZETA_DebugAssert(ca->mem + ca->size - node_size ==
-                     Zeta_OrdLinkedListNode_GetL(first_node));
+                     Zeta_OrdLListNode_GetL(first_node));
 }
 
 void Zeta_CascadeAllocator_DeployAllocator(void* ca_, Zeta_Allocator* dst) {

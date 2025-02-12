@@ -2,7 +2,6 @@
 
 #include "debugger.h"
 #include "memory.h"
-#include "rbtree.h"
 #include "utils.h"
 
 #if ZETA_EnableDebug
@@ -70,7 +69,7 @@ static unsigned long long PairHash(void const* context, void const* x_,
 }
 
 static Pair GetPairFromBNode_(BNode* bn) {
-    int bnc = Zeta_OrdRBLinkedListNode_GetColor(&bn->ln);
+    int bnc = Zeta_OrdRBLListNode_GetColor(&bn->ln);
     ZETA_DebugAssert(bnc == sn_color || bnc == cn_color || bnc == xn_color);
 
     Pair ret;
@@ -133,7 +132,7 @@ static int PairBNodeCompare(void const* context, void const* x_p_,
 
 static void InitBNode_(BNode* bn) {
     Zeta_GenericHashTable_Node_Init(&bn->ghtn);
-    Zeta_OrdRBLinkedListNode_Init(&bn->ln);
+    Zeta_OrdRBLListNode_Init(&bn->ln);
 }
 
 static SNode* AllocateSNode_(Zeta_LRUCacheManager* lrucm) {
@@ -142,9 +141,9 @@ static SNode* AllocateSNode_(Zeta_LRUCacheManager* lrucm) {
 
     InitBNode_(&sn->bn);
 
-    Zeta_OrdRBLinkedListNode_SetColor(&sn->bn.ln, sn_color);
+    Zeta_OrdRBLListNode_SetColor(&sn->bn.ln, sn_color);
 
-    Zeta_OrdRBLinkedListNode_Init(&sn->sln);
+    Zeta_OrdRBLListNode_Init(&sn->sln);
 
     return sn;
 }
@@ -155,7 +154,7 @@ static CNode* AllocateCNode_(Zeta_LRUCacheManager* lrucm) {
 
     InitBNode_(&cn->bn);
 
-    Zeta_OrdRBLinkedListNode_SetColor(&cn->bn.ln, cn_color);
+    Zeta_OrdRBLListNode_SetColor(&cn->bn.ln, cn_color);
 
     cn->frame = ZETA_Allocator_SafeAllocate(
         lrucm->frame_allocator, 1,
@@ -170,7 +169,7 @@ static XNode* AllocateXNode_(Zeta_LRUCacheManager* lrucm) {
 
     InitBNode_(&xn->bn);
 
-    Zeta_OrdRBLinkedListNode_SetColor(&xn->bn.ln, xn_color);
+    Zeta_OrdRBLListNode_SetColor(&xn->bn.ln, xn_color);
 
     return xn;
 }
@@ -240,37 +239,35 @@ void Zeta_LRUCacheManager_Init(void* lrucm_) {
 
     Zeta_GenericHashTable_Init(&lrucm->ght);
 
-    lrucm->fit_sl = ZETA_Allocator_SafeAllocate(sn_allocator,
-                                                alignof(Zeta_OrdLinkedListNode),
-                                                sizeof(Zeta_OrdLinkedListNode));
+    lrucm->fit_sl = ZETA_Allocator_SafeAllocate(
+        sn_allocator, alignof(Zeta_OrdLListNode), sizeof(Zeta_OrdLListNode));
 
     lrucm->over_sl = ZETA_Allocator_SafeAllocate(
-        sn_allocator, alignof(Zeta_OrdLinkedListNode),
-        sizeof(Zeta_OrdLinkedListNode));
+        sn_allocator, alignof(Zeta_OrdLListNode), sizeof(Zeta_OrdLListNode));
 
-    lrucm->hot_clear_cl = ZETA_Allocator_SafeAllocate(
-        cn_allocator, alignof(Zeta_OrdRBLinkedListNode),
-        sizeof(Zeta_OrdRBLinkedListNode));
+    lrucm->hot_clear_cl =
+        ZETA_Allocator_SafeAllocate(cn_allocator, alignof(Zeta_OrdRBLListNode),
+                                    sizeof(Zeta_OrdRBLListNode));
 
-    lrucm->hot_dirty_cl = ZETA_Allocator_SafeAllocate(
-        cn_allocator, alignof(Zeta_OrdRBLinkedListNode),
-        sizeof(Zeta_OrdRBLinkedListNode));
+    lrucm->hot_dirty_cl =
+        ZETA_Allocator_SafeAllocate(cn_allocator, alignof(Zeta_OrdRBLListNode),
+                                    sizeof(Zeta_OrdRBLListNode));
 
-    lrucm->cold_clear_cl = ZETA_Allocator_SafeAllocate(
-        cn_allocator, alignof(Zeta_OrdRBLinkedListNode),
-        sizeof(Zeta_OrdRBLinkedListNode));
+    lrucm->cold_clear_cl =
+        ZETA_Allocator_SafeAllocate(cn_allocator, alignof(Zeta_OrdRBLListNode),
+                                    sizeof(Zeta_OrdRBLListNode));
 
-    lrucm->cold_dirty_cl = ZETA_Allocator_SafeAllocate(
-        cn_allocator, alignof(Zeta_OrdRBLinkedListNode),
-        sizeof(Zeta_OrdRBLinkedListNode));
+    lrucm->cold_dirty_cl =
+        ZETA_Allocator_SafeAllocate(cn_allocator, alignof(Zeta_OrdRBLListNode),
+                                    sizeof(Zeta_OrdRBLListNode));
 
-    Zeta_OrdLinkedListNode_Init(lrucm->fit_sl);
-    Zeta_OrdLinkedListNode_Init(lrucm->over_sl);
+    Zeta_OrdLListNode_Init(lrucm->fit_sl);
+    Zeta_OrdLListNode_Init(lrucm->over_sl);
 
-    Zeta_OrdRBLinkedListNode_Init(lrucm->hot_clear_cl);
-    Zeta_OrdRBLinkedListNode_Init(lrucm->hot_dirty_cl);
-    Zeta_OrdRBLinkedListNode_Init(lrucm->cold_clear_cl);
-    Zeta_OrdRBLinkedListNode_Init(lrucm->cold_dirty_cl);
+    Zeta_OrdRBLListNode_Init(lrucm->hot_clear_cl);
+    Zeta_OrdRBLListNode_Init(lrucm->hot_dirty_cl);
+    Zeta_OrdRBLListNode_Init(lrucm->cold_clear_cl);
+    Zeta_OrdRBLListNode_Init(lrucm->cold_dirty_cl);
 }
 
 Zeta_SeqCntr* Zeta_LRUCacheManager_GetOrigin(void const* lrucm_) {
@@ -300,7 +297,7 @@ void Zeta_LRUCacheManager_Deinit(void* lrucm_) {
         Zeta_LRUCacheManager_BNode* bn =
             ZETA_MemberToStruct(Zeta_LRUCacheManager_BNode, ghtn, ghtn);
 
-        int bnc = Zeta_OrdRBLinkedListNode_GetColor(&bn->ln);
+        int bnc = Zeta_OrdRBLListNode_GetColor(&bn->ln);
         ZETA_DebugAssert(bnc == cn_color || bnc == xn_color);
 
         switch (bnc) {
@@ -341,14 +338,14 @@ static unsigned TryRelease_(Zeta_LRUCacheManager* lrucm, SNode* sn,
         quata, ZETA_GetMaxOf(sn->cn_cnt, max_cn_cnt) - max_cn_cnt);
 
     for (size_t cnt_i = 0; cnt_i < cnt; ++cnt_i) {
-        XNode* xn = ZETA_MemberToStruct(
-            XNode, bn.ln, Zeta_OrdRBLinkedListNode_GetL(&sn->bn.ln));
+        XNode* xn = ZETA_MemberToStruct(XNode, bn.ln,
+                                        Zeta_OrdRBLListNode_GetL(&sn->bn.ln));
 
         CNode* cn = xn->cn;
 
         Zeta_GenericHashTable_Extract(&lrucm->ght, &xn->bn.ghtn);
 
-        Zeta_OrdRBLinkedListNode_Extract(&xn->bn.ln);
+        Zeta_OrdRBLListNode_Extract(&xn->bn.ln);
 
         ZETA_Allocator_Deallocate(lrucm->xn_allocator, xn);
 
@@ -356,12 +353,12 @@ static unsigned TryRelease_(Zeta_LRUCacheManager* lrucm, SNode* sn,
 
         if (0 < --cn->ref_cnt) { continue; }
 
-        Zeta_OrdRBLinkedListNode_Extract(&cn->bn.ln);
+        Zeta_OrdRBLListNode_Extract(&cn->bn.ln);
 
         if (cn->dirty) {
-            Zeta_OrdRBLinkedListNode_InsertL(lrucm->cold_dirty_cl, &cn->bn.ln);
+            Zeta_OrdRBLListNode_InsertL(lrucm->cold_dirty_cl, &cn->bn.ln);
         } else {
-            Zeta_OrdRBLinkedListNode_InsertL(lrucm->cold_clear_cl, &cn->bn.ln);
+            Zeta_OrdRBLListNode_InsertL(lrucm->cold_clear_cl, &cn->bn.ln);
         }
     }
 
@@ -370,8 +367,7 @@ static unsigned TryRelease_(Zeta_LRUCacheManager* lrucm, SNode* sn,
 
 static void RunPending_(Zeta_LRUCacheManager* lrucm, size_t quata) {
     while (0 < quata) {
-        Zeta_OrdLinkedListNode* sln =
-            Zeta_OrdLinkedListNode_GetR(lrucm->over_sl);
+        Zeta_OrdLListNode* sln = Zeta_OrdLListNode_GetR(lrucm->over_sl);
 
         if (sln == lrucm->over_sl) { break; }
 
@@ -381,24 +377,24 @@ static void RunPending_(Zeta_LRUCacheManager* lrucm, size_t quata) {
 
         if (sn->max_cn_cnt < sn->cn_cnt) { break; }
 
-        Zeta_OrdLinkedListNode_Extract(&sn->sln);
+        Zeta_LList_OrdLListNode_Extract(&sn->sln);
 
         if (sn->max_cn_cnt == 0) {
             ZETA_Allocator_Deallocate(lrucm->sn_allocator, sn);
         } else {
-            Zeta_OrdLinkedListNode_InsertL(lrucm->fit_sl, &sn->sln);
+            Zeta_LList_OrdLListNode_InsertL(lrucm->fit_sl, &sn->sln);
         }
     }
 
     for (; 0 < quata && lrucm->max_cn_cnt < lrucm->cn_cnt; --quata) {
-        Zeta_OrdRBLinkedListNode* ln =
-            Zeta_OrdRBLinkedListNode_GetR(lrucm->cold_clear_cl);
+        Zeta_OrdRBLListNode* ln =
+            Zeta_OrdRBLListNode_GetR(lrucm->cold_clear_cl);
 
         if (ln == lrucm->cold_clear_cl) { break; }
 
         CNode* cn = ZETA_MemberToStruct(Zeta_LRUCacheManager_CNode, bn.ln, ln);
 
-        Zeta_OrdRBLinkedListNode_Extract(ln);
+        Zeta_OrdRBLListNode_Extract(ln);
 
         Zeta_GenericHashTable_Extract(&lrucm->ght, &cn->bn.ghtn);
 
@@ -436,8 +432,8 @@ static XNode* F_(Zeta_LRUCacheManager* lrucm, SNode* sn, size_t cache_idx,
 
         ZETA_SanitizeAssert(xn->cn->cache_idx == cache_idx);
 
-        Zeta_OrdRBLinkedListNode_Extract(&xn->bn.ln);
-        Zeta_OrdRBLinkedListNode_InsertR(&sn->bn.ln, &xn->bn.ln);
+        Zeta_OrdRBLListNode_Extract(&xn->bn.ln);
+        Zeta_OrdRBLListNode_InsertR(&sn->bn.ln, &xn->bn.ln);
 
         RunPending_(lrucm, 8);
 
@@ -490,16 +486,14 @@ static XNode* F_(Zeta_LRUCacheManager* lrucm, SNode* sn, size_t cache_idx,
     } else {
         cn = ZETA_MemberToStruct(CNode, bn.ghtn, ghtn);
 
-        if (++cn->ref_cnt == 1) {
-            Zeta_OrdRBLinkedListNode_Extract(&cn->bn.ln);
-        }
+        if (++cn->ref_cnt == 1) { Zeta_OrdRBLListNode_Extract(&cn->bn.ln); }
     }
 
     if (cn->ref_cnt == 1) {
         if (cn->dirty) {
-            Zeta_OrdRBLinkedListNode_InsertL(lrucm->hot_dirty_cl, &cn->bn.ln);
+            Zeta_OrdRBLListNode_InsertL(lrucm->hot_dirty_cl, &cn->bn.ln);
         } else {
-            Zeta_OrdRBLinkedListNode_InsertL(lrucm->hot_clear_cl, &cn->bn.ln);
+            Zeta_OrdRBLListNode_InsertL(lrucm->hot_clear_cl, &cn->bn.ln);
         }
     }
 
@@ -512,7 +506,7 @@ static XNode* F_(Zeta_LRUCacheManager* lrucm, SNode* sn, size_t cache_idx,
 
     Zeta_GenericHashTable_Insert(&lrucm->ght, &xn->bn.ghtn);
 
-    Zeta_OrdRBLinkedListNode_InsertR(&sn->bn.ln, &xn->bn.ln);
+    Zeta_OrdRBLListNode_InsertR(&sn->bn.ln, &xn->bn.ln);
 
     return xn;
 }
@@ -534,12 +528,12 @@ static void SetMaxCacheCnt_(Zeta_LRUCacheManager* lrucm, SNode* sn,
 
     if (old_is_fit == new_is_fit) { return; }
 
-    Zeta_OrdLinkedListNode_Extract(&sn->sln);
+    Zeta_LList_OrdLListNode_Extract(&sn->sln);
 
     if (new_is_fit) {
-        Zeta_OrdLinkedListNode_InsertL(lrucm->fit_sl, &sn->sln);
+        Zeta_LList_OrdLListNode_InsertL(lrucm->fit_sl, &sn->sln);
     } else {
-        Zeta_OrdLinkedListNode_InsertL(lrucm->over_sl, &sn->sln);
+        Zeta_LList_OrdLListNode_InsertL(lrucm->over_sl, &sn->sln);
     }
 }
 
@@ -557,7 +551,7 @@ void* Zeta_LRUCacheManager_Open(void* lrucm_, size_t max_cache_cnt) {
 
     Zeta_GenericHashTable_Insert(&lrucm->ght, &sn->bn.ghtn);
 
-    Zeta_OrdLinkedListNode_InsertR(lrucm->fit_sl, &sn->sln);
+    Zeta_LList_OrdLListNode_InsertR(lrucm->fit_sl, &sn->sln);
 
     lrucm->max_cn_cnt += max_cache_cnt;
 
@@ -703,14 +697,12 @@ void Zeta_LRUCacheManager_Write(void* lrucm_, void* sn_, size_t idx, size_t cnt,
         if (!cn->dirty) {
             cn->dirty = TRUE;
 
-            Zeta_OrdRBLinkedListNode_Extract(&cn->bn.ln);
+            Zeta_OrdRBLListNode_Extract(&cn->bn.ln);
 
             if (cn->ref_cnt == 0) {
-                Zeta_OrdRBLinkedListNode_InsertL(lrucm->cold_dirty_cl,
-                                                 &cn->bn.ln);
+                Zeta_OrdRBLListNode_InsertL(lrucm->cold_dirty_cl, &cn->bn.ln);
             } else {
-                Zeta_OrdRBLinkedListNode_InsertL(lrucm->hot_dirty_cl,
-                                                 &cn->bn.ln);
+                Zeta_OrdRBLListNode_InsertL(lrucm->hot_dirty_cl, &cn->bn.ln);
             }
         }
 
@@ -740,14 +732,12 @@ void Zeta_LRUCacheManager_Write(void* lrucm_, void* sn_, size_t idx, size_t cnt,
         if (!cn->dirty) {
             cn->dirty = TRUE;
 
-            Zeta_OrdRBLinkedListNode_Extract(&cn->bn.ln);
+            Zeta_OrdRBLListNode_Extract(&cn->bn.ln);
 
             if (cn->ref_cnt == 0) {
-                Zeta_OrdRBLinkedListNode_InsertL(lrucm->cold_dirty_cl,
-                                                 &cn->bn.ln);
+                Zeta_OrdRBLListNode_InsertL(lrucm->cold_dirty_cl, &cn->bn.ln);
             } else {
-                Zeta_OrdRBLinkedListNode_InsertL(lrucm->hot_dirty_cl,
-                                                 &cn->bn.ln);
+                Zeta_OrdRBLListNode_InsertL(lrucm->hot_dirty_cl, &cn->bn.ln);
             }
         }
 
@@ -781,12 +771,12 @@ void Zeta_LRUCacheManager_FlushBlock(void* lrucm_, size_t cache_idx) {
 
     if (!WriteBack_(lrucm, cn)) { return; }
 
-    Zeta_OrdRBLinkedListNode_Extract(&cn->bn.ln);
+    Zeta_OrdRBLListNode_Extract(&cn->bn.ln);
 
     if (cn->ref_cnt == 0) {
-        Zeta_OrdRBLinkedListNode_InsertL(lrucm->cold_clear_cl, &cn->bn.ln);
+        Zeta_OrdRBLListNode_InsertL(lrucm->cold_clear_cl, &cn->bn.ln);
     } else {
-        Zeta_OrdRBLinkedListNode_InsertL(lrucm->hot_clear_cl, &cn->bn.ln);
+        Zeta_OrdRBLListNode_InsertL(lrucm->hot_clear_cl, &cn->bn.ln);
     }
 }
 
@@ -802,8 +792,8 @@ size_t Zeta_LRUCacheManager_Flush(void* lrucm_, size_t quata) {
     size_t old_write_quata = write_quata;
 
     for (; 0 < write_quata; --write_quata) {
-        Zeta_OrdRBLinkedListNode* ln =
-            Zeta_OrdRBLinkedListNode_GetR(lrucm->cold_dirty_cl);
+        Zeta_OrdRBLListNode* ln =
+            Zeta_OrdRBLListNode_GetR(lrucm->cold_dirty_cl);
 
         if (ln == lrucm->cold_dirty_cl) { break; }
 
@@ -811,14 +801,13 @@ size_t Zeta_LRUCacheManager_Flush(void* lrucm_, size_t quata) {
 
         WriteBack_(lrucm, cn);
 
-        Zeta_OrdRBLinkedListNode_Extract(ln);
+        Zeta_OrdRBLListNode_Extract(ln);
 
-        Zeta_OrdRBLinkedListNode_InsertL(lrucm->cold_clear_cl, &cn->bn.ln);
+        Zeta_OrdRBLListNode_InsertL(lrucm->cold_clear_cl, &cn->bn.ln);
     }
 
     for (; 0 < write_quata; --write_quata) {
-        Zeta_OrdRBLinkedListNode* ln =
-            Zeta_OrdRBLinkedListNode_GetR(lrucm->hot_dirty_cl);
+        Zeta_OrdRBLListNode* ln = Zeta_OrdRBLListNode_GetR(lrucm->hot_dirty_cl);
 
         if (ln == lrucm->hot_dirty_cl) { break; }
 
@@ -826,9 +815,9 @@ size_t Zeta_LRUCacheManager_Flush(void* lrucm_, size_t quata) {
 
         WriteBack_(lrucm, cn);
 
-        Zeta_OrdRBLinkedListNode_Extract(ln);
+        Zeta_OrdRBLListNode_Extract(ln);
 
-        Zeta_OrdRBLinkedListNode_InsertL(lrucm->hot_clear_cl, &cn->bn.ln);
+        Zeta_OrdRBLListNode_InsertL(lrucm->hot_clear_cl, &cn->bn.ln);
     }
 
     return old_write_quata - write_quata;

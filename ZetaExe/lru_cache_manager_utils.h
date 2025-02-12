@@ -138,7 +138,7 @@ void LRUCacheManagerUtils_Sanitize(Zeta_CacheManager const* cm) {
 
         BNode* bn = ZETA_MemberToStruct(BNode, ghtn, ghtn);
 
-        int bnc = Zeta_OrdRBLinkedListNode_GetColor(&bn->ln);
+        int bnc = Zeta_OrdRBLListNode_GetColor(&bn->ln);
 
         ZETA_DebugAssert(bnc == sn_color || bnc == cn_color || bnc == xn_color);
 
@@ -190,15 +190,14 @@ void LRUCacheManagerUtils_Sanitize(Zeta_CacheManager const* cm) {
     std::unordered_set<SNode*> over_sns;
     std::unordered_set<SNode*> union_sns;
 
-    for (Zeta_OrdLinkedListNode* sln = lrucm->fit_sl;;) {
-        sln = (Zeta_OrdLinkedListNode*)Zeta_OrdRBLinkedListNode_GetR(sln);
+    for (Zeta_OrdLListNode* sln = lrucm->fit_sl;;) {
+        sln = (Zeta_OrdLListNode*)Zeta_OrdRBLListNode_GetR(sln);
 
         if (sln == lrucm->fit_sl) { break; }
 
         SNode* sn = ZETA_MemberToStruct(SNode, sln, sln);
 
-        ZETA_DebugAssert(Zeta_OrdRBLinkedListNode_GetColor(&sn->bn.ln) ==
-                         sn_color);
+        ZETA_DebugAssert(Zeta_OrdRBLListNode_GetColor(&sn->bn.ln) == sn_color);
 
         ZETA_DebugAssert(sn->cn_cnt <= sn->max_cn_cnt);
 
@@ -208,15 +207,14 @@ void LRUCacheManagerUtils_Sanitize(Zeta_CacheManager const* cm) {
         ZETA_DebugAssert(union_sns.insert(sn).second);
     }
 
-    for (Zeta_OrdLinkedListNode* sln = lrucm->over_sl;;) {
-        sln = (Zeta_OrdLinkedListNode*)Zeta_OrdLinkedListNode_GetR(sln);
+    for (Zeta_OrdLListNode* sln = lrucm->over_sl;;) {
+        sln = (Zeta_OrdLListNode*)Zeta_OrdLListNode_GetR(sln);
 
         if (sln == lrucm->over_sl) { break; }
 
         SNode* sn = ZETA_MemberToStruct(SNode, sln, sln);
 
-        ZETA_DebugAssert(Zeta_OrdRBLinkedListNode_GetColor(&sn->bn.ln) ==
-                         sn_color);
+        ZETA_DebugAssert(Zeta_OrdRBLListNode_GetColor(&sn->bn.ln) == sn_color);
 
         ZETA_DebugAssert(sn->max_cn_cnt < sn->cn_cnt);
 
@@ -234,15 +232,14 @@ void LRUCacheManagerUtils_Sanitize(Zeta_CacheManager const* cm) {
     std::unordered_set<CNode*> cold_dirty_cns;
     std::unordered_set<CNode*> union_cns;
 
-    for (Zeta_OrdRBLinkedListNode* cln = lrucm->hot_clear_cl;;) {
-        cln = (Zeta_OrdRBLinkedListNode*)Zeta_OrdRBLinkedListNode_GetR(cln);
+    for (Zeta_OrdRBLListNode* cln = lrucm->hot_clear_cl;;) {
+        cln = (Zeta_OrdRBLListNode*)Zeta_OrdRBLListNode_GetR(cln);
 
         if (cln == lrucm->hot_clear_cl) { break; }
 
         BNode* bn = ZETA_MemberToStruct(BNode, ln, cln);
 
-        ZETA_DebugAssert(Zeta_OrdRBLinkedListNode_GetColor(&bn->ln) ==
-                         cn_color);
+        ZETA_DebugAssert(Zeta_OrdRBLListNode_GetColor(&bn->ln) == cn_color);
 
         CNode* cn = ZETA_MemberToStruct(CNode, bn, bn);
 
@@ -253,15 +250,14 @@ void LRUCacheManagerUtils_Sanitize(Zeta_CacheManager const* cm) {
         ZETA_DebugAssert(union_cns.insert(cn).second);
     }
 
-    for (Zeta_OrdRBLinkedListNode* cln = lrucm->hot_dirty_cl;;) {
-        cln = (Zeta_OrdRBLinkedListNode*)Zeta_OrdRBLinkedListNode_GetR(cln);
+    for (Zeta_OrdRBLListNode* cln = lrucm->hot_dirty_cl;;) {
+        cln = (Zeta_OrdRBLListNode*)Zeta_OrdRBLListNode_GetR(cln);
 
         if (cln == lrucm->hot_dirty_cl) { break; }
 
         BNode* bn = ZETA_MemberToStruct(BNode, ln, cln);
 
-        ZETA_DebugAssert(Zeta_OrdRBLinkedListNode_GetColor(&bn->ln) ==
-                         cn_color);
+        ZETA_DebugAssert(Zeta_OrdRBLListNode_GetColor(&bn->ln) == cn_color);
 
         CNode* cn = ZETA_MemberToStruct(CNode, bn, bn);
 
@@ -272,15 +268,14 @@ void LRUCacheManagerUtils_Sanitize(Zeta_CacheManager const* cm) {
         ZETA_DebugAssert(union_cns.insert(cn).second);
     }
 
-    for (Zeta_OrdRBLinkedListNode* cln = lrucm->cold_clear_cl;;) {
-        cln = (Zeta_OrdRBLinkedListNode*)Zeta_OrdRBLinkedListNode_GetR(cln);
+    for (Zeta_OrdRBLListNode* cln = lrucm->cold_clear_cl;;) {
+        cln = (Zeta_OrdRBLListNode*)Zeta_OrdRBLListNode_GetR(cln);
 
         if (cln == lrucm->cold_clear_cl) { break; }
 
         BNode* bn = ZETA_MemberToStruct(BNode, ln, cln);
 
-        ZETA_DebugAssert(Zeta_OrdRBLinkedListNode_GetColor(&bn->ln) ==
-                         cn_color);
+        ZETA_DebugAssert(Zeta_OrdRBLListNode_GetColor(&bn->ln) == cn_color);
 
         CNode* cn = ZETA_MemberToStruct(CNode, bn, bn);
 
@@ -291,20 +286,18 @@ void LRUCacheManagerUtils_Sanitize(Zeta_CacheManager const* cm) {
         ZETA_DebugAssert(union_cns.insert(cn).second);
     }
 
-    for (Zeta_OrdRBLinkedListNode* cln = lrucm->cold_dirty_cl;;) {
-        cln = (Zeta_OrdRBLinkedListNode*)Zeta_OrdRBLinkedListNode_GetR(cln);
+    for (Zeta_OrdRBLListNode* cln = lrucm->cold_dirty_cl;;) {
+        cln = (Zeta_OrdRBLListNode*)Zeta_OrdRBLListNode_GetR(cln);
 
         if (cln == lrucm->cold_dirty_cl) { break; }
 
         BNode* bn = ZETA_MemberToStruct(BNode, ln, cln);
 
-        ZETA_DebugAssert(Zeta_OrdRBLinkedListNode_GetColor(&bn->ln) ==
-                         cn_color);
+        ZETA_DebugAssert(Zeta_OrdRBLListNode_GetColor(&bn->ln) == cn_color);
 
         CNode* cn = ZETA_MemberToStruct(CNode, bn, bn);
 
-        ZETA_DebugAssert(Zeta_OrdRBLinkedListNode_GetColor(&cn->bn.ln) ==
-                         cn_color);
+        ZETA_DebugAssert(Zeta_OrdRBLListNode_GetColor(&cn->bn.ln) == cn_color);
 
         ZETA_DebugAssert(cn->ref_cnt == 0);
         ZETA_DebugAssert(cn->dirty);
@@ -333,15 +326,14 @@ void LRUCacheManagerUtils_Sanitize(Zeta_CacheManager const* cm) {
 
         std::unordered_set<CNode*> cur_cns;
 
-        for (Zeta_OrdRBLinkedListNode* ln = &sn->bn.ln;;) {
-            ln = (Zeta_OrdRBLinkedListNode*)Zeta_OrdRBLinkedListNode_GetR(ln);
+        for (Zeta_OrdRBLListNode* ln = &sn->bn.ln;;) {
+            ln = (Zeta_OrdRBLListNode*)Zeta_OrdRBLListNode_GetR(ln);
 
             if (ln == &sn->bn.ln) { break; }
 
             BNode* bn = ZETA_MemberToStruct(BNode, ln, ln);
 
-            ZETA_DebugAssert(Zeta_OrdRBLinkedListNode_GetColor(&bn->ln) ==
-                             xn_color);
+            ZETA_DebugAssert(Zeta_OrdRBLListNode_GetColor(&bn->ln) == xn_color);
 
             XNode* xn = ZETA_MemberToStruct(XNode, bn, bn);
 
@@ -390,18 +382,18 @@ void LRUCacheManagerUtils_Sanitize(Zeta_CacheManager const* cm) {
     }
 
     Zeta_MemRecorder_Record(sn_mem_recorder, lrucm->fit_sl,
-                            sizeof(Zeta_OrdLinkedListNode));
+                            sizeof(Zeta_OrdLListNode));
     Zeta_MemRecorder_Record(sn_mem_recorder, lrucm->over_sl,
-                            sizeof(Zeta_OrdLinkedListNode));
+                            sizeof(Zeta_OrdLListNode));
 
     Zeta_MemRecorder_Record(cn_mem_recorder, lrucm->hot_clear_cl,
-                            sizeof(Zeta_OrdRBLinkedListNode));
+                            sizeof(Zeta_OrdRBLListNode));
     Zeta_MemRecorder_Record(cn_mem_recorder, lrucm->hot_dirty_cl,
-                            sizeof(Zeta_OrdRBLinkedListNode));
+                            sizeof(Zeta_OrdRBLListNode));
     Zeta_MemRecorder_Record(cn_mem_recorder, lrucm->cold_clear_cl,
-                            sizeof(Zeta_OrdRBLinkedListNode));
+                            sizeof(Zeta_OrdRBLListNode));
     Zeta_MemRecorder_Record(cn_mem_recorder, lrucm->cold_dirty_cl,
-                            sizeof(Zeta_OrdRBLinkedListNode));
+                            sizeof(Zeta_OrdRBLListNode));
 
     Zeta_MemRecorder_Destroy(sn_mem_recorder);
     Zeta_MemRecorder_Destroy(cn_mem_recorder);

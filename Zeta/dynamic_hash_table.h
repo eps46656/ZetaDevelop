@@ -4,7 +4,7 @@
 #include "assoc_cntr.h"
 #include "generic_hash_table.h"
 #include "mem_check_utils.h"
-#include "ord_linked_list_node.h"
+#include "ord_llist_node.h"
 
 ZETA_ExternC_Beg;
 
@@ -17,7 +17,7 @@ ZETA_DeclareStruct(Zeta_DynamicHashTable_Cursor);
 struct Zeta_DynamicHashTable {
     size_t width;
 
-    Zeta_OrdLinkedListNode* lln;
+    Zeta_OrdLListNode* lln;
 
     void* elem_hash_context;
     Zeta_Hash ElemHash;
@@ -33,7 +33,7 @@ struct Zeta_DynamicHashTable {
 struct Zeta_DynamicHashTable_Node {
     ZETA_DebugStructPadding;
 
-    Zeta_OrdLinkedListNode lln;
+    Zeta_OrdLListNode lln;
 
     ZETA_DebugStructPadding;
 
@@ -46,7 +46,7 @@ struct Zeta_DynamicHashTable_Node {
 
 struct Zeta_DynamicHashTable_Cursor {
     Zeta_DynamicHashTable const* dht;
-    Zeta_OrdLinkedListNode* lln;
+    Zeta_OrdLListNode* lln;
 };
 
 void Zeta_DynamicHashTable_Init(void* dht);

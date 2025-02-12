@@ -1,33 +1,29 @@
 #pragma once
 
-#include "bin_tree.h"
+#pragma push_macro("TreeNode")
+#pragma push_macro("PColor")
+#pragma push_macro("LColor")
+#pragma push_macro("RColor")
+#pragma push_macro("AccSize")
 
-ZETA_ExternC_Beg;
+#define TreeNode OrdRBTreeNode
+#define PColor 1
+#define LColor 0
+#define RColor 0
+#define AccSize 0
 
-ZETA_DeclareStruct(Zeta_OrdRBTreeNode);
+#include "bin_tree_node_temp.h"
 
-struct Zeta_OrdRBTreeNode {
-    void* p;
-    Zeta_OrdRBTreeNode* l;
-    Zeta_OrdRBTreeNode* r;
-} __attribute__((aligned(2)));
+//
 
-void Zeta_OrdRBTreeNode_Init(void const* context, void* n);
+#include "bin_tree_temp.h"
 
-void* Zeta_OrdRBTreeNode_GetP(void const* context, void* n);
-void* Zeta_OrdRBTreeNode_GetL(void const* context, void* n);
-void* Zeta_OrdRBTreeNode_GetR(void const* context, void* n);
+//
 
-void Zeta_OrdRBTreeNode_SetP(void const* context, void* n, void* m);
-void Zeta_OrdRBTreeNode_SetL(void const* context, void* n, void* m);
-void Zeta_OrdRBTreeNode_SetR(void const* context, void* n, void* m);
+#include "rbtree_temp.h"
 
-int Zeta_OrdRBTreeNode_GetPColor(void const* context, void* n);
-void Zeta_OrdRBTreeNode_SetPColor(void const* context, void* n, int color);
-
-void Zeta_OrdRBTreeNode_DeployBinTreeNodeOperator(
-    void const* context, Zeta_BinTreeNodeOperator* btn_opr);
-
-extern Zeta_BinTreeNodeOperator const zeta_ord_rb_tree_node_opr;
-
-ZETA_ExternC_End;
+#pragma pop_macro("TreeNode")
+#pragma pop_macro("PColor")
+#pragma pop_macro("LColor")
+#pragma pop_macro("RColor")
+#pragma pop_macro("AccSize")

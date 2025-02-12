@@ -2,7 +2,7 @@
 
 #include "allocator.h"
 #include "mem_check_utils.h"
-#include "ord_linked_list_node.h"
+#include "ord_llist_node.h"
 
 ZETA_ExternC_Beg;
 
@@ -21,16 +21,16 @@ struct Zeta_SlabAllocator {
     size_t vacant_units_cnt;
     size_t occupied_units_cnt;
 
-    Zeta_OrdLinkedListNode* hot_slab_units_list;
+    Zeta_OrdLListNode* hot_slab_units_list;
 
-    Zeta_OrdLinkedListNode* vacant_slab_list;
-    Zeta_OrdLinkedListNode* occupied_slab_list;
+    Zeta_OrdLListNode* vacant_slab_list;
+    Zeta_OrdLListNode* occupied_slab_list;
 
     Zeta_Allocator* allocator;
 };
 
 struct Zeta_SlabAllocator_SlabHead {
-    Zeta_OrdLinkedListNode n;
+    Zeta_OrdLListNode n;
     unsigned char vacant_units_cnt;
 };
 

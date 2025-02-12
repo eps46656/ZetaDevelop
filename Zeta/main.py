@@ -197,7 +197,7 @@ def AddDeps(builder: Builder, config: Config):
     )
 
     builder.Add(
-        f"{zeta_dir}/bin_tree.h",
+        f"{zeta_dir}/bin_tree_node_temp.h",
         {
             f"{FILE}",
             f"{zeta_dir}/define.h",
@@ -206,26 +206,31 @@ def AddDeps(builder: Builder, config: Config):
     )
 
     builder.Add(
-        f"{zeta_dir}/bin_tree.c",
+        f"{zeta_dir}/bin_tree_node_temp.c",
         {
             f"{FILE}",
-            f"{zeta_dir}/bin_tree.h",
             f"{zeta_dir}/debugger.h",
-            f"{zeta_dir}/utils.h",
+            f"{zeta_dir}/ptr_utils.h",
         },
         None
     )
 
     builder.Add(
-        f"{zeta_build_dir}/bin_tree.o",
+        f"{zeta_dir}/bin_tree_temp.h",
         {
             f"{FILE}",
-            f"{zeta_dir}/bin_tree.c",
+            f"{zeta_dir}/define.h",
         },
-        lambda: compiler.c_to_obj(
-            f"{zeta_build_dir}/bin_tree.o",
-            f"{zeta_dir}/bin_tree.c",
-        )
+        None
+    )
+
+    builder.Add(
+        f"{zeta_dir}/bin_tree_temp.c",
+        {
+            f"{FILE}",
+            f"{zeta_dir}/utils.h",
+        },
+        None
     )
 
     builder.Add(
@@ -334,7 +339,7 @@ def AddDeps(builder: Builder, config: Config):
             f"{FILE}",
             f"{zeta_dir}/cascade_allocator.h",
             f"{zeta_dir}/debugger.h",
-            f"{zeta_dir}/ord_linked_list_node.h",
+            f"{zeta_dir}/ord_llist_node.h",
             f"{zeta_dir}/utils.h",
         },
         None
@@ -738,7 +743,7 @@ def AddDeps(builder: Builder, config: Config):
     )
 
     builder.Add(
-        f"{zeta_dir}/DiffLinkedListNode.h",
+        f"{zeta_dir}/DiffLListNode.h",
         {
             f"{FILE}",
             f"{zeta_dir}/define.h",
@@ -747,23 +752,23 @@ def AddDeps(builder: Builder, config: Config):
     )
 
     builder.Add(
-        f"{zeta_dir}/DiffLinkedListNode.c",
+        f"{zeta_dir}/DiffLListNode.c",
         {
             f"{FILE}",
-            f"{zeta_dir}/DiffLinkedListNode.h",
+            f"{zeta_dir}/DiffLListNode.h",
         },
         None
     )
 
     builder.Add(
-        f"{zeta_build_dir}/DiffLinkedListNode.o",
+        f"{zeta_build_dir}/DiffLListNode.o",
         {
             f"{FILE}",
-            f"{zeta_dir}/DiffLinkedListNode.c",
+            f"{zeta_dir}/DiffLListNode.c",
         },
         lambda: compiler.c_to_obj(
-            f"{zeta_build_dir}/DiffLinkedListNode.o",
-            f"{zeta_dir}/DiffLinkedListNode.c",
+            f"{zeta_build_dir}/DiffLListNode.o",
+            f"{zeta_dir}/DiffLListNode.c",
         )
     )
 
@@ -775,7 +780,7 @@ def AddDeps(builder: Builder, config: Config):
             f"{zeta_dir}/assoc_cntr.h",
             f"{zeta_dir}/generic_hash_table.h",
             f"{zeta_dir}/mem_check_utils.h",
-            f"{zeta_dir}/ord_linked_list_node.h",
+            f"{zeta_dir}/ord_llist_node.h",
         },
         None
     )
@@ -907,11 +912,9 @@ def AddDeps(builder: Builder, config: Config):
         {
             f"{FILE}",
             f"{zeta_dir}/generic_hash_table.h",
-            f"{zeta_dir}/bin_tree.h",
             f"{zeta_dir}/debugger.h",
             f"{zeta_dir}/mem_check_utils.h",
             f"{zeta_dir}/multi_level_table.h",
-            f"{zeta_dir}/rbtree.h",
             f"{zeta_dir}/utils.h",
         },
         None
@@ -1100,7 +1103,6 @@ def AddDeps(builder: Builder, config: Config):
             f"{FILE}",
             f"{zeta_dir}/lin_space_allocator.h",
             f"{zeta_dir}/debugger.h",
-            f"{zeta_dir}/rbtree.h",
             f"{zeta_dir}/ptr_utils.h",
             f"{zeta_dir}/utils.h",
         },
@@ -1117,6 +1119,43 @@ def AddDeps(builder: Builder, config: Config):
             f"{zeta_build_dir}/lin_space_allocator.o",
             f"{zeta_dir}/lin_space_allocator.c",
         )
+    )
+
+    builder.Add(
+        f"{zeta_dir}/llist_node_temp.h",
+        {
+            f"{FILE}",
+            f"{zeta_dir}/define.h",
+        },
+        None
+    )
+
+    builder.Add(
+        f"{zeta_dir}/llist_node_temp.c",
+        {
+            f"{FILE}",
+            f"{zeta_dir}/debugger.h",
+            f"{zeta_dir}/ptr_utils.h",
+        },
+        None
+    )
+
+    builder.Add(
+        f"{zeta_dir}/llist_temp.h",
+        {
+            f"{FILE}",
+            f"{zeta_dir}/define.h",
+        },
+        None
+    )
+
+    builder.Add(
+        f"{zeta_dir}/llist_temp.c",
+        {
+            f"{FILE}",
+            f"{zeta_dir}/debugger.h",
+        },
+        None
     )
 
     builder.Add(
@@ -1158,7 +1197,7 @@ def AddDeps(builder: Builder, config: Config):
             f"{zeta_dir}/block_vector.h",
             f"{zeta_dir}/cache_manager.h",
             f"{zeta_dir}/ord_bin_tree_node.h",
-            f"{zeta_dir}/ord_linked_list_node.h",
+            f"{zeta_dir}/ord_llist_node.h",
             f"{zeta_dir}/ord_rb_tree_node.h",
         },
         None
@@ -1170,7 +1209,6 @@ def AddDeps(builder: Builder, config: Config):
             f"{FILE}",
             f"{zeta_dir}/lru_cache_manager.h",
             f"{zeta_dir}/debugger.h",
-            f"{zeta_dir}/rbtree.h",
             f"{zeta_dir}/utils.h",
         },
         None
@@ -1343,7 +1381,8 @@ def AddDeps(builder: Builder, config: Config):
         f"{zeta_dir}/ord_bin_tree_node.h",
         {
             f"{FILE}",
-            f"{zeta_dir}/bin_tree.h",
+            f"{zeta_dir}/bin_tree_node_temp.h",
+            f"{zeta_dir}/bin_tree_temp.h",
         },
         None
     )
@@ -1353,6 +1392,8 @@ def AddDeps(builder: Builder, config: Config):
         {
             f"{FILE}",
             f"{zeta_dir}/ord_bin_tree_node.h",
+            f"{zeta_dir}/bin_tree_node_temp.c",
+            f"{zeta_dir}/bin_tree_temp.c",
         },
         None
     )
@@ -1370,62 +1411,68 @@ def AddDeps(builder: Builder, config: Config):
     )
 
     builder.Add(
-        f"{zeta_dir}/ord_linked_list_node.h",
+        f"{zeta_dir}/ord_llist_node.h",
         {
             f"{FILE}",
-            f"{zeta_dir}/define.h",
+            f"{zeta_dir}/llist_node_temp.h",
+            f"{zeta_dir}/llist_temp.h",
         },
         None
     )
 
     builder.Add(
-        f"{zeta_dir}/ord_linked_list_node.c",
+        f"{zeta_dir}/ord_llist_node.c",
         {
             f"{FILE}",
-            f"{zeta_dir}/ord_linked_list_node.h",
+            f"{zeta_dir}/ord_llist_node.h",
+            f"{zeta_dir}/llist_node_temp.h",
+            f"{zeta_dir}/llist_temp.h",
         },
         None
     )
 
     builder.Add(
-        f"{zeta_build_dir}/ord_linked_list_node.o",
+        f"{zeta_build_dir}/ord_llist_node.o",
         {
             f"{FILE}",
-            f"{zeta_dir}/ord_linked_list_node.c",
+            f"{zeta_dir}/ord_llist_node.c",
         },
         lambda: compiler.c_to_obj(
-            f"{zeta_build_dir}/ord_linked_list_node.o",
-            f"{zeta_dir}/ord_linked_list_node.c",
+            f"{zeta_build_dir}/ord_llist_node.o",
+            f"{zeta_dir}/ord_llist_node.c",
         )
     )
 
     builder.Add(
-        f"{zeta_dir}/ord_rb_linked_list_node.h",
+        f"{zeta_dir}/ord_rb_llist_node.h",
         {
             f"{FILE}",
-            f"{zeta_dir}/define.h",
+            f"{zeta_dir}/llist_node_temp.h",
+            f"{zeta_dir}/llist_temp.h",
         },
         None
     )
 
     builder.Add(
-        f"{zeta_dir}/ord_rb_linked_list_node.c",
+        f"{zeta_dir}/ord_rb_llist_node.c",
         {
             f"{FILE}",
-            f"{zeta_dir}/ord_rb_linked_list_node.h",
+            f"{zeta_dir}/ord_rb_llist_node.h",
+            f"{zeta_dir}/llist_node_temp.h",
+            f"{zeta_dir}/llist_temp.h",
         },
         None
     )
 
     builder.Add(
-        f"{zeta_build_dir}/ord_rb_linked_list_node.o",
+        f"{zeta_build_dir}/ord_rb_llist_node.o",
         {
             f"{FILE}",
-            f"{zeta_dir}/ord_rb_linked_list_node.c",
+            f"{zeta_dir}/ord_rb_llist_node.c",
         },
         lambda: compiler.c_to_obj(
-            f"{zeta_build_dir}/ord_rb_linked_list_node.o",
-            f"{zeta_dir}/ord_rb_linked_list_node.c",
+            f"{zeta_build_dir}/ord_rb_llist_node.o",
+            f"{zeta_dir}/ord_rb_llist_node.c",
         )
     )
 
@@ -1433,7 +1480,9 @@ def AddDeps(builder: Builder, config: Config):
         f"{zeta_dir}/ord_rb_tree_node.h",
         {
             f"{FILE}",
-            f"{zeta_dir}/bin_tree.h",
+            f"{zeta_dir}/bin_tree_node_temp.h",
+            f"{zeta_dir}/bin_tree_temp.h",
+            f"{zeta_dir}/rbtree_temp.h",
         },
         None
     )
@@ -1443,7 +1492,8 @@ def AddDeps(builder: Builder, config: Config):
         {
             f"{FILE}",
             f"{zeta_dir}/ord_rb_tree_node.h",
-            f"{zeta_dir}/debugger.h",
+            f"{zeta_dir}/bin_tree_temp.c",
+            f"{zeta_dir}/rbtree_temp.c",
         },
         None
     )
@@ -1464,7 +1514,9 @@ def AddDeps(builder: Builder, config: Config):
         f"{zeta_dir}/ord_cnt_3rb_tree_node.h",
         {
             f"{FILE}",
-            f"{zeta_dir}/bin_tree.h",
+            f"{zeta_dir}/bin_tree_node_temp.h",
+            f"{zeta_dir}/bin_tree_temp.h",
+            f"{zeta_dir}/rbtree_temp.h",
         },
         None
     )
@@ -1474,7 +1526,9 @@ def AddDeps(builder: Builder, config: Config):
         {
             f"{FILE}",
             f"{zeta_dir}/ord_cnt_rb_tree_node.h",
-            f"{zeta_dir}/debugger.h",
+            f"{zeta_dir}/bin_tree_node_temp.c",
+            f"{zeta_dir}/bin_tree_temp.c",
+            f"{zeta_dir}/rbtree_temp.c",
         },
         None
     )
@@ -1495,7 +1549,9 @@ def AddDeps(builder: Builder, config: Config):
         f"{zeta_dir}/ord_cnt_rb_tree_node.h",
         {
             f"{FILE}",
-            f"{zeta_dir}/bin_tree.h",
+            f"{zeta_dir}/bin_tree_node_temp.h",
+            f"{zeta_dir}/bin_tree_temp.h",
+            f"{zeta_dir}/rbtree_temp.h",
         },
         None
     )
@@ -1505,6 +1561,9 @@ def AddDeps(builder: Builder, config: Config):
         {
             f"{FILE}",
             f"{zeta_dir}/ord_cnt_rb_tree_node.h",
+            f"{zeta_dir}/bin_tree_node_temp.c",
+            f"{zeta_dir}/bin_tree_temp.c",
+            f"{zeta_dir}/rbtree_temp.c",
         },
         None
     )
@@ -1625,35 +1684,22 @@ def AddDeps(builder: Builder, config: Config):
     )
 
     builder.Add(
-        f"{zeta_dir}/rbtree.h",
+        f"{zeta_dir}/rbtree_temp.h",
         {
             f"{FILE}",
-            f"{zeta_dir}/bin_tree.h",
+            f"{zeta_dir}/mem_check_utils.h",
         },
         None
     )
 
     builder.Add(
-        f"{zeta_dir}/rbtree.c",
+        f"{zeta_dir}/rbtree_temp.c",
         {
             f"{FILE}",
-            f"{zeta_dir}/rbtree.h",
             f"{zeta_dir}/debugger.h",
             f"{zeta_dir}/utils.h",
         },
         None
-    )
-
-    builder.Add(
-        f"{zeta_build_dir}/rbtree.o",
-        {
-            f"{FILE}",
-            f"{zeta_dir}/rbtree.c",
-        },
-        lambda: compiler.c_to_obj(
-            f"{zeta_build_dir}/rbtree.o",
-            f"{zeta_dir}/rbtree.c",
-        )
     )
 
     builder.Add(
@@ -1687,7 +1733,6 @@ def AddDeps(builder: Builder, config: Config):
             f"{zeta_dir}/generic_hash_table.h",
             f"{zeta_dir}/mem_check_utils.h",
             f"{zeta_dir}/pool_allocator.h",
-            f"{zeta_dir}/rbtree.h",
             f"{zeta_dir}/seg_staging_vector_temp.h",
             f"{zeta_dir}/seg_utils.h",
             f"{zeta_dir}/utils.h",
@@ -1856,7 +1901,7 @@ def AddDeps(builder: Builder, config: Config):
             f"{FILE}",
             f"{zeta_dir}/allocator.h",
             f"{zeta_dir}/mem_check_utils.h",
-            f"{zeta_dir}/ord_linked_list_node.h",
+            f"{zeta_dir}/ord_llist_node.h",
         },
         None
     )
@@ -1920,7 +1965,7 @@ def AddDeps(builder: Builder, config: Config):
             f"{FILE}",
             f"{zeta_dir}/allocator.h",
             f"{zeta_dir}/mem_check_utils.h",
-            f"{zeta_dir}/ord_rb_linked_list_node.h",
+            f"{zeta_dir}/ord_rb_llist_node.h",
             f"{zeta_dir}/ord_rb_tree_node.h",
         },
         None
@@ -1932,7 +1977,6 @@ def AddDeps(builder: Builder, config: Config):
             f"{FILE}",
             f"{zeta_dir}/tree_allocator.h",
             f"{zeta_dir}/debugger.h",
-            f"{zeta_dir}/rbtree.h",
             f"{zeta_dir}/utils.h",
         },
         None

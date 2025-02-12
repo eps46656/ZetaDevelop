@@ -175,6 +175,9 @@ class LLVMCompiler:
             "-Wall",
             "-Wextra",
             "-Werror",
+
+            "-fno-exceptions",
+            "-fno-rtti",
         ]
 
         if self.enable_debug:

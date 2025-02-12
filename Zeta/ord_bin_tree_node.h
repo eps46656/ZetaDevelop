@@ -1,28 +1,25 @@
 #pragma once
 
-#include "bin_tree.h"
+#pragma push_macro("TreeNode")
+#pragma push_macro("PColor")
+#pragma push_macro("LColor")
+#pragma push_macro("RColor")
+#pragma push_macro("AccSize")
 
-ZETA_ExternC_Beg;
+#define TreeNode OrdBinTreeNode
+#define PColor 0
+#define LColor 0
+#define RColor 0
+#define AccSize 0
 
-ZETA_DeclareStruct(Zeta_OrdBinTreeNode);
+#include "bin_tree_node_temp.h"
 
-struct Zeta_OrdBinTreeNode {
-    Zeta_OrdBinTreeNode* p;
-    Zeta_OrdBinTreeNode* l;
-    Zeta_OrdBinTreeNode* r;
-};
+//
 
-void Zeta_OrdBinTreeNode_Init(void const* context, void* n);
+#include "bin_tree_temp.h"
 
-void* Zeta_OrdBinTreeNode_GetP(void const* context, void* n);
-void* Zeta_OrdBinTreeNode_GetL(void const* context, void* n);
-void* Zeta_OrdBinTreeNode_GetR(void const* context, void* n);
-
-void Zeta_OrdBinTreeNode_SetP(void const* context, void* n, void* m);
-void Zeta_OrdBinTreeNode_SetL(void const* context, void* n, void* m);
-void Zeta_OrdBinTreeNode_SetR(void const* context, void* n, void* m);
-
-void Zeta_OrdBinTreeNode_DeployBinTreeNodeOperator(
-    void const* context, Zeta_BinTreeNodeOperator* btn_opr);
-
-ZETA_ExternC_End;
+#pragma pop_macro("TreeNode")
+#pragma pop_macro("PColor")
+#pragma pop_macro("LColor")
+#pragma pop_macro("RColor")
+#pragma pop_macro("AccSize")

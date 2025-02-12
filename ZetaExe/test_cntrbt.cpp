@@ -4,8 +4,20 @@
 #include "../Zeta/debugger.h"
 #include "../Zeta/ord_cnt_3rb_tree_node.h"
 #include "../Zeta/ord_cnt_rb_tree_node.h"
-#include "../Zeta/rbtree.h"
 #include "../Zeta/utils.h"
+
+// -----------------------------------------------------------------------------
+
+#define TreeNode OrdCntRBTreeNode
+
+#define Zeta_TreeNode_(func_name) \
+    ZETA_Concat(ZETA_Concat(ZETA_Concat(Zeta_, TreeNode), _), func_name)
+
+#define Zeta_BinTree_TreeNode_(func_name) \
+    ZETA_Concat(ZETA_Concat(ZETA_Concat(Zeta_BinTree_, TreeNode), _), func_name)
+
+#define Zeta_RBTree_TreeNode_(func_name) \
+    ZETA_Concat(ZETA_Concat(ZETA_Concat(Zeta_RBTree_, TreeNode), _), func_name)
 
 // -----------------------------------------------------------------------------
 
@@ -19,8 +31,6 @@ struct NodeCup {
 };
 
 // -----------------------------------------------------------------------------
-
-Zeta_BinTreeNodeOperator btn_opr;
 
 // -----------------------------------------------------------------------------
 
@@ -36,7 +46,7 @@ void* rb;
 // -----------------------------------------------------------------------------
 
 void CompareLR() {
-    void* n = Zeta_GetMostLink(NULL, btn_opr.GetL, root);
+    void* n = Zeta_GetMostLink(root, Zeta_TreeNode_(GetL));
     auto iter = vec.begin();
     auto end = vec.end();
 
@@ -51,15 +61,15 @@ void CompareLR() {
         Node* node = ZETA_MemberToStruct(Node, n, n);
 
         ZETA_DebugAssert(iter->linked_node == node);
-        ZETA_DebugAssert(iter->size == Zeta_BinTree_GetSize(&btn_opr, n));
+        ZETA_DebugAssert(iter->size == Zeta_BinTree_TreeNode_(GetSize)(n));
 
         ++iter;
-        n = Zeta_BinTree_StepR(&btn_opr, n);
+        n = Zeta_BinTree_TreeNode_(StepR)(n);
     }
 }
 
 void CompareRL() {
-    void* n = Zeta_GetMostLink(NULL, btn_opr.GetR, root);
+    void* n = Zeta_GetMostLink(root, Zeta_TreeNode_(GetR));
     auto iter = vec.rbegin();
     auto end = vec.rend();
 
@@ -74,15 +84,15 @@ void CompareRL() {
         Node* node = ZETA_MemberToStruct(Node, n, n);
 
         ZETA_DebugAssert(iter->linked_node == node);
-        ZETA_DebugAssert(iter->size == Zeta_BinTree_GetSize(&btn_opr, n));
+        ZETA_DebugAssert(iter->size == Zeta_BinTree_TreeNode_(GetSize)(n));
 
         ++iter;
-        n = Zeta_BinTree_StepL(&btn_opr, n);
+        n = Zeta_BinTree_TreeNode_(StepL)(n);
     }
 }
 
 void Sanitize() {
-    Zeta_RBTree_Sanitize(&btn_opr, NULL, root);
+    Zeta_RBTree_TreeNode_(Sanitize)(NULL, root);
     CompareLR();
     CompareRL();
 }
@@ -95,7 +105,7 @@ void Access(size_t idx) {
     void* target_n;
     size_t target_tail_idx;
 
-    Zeta_BinTree_AccessL(&target_n, &target_tail_idx, &btn_opr, root, idx);
+    Zeta_BinTree_TreeNode_(AccessL)(&target_n, &target_tail_idx, root, idx);
 
     auto target_iter = vec.end();
 
@@ -122,19 +132,19 @@ void Insert(size_t idx, size_t size) {
     ZETA_DebugAssert(idx <= vec.size());
 
     Node* new_node = new Node;
-    Zeta_OrdCntRBTreeNode_Init(NULL, &new_node->n);
-    Zeta_BinTree_SetSize(&btn_opr, &new_node->n, size);
+    Zeta_TreeNode_(Init)(&new_node->n);
+    Zeta_BinTree_TreeNode_(SetSize)(&new_node->n, size);
 
     size_sum += size;
 
     if (idx < vec.size()) {
         Node* ins_node = vec[idx].linked_node;
-        root = Zeta_RBTree_InsertL(&btn_opr, &ins_node->n, &new_node->n);
+        root = Zeta_RBTree_TreeNode_(InsertL)(&ins_node->n, &new_node->n);
     } else if (vec.size() == 0) {
         root = &new_node->n;
     } else {
         Node* ins_node = vec.back().linked_node;
-        root = Zeta_RBTree_InsertR(&btn_opr, &ins_node->n, &new_node->n);
+        root = Zeta_RBTree_TreeNode_(InsertR)(&ins_node->n, &new_node->n);
     }
 
     vec.insert(vec.begin() + idx, (NodeCup){
@@ -152,7 +162,7 @@ void Erase(size_t idx) {
     size_sum -= vec[idx].size;
 
     Node* target_node = vec[idx].linked_node;
-    root = Zeta_RBTree_Extract(&btn_opr, &target_node->n);
+    root = Zeta_RBTree_TreeNode_(Extract)(&target_node->n);
     delete target_node;
 
     vec.erase(vec.begin() + idx);
@@ -169,8 +179,6 @@ void main1() {
     std::uniform_int_distribution<size_t> idx_generator{ 0, ZETA_RangeMaxOf(
                                                                 size_t) };
     std::uniform_int_distribution<size_t> size_generator{ 0, 16 };
-
-    Zeta_OrdCntRBTreeNode_DeployBinTreeNodeOperator(NULL, &btn_opr);
 
     size_sum = 0;
     root = NULL;
