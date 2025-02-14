@@ -27,11 +27,9 @@ void InitCascadeAllocator() {
 
     Zeta_CascadeAllocator_Init(&cascade_allocator_instance);
 
-    Zeta_CascadeAllocator_DeployAllocator(&cascade_allocator_instance,
-                                          &cascade_allocator);
-
-    if (zeta_cascade_allocator == NULL) {
-        zeta_cascade_allocator = &cascade_allocator;
+    if (zeta_memory_cascade_allocator == NULL) {
+        zeta_memory_cascade_allocator = &zeta_cascade_allocator_vtable;
+        zeta_memory_cascade_allocator_context = &cascade_allocator;
     }
 }
 
@@ -61,7 +59,9 @@ __attribute__((sysv_abi, noreturn)) void ButtomExceptionHandler(
     ZETA_PrintVar(exception_blk->code);
     ZETA_PrintVar(exception_blk->message);
 
-    ZETA_Allocator_Deallocate(zeta_cascade_allocator, exception_blk);
+    ZETA_Allocator_Deallocate(zeta_memory_cascade_allocator,
+
+                              exception_blk);
 
     exit(1);
 }
@@ -81,7 +81,7 @@ void G() {
             ZETA_PrintVar("throw exception 1");
 
             exception_blk = (ExceptionBlock*)ZETA_Allocator_SafeAllocate(
-                zeta_cascade_allocator, alignof(ExceptionBlock),
+                zeta_memory_cascade_allocator, alignof(ExceptionBlock),
                 sizeof(ExceptionBlock));
 
             exception_blk->code = 1;
@@ -95,7 +95,7 @@ void G() {
             ZETA_PrintVar("throw exception 2");
 
             exception_blk = (ExceptionBlock*)ZETA_Allocator_SafeAllocate(
-                zeta_cascade_allocator, alignof(ExceptionBlock),
+                zeta_memory_cascade_allocator, alignof(ExceptionBlock),
                 sizeof(ExceptionBlock));
 
             exception_blk->code = 2;
@@ -109,7 +109,7 @@ void G() {
             ZETA_PrintVar("throw exception 3");
 
             exception_blk = (ExceptionBlock*)ZETA_Allocator_SafeAllocate(
-                zeta_cascade_allocator, alignof(ExceptionBlock),
+                zeta_memory_cascade_allocator, alignof(ExceptionBlock),
                 sizeof(ExceptionBlock));
 
             exception_blk->code = 3;
@@ -152,7 +152,9 @@ void F() {
 
             ZETA_PrintVar(exception_blk->message);
 
-            ZETA_Allocator_Deallocate(zeta_cascade_allocator, exception_blk);
+            ZETA_Allocator_Deallocate(zeta_memory_cascade_allocator,
+
+                                      exception_blk);
 
             break;
 
@@ -161,7 +163,9 @@ void F() {
 
             ZETA_PrintVar(exception_blk->message);
 
-            ZETA_Allocator_Deallocate(zeta_cascade_allocator, exception_blk);
+            ZETA_Allocator_Deallocate(zeta_memory_cascade_allocator,
+
+                                      exception_blk);
 
             break;
 

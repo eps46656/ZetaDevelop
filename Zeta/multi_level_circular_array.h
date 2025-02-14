@@ -1,8 +1,9 @@
 #pragma once
 
 #include "allocator.h"
+#include "bin_tree_node.h"
+#include "llist_node.h"
 #include "multi_level_table.h"
-#include "ord_llist_node.h"
 #include "seq_cntr.h"
 
 ZETA_ExternC_Beg;
@@ -35,8 +36,12 @@ struct Zeta_MultiLevelCircularArray {
 
     Zeta_MultiLevelCircularArray_Seg* seg_head;
 
-    Zeta_Allocator* node_allocator;
-    Zeta_Allocator* seg_allocator;
+    Zeta_Allocator node_allocator;
+    Zeta_Allocator seg_allocator;
+
+    void (*ElemDeinit)(void const* elem_deinit_context, void* elem,
+                       size_t stride, size_t size);
+    void const* elem_deinit_context;
 };
 
 struct Zeta_MultiLevelCircularArray_Seg {
@@ -46,7 +51,7 @@ struct Zeta_MultiLevelCircularArray_Seg {
 
     ZETA_DebugStructPadding;
 
-    unsigned char data[] __attribute__((aligned(alignof(max_align_t))));
+    char data[] __attribute__((aligned(alignof(max_align_t))));
 };
 
 struct Zeta_MultiLevelCircularArray_Cursor {
@@ -233,7 +238,7 @@ void Zeta_MultiLevelCircularArray_Cursor_AdvanceR(void const* mlca,
 void Zeta_MultiLevelCircularArray_Cursor_Check(void const* mlca,
                                                void const* cursor);
 
-void Zeta_MultiLevelCircularArray_DeploySeqCntr(void* mlca,
-                                                Zeta_SeqCntr* seq_cntr);
+extern Zeta_SeqCntr_VTable const
+    zeta_multi_level_circular_array_seq_cntr_vtable;
 
 ZETA_ExternC_End;

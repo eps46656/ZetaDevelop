@@ -81,10 +81,7 @@ static bool_t ReleaseLastSlab_(Zeta_SlabAllocator* sa) {
 
     sa->vacant_units_cnt -= units_per_slab;
 
-    ZETA_DebugAssert(sa->allocator != NULL);
-    ZETA_DebugAssert(sa->allocator->Deallocate != NULL);
-
-    ZETA_Allocator_Deallocate(sa->allocator, vacant_slab);
+    ZETA_Allocator_Deallocate(sa->origin_allocator, vacant_slab);
 
     return TRUE;
 }
@@ -107,20 +104,15 @@ void Zeta_SlabAllocator_Init(void* sa_) {
 
     sa->width = stride - sizeof(unsigned char);
 
-    Zeta_Allocator* allocator = sa->allocator;
-    ZETA_DebugAssert(allocator != NULL);
-    ZETA_DebugAssert(allocator->GetAlign != NULL);
-    ZETA_DebugAssert(allocator->Query != NULL);
-    ZETA_DebugAssert(allocator->Allocate != NULL);
-    ZETA_DebugAssert(allocator->Deallocate != NULL);
-    ZETA_DebugAssert(ZETA_Allocator_GetAlign(allocator) % align == 0);
+    ZETA_Allocator_Check(sa->origin_allocator, align);
 
     size_t units_per_slab = sa->units_per_slab;
     ZETA_DebugAssert(0 < sa->units_per_slab);
     ZETA_DebugAssert(sa->units_per_slab <=
                      ZETA_SlabAllocator_max_units_per_slab);
 
-    size_t real_slab_size = ZETA_Allocator_Query(allocator, ZETA_SlabSize);
+    size_t real_slab_size =
+        ZETA_Allocator_Query(sa->origin_allocator, ZETA_SlabSize);
 
     sa->units_per_slab = units_per_slab = ZETA_GetMinOf(
         ZETA_SlabAllocator_max_units_per_slab,
@@ -185,8 +177,8 @@ void* Zeta_SlabAllocator_Allocate(void* sa_, size_t size) {
         return LListPopL_(&sa->hot_slab_units_list);
     }
 
-    void* slab =
-        ZETA_Allocator_SafeAllocate(sa->allocator, sa->align, ZETA_SlabSize);
+    void* slab = ZETA_Allocator_SafeAllocate(sa->origin_allocator, sa->align,
+                                             ZETA_SlabSize);
 
     Zeta_SlabAllocator_SlabHead* slab_head = slab + stride * units_per_slab;
 
@@ -363,21 +355,12 @@ void Zeta_SlabAllocator_Check(void* sa_, Zeta_MemRecorder* dst_used_records,
 #endif
 }
 
-void Zeta_SlabAllocator_DeployAllocator(void* sa_, Zeta_Allocator* dst) {
-    Zeta_SlabAllocator* sa = sa_;
-    ZETA_DebugAssert(sa != NULL);
+Zeta_Allocator_VTable const zeta_slab_allocator = {
+    .GetAlign = Zeta_SlabAllocator_GetAlign,
 
-    ZETA_DebugAssert(dst != NULL);
+    .Query = Zeta_SlabAllocator_Query,
 
-    Zeta_Allocator_Init(dst);
+    .Allocate = Zeta_SlabAllocator_Allocate,
 
-    dst->context = sa;
-
-    dst->GetAlign = Zeta_SlabAllocator_GetAlign;
-
-    dst->Query = Zeta_SlabAllocator_Query;
-
-    dst->Allocate = Zeta_SlabAllocator_Allocate;
-
-    dst->Deallocate = Zeta_SlabAllocator_Deallocate;
-}
+    .Deallocate = Zeta_SlabAllocator_Deallocate,
+};

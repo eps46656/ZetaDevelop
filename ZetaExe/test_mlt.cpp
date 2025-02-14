@@ -7,8 +7,7 @@
 #include "timer.h"
 
 struct ZetaMap {
-    StdAllocator node_allocator_;
-    Zeta_Allocator node_allocator;
+    StdAllocator node_allocator;
 
     unsigned short branch_nums[ZETA_MultiLevelTable_max_level];
 
@@ -31,10 +30,8 @@ struct ZetaMap {
 
         ZETA_PrintCurPos;
 
-        StdAllocator_DeployAllocator(&this->node_allocator_,
-                                     &this->node_allocator);
-
-        this->mlt.node_allocator = &this->node_allocator;
+        this->mlt.node_allocator = &zeta_std_allocator_vtable;
+        this->mlt.node_allocator_context = &this->node_allocator;
 
         Zeta_MultiLevelTable_Init(&this->mlt);
 
@@ -71,7 +68,7 @@ struct ZetaMap {
 
         Zeta_MultiLevelTable_Sanitize(&this->mlt, node);
 
-        Zeta_MemCheck_MatchRecords(this->node_allocator_.mem_recorder, node);
+        Zeta_MemCheck_MatchRecords(this->node_allocator.mem_recorder, node);
 
         Zeta_MemRecorder_Destroy(node);
     }

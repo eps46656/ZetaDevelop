@@ -1,6 +1,11 @@
-// define LListNode
-// LColor
-// RColor
+// LListNode: The name of linked list node.
+
+// RelLinkType: Relative addressing link type. If not defined, use directional
+//              addressing.
+
+// LColor: Enable the color bit of l link.
+
+// RColor: Enable the color bit of r link.
 
 #include "define.h"
 
@@ -22,14 +27,22 @@ ZETA_ExternC_Beg;
 #pragma push_macro("Zeta_LListNode_")
 
 #define Zeta_LListNode ZETA_Concat(Zeta_, LListNode)
-#define Zeta_LListNode_(func_name) \
-    ZETA_Concat(ZETA_Concat(Zeta_LListNode, _), func_name)
+#define Zeta_LListNode_(x) ZETA_Concat(Zeta_LListNode, _, x)
 
 ZETA_DeclareStruct(Zeta_LListNode);
 
 struct Zeta_LListNode {
+#if defined(RelLinkType)
+    RelLinkType l;
+#else
     void* l;
+#endif
+
+#if defined(RelLinkType)
+    RelLinkType r;
+#else
     void* r;
+#endif
 } __attribute__((aligned(2)));
 
 void Zeta_LListNode_(Init)(void* n);

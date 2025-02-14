@@ -6,6 +6,8 @@ ZETA_ExternC_Beg;
 
 void Zeta_HelloWorld();
 
+int Zeta_MemCompare(void const* a, void const* b, size_t size);
+
 /**
  * @brief Copy byte array from dst to src.
  *
@@ -52,6 +54,9 @@ void Zeta_MemReverse(void* data, size_t stride, size_t size);
 
 unsigned long long Zeta_MemHash(void const* data, size_t size,
                                 unsigned long long salt);
+
+int Zeta_ElemCompare(void const* a, void const* b, size_t width,
+                     size_t a_stride, size_t b_stride, size_t size);
 
 void Zeta_ElemCopy(void* dst, void const* src, size_t width, size_t dst_stride,
                    size_t src_stride, size_t size);

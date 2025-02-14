@@ -5,22 +5,11 @@
 #include "debugger.h"
 #include "utils.h"
 
-#pragma push_macro("Zeta_TreeNode_")
-#pragma push_macro("Zeta_BinTree_TreeNode_")
-#pragma push_macro("Zeta_RBTree_TreeNode_")
 #pragma push_macro("Black")
 #pragma push_macro("Red")
 #pragma push_macro("Insert_")
 #pragma push_macro("F_")
 #pragma push_macro("GeneralInsert_")
-
-#define Zeta_TreeNode_(x) ZETA_Concat(ZETA_Concat(Zeta_TreeNode, _), x)
-
-#define Zeta_BinTree_TreeNode_(x) \
-    ZETA_Concat(ZETA_Concat(ZETA_Concat(Zeta_BinTree_, TreeNode), _), x)
-
-#define Zeta_RBTree_TreeNode_(x) \
-    ZETA_Concat(ZETA_Concat(ZETA_Concat(Zeta_RBTree_, TreeNode), _), x)
 
 #define Black (0)
 #define Red (1)
@@ -48,13 +37,13 @@
     void* pos_d = Zeta_TreeNode_(Get##D)(pos);                   \
                                                                  \
     if (pos_d == NULL) {                                         \
-        Zeta_BinTree_TreeNode_(Attatch##D)(pos, n);              \
+        Zeta_BinTree_(TreeNode, Attatch##D)(pos, n);             \
     } else {                                                     \
-        Zeta_BinTree_TreeNode_(Attatch##E)(                      \
+        Zeta_BinTree_(TreeNode, Attatch##E)(                     \
             Zeta_GetMostLink(pos_d, Zeta_TreeNode_(Get##E)), n); \
     }                                                            \
                                                                  \
-    return Zeta_RBTree_TreeNode_(InsertBalance_)(n);
+    return Zeta_RBTree_(TreeNode, InsertBalance_)(n);
 
 #define F_(D, E)                                              \
     void* nu = Zeta_TreeNode_(Get##E)(ng);                    \
@@ -68,16 +57,16 @@
     }                                                         \
                                                               \
     if (Zeta_TreeNode_(Get##E)(np) == n) {                    \
-        Zeta_BinTree_TreeNode_(Rotate##D)(np);                \
+        Zeta_BinTree_(TreeNode, Rotate##D)(np);               \
         ZETA_Swap(n, np);                                     \
     }                                                         \
                                                               \
     Zeta_TreeNode_(SetPColor)(ng, Red);                       \
     Zeta_TreeNode_(SetPColor)(np, Black);                     \
-    Zeta_BinTree_TreeNode_(Rotate##E)(ng);                    \
+    Zeta_BinTree_(TreeNode, Rotate##E)(ng);                   \
     break;
 
-static void* Zeta_RBTree_TreeNode_(InsertBalance_)(void* n) {
+static void* Zeta_RBTree_(TreeNode, InsertBalance_)(void* n) {
     ZETA_DebugAssert(n != NULL);
 
     for (;;) {
@@ -107,11 +96,11 @@ static void* Zeta_RBTree_TreeNode_(InsertBalance_)(void* n) {
     return Zeta_GetMostLink(n, Zeta_TreeNode_(GetP));
 }
 
-void* Zeta_RBTree_TreeNode_(InsertL)(void* pos, void* n) { Insert_(L, R); }
+void* Zeta_RBTree_(TreeNode, InsertL)(void* pos, void* n) { Insert_(L, R); }
 
-void* Zeta_RBTree_TreeNode_(InsertR)(void* pos, void* n) { Insert_(R, L); }
+void* Zeta_RBTree_(TreeNode, InsertR)(void* pos, void* n) { Insert_(R, L); }
 
-void* Zeta_RBTree_TreeNode_(Insert)(void* pos_l, void* pos_r, void* n) {
+void* Zeta_RBTree_(TreeNode, Insert)(void* pos_l, void* pos_r, void* n) {
     ZETA_DebugAssert(pos_l != n);
     ZETA_DebugAssert(pos_r != n);
     ZETA_DebugAssert(n != NULL);
@@ -121,9 +110,9 @@ void* Zeta_RBTree_TreeNode_(Insert)(void* pos_l, void* pos_r, void* n) {
     ZETA_DebugAssert(Zeta_TreeNode_(GetR)(n) == NULL);
 
     ZETA_DebugAssert(pos_l == NULL ||
-                     Zeta_BinTree_TreeNode_(StepR)(pos_l) == pos_r);
+                     Zeta_BinTree_(TreeNode, StepR)(pos_l) == pos_r);
     ZETA_DebugAssert(pos_r == NULL ||
-                     Zeta_BinTree_TreeNode_(StepL)(pos_r) == pos_l);
+                     Zeta_BinTree_(TreeNode, StepL)(pos_r) == pos_l);
 
     if (pos_l == NULL && pos_r == NULL) {
         if (Zeta_TreeNode_(GetPColor)(n) != Black) {
@@ -138,34 +127,34 @@ void* Zeta_RBTree_TreeNode_(Insert)(void* pos_l, void* pos_r, void* n) {
     }
 
     if (pos_l != NULL && Zeta_TreeNode_(GetR)(pos_l) == NULL) {
-        Zeta_BinTree_TreeNode_(AttatchR)(pos_l, n);
+        Zeta_BinTree_(TreeNode, AttatchR)(pos_l, n);
     } else {
-        Zeta_BinTree_TreeNode_(AttatchL)(pos_r, n);
+        Zeta_BinTree_(TreeNode, AttatchL)(pos_r, n);
     }
 
-    return Zeta_RBTree_TreeNode_(InsertBalance_)(n);
+    return Zeta_RBTree_(TreeNode, InsertBalance_)(n);
 }
 
 #define GeneralInsert_(D, E)                                               \
                                                                            \
     if (pos == NULL) {                                                     \
-        return Zeta_RBTree_TreeNode_(Insert##E)(                           \
+        return Zeta_RBTree_(TreeNode, Insert##E)(                          \
             Zeta_GetMostLink(root, Zeta_TreeNode_(Get##E)), n);            \
     }                                                                      \
                                                                            \
     ZETA_DebugAssert(root == Zeta_GetMostLink(Zeta_TreeNode_(GetP), pos)); \
                                                                            \
-    return Zeta_RBTree_TreeNode_(Insert##D)(pos, n);
+    return Zeta_RBTree_(TreeNode, Insert##D)(pos, n);
 
-void* Zeta_RBTree_TreeNode_(GeneralInsertL)(void* root, void* pos, void* n) {
+void* Zeta_RBTree_(TreeNode, GeneralInsertL)(void* root, void* pos, void* n) {
     GeneralInsert_(L, R);
 }
 
-void* Zeta_RBTree_TreeNode_(GeneralInsertR)(void* root, void* pos, void* n) {
+void* Zeta_RBTree_(TreeNode, GeneralInsertR)(void* root, void* pos, void* n) {
     GeneralInsert_(R, L);
 }
 
-static void Zeta_RBTree_TreeNode_(ExtractBalance_)(void* n) {
+static void Zeta_RBTree_(TreeNode, ExtractBalance_)(void* n) {
     for (;;) {
         if (Zeta_TreeNode_(GetPColor)(n) == Red) {
             Zeta_TreeNode_(SetPColor)(n, Black);
@@ -183,13 +172,13 @@ static void Zeta_RBTree_TreeNode_(ExtractBalance_)(void* n) {
         if (Zeta_TreeNode_(GetL)(np) == n) {
             GetD = Zeta_TreeNode_(GetL);
             GetE = Zeta_TreeNode_(GetR);
-            RotateD = Zeta_BinTree_TreeNode_(RotateL);
-            RotateE = Zeta_BinTree_TreeNode_(RotateR);
+            RotateD = Zeta_BinTree_(TreeNode, RotateL);
+            RotateE = Zeta_BinTree_(TreeNode, RotateR);
         } else {
             GetD = Zeta_TreeNode_(GetR);
             GetE = Zeta_TreeNode_(GetL);
-            RotateD = Zeta_BinTree_TreeNode_(RotateR);
-            RotateE = Zeta_BinTree_TreeNode_(RotateL);
+            RotateD = Zeta_BinTree_(TreeNode, RotateR);
+            RotateE = Zeta_BinTree_(TreeNode, RotateL);
         }
 
         void* ns = GetE(np);
@@ -231,7 +220,7 @@ static void Zeta_RBTree_TreeNode_(ExtractBalance_)(void* n) {
     }
 }
 
-void* Zeta_RBTree_TreeNode_(Extract)(void* pos) {
+void* Zeta_RBTree_(TreeNode, Extract)(void* pos) {
     ZETA_DebugAssert(pos != NULL);
 
     void* n = pos;
@@ -246,7 +235,7 @@ void* Zeta_RBTree_TreeNode_(Extract)(void* pos) {
                       ? Zeta_GetMostLink(nr, Zeta_TreeNode_(GetL))
                       : Zeta_GetMostLink(nl, Zeta_TreeNode_(GetR));
 
-        Zeta_BinTree_TreeNode_(Swap)(n, m);
+        Zeta_BinTree_(TreeNode, Swap)(n, m);
 
         int nc = Zeta_TreeNode_(GetPColor)(n);
         int mc = Zeta_TreeNode_(GetPColor)(m);
@@ -266,25 +255,25 @@ void* Zeta_RBTree_TreeNode_(Extract)(void* pos) {
         nr = Zeta_TreeNode_(GetR)(n);
 
         if (nl != NULL) {
-            Zeta_BinTree_TreeNode_(RotateR)(n);
+            Zeta_BinTree_(TreeNode, RotateR)(n);
             Zeta_TreeNode_(SetPColor)(nl, Black);
         } else if (nr != NULL) {
-            Zeta_BinTree_TreeNode_(RotateL)(n);
+            Zeta_BinTree_(TreeNode, RotateL)(n);
             Zeta_TreeNode_(SetPColor)(nr, Black);
         } else {
-            Zeta_RBTree_TreeNode_(ExtractBalance_)(n);
+            Zeta_RBTree_(TreeNode, ExtractBalance_)(n);
         }
     }
 
     root = Zeta_GetMostLink(root, Zeta_TreeNode_(GetP));
     if (root == n) { return NULL; }
 
-    Zeta_BinTree_TreeNode_(Detach)(n);
+    Zeta_BinTree_(TreeNode, Detach)(n);
     return root;
 }
 
-static size_t Zeta_RBTree_TreeNode_(Sanitize_)(Zeta_MemRecorder* dst_mr,
-                                               void* n) {
+static size_t Zeta_RBTree_(TreeNode, Sanitize_)(Zeta_MemRecorder* dst_mr,
+                                                void* n) {
     if (n == NULL) { return 0; }
 
     void* nl = Zeta_TreeNode_(GetL)(n);
@@ -293,11 +282,11 @@ static size_t Zeta_RBTree_TreeNode_(Sanitize_)(Zeta_MemRecorder* dst_mr,
     if (nl != NULL) { ZETA_DebugAssert(Zeta_TreeNode_(GetP)(nl) == n); }
     if (nr != NULL) { ZETA_DebugAssert(Zeta_TreeNode_(GetP)(nr) == n); }
 
-    size_t lbh = Zeta_RBTree_TreeNode_(Sanitize_)(dst_mr, nl);
+    size_t lbh = Zeta_RBTree_(TreeNode, Sanitize_)(dst_mr, nl);
 
     if (dst_mr != NULL) { Zeta_MemRecorder_Record(dst_mr, n, sizeof(void*)); }
 
-    size_t rbh = Zeta_RBTree_TreeNode_(Sanitize_)(dst_mr, nr);
+    size_t rbh = Zeta_RBTree_(TreeNode, Sanitize_)(dst_mr, nr);
 
     ZETA_DebugAssert(lbh == rbh);
 
@@ -313,18 +302,15 @@ static size_t Zeta_RBTree_TreeNode_(Sanitize_)(Zeta_MemRecorder* dst_mr,
     return lbh;
 }
 
-void Zeta_RBTree_TreeNode_(Sanitize)(Zeta_MemRecorder* dst_mr, void* root) {
+void Zeta_RBTree_(TreeNode, Sanitize)(Zeta_MemRecorder* dst_mr, void* root) {
     if (root == NULL) { return; }
 
     ZETA_DebugAssert(Zeta_TreeNode_(GetP)(root) == NULL);
     ZETA_DebugAssert(Zeta_TreeNode_(GetPColor)(root) == Black);
 
-    Zeta_RBTree_TreeNode_(Sanitize_)(dst_mr, root);
+    Zeta_RBTree_(TreeNode, Sanitize_)(dst_mr, root);
 }
 
-#pragma pop_macro("Zeta_TreeNode_")
-#pragma pop_macro("Zeta_BinTree_TreeNode_")
-#pragma pop_macro("Zeta_RBTree_TreeNode_")
 #pragma pop_macro("Black")
 #pragma pop_macro("Red")
 #pragma pop_macro("Insert_")

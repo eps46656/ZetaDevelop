@@ -8,9 +8,10 @@ ZETA_DeclareStruct(Zeta_CachingArray);
 ZETA_DeclareStruct(Zeta_CachingArray_Cursor);
 
 struct Zeta_CachingArray {
-    Zeta_SeqCntr* origin;
+    Zeta_SeqCntr origin;
 
-    Zeta_CacheManager* cm;
+    Zeta_CacheManager cache_manager;
+
     void* sd;
 };
 
@@ -131,6 +132,6 @@ void Zeta_CachingArray_Cursor_AdvanceR(void const* ca, void* cursor,
 
 void Zeta_CachingArray_Cursor_Check(void const* ca, void const* cursor);
 
-void Zeta_CachingArray_DeploySeqCntr(void* ca, Zeta_SeqCntr* seq_cntr);
+extern Zeta_SeqCntr_VTable const zeta_caching_array_seq_cntr_vtable;
 
 ZETA_ExternC_End;

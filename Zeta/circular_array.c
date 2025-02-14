@@ -538,18 +538,18 @@ VEC_BW_MOVE: {
 }
 
 void Zeta_CircularArray_AssignFromSeqCntr(void* ca_, void* ca_cursor_,
-                                          Zeta_SeqCntr* seq_cntr,
+                                          Zeta_SeqCntr seq_cntr,
                                           void* seq_cntr_cursor, size_t cnt) {
     Zeta_CircularArray* ca = ca_;
     Zeta_CircularArray_Cursor* ca_cursor = ca_cursor_;
 
     CheckCursor_(ca, ca_cursor);
 
-    if (seq_cntr->Read == Zeta_CircularArray_Read) {
-        CheckCursor_(seq_cntr->context, seq_cntr_cursor);
+    if (seq_cntr.vtable == &zeta_circular_array_seq_cntr_vtable) {
+        CheckCursor_(seq_cntr.context, seq_cntr_cursor);
 
         Zeta_CircularArray_Assign(
-            ca, seq_cntr->context, ((Zeta_CircularArray_Cursor*)ca_cursor)->idx,
+            ca, seq_cntr.context, ((Zeta_CircularArray_Cursor*)ca_cursor)->idx,
             ((Zeta_CircularArray_Cursor*)seq_cntr_cursor)->idx, cnt);
 
         return;
@@ -566,7 +566,7 @@ void Zeta_CircularArray_AssignFromSeqCntr(void* ca_, void* ca_cursor_,
     ZETA_DebugAssert(idx <= size);
     ZETA_DebugAssert(cnt <= size - idx);
 
-    ZETA_DebugAssert(seq_cntr->Read != NULL);
+    ZETA_DebugAssert(seq_cntr.vtable->Read != NULL);
 
     while (0 < cnt) {
         size_t cur_cnt =
@@ -743,69 +743,58 @@ void Zeta_CircularArray_Cursor_Check(void const* ca_, void const* cursor_) {
     }
 }
 
-void Zeta_CircularArray_DeploySeqCntr(void* ca_, Zeta_SeqCntr* seq_cntr) {
-    Zeta_CircularArray* ca = ca_;
-    CheckCntr_(ca);
+Zeta_SeqCntr_VTable const zeta_circular_array_seq_cntr_vtable = {
+    .cursor_size = sizeof(Zeta_CircularArray_Cursor),
 
-    ZETA_DebugAssert(seq_cntr != NULL);
+    .GetWidth = Zeta_CircularArray_GetWidth,
 
-    Zeta_SeqCntr_Init(seq_cntr);
+    .GetSize = Zeta_CircularArray_GetSize,
 
-    seq_cntr->context = ca;
+    .GetCapacity = Zeta_CircularArray_GetCapacity,
 
-    seq_cntr->const_context = ca;
+    .GetLBCursor = Zeta_CircularArray_GetLBCursor,
 
-    seq_cntr->cursor_size = sizeof(Zeta_CircularArray_Cursor);
+    .GetRBCursor = Zeta_CircularArray_GetRBCursor,
 
-    seq_cntr->GetWidth = Zeta_CircularArray_GetWidth;
+    .PeekL = Zeta_CircularArray_PeekL,
 
-    seq_cntr->GetSize = Zeta_CircularArray_GetSize;
+    .PeekR = Zeta_CircularArray_PeekR,
 
-    seq_cntr->GetCapacity = Zeta_CircularArray_GetCapacity;
+    .Access = Zeta_CircularArray_Access,
 
-    seq_cntr->GetLBCursor = Zeta_CircularArray_GetLBCursor;
+    .Refer = Zeta_CircularArray_Refer,
 
-    seq_cntr->GetRBCursor = Zeta_CircularArray_GetRBCursor;
+    .Read = Zeta_CircularArray_Read,
 
-    seq_cntr->PeekL = Zeta_CircularArray_PeekL;
+    .Write = Zeta_CircularArray_Write,
 
-    seq_cntr->PeekR = Zeta_CircularArray_PeekR;
+    .PushL = Zeta_CircularArray_PushL,
 
-    seq_cntr->Access = Zeta_CircularArray_Access;
+    .PushR = Zeta_CircularArray_PushR,
 
-    seq_cntr->Refer = Zeta_CircularArray_Refer;
+    .Insert = Zeta_CircularArray_Insert,
 
-    seq_cntr->Read = Zeta_CircularArray_Read;
+    .PopL = Zeta_CircularArray_PopL,
 
-    seq_cntr->Write = Zeta_CircularArray_Write;
+    .PopR = Zeta_CircularArray_PopR,
 
-    seq_cntr->PushL = Zeta_CircularArray_PushL;
+    .Erase = Zeta_CircularArray_Erase,
 
-    seq_cntr->PushR = Zeta_CircularArray_PushR;
+    .EraseAll = Zeta_CircularArray_EraseAll,
 
-    seq_cntr->Insert = Zeta_CircularArray_Insert;
+    .Cursor_AreEqual = Zeta_CircularArray_Cursor_AreEqual,
 
-    seq_cntr->PopL = Zeta_CircularArray_PopL;
+    .Cursor_Compare = Zeta_CircularArray_Cursor_Compare,
 
-    seq_cntr->PopR = Zeta_CircularArray_PopR;
+    .Cursor_GetDist = Zeta_CircularArray_Cursor_GetDist,
 
-    seq_cntr->Erase = Zeta_CircularArray_Erase;
+    .Cursor_GetIdx = Zeta_CircularArray_Cursor_GetIdx,
 
-    seq_cntr->EraseAll = Zeta_CircularArray_EraseAll;
+    .Cursor_StepL = Zeta_CircularArray_Cursor_StepL,
 
-    seq_cntr->Cursor_AreEqual = Zeta_CircularArray_Cursor_AreEqual;
+    .Cursor_StepR = Zeta_CircularArray_Cursor_StepR,
 
-    seq_cntr->Cursor_Compare = Zeta_CircularArray_Cursor_Compare;
+    .Cursor_AdvanceL = Zeta_CircularArray_Cursor_AdvanceL,
 
-    seq_cntr->Cursor_GetDist = Zeta_CircularArray_Cursor_GetDist;
-
-    seq_cntr->Cursor_GetIdx = Zeta_CircularArray_Cursor_GetIdx;
-
-    seq_cntr->Cursor_StepL = Zeta_CircularArray_Cursor_StepL;
-
-    seq_cntr->Cursor_StepR = Zeta_CircularArray_Cursor_StepR;
-
-    seq_cntr->Cursor_AdvanceL = Zeta_CircularArray_Cursor_AdvanceL;
-
-    seq_cntr->Cursor_AdvanceR = Zeta_CircularArray_Cursor_AdvanceR;
-}
+    .Cursor_AdvanceR = Zeta_CircularArray_Cursor_AdvanceR,
+};

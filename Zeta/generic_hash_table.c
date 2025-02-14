@@ -134,10 +134,9 @@ static size_t FindNxtCapacity_(size_t capacity) {
 }
 
 static void* Find_(unsigned long long salt, Zeta_MultiLevelTable* table,
-                   size_t capacity, void const* key,
-                   void const* key_hash_context, Zeta_Hash KeyHash,
-                   void const* key_node_cmp_context,
-                   Zeta_Compare KeyNodeCompare) {
+                   size_t capacity, void const* key, Zeta_Hash KeyHash,
+                   void const* key_hash_context, Zeta_Compare KeyNodeCompare,
+                   void const* key_node_cmp_context) {
     size_t idxes[ZETA_MultiLevelTable_max_level];
 
     SetIdxes_(table->level, idxes,
@@ -168,8 +167,8 @@ static void* Find_(unsigned long long salt, Zeta_MultiLevelTable* table,
                : ZETA_MemberToStruct(Zeta_GenericHashTable_Node, n, target_n);
 }
 
-static void Insert_(Zeta_GenericHashTable* ght, Zeta_MultiLevelTable* table,
-                    unsigned long long salt, size_t capacity,
+static void Insert_(Zeta_GenericHashTable* ght, unsigned long long salt,
+                    Zeta_MultiLevelTable* table, size_t capacity,
                     Zeta_GenericHashTable_Node* node) {
     size_t idxes[ZETA_MultiLevelTable_max_level];
 
@@ -201,10 +200,9 @@ static void Insert_(Zeta_GenericHashTable* ght, Zeta_MultiLevelTable* table,
     *root_entry = Zeta_RBTree_OrdRBTreeNode_Insert(le_n, gt_n, &node->n);
 }
 
-static bool_t TryExtract_(Zeta_GenericHashTable* ght,
-                          Zeta_MultiLevelTable* table, unsigned long long salt,
-                          size_t capacity, Zeta_GenericHashTable_Node* node,
-                          void* root) {
+static bool_t TryExtract_(Zeta_GenericHashTable* ght, unsigned long long salt,
+                          Zeta_MultiLevelTable* table, size_t capacity,
+                          Zeta_GenericHashTable_Node* node, void* root) {
     if (capacity == 0) { return FALSE; }
 
     size_t idxes[ZETA_MultiLevelTable_max_level];
@@ -250,7 +248,7 @@ static void TryTransfer_(Zeta_GenericHashTable const* ght,
             root_entry = NULL;
         }
 
-        Insert_((Zeta_GenericHashTable*)ght, nxt_table, ght->nxt_salt,
+        Insert_((Zeta_GenericHashTable*)ght, ght->nxt_salt, nxt_table,
                 ght->nxt_capacity, trans_node);
     }
 }
@@ -272,15 +270,7 @@ void Zeta_GenericHashTable_Init(void* ght_) {
 
     ght->size = 0;
 
-    Zeta_Allocator* table_node_allocator = ght->table_node_allocator;
-
-    ZETA_DebugAssert(table_node_allocator != NULL);
-    ZETA_DebugAssert(table_node_allocator->GetAlign != NULL);
-    ZETA_DebugAssert(table_node_allocator->Allocate != NULL);
-    ZETA_DebugAssert(table_node_allocator->Deallocate != NULL);
-    ZETA_DebugAssert(ZETA_Allocator_GetAlign(ght->table_node_allocator) %
-                         alignof(void*) ==
-                     0);
+    ZETA_Allocator_Check(ght->table_node_allocator, alignof(void*));
 }
 
 void Zeta_GenericHashTable_Deinit(void* ght) {
@@ -315,7 +305,7 @@ size_t Zeta_GenericHashTable_GetSize(void const* ght_) {
             break;                                                          \
         }                                                                   \
                                                                             \
-        if (cur_table.size != 0) {                                          \
+        if (0 < cur_table.size) {                                           \
             ((Zeta_GenericHashTable*)ght)->cur_table_size = cur_table.size; \
             ((Zeta_GenericHashTable*)ght)->cur_table_root = cur_table.root; \
                                                                             \
@@ -326,10 +316,12 @@ size_t Zeta_GenericHashTable_GetSize(void const* ght_) {
         }                                                                   \
                                                                             \
         if (nxt_table.size == 0) {                                          \
+            ((Zeta_GenericHashTable*)ght)->cur_salt = Zeta_GetRandom();     \
             ((Zeta_GenericHashTable*)ght)->cur_table_size = 0;              \
             ((Zeta_GenericHashTable*)ght)->cur_capacity = capacities[0];    \
             ((Zeta_GenericHashTable*)ght)->cur_table_root = NULL;           \
         } else {                                                            \
+            ((Zeta_GenericHashTable*)ght)->cur_salt = ght->nxt_salt;        \
             ((Zeta_GenericHashTable*)ght)->cur_table_size = nxt_table.size; \
             ((Zeta_GenericHashTable*)ght)->cur_capacity = nxt_capacity;     \
             ((Zeta_GenericHashTable*)ght)->cur_table_root = nxt_table.root; \
@@ -400,10 +392,10 @@ bool_t Zeta_GenericHashTable_Contain(void const* ght_, void const* node_) {
 }
 
 void* Zeta_GenericHashTable_Find(void const* ght_, void const* key,
-                                 void const* key_hash_context,
                                  Zeta_Hash KeyHash,
-                                 void const* key_node_cmp_context,
-                                 Zeta_Compare KeyNodeCompare) {
+                                 void const* key_hash_context,
+                                 Zeta_Compare KeyNodeCompare,
+                                 void const* key_node_cmp_context) {
     Zeta_GenericHashTable const* ght = ght_;
     CheckCntr_(ght);
 
@@ -424,16 +416,15 @@ void* Zeta_GenericHashTable_Find(void const* ght_, void const* key,
     nxt_table.root = ght->nxt_table_root;
     nxt_table.node_allocator = ght->table_node_allocator;
 
-    void* ret = nxt_capacity == 0
-                    ? NULL
-                    : Find_(ght->nxt_salt, &nxt_table, nxt_capacity, key,
-                            key_hash_context, KeyHash, key_node_cmp_context,
-                            KeyNodeCompare);
+    void* ret =
+        nxt_capacity == 0
+            ? NULL
+            : Find_(ght->nxt_salt, &nxt_table, nxt_capacity, key, KeyHash,
+                    key_hash_context, KeyNodeCompare, key_node_cmp_context);
 
     if (ret == NULL) {
-        ret = Find_(ght->cur_salt, &cur_table, cur_capacity, key,
-                    key_hash_context, KeyHash, key_node_cmp_context,
-                    KeyNodeCompare);
+        ret = Find_(ght->cur_salt, &cur_table, cur_capacity, key, KeyHash,
+                    key_hash_context, KeyNodeCompare, key_node_cmp_context);
     }
 
     TryDo_(4);
@@ -466,9 +457,9 @@ void Zeta_GenericHashTable_Insert(void* ght_, void* node_) {
     nxt_table.node_allocator = ght->table_node_allocator;
 
     if (0 < nxt_capacity) {
-        Insert_(ght, &nxt_table, ght->nxt_salt, nxt_capacity, node);
+        Insert_(ght, ght->nxt_salt, &nxt_table, nxt_capacity, node);
     } else {
-        Insert_(ght, &cur_table, ght->cur_salt, cur_capacity, node);
+        Insert_(ght, ght->cur_salt, &cur_table, cur_capacity, node);
     }
 
     ++ght->size;
@@ -502,9 +493,9 @@ void Zeta_GenericHashTable_Extract(void* ght_, void* node_) {
 
     void* root = Zeta_GetMostLink(&node->n, Zeta_OrdRBTreeNode_GetP);
 
-    if (!TryExtract_(ght, &cur_table, ght->cur_salt, cur_capacity, node,
+    if (!TryExtract_(ght, ght->cur_salt, &cur_table, cur_capacity, node,
                      root) &&
-        !TryExtract_(ght, &nxt_table, ght->nxt_salt, nxt_capacity, node,
+        !TryExtract_(ght, ght->nxt_salt, &nxt_table, nxt_capacity, node,
                      root)) {
         ZETA_DebugAssert(FALSE);
     }
@@ -687,13 +678,7 @@ void Zeta_GenericHashTable_Check(void const* ght_) {
 
     ZETA_DebugAssert(cur_capacity != 0);
 
-    ZETA_DebugAssert(ght->table_node_allocator != NULL);
-    ZETA_DebugAssert(ght->table_node_allocator->GetAlign != NULL);
-    ZETA_DebugAssert(ght->table_node_allocator->Allocate != NULL);
-    ZETA_DebugAssert(ght->table_node_allocator->Deallocate != NULL);
-    ZETA_DebugAssert(ZETA_Allocator_GetAlign(ght->table_node_allocator) %
-                         alignof(void*) ==
-                     0);
+    ZETA_Allocator_Check(ght->table_node_allocator, alignof(void*));
 
     ZETA_DebugAssert(ght->NodeHash != NULL);
     ZETA_DebugAssert(ght->NodeCompare != NULL);

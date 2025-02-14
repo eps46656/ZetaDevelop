@@ -73,19 +73,12 @@ void StdAllocator_Deallocate(void* sa_, void* ptr) {
     std::free(ptr);
 }
 
-void StdAllocator_DeployAllocator(void* sa_, Zeta_Allocator* dst) {
-    StdAllocator* sa = (StdAllocator*)sa_;
-    ZETA_DebugAssert(sa != NULL);
+Zeta_Allocator_VTable const zeta_std_allocator_vtable = {
+    .GetAlign = StdAllocator_GetAlign,
 
-    Zeta_Allocator_Init(dst);
+    .Query = StdAllocator_Query,
 
-    dst->context = sa;
+    .Allocate = StdAllocator_Allocate,
 
-    dst->GetAlign = StdAllocator_GetAlign;
-
-    dst->Query = StdAllocator_Query;
-
-    dst->Allocate = StdAllocator_Allocate;
-
-    dst->Deallocate = StdAllocator_Deallocate;
-}
+    .Deallocate = StdAllocator_Deallocate,
+};

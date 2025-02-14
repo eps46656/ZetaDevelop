@@ -73,7 +73,7 @@ struct Zeta_FileSys_Manager {
     void (*GetInfo)(void* context, void* sd, size_t li,
                     Zeta_FileSys_NodeAttr* dst);
 
-    Zeta_AssocCntr* (*GetLinks)(void* context, void* sd);
+    Zeta_AssocCntr const* (*GetLinks)(void* context, void* sd);
 
     void (*Select)(void* context, void* sd, void* li);
 

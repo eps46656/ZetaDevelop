@@ -243,19 +243,17 @@ bool_t Zeta_ELF_ReadProgramHeaders(Zeta_ELF* elf, byte_t const* src,
 
     if (elf->prog_headers.context == NULL) {
         Zeta_DynamicVector* dv = ZETA_Allocator_SafeAllocate(
-            &zeta_std_allocator, alignof(max_align_t),
+            &zeta_std_allocator_vtable, alignof(max_align_t),
             sizeof(Zeta_DynamicVector));
 
         dv->width = sizeof(Zeta_ELF_ProgramHeader);
         dv->width = sizeof(Zeta_ELF_ProgramHeader);
         dv->seg_capacity = 8;
 
-        dv->data_allocator = &zeta_std_allocator;
-        dv->seg_allocator = &zeta_std_allocator;
+        dv->data_allocator = &zeta_std_allocator_vtable;
+        dv->seg_allocator = &zeta_std_allocator_vtable;
 
         Zeta_DynamicVector_Init(dv);
-
-        Zeta_DynamicVector_DeploySeqCntr(dv, &elf->prog_headers);
     }
 
     size_t cur_prog_header_cnt = ZETA_SeqCntr_GetSize(&elf->prog_headers);
@@ -304,19 +302,17 @@ bool_t Zeta_ELF_ReadSesctionHeaders(Zeta_ELF* elf, byte_t const* src,
 
     if (elf->sect_headers.context == NULL) {
         Zeta_DynamicVector* dv = ZETA_Allocator_SafeAllocate(
-            &zeta_std_allocator, alignof(max_align_t),
+            &zeta_std_allocator_vtable, alignof(max_align_t),
             sizeof(Zeta_DynamicVector));
 
         dv->width = sizeof(Zeta_ELF_SectionHeader);
         dv->width = sizeof(Zeta_ELF_SectionHeader);
         dv->seg_capacity = 8;
 
-        dv->data_allocator = &zeta_std_allocator;
-        dv->seg_allocator = &zeta_std_allocator;
+        dv->data_allocator = &zeta_std_allocator_vtable;
+        dv->seg_allocator = &zeta_std_allocator_vtable;
 
         Zeta_DynamicVector_Init(dv);
-
-        Zeta_DynamicVector_DeploySeqCntr(dv, &elf->sect_headers);
     }
 
     size_t cur_sect_header_cnt = ZETA_SeqCntr_GetSize(&elf->sect_headers);

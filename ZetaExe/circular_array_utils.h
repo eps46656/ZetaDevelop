@@ -7,48 +7,42 @@
 #include "seq_cntr_utils.h"
 
 template <typename Elem>
-void CircularArray_Init(Zeta_SeqCntr* seq_cntr, size_t capacity) {
+Zeta_SeqCntr CircularArray_Create(size_t stride, size_t capacity) {
+    ZETA_DebugAssert(sizeof(Elem) <= stride);
+    ZETA_DebugAssert(stride % alignof(Elem) == 0);
+
     Zeta_CircularArray* ca{ static_cast<Zeta_CircularArray*>(
         std::malloc(sizeof(Zeta_CircularArray))) };
 
-    ca->data = std::malloc(sizeof(Elem) * capacity);
+    ca->data = std::malloc(stride * capacity);
     ca->width = sizeof(Elem);
+    ca->stride = stride;
     ca->offset = 0;
     ca->size = 0;
     ca->capacity = capacity;
 
-    Zeta_CircularArray_DeploySeqCntr(ca, seq_cntr);
-
-    SeqCntrUtils_AddSanitizeFunc(Zeta_CircularArray_GetWidth,
+    SeqCntrUtils_AddSanitizeFunc(&zeta_circular_array_seq_cntr_vtable,
                                  CircularArray_Sanitize);
+
+    SeqCntrUtils_AddDestroyFunc(&zeta_circular_array_seq_cntr_vtable,
+                                CircularArray_Destroy);
+
+    return { &zeta_circular_array_seq_cntr_vtable, ca };
 }
 
-void CircularArray_Deinit(Zeta_SeqCntr* seq_cntr) {
+void CircularArray_Destroy(Zeta_SeqCntr seq_cntr) {
+    ZETA_DebugAssert(seq_cntr.vtable == &zeta_circular_array_seq_cntr_vtable);
+    if (seq_cntr.context == NULL) { return; }
+
     Zeta_CircularArray* ca{ static_cast<Zeta_CircularArray*>(
-        seq_cntr->context) };
+        seq_cntr.context) };
 
-    std::free(ca->data);
+    Zeta_CircularArray_Deinit(ca);
+
+    delete ca;
 }
 
-template <typename Elem>
-Zeta_SeqCntr* CircularArray_Create(size_t capacity) {
-    Zeta_SeqCntr* seq_cntr{ new Zeta_SeqCntr{} };
-
-    CircularArray_Init<Elem>(seq_cntr, capacity);
-
-    return seq_cntr;
-}
-
-void CircularArray_Destroy(Zeta_SeqCntr* seq_cntr) {
-    ZETA_DebugAssert(seq_cntr != NULL);
-    ZETA_DebugAssert(seq_cntr->GetWidth == Zeta_CircularArray_GetWidth);
-
-    CircularArray_Deinit(seq_cntr);
-
-    delete seq_cntr;
-}
-
-void CircularArray_Sanitize(Zeta_SeqCntr const* seq_cntr) {
-    ZETA_DebugAssert(seq_cntr != NULL);
-    ZETA_DebugAssert(seq_cntr->GetWidth == Zeta_CircularArray_GetWidth);
+void CircularArray_Sanitize(Zeta_SeqCntr seq_cntr) {
+    ZETA_DebugAssert(seq_cntr.vtable == &zeta_circular_array_seq_cntr_vtable);
+    if (seq_cntr.context == NULL) { return; }
 }

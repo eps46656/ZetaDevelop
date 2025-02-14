@@ -78,6 +78,6 @@ void Zeta_DebugDeque_Cursor_AdvanceR(void const* dd, void* cursor, size_t step);
 
 void Zeta_DebugDeque_Cursor_Check(void const* dd, void const* cursor);
 
-void Zeta_DebugDeque_DeploySeqCntr(void* dd, Zeta_SeqCntr* seq_cntr);
+extern Zeta_SeqCntr_VTable const zeta_debug_deque_seq_cntr_vtable;
 
 ZETA_ExternC_End;

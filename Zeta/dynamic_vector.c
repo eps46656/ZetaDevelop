@@ -29,7 +29,7 @@ static size_t GetNxtCapacity_(size_t cur_capacity) {
 
 static void TryMigrate_(Zeta_DynamicVector* dv, Zeta_CircularArray* cur_ca,
                         Zeta_CircularArray* nxt_ca, size_t op_cnt) {
-    size_t move_cnt = ZETA_GetMinOf(ZETA_GetMaxOf(8, op_cnt * 2), dv->size_b);
+    size_t move_cnt = ZETA_GetMinOf(8, op_cnt * 2, dv->size_b);
 
     if (nxt_ca->data == NULL || move_cnt == 0) { return; }
 
@@ -473,17 +473,8 @@ void Zeta_DynamicVector_Init(void* dv_) {
     ZETA_DebugAssert(0 < width);
     ZETA_DebugAssert(0 < seg_capacity);
 
-    ZETA_DebugAssert(dv->data_allocator != NULL);
-    ZETA_DebugAssert(dv->data_allocator->GetAlign != NULL);
-    ZETA_DebugAssert(dv->data_allocator->Allocate != NULL);
-    ZETA_DebugAssert(dv->data_allocator->Deallocate != NULL);
-    ZETA_DebugAssert(
-        ZETA_Allocator_GetAlign(dv->data_allocator) % alignof(void*) == 0);
-
-    ZETA_DebugAssert(dv->seg_allocator != NULL);
-    ZETA_DebugAssert(dv->seg_allocator->GetAlign != NULL);
-    ZETA_DebugAssert(dv->seg_allocator->Allocate != NULL);
-    ZETA_DebugAssert(dv->seg_allocator->Deallocate != NULL);
+    ZETA_Allocator_Check(dv->data_allocator, alignof(void*));
+    ZETA_Allocator_Check(dv->seg_allocator, 1);
 
     dv->size_a = 0;
     dv->size_b = 0;
@@ -967,15 +958,8 @@ void Zeta_DynamicVector_Check(void const* dv_) {
         ZETA_DebugAssert(size_b <= (nxt_ca.capacity - nxt_size) * 2);
     }
 
-    ZETA_DebugAssert(dv->data_allocator != NULL);
-    ZETA_DebugAssert(dv->data_allocator->GetAlign != NULL);
-    ZETA_DebugAssert(dv->data_allocator->Allocate != NULL);
-    ZETA_DebugAssert(dv->data_allocator->Deallocate != NULL);
-
-    ZETA_DebugAssert(dv->seg_allocator != NULL);
-    ZETA_DebugAssert(dv->seg_allocator->GetAlign != NULL);
-    ZETA_DebugAssert(dv->seg_allocator->Allocate != NULL);
-    ZETA_DebugAssert(dv->seg_allocator->Deallocate != NULL);
+    ZETA_Allocator_Check(dv->data_allocator, alignof(void*));
+    ZETA_Allocator_Check(dv->seg_allocator, 1);
 }
 
 void Zeta_DynamicVector_Sanitize(void* dv_, Zeta_MemRecorder* dst_data,
@@ -1145,63 +1129,54 @@ void Zeta_DynamicVector_Cursor_Check(void const* dv_, void const* cursor_) {
     ZETA_DebugAssert(re_cursor.ref == cursor->ref);
 }
 
-void Zeta_DynamicVector_DeploySeqCntr(void* dv_, Zeta_SeqCntr* seq_cntr) {
-    Zeta_DynamicVector* dv = dv_;
-    CheckCntr_(dv);
+Zeta_SeqCntr_VTable const zeta_dynamic_vector_seq_cntr_vtable = {
+    .cursor_size = sizeof(Zeta_DynamicVector_Cursor),
 
-    ZETA_DebugAssert(seq_cntr != NULL);
+    .Deinit = Zeta_DynamicVector_Deinit,
 
-    Zeta_SeqCntr_Init(seq_cntr);
+    .GetWidth = Zeta_DynamicVector_GetWidth,
 
-    seq_cntr->context = dv;
+    .GetSize = Zeta_DynamicVector_GetSize,
 
-    seq_cntr->const_context = dv;
+    .GetLBCursor = Zeta_DynamicVector_GetLBCursor,
 
-    seq_cntr->cursor_size = sizeof(Zeta_DynamicVector_Cursor);
+    .GetRBCursor = Zeta_DynamicVector_GetRBCursor,
 
-    seq_cntr->GetWidth = Zeta_DynamicVector_GetWidth;
+    .PeekL = Zeta_DynamicVector_PeekL,
 
-    seq_cntr->GetSize = Zeta_DynamicVector_GetSize;
+    .PeekR = Zeta_DynamicVector_PeekR,
 
-    seq_cntr->GetLBCursor = Zeta_DynamicVector_GetLBCursor;
+    .Access = Zeta_DynamicVector_Access,
 
-    seq_cntr->GetRBCursor = Zeta_DynamicVector_GetRBCursor;
+    .Refer = Zeta_DynamicVector_Refer,
 
-    seq_cntr->PeekL = Zeta_DynamicVector_PeekL;
+    .Read = Zeta_DynamicVector_Read,
 
-    seq_cntr->PeekR = Zeta_DynamicVector_PeekR;
+    .Write = Zeta_DynamicVector_Write,
 
-    seq_cntr->Access = Zeta_DynamicVector_Access;
+    .PushL = Zeta_DynamicVector_PushL,
 
-    seq_cntr->Refer = Zeta_DynamicVector_Refer;
+    .PushR = Zeta_DynamicVector_PushR,
 
-    seq_cntr->Read = Zeta_DynamicVector_Read;
+    .PopL = Zeta_DynamicVector_PopL,
 
-    seq_cntr->Write = Zeta_DynamicVector_Write;
+    .PopR = Zeta_DynamicVector_PopR,
 
-    seq_cntr->PushL = Zeta_DynamicVector_PushL;
+    .EraseAll = Zeta_DynamicVector_EraseAll,
 
-    seq_cntr->PushR = Zeta_DynamicVector_PushR;
+    .Cursor_AreEqual = Zeta_DynamicVector_Cursor_AreEqual,
 
-    seq_cntr->PopL = Zeta_DynamicVector_PopL;
+    .Cursor_Compare = Zeta_DynamicVector_Cursor_Compare,
 
-    seq_cntr->PopR = Zeta_DynamicVector_PopR;
+    .Cursor_GetDist = Zeta_DynamicVector_Cursor_GetDist,
 
-    seq_cntr->EraseAll = Zeta_DynamicVector_EraseAll;
+    .Cursor_GetIdx = Zeta_DynamicVector_Cursor_GetIdx,
 
-    seq_cntr->Cursor_AreEqual = Zeta_DynamicVector_Cursor_AreEqual;
+    .Cursor_StepL = Zeta_DynamicVector_Cursor_StepL,
 
-    seq_cntr->Cursor_Compare = Zeta_DynamicVector_Cursor_Compare;
+    .Cursor_StepR = Zeta_DynamicVector_Cursor_StepR,
 
-    seq_cntr->Cursor_GetDist = Zeta_DynamicVector_Cursor_GetDist;
+    .Cursor_AdvanceL = Zeta_DynamicVector_Cursor_AdvanceL,
 
-    seq_cntr->Cursor_GetIdx = Zeta_DynamicVector_Cursor_GetIdx;
-
-    seq_cntr->Cursor_StepL = Zeta_DynamicVector_Cursor_StepL;
-
-    seq_cntr->Cursor_StepR = Zeta_DynamicVector_Cursor_StepR;
-
-    seq_cntr->Cursor_AdvanceL = Zeta_DynamicVector_Cursor_AdvanceL;
-
-    seq_cntr->Cursor_AdvanceR = Zeta_DynamicVector_Cursor_AdvanceR;
-}
+    .Cursor_AdvanceR = Zeta_DynamicVector_Cursor_AdvanceR,
+};

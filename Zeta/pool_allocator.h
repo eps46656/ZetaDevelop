@@ -2,6 +2,8 @@
 
 #include "allocator.h"
 
+ZETA_ExternC_Beg;
+
 ZETA_DeclareStruct(Zeta_PoolAllocator);
 
 struct Zeta_PoolAllocator {
@@ -12,8 +14,12 @@ void Zeta_PoolAllocator_Init(void* pa);
 
 size_t Zeta_PoolAllocator_GetAlign(void const* pa);
 
+size_t Zeta_PoolAllocator_Query(void const* pa, size_t size);
+
 void* Zeta_PoolAllocator_Allocate(void* pa, size_t size);
 
 void Zeta_PoolAllocator_Deallocate(void* pa, void* ptr);
 
-void Zeta_PoolAllocator_DeployAllocator(void* pa, Zeta_Allocator* dst);
+extern Zeta_Allocator_VTable const zeta_pool_allocator_vtable;
+
+ZETA_ExternC_End;

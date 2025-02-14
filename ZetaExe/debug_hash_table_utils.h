@@ -12,7 +12,7 @@ struct DebugHashTablePack {
 };
 
 template <typename Elem>
-void DebugHashTable_Init(Zeta_AssocCntr* assoc_cntr) {
+Zeta_AssocCntr DebugHashTable_Create() {
     DebugHashTablePack* pack{ new DebugHashTablePack{} };
 
     pack->debug_ht.width = sizeof(Elem);
@@ -25,50 +25,30 @@ void DebugHashTable_Init(Zeta_AssocCntr* assoc_cntr) {
 
     Zeta_DebugHashTable_Init(&pack->debug_ht);
 
-    Zeta_DebugHashTable_DeployAssocCntr(&pack->debug_ht, assoc_cntr);
-
-    AssocCntrUtils_AddSanitizeFunc(Zeta_DebugHashTable_GetWidth,
+    AssocCntrUtils_AddSanitizeFunc(&zeta_debug_hash_table_assoc_cntr_vtable,
                                    DebugHashTable_Sanitize);
 
-    AssocCntrUtils_AddDestroyFunc(Zeta_DebugHashTable_GetWidth,
+    AssocCntrUtils_AddDestroyFunc(&zeta_debug_hash_table_assoc_cntr_vtable,
                                   DebugHashTable_Destroy);
+
+    return { &zeta_debug_hash_table_assoc_cntr_vtable, &pack->debug_ht };
 }
 
-void DebugHashTable_Deinit(Zeta_AssocCntr* assoc_cntr) {
-    if (assoc_cntr == NULL ||
-        assoc_cntr->GetSize != Zeta_DebugHashTable_GetSize) {
-        return;
-    }
+void DebugHashTable_Destroy(Zeta_AssocCntr assoc_cntr) {
+    ZETA_DebugAssert(assoc_cntr.vtable ==
+                     &zeta_debug_hash_table_assoc_cntr_vtable);
+    if (assoc_cntr.context == NULL) { return; }
 
     DebugHashTablePack* pack{ ZETA_MemberToStruct(DebugHashTablePack, debug_ht,
-                                                  assoc_cntr->context) };
+                                                  assoc_cntr.context) };
 
-    Zeta_DebugHashTable_Deinit(assoc_cntr->context);
+    Zeta_DebugHashTable_Deinit(&pack->debug_ht);
 
     std::free(pack);
 }
 
-template <typename Elem>
-Zeta_AssocCntr* DebugHashTable_Create() {
-    Zeta_AssocCntr* assoc_cntr{ new Zeta_AssocCntr{} };
-
-    DebugHashTable_Init<Elem>(assoc_cntr);
-
-    return assoc_cntr;
-}
-
-void DebugHashTable_Destroy(Zeta_AssocCntr* assoc_cntr) {
-    if (assoc_cntr == NULL ||
-        assoc_cntr->GetSize != Zeta_DebugHashTable_GetSize) {
-        return;
-    }
-
-    DebugHashTable_Deinit(assoc_cntr);
-
-    delete assoc_cntr;
-}
-
-void DebugHashTable_Sanitize(Zeta_AssocCntr const* assoc_cntr) {
-    ZETA_DebugAssert(assoc_cntr != NULL);
-    ZETA_DebugAssert(assoc_cntr->GetWidth == Zeta_DebugHashTable_GetWidth);
+void DebugHashTable_Sanitize(Zeta_AssocCntr assoc_cntr) {
+    ZETA_DebugAssert(assoc_cntr.vtable ==
+                     &zeta_debug_hash_table_assoc_cntr_vtable);
+    if (assoc_cntr.context == NULL) { return; }
 }

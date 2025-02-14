@@ -82,11 +82,6 @@ void InitStageVec(Zeta_SeqCntr* seq_cntr, Zeta_SeqCntr* origin_seq_cntr) {
     new (&stage_vec_pack->seg_allocator_) StdAllocator{};
     new (&stage_vec_pack->data_allocator_) StdAllocator{};
 
-    StdAllocator_DeployAllocator(&stage_vec_pack->seg_allocator_,
-                                 &stage_vec_pack->seg_allocator);
-    StdAllocator_DeployAllocator(&stage_vec_pack->data_allocator_,
-                                 &stage_vec_pack->data_allocator);
-
     ZETA_PrintCurPos;
 
     stage_vec_pack->stage_vec.origin = origin_seq_cntr;
@@ -99,8 +94,6 @@ void InitStageVec(Zeta_SeqCntr* seq_cntr, Zeta_SeqCntr* origin_seq_cntr) {
     Zeta_StagingVector_Init(&stage_vec_pack->stage_vec);
 
     ZETA_PrintCurPos;
-
-    Zeta_StagingVector_DeploySeqCntr(&stage_vec_pack->stage_vec, seq_cntr);
 
     ZETA_PrintCurPos;
 }
@@ -123,7 +116,6 @@ void InitDD(Zeta_SeqCntr* seq_cntr) {
     dd->width = sizeof(Val);
 
     Zeta_DebugDeque_Init(dd);
-    Zeta_DebugDeque_DeploySeqCntr(dd, seq_cntr);
 }
 
 Zeta_SeqCntr* CreateDD() {
@@ -255,7 +247,6 @@ void main1() {
     dummy_vec_.width = sizeof(Val);
 
     Zeta_SeqCntr dummy_vec;
-    Zeta_DummyVector_DeploySeqCntr(&dummy_vec_, &dummy_vec);
 
     Zeta_SeqCntr seq_cntr;
 

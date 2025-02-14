@@ -1,12 +1,10 @@
 #pragma once
 
 #include "allocator.h"
+#include "bin_tree_node.h"
 #include "cache_manager.h"
 #include "generic_hash_table.h"
-#include "ord_bin_tree_node.h"
-#include "ord_llist_node.h"
-#include "ord_rb_llist_node.h"
-#include "ord_rb_tree_node.h"
+#include "llist_node.h"
 #include "seq_cntr.h"
 
 ZETA_ExternC_Beg;
@@ -82,14 +80,14 @@ struct Zeta_LRUCacheManager {
     size_t cn_cnt;
     size_t max_cn_cnt;
 
-    Zeta_SeqCntr* origin;
+    Zeta_SeqCntr origin;
 
     size_t cache_size;
 
-    Zeta_Allocator* sn_allocator;
-    Zeta_Allocator* cn_allocator;
-    Zeta_Allocator* xn_allocator;
-    Zeta_Allocator* frame_allocator;
+    Zeta_Allocator sn_allocator;
+    Zeta_Allocator cn_allocator;
+    Zeta_Allocator xn_allocator;
+    Zeta_Allocator frame_allocator;
 
     Zeta_GenericHashTable ght;
 
@@ -110,7 +108,7 @@ void Zeta_LRUCacheManager_Init(void* lrucm);
 
 void Zeta_LRUCacheManager_Deinit(void* lrucm);
 
-Zeta_SeqCntr* Zeta_LRUCacheManager_GetOrigin(void const* lrucm);
+Zeta_SeqCntr Zeta_LRUCacheManager_GetOrigin(void const* lrucm);
 
 size_t Zeta_LRUCacheManager_GetCacheSize(void const* lrucm);
 
@@ -136,7 +134,6 @@ void Zeta_LRUCacheManager_Check(void const* lrucm);
 
 void Zeta_LRUCacheManager_CheckSessionDescriptor(void const* lrucm, void* sd);
 
-void Zeta_LRUCacheManager_DeployCacheManager(void* lrucm,
-                                             Zeta_CacheManager* dst);
+extern Zeta_CacheManager_VTable const zeta_lru_cache_manager_vtable;
 
 ZETA_ExternC_End;

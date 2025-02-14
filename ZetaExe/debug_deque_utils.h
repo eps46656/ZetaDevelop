@@ -11,54 +11,38 @@ struct DebugDequeUtils_Pack {
 };
 
 template <typename Elem>
-void DebugDequeUtils_Init(Zeta_SeqCntr* seq_cntr) {
+Zeta_SeqCntr DebugDequeUtils_Create() {
     DebugDequeUtils_Pack* pack{ new DebugDequeUtils_Pack{} };
 
     pack->debug_deque.width = sizeof(Elem);
 
     Zeta_DebugDeque_Init(&pack->debug_deque);
 
-    Zeta_DebugDeque_DeploySeqCntr(&pack->debug_deque, seq_cntr);
-
-    SeqCntrUtils_AddSanitizeFunc(Zeta_DebugDeque_GetWidth,
+    SeqCntrUtils_AddSanitizeFunc(&zeta_debug_deque_seq_cntr_vtable,
                                  DebugDequeUtils_Sanitize);
 
-    SeqCntrUtils_AddDestroyFunc(Zeta_DebugDeque_GetWidth,
+    SeqCntrUtils_AddDestroyFunc(&zeta_debug_deque_seq_cntr_vtable,
                                 DebugDequeUtils_Destroy);
+
+    return { &zeta_debug_deque_seq_cntr_vtable, &pack->debug_deque };
 }
 
-void DebugDequeUtils_Deinit(Zeta_SeqCntr* seq_cntr) {
-    if (seq_cntr == NULL || seq_cntr->GetSize != Zeta_DebugDeque_GetSize) {
-        return;
-    }
+void DebugDequeUtils_Destroy(Zeta_SeqCntr seq_cntr) {
+    ZETA_DebugAssert(seq_cntr.vtable == &zeta_debug_deque_seq_cntr_vtable);
+    if (seq_cntr.context == NULL) { return; }
+
+    ZETA_DebugAssert(seq_cntr.vtable == &zeta_debug_deque_seq_cntr_vtable);
+    if (seq_cntr.context == NULL) { return; }
 
     DebugDequeUtils_Pack* pack{ ZETA_MemberToStruct(
-        DebugDequeUtils_Pack, debug_deque, seq_cntr->context) };
+        DebugDequeUtils_Pack, debug_deque, seq_cntr.context) };
 
-    Zeta_DebugDeque_Deinit(seq_cntr->context);
+    Zeta_DebugDeque_Deinit(seq_cntr.context);
 
     delete pack;
 }
 
-template <typename Elem>
-Zeta_SeqCntr* DebugDequeUtils_Create() {
-    Zeta_SeqCntr* seq_cntr{ new Zeta_SeqCntr{} };
-
-    DebugDequeUtils_Init<Elem>(seq_cntr);
-
-    return seq_cntr;
-}
-
-void DebugDequeUtils_Destroy(Zeta_SeqCntr* seq_cntr) {
-    if (seq_cntr == NULL || seq_cntr->GetSize != Zeta_DebugDeque_GetSize) {
-        return;
-    }
-
-    DebugDequeUtils_Deinit(seq_cntr);
-
-    delete seq_cntr;
-}
-
-void DebugDequeUtils_Sanitize(Zeta_SeqCntr const* seq_cntr) {
-    ZETA_DebugAssert(seq_cntr != NULL);
+void DebugDequeUtils_Sanitize(Zeta_SeqCntr seq_cntr) {
+    ZETA_DebugAssert(seq_cntr.vtable == &zeta_debug_deque_seq_cntr_vtable);
+    if (seq_cntr.context == NULL) { return; }
 }

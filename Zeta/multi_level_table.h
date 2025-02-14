@@ -28,7 +28,7 @@ struct Zeta_MultiLevelTable {
 
     Zeta_MultiLevelTable_Node* root;
 
-    Zeta_Allocator* node_allocator;
+    Zeta_Allocator node_allocator;
 };
 
 struct Zeta_MultiLevelTable_Node {

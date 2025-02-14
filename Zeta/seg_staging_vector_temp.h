@@ -1,9 +1,8 @@
 // define STAGING (true or false)
 
 #include "allocator.h"
+#include "bin_tree_node.h"
 #include "mem_check_utils.h"
-#include "ord_cnt_3rb_tree_node.h"
-#include "ord_cnt_rb_tree_node.h"
 #include "seq_cntr.h"
 
 ZETA_ExternC_Beg;
@@ -30,10 +29,10 @@ ZETA_ExternC_Beg;
 #endif
 
 #define Zeta_Cntr ZETA_Concat(Zeta_, Cntr)
-#define Zeta_Cntr_(x) ZETA_Concat(ZETA_Concat(Zeta_Cntr, _), x)
+#define Zeta_Cntr_(x) ZETA_Concat(Zeta_Cntr, _, x)
 
 #define Zeta_TreeNode ZETA_Concat(Zeta_, TreeNode)
-#define Zeta_TreeNode_(x) ZETA_Concat(ZETA_Concat(Zeta_TreeNode, _), TreeNode)
+#define Zeta_TreeNode_(x) ZETA_Concat(Zeta_TreeNode, _, TreeNode)
 
 ZETA_DeclareStruct(Zeta_Cntr);
 ZETA_DeclareStruct(Zeta_Cntr_(Seg));
@@ -64,7 +63,7 @@ struct Zeta_Cntr {
     size_t seg_capacity;
 
 #if STAGING
-    Zeta_SeqCntr* origin;
+    Zeta_SeqCntr origin;
 #endif
 
     Zeta_TreeNode* root;
@@ -72,8 +71,8 @@ struct Zeta_Cntr {
     Zeta_TreeNode* lb;
     Zeta_TreeNode* rb;
 
-    Zeta_Allocator* seg_allocator;
-    Zeta_Allocator* data_allocator;
+    Zeta_Allocator seg_allocator;
+    Zeta_Allocator data_allocator;
 };
 
 struct Zeta_Cntr_(Seg) {
@@ -292,7 +291,15 @@ void Zeta_Cntr_(Cursor_AdvanceR)(void const* cntr, void* cursor, size_t step);
 
 void Zeta_Cntr_(Cursor_Check)(void const* cntr, void const* cursor);
 
-void Zeta_Cntr_(DeploySeqCntr)(void* cntr, Zeta_SeqCntr* seq_cntr);
+#if STAGING
+
+extern Zeta_SeqCntr_VTable const zeta_staging_vector_seq_cntr_vtable;
+
+#else
+
+extern Zeta_SeqCntr_VTable const zeta_seg_vector_seq_cntr_vtable;
+
+#endif
 
 #pragma pop_macro("Cntr")
 #pragma pop_macro("Zeta_Cntr")

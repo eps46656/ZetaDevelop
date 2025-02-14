@@ -6,13 +6,13 @@
 #include <unordered_map>
 
 struct CacheManagerUtils_Funcs {
-    void (*Destroy)(Zeta_CacheManager* cm) = NULL;
+    void (*Destroy)(Zeta_CacheManager cm) = NULL;
 
-    void (*Sanitize)(Zeta_CacheManager const* cm) = NULL;
+    void (*Sanitize)(Zeta_CacheManager cm) = NULL;
 };
 
 auto& CacheManagerUtils_GetFuncs() {
-    static std::unordered_map<size_t (*)(void const* constext),
+    static std::unordered_map<Zeta_CacheManager_VTable const*,
                               CacheManagerUtils_Funcs>
         instance;
     return instance;
@@ -21,12 +21,12 @@ auto& CacheManagerUtils_GetFuncs() {
 // ---
 
 void CacheManagerUtils_AddDestroyFunc(
-    size_t (*GetCacheSize)(void const* context),
-    void (*Destroy)(Zeta_CacheManager* cm)) {
+    Zeta_CacheManager_VTable const* cache_manager_vtable,
+    void (*Destroy)(Zeta_CacheManager cm)) {
     auto& map{ CacheManagerUtils_GetFuncs() };
 
     CacheManagerUtils_Funcs& funcs{
-        map.insert({ GetCacheSize, {} }).first->second
+        map.insert({ cache_manager_vtable, {} }).first->second
     };
 
     ZETA_DebugAssert(funcs.Destroy == NULL || funcs.Destroy == Destroy);
@@ -34,30 +34,28 @@ void CacheManagerUtils_AddDestroyFunc(
     funcs.Destroy = Destroy;
 }
 
-void CacheManagerUtils_Destroy(Zeta_CacheManager* cm) {
-    if (cm == NULL) { return; }
-
+void CacheManagerUtils_Destroy(Zeta_CacheManager cache_manager) {
     auto& map{ CacheManagerUtils_GetFuncs() };
 
-    auto iter{ map.find(cm->GetCacheSize) };
+    auto iter{ map.find(cache_manager.vtable) };
     ZETA_DebugAssert(iter != map.end());
 
     auto Destroy{ iter->second.Destroy };
 
     ZETA_DebugAssert(Destroy != NULL);
 
-    Destroy(cm);
+    Destroy(cache_manager);
 }
 
 // ---
 
 void CacheManagerUtils_AddSanitizeFunc(
-    size_t (*GetCacheSize)(void const* context),
-    void (*Sanitize)(Zeta_CacheManager const* cm)) {
+    Zeta_CacheManager_VTable const* cache_manager_vtable,
+    void (*Sanitize)(Zeta_CacheManager cm)) {
     auto& map{ CacheManagerUtils_GetFuncs() };
 
     CacheManagerUtils_Funcs& funcs{
-        map.insert({ GetCacheSize, {} }).first->second
+        map.insert({ cache_manager_vtable, {} }).first->second
     };
 
     ZETA_DebugAssert(funcs.Sanitize == NULL || funcs.Sanitize == Sanitize);
@@ -65,10 +63,10 @@ void CacheManagerUtils_AddSanitizeFunc(
     funcs.Sanitize = Sanitize;
 }
 
-void CacheManagerUtils_Sanitize(Zeta_CacheManager const* cm) {
+void CacheManagerUtils_Sanitize(Zeta_CacheManager cm) {
     auto& map{ CacheManagerUtils_GetFuncs() };
 
-    auto iter{ map.find(cm->GetCacheSize) };
+    auto iter{ map.find(cm.vtable) };
     ZETA_DebugAssert(iter != map.end());
 
     auto Sanitize{ iter->second.Sanitize };

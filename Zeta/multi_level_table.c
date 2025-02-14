@@ -58,12 +58,11 @@ void Zeta_MultiLevelTable_Init(void* mlt_) {
 
     mlt->root = NULL;
 
-    ZETA_DebugAssert(mlt->node_allocator != NULL);
-    ZETA_DebugAssert(mlt->node_allocator->GetAlign != NULL);
-    ZETA_DebugAssert(
-        mlt->node_allocator->GetAlign(mlt->node_allocator->context) %
-            alignof(Zeta_MultiLevelTable_Node) ==
-        0);
+    ZETA_DebugAssert(mlt->node_allocator.vtable != NULL);
+    ZETA_DebugAssert(mlt->node_allocator.vtable->GetAlign != NULL);
+    ZETA_DebugAssert(ZETA_Allocator_GetAlign(mlt->node_allocator) %
+                         alignof(Zeta_MultiLevelTable_Node) ==
+                     0);
 }
 
 void Zeta_MultiLevelTable_Deinit(void* mlt) {
@@ -317,8 +316,8 @@ L1:
     return nodes[0]->ptrs + idxes[0];
 }
 
-static Zeta_MultiLevelTable_Node* AllocateNode_(
-    size_t branch_num, Zeta_Allocator* node_allocator) {
+static Zeta_MultiLevelTable_Node* AllocateNode_(size_t branch_num,
+                                                Zeta_Allocator node_allocator) {
     Zeta_MultiLevelTable_Node* node = ZETA_Allocator_SafeAllocate(
         node_allocator, alignof(Zeta_MultiLevelTable_Node),
         offsetof(Zeta_MultiLevelTable_Node, ptrs[branch_num]));
@@ -408,7 +407,7 @@ void* Zeta_MultiLevelTable_Erase(void* mlt_, size_t* idxes) {
 
 static void EraseAll_(int level, unsigned short const* branch_nums,
                       Zeta_MultiLevelTable_Node* node,
-                      Zeta_Allocator* node_allocator) {
+                      Zeta_Allocator node_allocator) {
     if (level == 0) {
         ZETA_Allocator_Deallocate(node_allocator, node);
         return;

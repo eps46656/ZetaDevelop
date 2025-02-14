@@ -9,110 +9,81 @@
 #include "std_allocator.h"
 
 struct LRUCacheManagerPack {
-    StdAllocator sn_allocator_instance;
-    StdAllocator cn_allocator_instance;
-    StdAllocator xn_allocator_instance;
-    StdAllocator frame_allocator_instance;
-    StdAllocator ght_table_node_allocator_instance;
-
-    Zeta_Allocator sn_allocator;
-    Zeta_Allocator cn_allocator;
-    Zeta_Allocator xn_allocator;
-    Zeta_Allocator frame_allocator;
-    Zeta_Allocator ght_table_node_allocator;
+    StdAllocator sn_allocator;
+    StdAllocator cn_allocator;
+    StdAllocator xn_allocator;
+    StdAllocator frame_allocator;
+    StdAllocator ght_table_node_allocator;
 
     Zeta_LRUCacheManager lrucm;
 };
 
-// -----------------------------------------------------------------------------
-
-void LRUCacheManagerUtils_Init(Zeta_CacheManager* cm, Zeta_SeqCntr* origin,
-                               size_t cache_size);
-
-void LRUCacheManagerUtils_Deinit(Zeta_CacheManager* cm);
-
-Zeta_CacheManager* LRUCacheManagerUtils_Create(Zeta_SeqCntr* origin,
-                                               size_t cache_size);
-
-void LRUCacheManagerUtils_Destroy(Zeta_CacheManager* cm);
-
-void LRUCacheManagerUtils_Sanitize(Zeta_CacheManager const* cm);
-
-// -----------------------------------------------------------------------------
-
-void LRUCacheManagerUtils_Init(Zeta_CacheManager* cm, Zeta_SeqCntr* origin,
-                               size_t cache_size) {
+Zeta_CacheManager LRUCacheManagerUtils_Create(Zeta_SeqCntr origin,
+                                              size_t cache_size) {
     ZETA_DebugAssert(cm != NULL);
     ZETA_DebugAssert(origin != NULL);
     ZETA_DebugAssert(0 < cache_size);
 
     LRUCacheManagerPack* pack{ new LRUCacheManagerPack{} };
 
-    StdAllocator_DeployAllocator(&pack->sn_allocator_instance,
-                                 &pack->sn_allocator);
-    StdAllocator_DeployAllocator(&pack->cn_allocator_instance,
-                                 &pack->cn_allocator);
-    StdAllocator_DeployAllocator(&pack->xn_allocator_instance,
-                                 &pack->xn_allocator);
-    StdAllocator_DeployAllocator(&pack->frame_allocator_instance,
-                                 &pack->frame_allocator);
-    StdAllocator_DeployAllocator(&pack->ght_table_node_allocator_instance,
-                                 &pack->ght_table_node_allocator);
-
     pack->lrucm.origin = origin;
 
     pack->lrucm.cache_size = cache_size;
 
-    pack->lrucm.sn_allocator = &pack->sn_allocator;
-    pack->lrucm.cn_allocator = &pack->cn_allocator;
-    pack->lrucm.xn_allocator = &pack->xn_allocator;
-    pack->lrucm.frame_allocator = &pack->frame_allocator;
+    pack->lrucm.sn_allocator = {
+        .vtable = &zeta_std_allocator_vtable,
+        .context = &pack->sn_allocator,
+    };
 
-    pack->lrucm.ght.table_node_allocator = &pack->ght_table_node_allocator;
+    pack->lrucm.cn_allocator = {
+        .vtable = &zeta_std_allocator_vtable,
+        .context = &pack->cn_allocator,
+    };
+
+    pack->lrucm.xn_allocator = {
+        .vtable = &zeta_std_allocator_vtable,
+        .context = &pack->xn_allocator,
+    };
+
+    pack->lrucm.frame_allocator = {
+        .vtable = &zeta_std_allocator_vtable,
+        .context = &pack->frame_allocator,
+    };
+
+    pack->lrucm.ght.table_node_allocator = {
+        .vtable = &zeta_std_allocator_vtable,
+        .context = &pack->ght_table_node_allocator,
+    };
 
     Zeta_LRUCacheManager_Init(&pack->lrucm);
 
-    Zeta_LRUCacheManager_DeployCacheManager(&pack->lrucm, cm);
-
-    CacheManagerUtils_AddSanitizeFunc(Zeta_LRUCacheManager_GetCacheSize,
+    CacheManagerUtils_AddSanitizeFunc(&zeta_lru_cache_manager_vtable,
                                       LRUCacheManagerUtils_Sanitize);
 
-    CacheManagerUtils_AddDestroyFunc(Zeta_LRUCacheManager_GetCacheSize,
+    CacheManagerUtils_AddDestroyFunc(&zeta_lru_cache_manager_vtable,
                                      LRUCacheManagerUtils_Destroy);
+
+    return { .vtable = &zeta_lru_cache_manager_vtable,
+             .context = &pack->lrucm };
 }
 
-void LRUCacheManagerUtils_Deinit(Zeta_CacheManager* cm) {
-    ZETA_DebugAssert(cm != NULL);
-    ZETA_DebugAssert(cm->GetCacheSize == Zeta_LRUCacheManager_GetCacheSize);
+void LRUCacheManagerUtils_Destroy(Zeta_CacheManager cm) {
+    ZETA_DebugAssert(cm.vtable == &zeta_lru_cache_manager_vtable);
+    if (cm.context == NULL) { return; }
 
     LRUCacheManagerPack* pack{ ZETA_MemberToStruct(LRUCacheManagerPack, lrucm,
-                                                   cm->context) };
+                                                   cm.context) };
 
-    Zeta_LRUCacheManager_Deinit(cm->context);
+    Zeta_LRUCacheManager_Deinit(&pack->lrucm);
 
     delete pack;
 }
 
-Zeta_CacheManager* LRUCacheManagerUtils_Create(Zeta_SeqCntr* origin,
-                                               size_t cache_size) {
-    Zeta_CacheManager* cm{ new Zeta_CacheManager{} };
+void LRUCacheManagerUtils_Sanitize(Zeta_CacheManager cm) {
+    ZETA_DebugAssert(cm.vtable == &zeta_lru_cache_manager_vtable);
+    if (cm.context == NULL) { return; }
 
-    LRUCacheManagerUtils_Init(cm, origin, cache_size);
-
-    return cm;
-}
-
-void LRUCacheManagerUtils_Destroy(Zeta_CacheManager* cm) {
-    LRUCacheManagerUtils_Deinit(cm);
-
-    delete cm;
-}
-
-void LRUCacheManagerUtils_Sanitize(Zeta_CacheManager const* cm) {
-    ZETA_DebugAssert(cm != NULL);
-    ZETA_DebugAssert(cm->GetCacheSize == Zeta_LRUCacheManager_GetCacheSize);
-
-    Zeta_LRUCacheManager* lrucm = (Zeta_LRUCacheManager*)cm->context;
+    Zeta_LRUCacheManager* lrucm = (Zeta_LRUCacheManager*)cm.context;
 
     using BNode = Zeta_LRUCacheManager_BNode;
     using SNode = Zeta_LRUCacheManager_SNode;
@@ -138,7 +109,7 @@ void LRUCacheManagerUtils_Sanitize(Zeta_CacheManager const* cm) {
 
         BNode* bn = ZETA_MemberToStruct(BNode, ghtn, ghtn);
 
-        int bnc = Zeta_OrdRBLListNode_GetColor(&bn->ln);
+        int bnc = Zeta_OrdRBLListNode_GetLColor(&bn->ln);
 
         ZETA_DebugAssert(bnc == sn_color || bnc == cn_color || bnc == xn_color);
 
@@ -197,7 +168,7 @@ void LRUCacheManagerUtils_Sanitize(Zeta_CacheManager const* cm) {
 
         SNode* sn = ZETA_MemberToStruct(SNode, sln, sln);
 
-        ZETA_DebugAssert(Zeta_OrdRBLListNode_GetColor(&sn->bn.ln) == sn_color);
+        ZETA_DebugAssert(Zeta_OrdRBLListNode_GetLColor(&sn->bn.ln) == sn_color);
 
         ZETA_DebugAssert(sn->cn_cnt <= sn->max_cn_cnt);
 
@@ -214,7 +185,7 @@ void LRUCacheManagerUtils_Sanitize(Zeta_CacheManager const* cm) {
 
         SNode* sn = ZETA_MemberToStruct(SNode, sln, sln);
 
-        ZETA_DebugAssert(Zeta_OrdRBLListNode_GetColor(&sn->bn.ln) == sn_color);
+        ZETA_DebugAssert(Zeta_OrdRBLListNode_GetLColor(&sn->bn.ln) == sn_color);
 
         ZETA_DebugAssert(sn->max_cn_cnt < sn->cn_cnt);
 
@@ -239,7 +210,7 @@ void LRUCacheManagerUtils_Sanitize(Zeta_CacheManager const* cm) {
 
         BNode* bn = ZETA_MemberToStruct(BNode, ln, cln);
 
-        ZETA_DebugAssert(Zeta_OrdRBLListNode_GetColor(&bn->ln) == cn_color);
+        ZETA_DebugAssert(Zeta_OrdRBLListNode_GetLColor(&bn->ln) == cn_color);
 
         CNode* cn = ZETA_MemberToStruct(CNode, bn, bn);
 
@@ -257,7 +228,7 @@ void LRUCacheManagerUtils_Sanitize(Zeta_CacheManager const* cm) {
 
         BNode* bn = ZETA_MemberToStruct(BNode, ln, cln);
 
-        ZETA_DebugAssert(Zeta_OrdRBLListNode_GetColor(&bn->ln) == cn_color);
+        ZETA_DebugAssert(Zeta_OrdRBLListNode_GetLColor(&bn->ln) == cn_color);
 
         CNode* cn = ZETA_MemberToStruct(CNode, bn, bn);
 
@@ -275,7 +246,7 @@ void LRUCacheManagerUtils_Sanitize(Zeta_CacheManager const* cm) {
 
         BNode* bn = ZETA_MemberToStruct(BNode, ln, cln);
 
-        ZETA_DebugAssert(Zeta_OrdRBLListNode_GetColor(&bn->ln) == cn_color);
+        ZETA_DebugAssert(Zeta_OrdRBLListNode_GetLColor(&bn->ln) == cn_color);
 
         CNode* cn = ZETA_MemberToStruct(CNode, bn, bn);
 
@@ -293,11 +264,11 @@ void LRUCacheManagerUtils_Sanitize(Zeta_CacheManager const* cm) {
 
         BNode* bn = ZETA_MemberToStruct(BNode, ln, cln);
 
-        ZETA_DebugAssert(Zeta_OrdRBLListNode_GetColor(&bn->ln) == cn_color);
+        ZETA_DebugAssert(Zeta_OrdRBLListNode_GetLColor(&bn->ln) == cn_color);
 
         CNode* cn = ZETA_MemberToStruct(CNode, bn, bn);
 
-        ZETA_DebugAssert(Zeta_OrdRBLListNode_GetColor(&cn->bn.ln) == cn_color);
+        ZETA_DebugAssert(Zeta_OrdRBLListNode_GetLColor(&cn->bn.ln) == cn_color);
 
         ZETA_DebugAssert(cn->ref_cnt == 0);
         ZETA_DebugAssert(cn->dirty);
@@ -333,7 +304,8 @@ void LRUCacheManagerUtils_Sanitize(Zeta_CacheManager const* cm) {
 
             BNode* bn = ZETA_MemberToStruct(BNode, ln, ln);
 
-            ZETA_DebugAssert(Zeta_OrdRBLListNode_GetColor(&bn->ln) == xn_color);
+            ZETA_DebugAssert(Zeta_OrdRBLListNode_GetLColor(&bn->ln) ==
+                             xn_color);
 
             XNode* xn = ZETA_MemberToStruct(XNode, bn, bn);
 
@@ -366,7 +338,8 @@ void LRUCacheManagerUtils_Sanitize(Zeta_CacheManager const* cm) {
     Zeta_MemRecorder* frame_mem_recorder = Zeta_MemRecorder_Create();
 
     size_t frame_size =
-        ZETA_SeqCntr_GetWidth(lrucm->origin) * lrucm->cache_size;
+        ZETA_SeqCntr_GetWidth(lrucm->origin, lrucm->origin_context) *
+        lrucm->cache_size;
 
     for (auto sn : sns) {
         Zeta_MemRecorder_Record(sn_mem_recorder, sn, sizeof(SNode));

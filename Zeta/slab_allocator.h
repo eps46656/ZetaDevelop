@@ -1,8 +1,9 @@
 #pragma once
 
 #include "allocator.h"
+#include "bin_tree_node.h"
+#include "llist_node.h"
 #include "mem_check_utils.h"
-#include "ord_llist_node.h"
 
 ZETA_ExternC_Beg;
 
@@ -26,7 +27,7 @@ struct Zeta_SlabAllocator {
     Zeta_OrdLListNode* vacant_slab_list;
     Zeta_OrdLListNode* occupied_slab_list;
 
-    Zeta_Allocator* allocator;
+    Zeta_Allocator origin_allocator;
 };
 
 struct Zeta_SlabAllocator_SlabHead {
@@ -51,6 +52,6 @@ bool_t Zeta_SlabAllocator_ReleaseBuffer(void* sa);
 void Zeta_SlabAllocator_Check(void* sa, Zeta_MemRecorder* dst_used_records,
                               Zeta_MemRecorder* dst_released_records);
 
-void Zeta_SlabAllocator_DeployAllocator(void* sa, Zeta_Allocator* dst);
+extern Zeta_Allocator_VTable const zeta_slab_allocator;
 
 ZETA_ExternC_End;

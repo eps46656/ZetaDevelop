@@ -1,7 +1,7 @@
 #include "cascade_allocator.h"
 
 #include "debugger.h"
-#include "ord_llist_node.h"
+#include "llist_node.h"
 #include "utils.h"
 
 #if ZETA_EnableDebug
@@ -86,7 +86,7 @@ void* Zeta_CascadeAllocator_Allocate(void* ca_, size_t size) {
 
     Zeta_OrdLListNode_Init(new_first_node);
 
-    Zeta_LList_OrdLListNode_InsertL(first_node, new_first_node);
+    Zeta_LList_(OrdLListNode, InsertL)(first_node, new_first_node);
 
     ca->first_node = new_first_node;
 
@@ -159,21 +159,12 @@ void Zeta_CascadeAllocator_Sanitize(void const* ca_, Zeta_MemRecorder* dst) {
                      Zeta_OrdLListNode_GetL(first_node));
 }
 
-void Zeta_CascadeAllocator_DeployAllocator(void* ca_, Zeta_Allocator* dst) {
-    Zeta_CascadeAllocator* ca = ca_;
-    Check_(ca);
+Zeta_Allocator_VTable const zeta_cascade_allocator_vtable = {
+    .GetAlign = Zeta_CascadeAllocator_GetAlign,
 
-    ZETA_DebugAssert(dst != NULL);
+    .Query = Zeta_CascadeAllocator_Query,
 
-    Zeta_Allocator_Init(dst);
+    .Allocate = Zeta_CascadeAllocator_Allocate,
 
-    dst->context = ca;
-
-    dst->GetAlign = Zeta_CascadeAllocator_GetAlign;
-
-    dst->Query = Zeta_CascadeAllocator_Query;
-
-    dst->Allocate = Zeta_CascadeAllocator_Allocate;
-
-    dst->Deallocate = Zeta_CascadeAllocator_Deallocate;
-}
+    .Deallocate = Zeta_CascadeAllocator_Deallocate,
+};

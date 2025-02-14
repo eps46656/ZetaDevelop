@@ -1,23 +1,17 @@
 #include <random>
 #include <vector>
 
+#include "../Zeta/bin_tree_node.h"
 #include "../Zeta/debugger.h"
-#include "../Zeta/ord_cnt_3rb_tree_node.h"
-#include "../Zeta/ord_cnt_rb_tree_node.h"
 #include "../Zeta/utils.h"
 
 // -----------------------------------------------------------------------------
 
-#define TreeNode OrdCntRBTreeNode
+#define TreeNode ShortRelRBTreeNode
 
-#define Zeta_TreeNode_(func_name) \
-    ZETA_Concat(ZETA_Concat(ZETA_Concat(Zeta_, TreeNode), _), func_name)
+#define Zeta_TreeNode ZETA_Concat(Zeta_, TreeNode)
 
-#define Zeta_BinTree_TreeNode_(func_name) \
-    ZETA_Concat(ZETA_Concat(ZETA_Concat(Zeta_BinTree_, TreeNode), _), func_name)
-
-#define Zeta_RBTree_TreeNode_(func_name) \
-    ZETA_Concat(ZETA_Concat(ZETA_Concat(Zeta_RBTree_, TreeNode), _), func_name)
+#define Zeta_TreeNode_(x) ZETA_Concat(Zeta_TreeNode, _, x)
 
 // -----------------------------------------------------------------------------
 
@@ -61,10 +55,10 @@ void CompareLR() {
         Node* node = ZETA_MemberToStruct(Node, n, n);
 
         ZETA_DebugAssert(iter->linked_node == node);
-        ZETA_DebugAssert(iter->size == Zeta_BinTree_TreeNode_(GetSize)(n));
+        ZETA_DebugAssert(iter->size == Zeta_BinTree_(TreeNode, GetSize)(n));
 
         ++iter;
-        n = Zeta_BinTree_TreeNode_(StepR)(n);
+        n = Zeta_BinTree_(TreeNode, StepR)(n);
     }
 }
 
@@ -84,15 +78,15 @@ void CompareRL() {
         Node* node = ZETA_MemberToStruct(Node, n, n);
 
         ZETA_DebugAssert(iter->linked_node == node);
-        ZETA_DebugAssert(iter->size == Zeta_BinTree_TreeNode_(GetSize)(n));
+        ZETA_DebugAssert(iter->size == Zeta_BinTree_(TreeNode, GetSize)(n));
 
         ++iter;
-        n = Zeta_BinTree_TreeNode_(StepL)(n);
+        n = Zeta_BinTree_(TreeNode, StepL)(n);
     }
 }
 
 void Sanitize() {
-    Zeta_RBTree_TreeNode_(Sanitize)(NULL, root);
+    Zeta_RBTree_(TreeNode, Sanitize)(NULL, root);
     CompareLR();
     CompareRL();
 }
@@ -105,7 +99,7 @@ void Access(size_t idx) {
     void* target_n;
     size_t target_tail_idx;
 
-    Zeta_BinTree_TreeNode_(AccessL)(&target_n, &target_tail_idx, root, idx);
+    Zeta_BinTree_(TreeNode, AccessL)(&target_n, &target_tail_idx, root, idx);
 
     auto target_iter = vec.end();
 
@@ -133,18 +127,18 @@ void Insert(size_t idx, size_t size) {
 
     Node* new_node = new Node;
     Zeta_TreeNode_(Init)(&new_node->n);
-    Zeta_BinTree_TreeNode_(SetSize)(&new_node->n, size);
+    Zeta_BinTree_(TreeNode, SetSize)(&new_node->n, size);
 
     size_sum += size;
 
     if (idx < vec.size()) {
         Node* ins_node = vec[idx].linked_node;
-        root = Zeta_RBTree_TreeNode_(InsertL)(&ins_node->n, &new_node->n);
+        root = Zeta_RBTree_(TreeNode, InsertL)(&ins_node->n, &new_node->n);
     } else if (vec.size() == 0) {
         root = &new_node->n;
     } else {
         Node* ins_node = vec.back().linked_node;
-        root = Zeta_RBTree_TreeNode_(InsertR)(&ins_node->n, &new_node->n);
+        root = Zeta_RBTree_(TreeNode, InsertR)(&ins_node->n, &new_node->n);
     }
 
     vec.insert(vec.begin() + idx, (NodeCup){
@@ -162,7 +156,7 @@ void Erase(size_t idx) {
     size_sum -= vec[idx].size;
 
     Node* target_node = vec[idx].linked_node;
-    root = Zeta_RBTree_TreeNode_(Extract)(&target_node->n);
+    root = Zeta_RBTree_(TreeNode, Extract)(&target_node->n);
     delete target_node;
 
     vec.erase(vec.begin() + idx);
@@ -182,6 +176,9 @@ void main1() {
 
     size_sum = 0;
     root = NULL;
+
+    ZETA_PrintVar(ZETA_ToStr(Zeta_TreeNode));
+    ZETA_PrintVar(sizeof(Zeta_TreeNode));
 
     for (int i = 0; i < 1024; ++i) {
         Insert(idx_generator(en) % (vec.size() + 1), size_generator(en));

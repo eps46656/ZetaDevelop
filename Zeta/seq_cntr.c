@@ -3,72 +3,8 @@
 #include "debugger.h"
 #include "utils.h"
 
-void Zeta_SeqCntr_Init(Zeta_SeqCntr* seq_cntr) {
-    ZETA_DebugAssert(seq_cntr != NULL);
-
-    seq_cntr->context = NULL;
-
-    seq_cntr->const_context = NULL;
-
-    seq_cntr->cursor_size = 0;
-
-    seq_cntr->Deinit = NULL;
-
-    seq_cntr->GetWidth = NULL;
-
-    seq_cntr->GetSize = NULL;
-
-    seq_cntr->GetCapacity = NULL;
-
-    seq_cntr->GetLBCursor = NULL;
-
-    seq_cntr->GetRBCursor = NULL;
-
-    seq_cntr->PeekL = NULL;
-
-    seq_cntr->PeekR = NULL;
-
-    seq_cntr->Access = NULL;
-
-    seq_cntr->Refer = NULL;
-
-    seq_cntr->Read = NULL;
-
-    seq_cntr->Write = NULL;
-
-    seq_cntr->PushL = NULL;
-
-    seq_cntr->PushL = NULL;
-
-    seq_cntr->Insert = NULL;
-
-    seq_cntr->PopL = NULL;
-
-    seq_cntr->PopR = NULL;
-
-    seq_cntr->Erase = NULL;
-
-    seq_cntr->EraseAll = NULL;
-
-    seq_cntr->Cursor_AreEqual = NULL;
-
-    seq_cntr->Cursor_Compare = NULL;
-
-    seq_cntr->Cursor_GetDist = NULL;
-
-    seq_cntr->Cursor_GetIdx = NULL;
-
-    seq_cntr->Cursor_StepL = NULL;
-
-    seq_cntr->Cursor_StepR = NULL;
-
-    seq_cntr->Cursor_AdvanceL = NULL;
-
-    seq_cntr->Cursor_AdvanceR = NULL;
-}
-
-void Zeta_SeqCntr_ResizeL(Zeta_SeqCntr* seq_cntr, size_t size) {
-    ZETA_DebugAssert(seq_cntr != NULL);
+void Zeta_SeqCntr_ResizeL(Zeta_SeqCntr seq_cntr, size_t size) {
+    ZETA_DebugAssert(seq_cntr.context != NULL);
 
     size_t origin_size = ZETA_SeqCntr_GetSize(seq_cntr);
 
@@ -79,8 +15,8 @@ void Zeta_SeqCntr_ResizeL(Zeta_SeqCntr* seq_cntr, size_t size) {
     }
 }
 
-void Zeta_SeqCntr_ResizeR(Zeta_SeqCntr* seq_cntr, size_t size) {
-    ZETA_DebugAssert(seq_cntr != NULL);
+void Zeta_SeqCntr_ResizeR(Zeta_SeqCntr seq_cntr, size_t size) {
+    ZETA_DebugAssert(seq_cntr.context != NULL);
 
     size_t origin_size = ZETA_SeqCntr_GetSize(seq_cntr);
 
@@ -91,11 +27,11 @@ void Zeta_SeqCntr_ResizeR(Zeta_SeqCntr* seq_cntr, size_t size) {
     }
 }
 
-void Zeta_SeqCntr_RangeAssign(Zeta_SeqCntr* dst_seq_cntr,
-                              Zeta_SeqCntr* src_seq_cntr, size_t dst_idx,
+void Zeta_SeqCntr_RangeAssign(Zeta_SeqCntr dst_seq_cntr,
+                              Zeta_SeqCntr src_seq_cntr, size_t dst_idx,
                               size_t src_idx, size_t cnt) {
-    ZETA_DebugAssert(dst_seq_cntr != NULL);
-    ZETA_DebugAssert(src_seq_cntr != NULL);
+    ZETA_DebugAssert(dst_seq_cntr.context != NULL);
+    ZETA_DebugAssert(src_seq_cntr.context != NULL);
 
     ZETA_DebugAssert(ZETA_SeqCntr_GetWidth(dst_seq_cntr) ==
                      ZETA_SeqCntr_GetWidth(src_seq_cntr));
@@ -113,7 +49,8 @@ void Zeta_SeqCntr_RangeAssign(Zeta_SeqCntr* dst_seq_cntr,
     ZETA_DebugAssert(cnt <= dst_size - dst_idx);
     ZETA_DebugAssert(cnt <= src_size - src_idx);
 
-    if (cnt == 0 || (dst_seq_cntr == src_seq_cntr && dst_idx == src_idx)) {
+    if (cnt == 0 ||
+        (dst_seq_cntr.context == src_seq_cntr.context && dst_idx == src_idx)) {
         return;
     }
 
@@ -126,7 +63,7 @@ void Zeta_SeqCntr_RangeAssign(Zeta_SeqCntr* dst_seq_cntr,
     void* dst_cursor = ZETA_SeqCntr_AllocaCursor(dst_seq_cntr);
     void* src_cursor = ZETA_SeqCntr_AllocaCursor(src_seq_cntr);
 
-    if (dst_seq_cntr != src_seq_cntr || dst_idx <= src_idx ||
+    if (dst_seq_cntr.context != src_seq_cntr.context || dst_idx <= src_idx ||
         src_end <= dst_idx) {
         ZETA_SeqCntr_Access(dst_seq_cntr, dst_idx, dst_cursor, NULL);
         ZETA_SeqCntr_Access(src_seq_cntr, src_idx, src_cursor, NULL);
@@ -161,19 +98,18 @@ void Zeta_SeqCntr_RangeAssign(Zeta_SeqCntr* dst_seq_cntr,
     }
 }
 
-void Zeta_SeqCntr_Assign(Zeta_SeqCntr* dst_seq_cntr,
-                         Zeta_SeqCntr* src_seq_cntr) {
+void Zeta_SeqCntr_Assign(Zeta_SeqCntr dst_seq_cntr, Zeta_SeqCntr src_seq_cntr) {
     size_t dst_size = ZETA_SeqCntr_GetSize(dst_seq_cntr);
     size_t src_size = ZETA_SeqCntr_GetSize(src_seq_cntr);
 
     if (dst_size < src_size) {
-        if (dst_seq_cntr->PushR != NULL) {
+        if (dst_seq_cntr.vtable->PushR != NULL) {
             ZETA_SeqCntr_PushR(dst_seq_cntr, src_size - dst_size, NULL);
         } else {
             ZETA_SeqCntr_PushL(dst_seq_cntr, src_size - dst_size, NULL);
         }
     } else if (src_size < dst_size) {
-        if (dst_seq_cntr->PopR != NULL) {
+        if (dst_seq_cntr.vtable->PopR != NULL) {
             ZETA_SeqCntr_PopR(dst_seq_cntr, dst_size - src_size);
         } else {
             ZETA_SeqCntr_PopL(dst_seq_cntr, dst_size - src_size);
@@ -183,11 +119,11 @@ void Zeta_SeqCntr_Assign(Zeta_SeqCntr* dst_seq_cntr,
     Zeta_SeqCntr_RangeAssign(dst_seq_cntr, src_seq_cntr, 0, 0, src_size);
 }
 
-void Zeta_SeqCntr_NaiveInsert(Zeta_SeqCntr* seq_cntr, size_t idx, size_t cnt) {
+void Zeta_SeqCntr_NaiveInsert(Zeta_SeqCntr seq_cntr, size_t idx, size_t cnt) {
     if (cnt == 0) { return; }
 
-    bool_t push_l_en = seq_cntr->PushL != NULL;
-    bool_t push_r_en = seq_cntr->PushL != NULL;
+    bool_t push_l_en = seq_cntr.vtable->PushL != NULL;
+    bool_t push_r_en = seq_cntr.vtable->PushL != NULL;
 
     ZETA_DebugAssert(push_l_en || push_r_en);
 

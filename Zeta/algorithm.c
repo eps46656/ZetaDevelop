@@ -370,7 +370,7 @@ void Zeta_MergeSort(void* data, size_t width, size_t stride, size_t size,
     size_t r_size = size - l_size;
 
     void* buffer = ZETA_Allocator_SafeAllocate(
-        zeta_cascade_allocator, alignof(max_align_t), stride * r_size);
+        zeta_memory_cascade_allocator, alignof(max_align_t), stride * r_size);
 
     void* l_src = data;
     void* l_dst = data + stride * r_size;
@@ -384,7 +384,7 @@ void Zeta_MergeSort(void* data, size_t width, size_t stride, size_t size,
     Merge_(l_dst, r_dst, data, width, stride, l_size, r_size, cmp_context,
            Compare);
 
-    ZETA_Allocator_Deallocate(zeta_cascade_allocator, buffer);
+    ZETA_Allocator_Deallocate(zeta_memory_cascade_allocator, buffer);
 }
 
 // -----------------------------------------------------------------------------
@@ -442,9 +442,9 @@ void Zeta_TransMergeSort(void* data, size_t width, size_t stride, size_t size,
     size_t l_size = size / 2;
     size_t r_size = size - l_size;
 
-    void** ptr =
-        ZETA_Allocator_SafeAllocate(zeta_cascade_allocator, alignof(void*),
-                                    sizeof(void*) * (size + r_size));
+    void** ptr = ZETA_Allocator_SafeAllocate(zeta_memory_cascade_allocator,
+                                             alignof(void*),
+                                             sizeof(void*) * (size + r_size));
 
     void** data_ptr = ptr;
     void** buffer_ptr = ptr + size;
@@ -490,5 +490,5 @@ void Zeta_TransMergeSort(void* data, size_t width, size_t stride, size_t size,
         data_ptr[j] = data + stride * j;
     }
 
-    ZETA_Allocator_Deallocate(zeta_cascade_allocator, ptr);
+    ZETA_Allocator_Deallocate(zeta_memory_cascade_allocator, ptr);
 }

@@ -138,7 +138,7 @@ void Zeta_CircularArray_Assign(void* dst_ca, void* src_ca, size_t dst_beg,
                                size_t src_beg, size_t cnt);
 
 void Zeta_CircularArray_AssignFromSeqCntr(void* ca, void* ca_cursor,
-                                          Zeta_SeqCntr* seq_cntr,
+                                          Zeta_SeqCntr seq_cntr,
                                           void* seq_cntr_cursor, size_t cnt);
 
 void Zeta_CircularArray_Check(void const* ca);
@@ -183,6 +183,6 @@ void Zeta_CircularArray_Cursor_AdvanceR(void const* ca, void* cursor,
 
 void Zeta_CircularArray_Cursor_Check(void const* ca, void const* cursor);
 
-void Zeta_CircularArray_DeploySeqCntr(void* ca, Zeta_SeqCntr* seq_cntr);
+extern Zeta_SeqCntr_VTable const zeta_circular_array_seq_cntr_vtable;
 
 ZETA_ExternC_End;

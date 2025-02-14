@@ -1,9 +1,9 @@
 #pragma once
 
 #include "allocator.h"
+#include "bin_tree_node.h"
+#include "llist_node.h"
 #include "mem_check_utils.h"
-#include "ord_rb_llist_node.h"
-#include "ord_rb_tree_node.h"
 
 ZETA_ExternC_Beg;
 
@@ -61,7 +61,7 @@ void Zeta_TreeAllocator_Init(void* ta);
  */
 void Zeta_TreeAllocator_Deinit(void* ta);
 
-size_t Zeta_TreeAllocator_GetAlign(void* ta);
+size_t Zeta_TreeAllocator_GetAlign(void const* ta);
 
 /**
  * @brief Return the actual size of allocated memory if request size of memory
@@ -81,7 +81,7 @@ size_t Zeta_TreeAllocator_Query(void const* ta, size_t size);
  * @param size The size(byte) of allocated memory should at least occupied at
  * least size of bytes.
  */
-void* Zeta_TreeAllocator_Allocate(void const* ta, size_t size);
+void* Zeta_TreeAllocator_Allocate(void* ta, size_t size);
 
 /**
  * @brief Deallocate the target memory block. The memory block should be
@@ -95,6 +95,6 @@ void Zeta_TreeAllocator_Deallocate(void* ta, void* ptr);
 
 void Zeta_TreeAllocator_Sanitize(void* ta, Zeta_MemRecorder* dst_recorder);
 
-void Zeta_TreeAllocator_DeployAllocator(void* ta, Zeta_Allocator* dst);
+extern Zeta_Allocator_VTable const zeta_tree_allocator_vtable;
 
 ZETA_ExternC_End;

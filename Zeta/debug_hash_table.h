@@ -40,9 +40,10 @@ void* Zeta_DebugHashTable_PeekL(void* debug_ht, void* dst_cursor);
 void* Zeta_DebugHashTable_Refer(void* debug_ht, void const* pos_cursor);
 
 void* Zeta_DebugHashTable_Find(void* debug_ht, void const* key,
-                               void const* key_hash_context, Zeta_Hash KeyHash,
+                               Zeta_Hash KeyHash, void const* key_hash_context,
+                               Zeta_Compare KeyElemCompare,
                                void const* key_elem_cmp_context,
-                               Zeta_Compare KeyElemCompare, void* dst_cursor);
+                               void* dst_cursor);
 
 void* Zeta_DebugHashTable_Insert(void* debug_ht, void const* key,
                                  void* dst_cursor);
@@ -77,7 +78,6 @@ void Zeta_DebugHashTable_Cursor_StepR(void const* debug_ht, void* cursor);
 /* void Zeta_DebugHashTable_Cursor_AdvanceR(void* debug_ht, void* cursor,
                                        size_t step); */
 
-void Zeta_DebugHashTable_DeployAssocCntr(void* debug_ht,
-                                         Zeta_AssocCntr* assoc_cntr);
+extern Zeta_AssocCntr_VTable const zeta_debug_hash_table_assoc_cntr_vtable;
 
 ZETA_ExternC_End;

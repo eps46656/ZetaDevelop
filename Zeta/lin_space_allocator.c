@@ -17,220 +17,52 @@
 #define VacantColor (0)
 #define OccupiedColor (1)
 
-static void* NodeGetGP_(void* n) {
-    ZETA_DebugAssert(n != NULL);
+#define GNode ShortRelCnt3RBTreeNode
+#define SNode ShortRelRBTreeNode
 
-    void* m = ZETA_RelColorPtr_GetPtr(&((Zeta_LinSpaceAllocator_Node*)n)->gpc,
-                                      alignof(Zeta_LinSpaceAllocator_Node), n);
+#define Zeta_GNode ZETA_Concat(Zeta_, GNode)
+#define Zeta_SNode ZETA_Concat(Zeta_, SNode)
 
-    return m == n ? NULL : m;
-}
+#define Zeta_GNode_(x) ZETA_Concat(Zeta_GNode, _, x)
+#define Zeta_SNode_(x) ZETA_Concat(Zeta_SNode, _, x)
 
-static void NodeSetGP_(void* n, void* m) {
-    ZETA_DebugAssert(n != NULL);
+#define Zeta_BinTree_GNode_(x) ZETA_Concat(Zeta_BinTree_, GNode, _, x)
+#define Zeta_BinTree_SNode_(x) ZETA_Concat(Zeta_BinTree_, SNode, _, x)
 
-    ZETA_RelColorPtr_SetPtr(&((Zeta_LinSpaceAllocator_Node*)n)->gpc,
-                            alignof(Zeta_LinSpaceAllocator_Node), n,
-                            m == NULL ? n : m);
-}
-
-static int NodeGetGPC_(void* n) {
-    return n == NULL ? 0
-                     : ZETA_RelColorPtr_GetColor(
-                           &((Zeta_LinSpaceAllocator_Node*)n)->gpc,
-                           alignof(Zeta_LinSpaceAllocator_Node), n);
-}
-
-static void NodeSetGPC_(void* n, int color) {
-    ZETA_DebugAssert(n != NULL);
-
-    ZETA_RelColorPtr_SetColor(&((Zeta_LinSpaceAllocator_Node*)n)->gpc,
-                              alignof(Zeta_LinSpaceAllocator_Node), n, color);
-}
-
-static void* NodeGetGL_(void* n) {
-    ZETA_DebugAssert(n != NULL);
-
-    void* m = ZETA_RelColorPtr_GetPtr(&((Zeta_LinSpaceAllocator_Node*)n)->glc,
-                                      alignof(Zeta_LinSpaceAllocator_Node), n);
-
-    return m == n ? NULL : m;
-}
-
-static void NodeSetGL_(void* n, void* m) {
-    ZETA_DebugAssert(n != NULL);
-
-    ZETA_RelColorPtr_SetPtr(&((Zeta_LinSpaceAllocator_Node*)n)->glc,
-                            alignof(Zeta_LinSpaceAllocator_Node), n,
-                            m == NULL ? n : m);
-}
-
-static int NodeGetGLC_(void* n) {
-    return n == NULL ? 0
-                     : ZETA_RelColorPtr_GetColor(
-                           &((Zeta_LinSpaceAllocator_Node*)n)->glc,
-                           alignof(Zeta_LinSpaceAllocator_Node), n);
-}
-
-static void NodeSetGLC_(void* n, int color) {
-    ZETA_DebugAssert(n != NULL);
-
-    ZETA_RelColorPtr_SetColor(&((Zeta_LinSpaceAllocator_Node*)n)->glc,
-                              alignof(Zeta_LinSpaceAllocator_Node), n, color);
-}
-
-static void* NodeGetGR_(void* n) {
-    ZETA_DebugAssert(n != NULL);
-
-    void* m = ZETA_RelPtr_GetPtr(&((Zeta_LinSpaceAllocator_Node*)n)->gr, n);
-
-    return m == n ? NULL : m;
-}
-
-static void NodeSetGR_(void* n, void* m) {
-    ZETA_DebugAssert(n != NULL);
-
-    ZETA_RelPtr_SetPtr(&((Zeta_LinSpaceAllocator_Node*)n)->gr, n,
-                       m == NULL ? n : m);
-}
-
-static void* NodeGetSP_(void const* context, void* n) {
-    ZETA_DebugAssert(n != NULL);
-
-    void* m = ZETA_RelColorPtr_GetPtr(&((Zeta_LinSpaceAllocator_Node*)n)->spc,
-                                      alignof(Zeta_LinSpaceAllocator_Node), n);
-
-    return m == n ? NULL : m;
-}
-
-static void NodeSetSP_(void* n, void* m) {
-    ZETA_DebugAssert(n != NULL);
-
-    ZETA_RelColorPtr_SetPtr(&((Zeta_LinSpaceAllocator_Node*)n)->spc,
-                            alignof(Zeta_LinSpaceAllocator_Node), n,
-                            m == NULL ? n : m);
-}
-
-static int NodeGetSPC_(void* n) {
-    return n == NULL ? 0
-                     : ZETA_RelColorPtr_GetColor(
-                           &((Zeta_LinSpaceAllocator_Node*)n)->spc,
-                           alignof(Zeta_LinSpaceAllocator_Node), n);
-}
-
-static void NodeSetSPC_(void* n, int color) {
-    ZETA_DebugAssert(n != NULL);
-
-    ZETA_RelColorPtr_SetColor(&((Zeta_LinSpaceAllocator_Node*)n)->spc,
-                              alignof(Zeta_LinSpaceAllocator_Node), n, color);
-}
-
-static void* NodeGetSL_(void* n) {
-    ZETA_DebugAssert(n != NULL);
-
-    void* m = ZETA_RelPtr_GetPtr(&((Zeta_LinSpaceAllocator_Node*)n)->sl, n);
-
-    return m == n ? NULL : m;
-}
-
-static void NodeSetSL_(void* n, void* m) {
-    ZETA_DebugAssert(n != NULL);
-
-    ZETA_RelPtr_SetPtr(&((Zeta_LinSpaceAllocator_Node*)n)->sl, n,
-                       m == NULL ? n : m);
-}
-
-static void* NodeGetSR_(void* n) {
-    ZETA_DebugAssert(n != NULL);
-
-    void* m = ZETA_RelPtr_GetPtr(&((Zeta_LinSpaceAllocator_Node*)n)->sr, n);
-
-    return m == n ? NULL : m;
-}
-
-static void NodeSetSR_(void* n, void* m) {
-    ZETA_DebugAssert(n != NULL);
-
-    ZETA_RelPtr_SetPtr(&((Zeta_LinSpaceAllocator_Node*)n)->sr, n,
-                       m == NULL ? n : m);
-}
-
-static size_t NodeGetAccSize_(void* n) {
-    return n == NULL ? 0 : ((Zeta_LinSpaceAllocator_Node*)n)->acc_size;
-}
-
-static void NodeSetAccSize_(void* n, size_t acc_size) {
-    ZETA_DebugAssert(n != NULL);
-
-    ZETA_DebugAssert(acc_size <= ZETA_UINT_MAX);
-    ((Zeta_LinSpaceAllocator_Node*)n)->acc_size = acc_size;
-}
-
-static Zeta_BinTreeNodeOperator const gt_opr = {
-    .context = NULL,
-
-    .GetP = NodeGetGP_,
-    .GetL = NodeGetGL_,
-    .GetR = NodeGetGR_,
-
-    .SetP = NodeSetGP_,
-    .SetL = NodeSetGL_,
-    .SetR = NodeSetGR_,
-
-    .GetColor = NodeGetGPC_,
-    .SetColor = NodeSetGPC_,
-
-    .GetAccSize = NodeGetAccSize_,
-    .SetAccSize = NodeSetAccSize_,
-};
-
-static Zeta_BinTreeNodeOperator const st_opr = {
-    .context = NULL,
-
-    .GetP = NodeGetSP_,
-    .GetL = NodeGetSL_,
-    .GetR = NodeGetSR_,
-
-    .SetP = NodeSetSP_,
-    .SetL = NodeSetSL_,
-    .SetR = NodeSetSR_,
-
-    .GetColor = NodeGetSPC_,
-    .SetColor = NodeSetSPC_,
-
-    .GetAccSize = NULL,
-    .SetAccSize = NULL,
-};
+#define Zeta_RBTree_GNode_(x) ZETA_Concat(Zeta_RBTree_, GNode, _, x)
+#define Zeta_RBTree_SNode_(x) ZETA_Concat(Zeta_RBTree_, SNode, _, x)
 
 static Zeta_LinSpaceAllocator_Node* FindNodeFromIdx_(
     Zeta_LinSpaceAllocator* lsa, size_t idx) {
     ZETA_DebugAssert(lsa->beg <= idx && idx <= lsa->end);
 
-    void* n;
+    void* gn;
     size_t tail_idx;
 
-    Zeta_BinTree_AccessL(&n, &tail_idx, &gt_opr, lsa->gt_root, idx - lsa->beg);
+    Zeta_BinTree_AccessL(&gn, &tail_idx, lsa->gt_root, idx - lsa->beg);
 
-    ZETA_DebugAssert(n != NULL);
+    ZETA_DebugAssert(gn != NULL);
     ZETA_DebugAssert(tail_idx == 0);
 
-    return n;
+    return ZETA_MemberToStruct(Zeta_LinSpaceAllocator_Node, gn, gn);
 }
 
 static Zeta_LinSpaceAllocator_Node* FindNode_(Zeta_LinSpaceAllocator* lsa,
                                               size_t size) {
-    Zeta_LinSpaceAllocator_Node* ret = NULL;
+    Zeta_SNode* ret = NULL;
 
-    for (Zeta_LinSpaceAllocator_Node* n = lsa->st_root; n != NULL;) {
-        if (Zeta_BinTree_GetSize(&gt_opr, n) < size) {
-            n = NodeGetSR_(NULL, n);
+    for (Zeta_SNode* sn = lsa->st_root; sn != NULL;) {
+        if (Zeta_BinTree_SNode_(GetSize)(sn) < size) {
+            sn = Zeta_SNode_(GetR)(sn);
         } else {
-            ret = n;
-            n = NodeGetSL_(NULL, n);
+            ret = sn;
+            sn = Zeta_SNode_(GetL)(sn);
         }
     }
 
-    return ret;
+    return ret == NULL
+               ? NULL
+               : ZETA_MemberToStruct(Zeta_LinSpaceAllocator_Node, sn, ret);
 }
 
 static Zeta_LinSpaceAllocator_Node* FindNiceNode_(Zeta_LinSpaceAllocator* lsa,
@@ -240,7 +72,7 @@ static Zeta_LinSpaceAllocator_Node* FindNiceNode_(Zeta_LinSpaceAllocator* lsa,
     if (best_fit_n == NULL) { return NULL; }
 
     if (lsa->strategy == ZETA_LinSpaceAllocator_AllocationStrategy_BestFit ||
-        Zeta_BinTree_GetSize(&gt_opr, best_fit_n) == size) {
+        Zeta_BinTree_GetSize(best_fit_n) == size) {
         return best_fit_n;
     }
 
@@ -288,8 +120,8 @@ void Zeta_LinSpaceAllocator_Init(void* lsa_) {
     Zeta_LinSpaceAllocator_Node* n = AllocateNode_(lsa);
     n->acc_size = end - beg;
 
-    lsa->gt_root = Zeta_RBTree_GeneralInsertL(&gt_opr, NULL, NULL, n);
-    lsa->st_root = Zeta_RBTree_GeneralInsertL(&st_opr, NULL, NULL, n);
+    lsa->gt_root = Zeta_RBTree_GeneralInsertL(NULL, NULL, n);
+    lsa->st_root = Zeta_RBTree_GeneralInsertL(NULL, NULL, n);
 }
 
 size_t Zeta_LinSpaceAllocator_Allocate(void* lsa_, size_t size) {
@@ -302,14 +134,14 @@ size_t Zeta_LinSpaceAllocator_Allocate(void* lsa_, size_t size) {
 
     if (nm == NULL) { return ZETA_SIZE_MAX; }
 
-    size_t nm_size = Zeta_BinTree_GetSize(&gt_opr, nm);
+    size_t nm_size = Zeta_BinTree_GetSize(nm);
 
     NodeSetGLC_(NULL, nm, OccupiedColor);
-    lsa->st_root = Zeta_RBTree_Extract(&st_opr, nm);
+    lsa->st_root = Zeta_RBTree_Extract(nm);
 
     size_t ret = ({
         size_t l_acc_size;
-        Zeta_BinTree_GetAccSize(&l_acc_size, NULL, &gt_opr, nm);
+        Zeta_BinTree_GetAccSize(&l_acc_size, NULL, nm);
         lsa->beg + l_acc_size;
     });
 
@@ -317,16 +149,15 @@ size_t Zeta_LinSpaceAllocator_Allocate(void* lsa_, size_t size) {
 
     if (res_size == 0) { return ret; }
 
-    Zeta_BinTree_SetSize(&gt_opr, nm, size);
+    Zeta_BinTree_SetSize(nm, size);
 
     Zeta_LinSpaceAllocator_Node* new_nr = AllocateNode_(lsa);
     new_nr->acc_size = res_size;
 
-    lsa->gt_root =
-        Zeta_RBTree_GeneralInsertR(&gt_opr, lsa->gt_root, nm, new_nr);
+    lsa->gt_root = Zeta_RBTree_GeneralInsertR(lsa->gt_root, nm, new_nr);
 
     lsa->st_root = Zeta_RBTree_GeneralInsertL(
-        &st_opr, lsa->st_root, FindNode_(lsa, res_size + 1), new_nr);
+        lsa->st_root, FindNode_(lsa, res_size + 1), new_nr);
 
     return ret;
 }
@@ -339,8 +170,8 @@ void Zeta_LinSpaceAllocator_Deallocate(void* lsa_, size_t idx) {
 
     Zeta_LinSpaceAllocator_Node* nm = FindNodeFromIdx_(lsa, idx);
 
-    Zeta_LinSpaceAllocator_Node* nl = Zeta_BinTree_StepL(&gt_opr, nm);
-    Zeta_LinSpaceAllocator_Node* nr = Zeta_BinTree_StepR(&gt_opr, nm);
+    Zeta_LinSpaceAllocator_Node* nl = Zeta_BinTree_StepL(nm);
+    Zeta_LinSpaceAllocator_Node* nr = Zeta_BinTree_StepR(nm);
 
     int nm_color = NodeGetGLC_(NULL, nm);
     ZETA_DebugAssert(nm_color == OccupiedColor);
@@ -354,36 +185,36 @@ void Zeta_LinSpaceAllocator_Deallocate(void* lsa_, size_t idx) {
     bool_t l_merge = nl_color == VacantColor;
     bool_t r_merge = nr_color == VacantColor;
 
-    size_t m_size = Zeta_BinTree_GetSize(&gt_opr, nm);
+    size_t m_size = Zeta_BinTree_GetSize(nm);
 
     Zeta_LinSpaceAllocator_Node* ins_n = nm;
     size_t ins_size = m_size;
 
     if (l_merge) {
         ins_n = nl;
-        ins_size += Zeta_BinTree_GetSize(&gt_opr, nl);
+        ins_size += Zeta_BinTree_GetSize(nl);
 
-        lsa->gt_root = Zeta_RBTree_Extract(&gt_opr, nm);
+        lsa->gt_root = Zeta_RBTree_Extract(nm);
         DeallocateNode_(lsa, nm);
 
-        lsa->st_root = Zeta_RBTree_Extract(&st_opr, nl);
+        lsa->st_root = Zeta_RBTree_Extract(nl);
     } else {
         NodeSetGLC_(NULL, nm, VacantColor);
     }
 
     if (r_merge) {
-        ins_size += Zeta_BinTree_GetSize(&gt_opr, nr);
+        ins_size += Zeta_BinTree_GetSize(nr);
 
-        lsa->gt_root = Zeta_RBTree_Extract(&gt_opr, nr);
-        lsa->st_root = Zeta_RBTree_Extract(&st_opr, nr);
+        lsa->gt_root = Zeta_RBTree_Extract(nr);
+        lsa->st_root = Zeta_RBTree_Extract(nr);
 
         DeallocateNode_(lsa, nr);
     }
 
-    Zeta_BinTree_SetSize(&gt_opr, ins_n, ins_size);
+    Zeta_BinTree_SetSize(ins_n, ins_size);
 
     lsa->st_root = Zeta_RBTree_GeneralInsertL(
-        &st_opr, lsa->st_root, FindNode_(lsa, ins_size + 1), ins_n);
+        lsa->st_root, FindNode_(lsa, ins_size + 1), ins_n);
 }
 
 size_t Zeta_LinSpaceAllocator_GetVacantSizeL(void* lsa_) {
@@ -393,9 +224,7 @@ size_t Zeta_LinSpaceAllocator_GetVacantSizeL(void* lsa_) {
     Zeta_LinSpaceAllocator_Node* n =
         Zeta_GetMostLink(NULL, NodeGetGL_, lsa->gt_root);
 
-    return NodeGetGLC_(NULL, n) == VacantColor
-               ? Zeta_BinTree_GetSize(&gt_opr, n)
-               : 0;
+    return NodeGetGLC_(NULL, n) == VacantColor ? Zeta_BinTree_GetSize(n) : 0;
 }
 
 size_t Zeta_LinSpaceAllocator_GetVacantSizeR(void* lsa_) {
@@ -405,9 +234,7 @@ size_t Zeta_LinSpaceAllocator_GetVacantSizeR(void* lsa_) {
     Zeta_LinSpaceAllocator_Node* n =
         Zeta_GetMostLink(NULL, NodeGetGR_, lsa->gt_root);
 
-    return NodeGetGLC_(NULL, n) == VacantColor
-               ? Zeta_BinTree_GetSize(&gt_opr, n)
-               : 0;
+    return NodeGetGLC_(NULL, n) == VacantColor ? Zeta_BinTree_GetSize(n) : 0;
 }
 
 void Zeta_LinSpaceAllocator_ExtendL(void* lsa_, size_t cnt) {
@@ -426,23 +253,22 @@ void Zeta_LinSpaceAllocator_ExtendL(void* lsa_, size_t cnt) {
     size_t n_size;
 
     if (NodeGetGLC_(NULL, n) == VacantColor) {
-        lsa->st_root = Zeta_RBTree_Extract(&st_opr, n);
+        lsa->st_root = Zeta_RBTree_Extract(n);
 
-        n_size = Zeta_BinTree_GetSize(&gt_opr, n) + cnt;
+        n_size = Zeta_BinTree_GetSize(n) + cnt;
 
-        Zeta_BinTree_SetDiffSize(&gt_opr, n, cnt);
+        Zeta_BinTree_SetDiffSize(n, cnt);
     } else {
         n = AllocateNode_(lsa);
         n->acc_size = cnt;
 
         n_size = cnt;
 
-        lsa->gt_root =
-            Zeta_RBTree_GeneralInsertR(&gt_opr, lsa->gt_root, NULL, n);
+        lsa->gt_root = Zeta_RBTree_GeneralInsertR(lsa->gt_root, NULL, n);
     }
 
-    lsa->st_root = Zeta_RBTree_GeneralInsertR(&st_opr, lsa->st_root,
-                                              FindNode_(lsa, n_size + 1), n);
+    lsa->st_root =
+        Zeta_RBTree_GeneralInsertR(lsa->st_root, FindNode_(lsa, n_size + 1), n);
 }
 
 void Zeta_LinSpaceAllocator_ExtendR(void* lsa_, size_t cnt) {
@@ -461,23 +287,22 @@ void Zeta_LinSpaceAllocator_ExtendR(void* lsa_, size_t cnt) {
     size_t n_size;
 
     if (NodeGetGLC_(NULL, n) == VacantColor) {
-        lsa->st_root = Zeta_RBTree_Extract(&st_opr, n);
+        lsa->st_root = Zeta_RBTree_Extract(n);
 
-        n_size = Zeta_BinTree_GetSize(&gt_opr, n) + cnt;
+        n_size = Zeta_BinTree_GetSize(n) + cnt;
 
-        Zeta_BinTree_SetDiffSize(&gt_opr, n, cnt);
+        Zeta_BinTree_SetDiffSize(n, cnt);
     } else {
         n = AllocateNode_(lsa);
         n->acc_size = cnt;
 
         n_size = cnt;
 
-        lsa->gt_root =
-            Zeta_RBTree_GeneralInsertL(&gt_opr, lsa->gt_root, NULL, n);
+        lsa->gt_root = Zeta_RBTree_GeneralInsertL(lsa->gt_root, NULL, n);
     }
 
-    lsa->st_root = Zeta_RBTree_GeneralInsertL(&st_opr, lsa->st_root,
-                                              FindNode_(lsa, n_size + 1), n);
+    lsa->st_root =
+        Zeta_RBTree_GeneralInsertL(lsa->st_root, FindNode_(lsa, n_size + 1), n);
 }
 
 bool_t Zeta_LinSpaceAllocator_ShrinkL(void* lsa_, size_t cnt) {
@@ -489,26 +314,26 @@ bool_t Zeta_LinSpaceAllocator_ShrinkL(void* lsa_, size_t cnt) {
 
     if (NodeGetGLC_(NULL, n) == OccupiedColor) { return FALSE; }
 
-    size_t n_size = Zeta_BinTree_GetSize(&gt_opr, n);
+    size_t n_size = Zeta_BinTree_GetSize(n);
 
     if (n_size < cnt) { return FALSE; }
 
     lsa->beg += cnt;
 
-    lsa->st_root = Zeta_RBTree_Extract(&st_opr, n);
+    lsa->st_root = Zeta_RBTree_Extract(n);
 
     if (cnt == n_size) {
-        lsa->gt_root = Zeta_RBTree_Extract(&gt_opr, n);
+        lsa->gt_root = Zeta_RBTree_Extract(n);
         DeallocateNode_(lsa, n);
         return TRUE;
     }
 
     n_size -= cnt;
 
-    Zeta_BinTree_SetDiffSize(&gt_opr, n, -cnt);
+    Zeta_BinTree_SetDiffSize(n, -cnt);
 
-    lsa->st_root = Zeta_RBTree_GeneralInsertL(&st_opr, lsa->st_root,
-                                              FindNode_(lsa, n_size + 1), n);
+    lsa->st_root =
+        Zeta_RBTree_GeneralInsertL(lsa->st_root, FindNode_(lsa, n_size + 1), n);
 
     return TRUE;
 }
@@ -522,26 +347,26 @@ bool_t Zeta_LinSpaceAllocator_ShrinkR(void* lsa_, size_t cnt) {
 
     if (NodeGetGLC_(NULL, n) == OccupiedColor) { return FALSE; }
 
-    size_t n_size = Zeta_BinTree_GetSize(&gt_opr, n);
+    size_t n_size = Zeta_BinTree_GetSize(n);
 
     if (n_size < cnt) { return FALSE; }
 
     lsa->end -= cnt;
 
-    lsa->st_root = Zeta_RBTree_Extract(&st_opr, n);
+    lsa->st_root = Zeta_RBTree_Extract(n);
 
     if (cnt == n_size) {
-        lsa->gt_root = Zeta_RBTree_Extract(&gt_opr, n);
+        lsa->gt_root = Zeta_RBTree_Extract(n);
         DeallocateNode_(lsa, n);
         return TRUE;
     }
 
     n_size -= cnt;
 
-    Zeta_BinTree_SetDiffSize(&gt_opr, n, -cnt);
+    Zeta_BinTree_SetDiffSize(n, -cnt);
 
-    lsa->st_root = Zeta_RBTree_GeneralInsertL(&st_opr, lsa->st_root,
-                                              FindNode_(lsa, n_size + 1), n);
+    lsa->st_root =
+        Zeta_RBTree_GeneralInsertL(lsa->st_root, FindNode_(lsa, n_size + 1), n);
 
     return TRUE;
 }
@@ -563,7 +388,7 @@ static void CheckGT_(Zeta_MemRecorder* dst_gt_table, Zeta_MemRecorder* st_table,
                      Zeta_LinSpaceAllocator_Node* n) {
     if (n == NULL) { return; }
 
-    size_t n_size = Zeta_BinTree_GetSize(&gt_opr, n);
+    size_t n_size = Zeta_BinTree_GetSize(n);
 
     ZETA_DebugAssert(0 < n_size);
 
@@ -581,8 +406,8 @@ static void CheckGT_(Zeta_MemRecorder* dst_gt_table, Zeta_MemRecorder* st_table,
     CheckGT_(dst_gt_table, st_table, NodeGetGL_(NULL, n));
     CheckGT_(dst_gt_table, st_table, NodeGetGR_(NULL, n));
 
-    Zeta_LinSpaceAllocator_Node* nl = Zeta_BinTree_StepL(&gt_opr, n);
-    Zeta_LinSpaceAllocator_Node* nr = Zeta_BinTree_StepR(&gt_opr, n);
+    Zeta_LinSpaceAllocator_Node* nl = Zeta_BinTree_StepL(n);
+    Zeta_LinSpaceAllocator_Node* nr = Zeta_BinTree_StepR(n);
 
     ZETA_DebugAssert(nl == NULL || n_color == OccupiedColor ||
                      NodeGetGLC_(NULL, nl) == OccupiedColor);
@@ -599,17 +424,17 @@ static void CheckST_(Zeta_MemRecorder* dst_st_table,
     Zeta_MemRecorder_Record(dst_st_table, n,
                             sizeof(Zeta_LinSpaceAllocator_Node));
 
-    size_t n_size = Zeta_BinTree_GetSize(&gt_opr, n);
+    size_t n_size = Zeta_BinTree_GetSize(n);
     ZETA_DebugAssert(0 < n_size);
 
     CheckST_(dst_st_table, NodeGetSL_(NULL, n));
     CheckST_(dst_st_table, NodeGetSR_(NULL, n));
 
-    Zeta_LinSpaceAllocator_Node* nl = Zeta_BinTree_StepL(&st_opr, n);
-    Zeta_LinSpaceAllocator_Node* nr = Zeta_BinTree_StepR(&st_opr, n);
+    Zeta_LinSpaceAllocator_Node* nl = Zeta_BinTree_StepL(n);
+    Zeta_LinSpaceAllocator_Node* nr = Zeta_BinTree_StepR(n);
 
-    ZETA_DebugAssert(nl == NULL || Zeta_BinTree_GetSize(&gt_opr, nl) <= n_size);
-    ZETA_DebugAssert(nr == NULL || n_size <= Zeta_BinTree_GetSize(&gt_opr, nr));
+    ZETA_DebugAssert(nl == NULL || Zeta_BinTree_GetSize(nl) <= n_size);
+    ZETA_DebugAssert(nr == NULL || n_size <= Zeta_BinTree_GetSize(nr));
 }
 
 #endif
@@ -633,8 +458,8 @@ void Zeta_LinSpaceAllocator_Sanitize(void* lsa_, Zeta_MemRecorder* dst_ns) {
 
     Zeta_MemRecorder* st_table = Zeta_MemRecorder_Create();
 
-    Zeta_RBTree_Check(&gt_opr, NULL, lsa->gt_root);
-    Zeta_RBTree_Check(&st_opr, NULL, lsa->st_root);
+    Zeta_RBTree_Check(NULL, lsa->gt_root);
+    Zeta_RBTree_Check(NULL, lsa->st_root);
 
     ZETA_DebugAssert(lsa->end - lsa->beg ==
                      NodeGetAccSize_(NULL, lsa->gt_root));

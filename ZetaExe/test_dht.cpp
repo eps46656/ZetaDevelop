@@ -31,12 +31,13 @@ void main1() {
 
     using Elem = Pair<unsigned long long, unsigned long long>;
 
-    Zeta_AssocCntr* assoc_cntr_a = DebugHashTable_Create<Elem>();
-    Zeta_AssocCntr* assoc_cntr_b = DynamicHashTable_Create<Elem>();
+    Zeta_AssocCntr assoc_cntr_a = DebugHashTable_Create<Elem>();
+
+    Zeta_AssocCntr assoc_cntr_b = DynamicHashTable_Create<Elem>();
 
     std::shared_ptr<void> cursor;
 
-    std::vector<Zeta_AssocCntr*> assoc_cntrs{ assoc_cntr_a, assoc_cntr_b };
+    std::vector<Zeta_AssocCntr> assoc_cntrs{ assoc_cntr_a, assoc_cntr_b };
 
     std::unordered_set<Elem> elems_s;
     std::vector<Elem> elems_v;
@@ -91,8 +92,8 @@ void main1() {
         }
     }
 
-    DynamicHashTable_Destroy(assoc_cntr_a);
-    DynamicHashTable_Destroy(assoc_cntr_b);
+    AssocCntrUtils_Destroy(assoc_cntr_a);
+    AssocCntrUtils_Destroy(assoc_cntr_b);
 }
 
 int main() {

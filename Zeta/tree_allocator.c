@@ -55,13 +55,13 @@ void Zeta_TreeAllocator_Init(void* ta_) {
     Head* end_head = (void*)(data_end - occupied_head_size);
 
     Zeta_OrdRBLListNode_Init(&beg_head->hn);
-    Zeta_OrdRBLListNode_SetColor(&beg_head->hn, vacant_color);
-    Zeta_OrdRBTreeNode_Init(NULL, &beg_head->sn);
+    Zeta_OrdRBLListNode_SetLColor(&beg_head->hn, vacant_color);
+    Zeta_OrdRBTreeNode_Init(&beg_head->sn);
 
     Zeta_OrdRBLListNode_Init(&end_head->hn);
-    Zeta_OrdRBLListNode_SetColor(&end_head->hn, occupied_color);
+    Zeta_OrdRBLListNode_SetLColor(&end_head->hn, occupied_color);
 
-    Zeta_OrdRBLListNode_InsertR(&beg_head->hn, &end_head->hn);
+    Zeta_LList_(OrdRBLListNode, InsertR)(&beg_head->hn, &end_head->hn);
 
     ta->sn_root = &beg_head->sn;
 }
@@ -76,21 +76,21 @@ void Zeta_TreeAllocator_Deinit(void* ta_) {
     Head* beg_head = (void*)data_beg;
     Head* end_head = (void*)(data_end - occupied_head_size);
 
-    ZETA_DebugAssert(Zeta_OrdRBLListNode_GetColor(&beg_head->hn) ==
+    ZETA_DebugAssert(Zeta_OrdRBLListNode_GetLColor(&beg_head->hn) ==
                      vacant_color);
 
     ZETA_DebugAssert(Zeta_OrdRBLListNode_GetR(&beg_head->hn) == &end_head->hn);
 }
 
-size_t Zeta_TreeAllocator_GetAlign(void* ta_) {
-    Zeta_TreeAllocator* ta = ta_;
+size_t Zeta_TreeAllocator_GetAlign(void const* ta_) {
+    Zeta_TreeAllocator const* ta = ta_;
     ZETA_DebugAssert(ta != NULL);
 
     return ta->align;
 }
 
 #define IsVacant_(head) \
-    (Zeta_OrdRBLListNode_GetColor(&(head)->hn) == vacant_color)
+    (Zeta_OrdRBLListNode_GetLColor(&(head)->hn) == vacant_color)
 
 #define HNToHead_(hn_) ZETA_MemberToStruct(Head, hn, hn_)
 
@@ -144,10 +144,10 @@ static int ChooseNiceBlock_(Zeta_TreeAllocator* ta, size_t size, Head** dst) {
 
     Zeta_OrdRBTreeNode* twice_fit_sn = FindBlock_(ta->sn_root, cut_stride * 2);
 
-    *dst = SNToHead_(
-        twice_fit_sn == NULL
-            ? Zeta_GetMostLink(NULL, Zeta_OrdRBTreeNode_GetR, ta->sn_root)
-            : twice_fit_sn);
+    *dst =
+        SNToHead_(twice_fit_sn == NULL
+                      ? Zeta_GetMostLink(ta->sn_root, Zeta_OrdRBTreeNode_GetR)
+                      : twice_fit_sn);
 
     return choose_ret_cut;
 }
@@ -166,8 +166,8 @@ size_t Zeta_TreeAllocator_Query(void const* ta_, size_t size) {
            occupied_head_size;
 }
 
-void* Zeta_TreeAllocator_Allocate(void const* ta_, size_t size) {
-    Zeta_TreeAllocator const* ta = ta_;
+void* Zeta_TreeAllocator_Allocate(void* ta_, size_t size) {
+    Zeta_TreeAllocator* ta = ta_;
     ZETA_DebugAssert(ta != NULL);
 
     if (size == 0) { return NULL; }
@@ -180,12 +180,9 @@ void* Zeta_TreeAllocator_Allocate(void const* ta_, size_t size) {
 
     if (choose_ret == choose_ret_failed) { return NULL; }
 
-    Zeta_BinTreeNodeOperator btn_opr;
-    Zeta_OrdRBTreeNode_DeployBinTreeNodeOperator(NULL, &btn_opr);
+    Zeta_OrdRBLListNode_SetLColor(&l_head->hn, occupied_color);
 
-    Zeta_OrdRBLListNode_SetColor(&l_head->hn, occupied_color);
-
-    ta->sn_root = Zeta_RBTree_Extract(&btn_opr, &l_head->sn);
+    ta->sn_root = Zeta_RBTree_(OrdRBTreeNode, Extract)(&l_head->sn);
 
     if (choose_ret == choose_ret_fit) {
         return (void*)(l_head) + occupied_head_size;
@@ -199,14 +196,13 @@ void* Zeta_TreeAllocator_Allocate(void const* ta_, size_t size) {
     Head* r_head = HNToHead_(Zeta_OrdRBLListNode_GetR(&l_head->hn));
 
     Zeta_OrdRBLListNode_Init(&m_head->hn);
-    Zeta_OrdRBLListNode_SetColor(&m_head->hn, vacant_color);
-    Zeta_OrdRBLListNode_InsertR(&l_head->hn, &m_head->hn);
+    Zeta_OrdRBLListNode_SetLColor(&m_head->hn, vacant_color);
+    Zeta_LList_(OrdRBLListNode, InsertR)(&l_head->hn, &m_head->hn);
 
-    Zeta_OrdRBTreeNode_Init(NULL, &m_head->sn);
+    Zeta_OrdRBTreeNode_Init(&m_head->sn);
 
-    ta->sn_root = Zeta_RBTree_GeneralInsertL(
-        &btn_opr, ta->sn_root,
-        FindBlock_(ta->sn_root, (void*)(r_head) - (void*)(m_head)),
+    ta->sn_root = Zeta_RBTree_(OrdRBTreeNode, GeneralInsertL)(
+        ta->sn_root, FindBlock_(ta->sn_root, (void*)(r_head) - (void*)(m_head)),
         &m_head->sn);
 
     return (void*)(l_head) + occupied_head_size;
@@ -218,9 +214,6 @@ void Zeta_TreeAllocator_Deallocate(void* ta_, void* ptr) {
 
     if (ptr == NULL) { return; }
 
-    Zeta_BinTreeNodeOperator btn_opr;
-    Zeta_OrdRBTreeNode_DeployBinTreeNodeOperator(NULL, &btn_opr);
-
     Head* m_head = ptr - occupied_head_size;
 
     Head* l_head = HNToHead_(Zeta_OrdRBLListNode_GetL(&m_head->hn));
@@ -231,26 +224,25 @@ void Zeta_TreeAllocator_Deallocate(void* ta_, void* ptr) {
     bool_t merge_r = IsVacant_(r_head);
 
     if (merge_l) {
-        Zeta_OrdRBLListNode_Extract(&m_head->hn);
-        ta->sn_root = Zeta_RBTree_Extract(&btn_opr, &l_head->sn);
+        Zeta_LList_(OrdRBLListNode, Extract)(&m_head->hn);
+        ta->sn_root = Zeta_RBTree_(OrdRBTreeNode, Extract)(&l_head->sn);
     } else {
-        Zeta_OrdRBLListNode_SetColor(&m_head->hn, vacant_color);
-        Zeta_OrdRBTreeNode_Init(NULL, &m_head->sn);
+        Zeta_OrdRBLListNode_SetLColor(&m_head->hn, vacant_color);
+        Zeta_OrdRBTreeNode_Init(&m_head->sn);
         l_head = m_head;
     }
 
     if (merge_r) {
         Head* rr_head = HNToHead_(Zeta_OrdRBLListNode_GetR(&r_head->hn));
 
-        Zeta_OrdRBLListNode_Extract(&r_head->hn);
-        ta->sn_root = Zeta_RBTree_Extract(&btn_opr, &r_head->sn);
+        Zeta_LList_(OrdRBLListNode, Extract)(&r_head->hn);
+        ta->sn_root = Zeta_RBTree_(OrdRBTreeNode, Extract)(&r_head->sn);
 
         r_head = rr_head;
     }
 
-    ta->sn_root = Zeta_RBTree_GeneralInsertL(
-        &btn_opr, ta->sn_root,
-        FindBlock_(ta->sn_root, (void*)(r_head) - (void*)(l_head)),
+    ta->sn_root = Zeta_RBTree_(OrdRBTreeNode, GeneralInsertL)(
+        ta->sn_root, FindBlock_(ta->sn_root, (void*)(r_head) - (void*)(l_head)),
         &l_head->sn);
 }
 
@@ -319,7 +311,7 @@ void Zeta_TreeAllocator_Sanitize(void* ta_, Zeta_MemRecorder* dst_recorder) {
     Head* beg_head = (void*)data_beg;
     Head* end_head = (void*)(data_end - occupied_head_size);
 
-    ZETA_DebugAssert(Zeta_OrdRBTreeNode_GetP(NULL, ta->sn_root) == NULL);
+    ZETA_DebugAssert(Zeta_OrdRBTreeNode_GetP(ta->sn_root) == NULL);
 
     Zeta_MemRecorder* vacant_head_recorder = Zeta_MemRecorder_Create();
 
@@ -361,21 +353,12 @@ void Zeta_TreeAllocator_Sanitize(void* ta_, Zeta_MemRecorder* dst_recorder) {
     Zeta_MemRecorder_Destroy(vacant_head_recorder);
 }
 
-void Zeta_TreeAllocator_DeployAllocator(void* ta_, Zeta_Allocator* dst) {
-    Zeta_TreeAllocator* ta = ta_;
-    ZETA_DebugAssert(ta != NULL);
+Zeta_Allocator_VTable const zeta_tree_allocator_vtable = {
+    .GetAlign = Zeta_TreeAllocator_GetAlign,
 
-    ZETA_DebugAssert(dst != NULL);
+    .Query = Zeta_TreeAllocator_Query,
 
-    Zeta_Allocator_Init(dst);
+    .Allocate = Zeta_TreeAllocator_Allocate,
 
-    dst->context = ta;
-
-    dst->GetAlign = Zeta_TreeAllocator_GetAlign;
-
-    dst->Query = Zeta_TreeAllocator_Query;
-
-    dst->Allocate = Zeta_TreeAllocator_Allocate;
-
-    dst->Deallocate = Zeta_TreeAllocator_Deallocate;
-}
+    .Deallocate = Zeta_TreeAllocator_Deallocate,
+};

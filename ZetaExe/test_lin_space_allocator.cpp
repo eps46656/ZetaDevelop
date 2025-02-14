@@ -37,12 +37,11 @@ void main1() {
     size_t beg = 16 * 1024 * 1024;
     size_t size = 4 * 1024;
 
-    StdAllocator_DeployAllocator(&std_allocator_, &std_allocator);
-
     Zeta_LinSpaceAllocator lin_space_allocator;
     lin_space_allocator.beg = beg;
     lin_space_allocator.end = beg + size;
-    lin_space_allocator.node_allocator = &std_allocator;
+    lin_space_allocator.node_allocator = &zeta_std_allocator_vtable;
+    lin_space_allocator.node_allocator_context = &std_allocator;
 
     Zeta_LinSpaceAllocator_Init(&lin_space_allocator);
 

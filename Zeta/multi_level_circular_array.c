@@ -23,8 +23,9 @@
 
 #define branch_num ZETA_MultiLevelCircularArray_branch_num
 
-static unsigned short branch_nums[] = { [0 ... ZETA_MultiLevelTable_max_level -
-                                         1] = branch_num };
+static unsigned short const branch_nums[] = {
+    [0 ... ZETA_MultiLevelTable_max_level - 1] = branch_num
+};
 
 #define GetLSeg_(seg)                                         \
     ZETA_MemberToStruct(Zeta_MultiLevelCircularArray_Seg, ln, \
@@ -64,21 +65,15 @@ void Zeta_MultiLevelCircularArray_Init(void* mlca_) {
 
     mlca->root = NULL;
 
-    Zeta_Allocator* node_allocator = mlca->node_allocator;
-    ZETA_DebugAssert(node_allocator != NULL);
-    ZETA_DebugAssert(node_allocator->Allocate != NULL);
-    ZETA_DebugAssert(node_allocator->Deallocate != NULL);
-
-    Zeta_Allocator* seg_allocator = mlca->seg_allocator;
-    ZETA_DebugAssert(seg_allocator != NULL);
-    ZETA_DebugAssert(seg_allocator->Allocate != NULL);
-    ZETA_DebugAssert(seg_allocator->Deallocate != NULL);
+    ZETA_Allocator_Check(mlca->node_allocator, alignof(void*));
+    ZETA_Allocator_Check(mlca->seg_allocator,
+                         alignof(Zeta_MultiLevelCircularArray_Seg));
 
     mlca->seg_head = ZETA_Allocator_SafeAllocate(
-        seg_allocator, alignof(Zeta_MultiLevelCircularArray_Seg),
+        mlca->seg_allocator, alignof(Zeta_MultiLevelCircularArray_Seg),
         offsetof(Zeta_MultiLevelCircularArray_Seg, data[0]));
 
-    Zeta_OrdLListNode_Init(mlca->seg_head);
+    Zeta_OrdLListNode_Init(&mlca->seg_head->ln);
 }
 
 void Zeta_MultiLevelCircularArray_Deinit(void* mlca_) {
@@ -377,12 +372,11 @@ static AssignRet AssignL_(Zeta_MultiLevelCircularArray const* mlca,
             src_seg_slot_idx = seg_capacity;
         }
 
-        size_t cur_cnt = ZETA_GetMinOf(
-            cnt, ZETA_GetMinOf(dst_seg_slot_idx, src_seg_slot_idx));
+        size_t cur_cnt = ZETA_GetMinOf(cnt, dst_seg_slot_idx, src_seg_slot_idx);
+        cnt -= cur_cnt;
 
         dst_seg_slot_idx -= cur_cnt;
         src_seg_slot_idx -= cur_cnt;
-        cnt -= cur_cnt;
 
         Zeta_ElemMove(dst_seg->data + stride * dst_seg_slot_idx,
                       src_seg->data + stride * src_seg_slot_idx, width, stride,
@@ -409,10 +403,8 @@ static AssignRet AssignR_(Zeta_MultiLevelCircularArray const* mlca,
     size_t seg_capacity = mlca->seg_capacity;
 
     while (0 < cnt) {
-        size_t cur_cnt = ZETA_GetMinOf(
-            cnt,
-            seg_capacity - ZETA_GetMaxOf(dst_seg_slot_idx, src_seg_slot_idx));
-
+        size_t cur_cnt = ZETA_GetMinOf(cnt, seg_capacity - dst_seg_slot_idx,
+                                       seg_capacity - src_seg_slot_idx);
         cnt -= cur_cnt;
 
         Zeta_ElemMove(dst_seg->data + stride * dst_seg_slot_idx,
@@ -497,7 +489,7 @@ void Zeta_MultiLevelCircularArray_Read(void const* mlca_,
 
     if (dst_cursor != NULL) {
         dst_cursor->mlca = mlca;
-        dst_cursor->idx = idx + cnt;
+        dst_cursor->idx = end;
         dst_cursor->seg = seg;
         dst_cursor->seg_slot_idx = seg_slot_idx;
         dst_cursor->elem =
@@ -578,7 +570,7 @@ static size_t PushSegs_(Zeta_MultiLevelCircularArray* mlca, int level_i,
     size_t rotation = mlca->rotations[level_i];
 
     if (level_i == 0) {
-        Zeta_Allocator* seg_allocator = mlca->seg_allocator;
+        Zeta_Allocator seg_allocator = mlca->seg_allocator;
 
         size_t acc_cnt = 0;
 
@@ -605,7 +597,7 @@ static size_t PushSegs_(Zeta_MultiLevelCircularArray* mlca, int level_i,
         return acc_cnt;
     }
 
-    Zeta_Allocator* node_allocator = mlca->node_allocator;
+    Zeta_Allocator node_allocator = mlca->node_allocator;
 
     size_t sub_tree_seg_capacity = Zeta_Power(branch_num, level_i);
 
@@ -668,7 +660,7 @@ static void* Push_(void* mlca_, size_t cnt, void* dst_cursor_, int dir) {
 
     size_t* rotations = mlca->rotations;
 
-    Zeta_Allocator* node_allocator = mlca->node_allocator;
+    Zeta_Allocator node_allocator = mlca->node_allocator;
 
     size_t cur_seg_slot_offset = offset % seg_capacity;
     size_t nxt_seg_slot_offset =
@@ -783,7 +775,7 @@ static size_t PopSegs_(Zeta_MultiLevelCircularArray* mlca, int level_i,
     size_t rotation = mlca->rotations[level_i];
 
     if (level_i == 0) {
-        Zeta_Allocator* seg_allocator = mlca->seg_allocator;
+        Zeta_Allocator seg_allocator = mlca->seg_allocator;
 
         size_t acc_cnt = 0;
 
@@ -805,7 +797,7 @@ static size_t PopSegs_(Zeta_MultiLevelCircularArray* mlca, int level_i,
         return acc_cnt;
     }
 
-    Zeta_Allocator* node_allocator = mlca->node_allocator;
+    Zeta_Allocator node_allocator = mlca->node_allocator;
 
     size_t sub_tree_seg_capacity = Zeta_Power(branch_num, level_i);
 
@@ -856,7 +848,7 @@ static void Pop_(void* mlca_, size_t cnt, int dir) {
 
     size_t* rotations = mlca->rotations;
 
-    Zeta_Allocator* node_allocator = mlca->node_allocator;
+    Zeta_Allocator node_allocator = mlca->node_allocator;
 
     size_t cur_seg_slot_offset = offset % seg_capacity;
     size_t nxt_seg_slot_offset =
@@ -1083,7 +1075,7 @@ void Zeta_MultiLevelCircularArray_Erase(void* mlca_, void* pos_cursor_,
 
         Zeta_MultiLevelCircularArray_Cursor_AdvanceR(mlca, &src_cursor, cnt);
 
-        AssignL_(mlca, dst_cursor.seg, dst_cursor.seg_slot_idx, src_cursor.seg,
+        AssignR_(mlca, dst_cursor.seg, dst_cursor.seg_slot_idx, src_cursor.seg,
                  src_cursor.seg_slot_idx, r_size);
 
         Zeta_MultiLevelCircularArray_PopR(mlca, cnt);
@@ -1107,7 +1099,7 @@ void Zeta_MultiLevelCircularArray_EraseAll(void* mlca_) {
 
     Zeta_MultiLevelCircularArray_Seg* seg_head = mlca->seg_head;
 
-    Zeta_Allocator* seg_allocator = mlca->seg_allocator;
+    Zeta_Allocator seg_allocator = mlca->seg_allocator;
 
     Zeta_MultiLevelTable mlt;
     mlt.level = mlca->level;
@@ -1182,10 +1174,9 @@ void Zeta_MultiLevelCircularArray_Check(void const* mlca_) {
 
     Zeta_MultiLevelTable_Check(&mlt);
 
-    Zeta_Allocator* seg_allocator = mlca->seg_allocator;
-    ZETA_DebugAssert(seg_allocator != NULL);
-    ZETA_DebugAssert(seg_allocator->Allocate != NULL);
-    ZETA_DebugAssert(seg_allocator->Deallocate != NULL);
+    ZETA_Allocator_Check(mlca->node_allocator, alignof(void*));
+    ZETA_Allocator_Check(mlca->seg_allocator,
+                         alignof(Zeta_MultiLevelCircularArray_Seg));
 }
 
 void Zeta_MultiLevelCircularArray_Sanitize(
@@ -1240,7 +1231,11 @@ void Zeta_MultiLevelCircularArray_Sanitize(
         size_t idxes[ZETA_MultiLevelTable_max_level];
 
         for (;; ++seg_i) {
-            seg = GetRSeg_(seg);
+            Zeta_MultiLevelCircularArray_Seg* r_seg = GetRSeg_(seg);
+
+            ZETA_DebugAssert(GetLSeg_(r_seg) == seg);
+
+            seg = r_seg;
 
             if (seg_i == tree_segs_cnt) {
                 ZETA_DebugAssert(seg == seg_head);
@@ -1439,68 +1434,60 @@ void Zeta_MultiLevelCircularArray_Cursor_Check(void const* mlca_,
     ZETA_DebugAssert(re_cursor.elem == cursor->elem);
 }
 
-void Zeta_MultiLevelCircularArray_DeploySeqCntr(void* mlca_,
-                                                Zeta_SeqCntr* seq_cntr) {
-    Zeta_MultiLevelCircularArray* mlca = mlca_;
-    CheckCntr_(mlca);
+Zeta_SeqCntr_VTable const zeta_multi_level_circular_array_seq_cntr_vtable = {
+    .cursor_size = sizeof(Zeta_MultiLevelCircularArray_Cursor),
 
-    Zeta_SeqCntr_Init(seq_cntr);
+    .Deinit = Zeta_MultiLevelCircularArray_Deinit,
 
-    seq_cntr->context = mlca;
+    .GetWidth = Zeta_MultiLevelCircularArray_GetWidth,
 
-    seq_cntr->const_context = mlca;
+    .GetSize = Zeta_MultiLevelCircularArray_GetSize,
 
-    seq_cntr->cursor_size = sizeof(Zeta_MultiLevelCircularArray_Cursor);
+    .GetCapacity = Zeta_MultiLevelCircularArray_GetCapacity,
 
-    seq_cntr->GetWidth = Zeta_MultiLevelCircularArray_GetWidth;
+    .GetLBCursor = Zeta_MultiLevelCircularArray_GetLBCursor,
 
-    seq_cntr->GetSize = Zeta_MultiLevelCircularArray_GetSize;
+    .GetRBCursor = Zeta_MultiLevelCircularArray_GetRBCursor,
 
-    seq_cntr->GetCapacity = Zeta_MultiLevelCircularArray_GetCapacity;
+    .PeekL = Zeta_MultiLevelCircularArray_PeekL,
 
-    seq_cntr->GetLBCursor = Zeta_MultiLevelCircularArray_GetLBCursor;
+    .PeekR = Zeta_MultiLevelCircularArray_PeekR,
 
-    seq_cntr->GetRBCursor = Zeta_MultiLevelCircularArray_GetRBCursor;
+    .Access = Zeta_MultiLevelCircularArray_Access,
 
-    seq_cntr->PeekL = Zeta_MultiLevelCircularArray_PeekL;
+    .Refer = Zeta_MultiLevelCircularArray_Refer,
 
-    seq_cntr->PeekR = Zeta_MultiLevelCircularArray_PeekR;
+    .Read = Zeta_MultiLevelCircularArray_Read,
 
-    seq_cntr->Access = Zeta_MultiLevelCircularArray_Access;
+    .Write = Zeta_MultiLevelCircularArray_Write,
 
-    seq_cntr->Refer = Zeta_MultiLevelCircularArray_Refer;
+    .PushL = Zeta_MultiLevelCircularArray_PushL,
 
-    seq_cntr->Read = Zeta_MultiLevelCircularArray_Read;
+    .PushR = Zeta_MultiLevelCircularArray_PushR,
 
-    seq_cntr->Write = Zeta_MultiLevelCircularArray_Write;
+    .Insert = Zeta_MultiLevelCircularArray_Insert,
 
-    seq_cntr->PushL = Zeta_MultiLevelCircularArray_PushL;
+    .PopL = Zeta_MultiLevelCircularArray_PopL,
 
-    seq_cntr->PushR = Zeta_MultiLevelCircularArray_PushR;
+    .PopR = Zeta_MultiLevelCircularArray_PopR,
 
-    seq_cntr->Insert = Zeta_MultiLevelCircularArray_Insert;
+    .Erase = Zeta_MultiLevelCircularArray_Erase,
 
-    seq_cntr->PopL = Zeta_MultiLevelCircularArray_PopL;
+    .EraseAll = Zeta_MultiLevelCircularArray_EraseAll,
 
-    seq_cntr->PopR = Zeta_MultiLevelCircularArray_PopR;
+    .Cursor_AreEqual = Zeta_MultiLevelCircularArray_Cursor_AreEqual,
 
-    seq_cntr->Erase = Zeta_MultiLevelCircularArray_Erase;
+    .Cursor_Compare = Zeta_MultiLevelCircularArray_Cursor_Compare,
 
-    seq_cntr->EraseAll = Zeta_MultiLevelCircularArray_EraseAll;
+    .Cursor_GetDist = Zeta_MultiLevelCircularArray_Cursor_GetDist,
 
-    seq_cntr->Cursor_AreEqual = Zeta_MultiLevelCircularArray_Cursor_AreEqual;
+    .Cursor_GetIdx = Zeta_MultiLevelCircularArray_Cursor_GetIdx,
 
-    seq_cntr->Cursor_Compare = Zeta_MultiLevelCircularArray_Cursor_Compare;
+    .Cursor_StepL = Zeta_MultiLevelCircularArray_Cursor_StepL,
 
-    seq_cntr->Cursor_GetDist = Zeta_MultiLevelCircularArray_Cursor_GetDist;
+    .Cursor_StepR = Zeta_MultiLevelCircularArray_Cursor_StepR,
 
-    seq_cntr->Cursor_GetIdx = Zeta_MultiLevelCircularArray_Cursor_GetIdx;
+    .Cursor_AdvanceL = Zeta_MultiLevelCircularArray_Cursor_AdvanceL,
 
-    seq_cntr->Cursor_StepL = Zeta_MultiLevelCircularArray_Cursor_StepL;
-
-    seq_cntr->Cursor_StepR = Zeta_MultiLevelCircularArray_Cursor_StepR;
-
-    seq_cntr->Cursor_AdvanceL = Zeta_MultiLevelCircularArray_Cursor_AdvanceL;
-
-    seq_cntr->Cursor_AdvanceR = Zeta_MultiLevelCircularArray_Cursor_AdvanceR;
-}
+    .Cursor_AdvanceR = Zeta_MultiLevelCircularArray_Cursor_AdvanceR,
+};

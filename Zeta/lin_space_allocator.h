@@ -2,6 +2,7 @@
 
 #include "allocator.h"
 #include "assoc_cntr.h"
+#include "bin_tree_node.h"
 #include "mem_check_utils.h"
 
 ZETA_ExternC_Beg;
@@ -13,16 +14,9 @@ ZETA_DeclareStruct(Zeta_LinSpaceAllocator_Node);
 ZETA_DeclareStruct(Zeta_LinSpaceAllocator);
 
 struct Zeta_LinSpaceAllocator_Node {
-    int gpc;  // gt_coolor
-    int glc;  // state_color: VacantColor, OccupiedColor
-    int gr;
-
-    int spc;  // st_color
-    int sl;
-    int sr;
-
-    unsigned acc_size;
-} __attribute__((aligned(2)));
+    Zeta_ShortRelCnt3RBTreeNode gn;
+    Zeta_ShortRelRBTreeNode sn;
+};
 
 struct Zeta_LinSpaceAllocator {
     size_t beg;
@@ -33,7 +27,7 @@ struct Zeta_LinSpaceAllocator {
     Zeta_LinSpaceAllocator_Node* gt_root;
     Zeta_LinSpaceAllocator_Node* st_root;
 
-    Zeta_Allocator* node_allocator;
+    Zeta_Allocator node_allocator;
 };
 
 /**

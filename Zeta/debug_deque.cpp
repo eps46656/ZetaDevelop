@@ -449,70 +449,60 @@ extern "C" void Zeta_DebugDeque_Cursor_Check(void const* dd_,
     ZETA_DebugAssert(*cursor + 1 < deque->size() + 2);
 }
 
-extern "C" void Zeta_DebugDeque_DeploySeqCntr(void* dd_,
-                                              Zeta_SeqCntr* seq_cntr) {
-    Zeta_DebugDeque* dd = (Zeta_DebugDeque*)dd_;
-    Zeta_DebugDeque_Check(dd);
+extern "C" Zeta_SeqCntr_VTable const zeta_debug_deque_seq_cntr_vtable = {
+    .cursor_size = sizeof(size_t),
 
-    ZETA_DebugAssert(seq_cntr != NULL);
+    .Deinit = Zeta_DebugDeque_Deinit,
 
-    Zeta_SeqCntr_Init(seq_cntr);
+    .GetWidth = Zeta_DebugDeque_GetWidth,
 
-    seq_cntr->context = dd;
+    .GetSize = Zeta_DebugDeque_GetSize,
 
-    seq_cntr->const_context = dd;
+    .GetCapacity = Zeta_DebugDeque_GetCapacity,
 
-    seq_cntr->cursor_size = sizeof(size_t);
+    .GetLBCursor = Zeta_DebugDeque_GetLBCursor,
 
-    seq_cntr->GetWidth = Zeta_DebugDeque_GetWidth;
+    .GetRBCursor = Zeta_DebugDeque_GetRBCursor,
 
-    seq_cntr->GetSize = Zeta_DebugDeque_GetSize;
+    .PeekL = Zeta_DebugDeque_PeekL,
 
-    seq_cntr->GetCapacity = Zeta_DebugDeque_GetCapacity;
+    .PeekR = Zeta_DebugDeque_PeekR,
 
-    seq_cntr->GetLBCursor = Zeta_DebugDeque_GetLBCursor;
+    .Access = Zeta_DebugDeque_Access,
 
-    seq_cntr->GetRBCursor = Zeta_DebugDeque_GetRBCursor;
+    .Refer = Zeta_DebugDeque_Refer,
 
-    seq_cntr->PeekL = Zeta_DebugDeque_PeekL;
+    .Read = Zeta_DebugDeque_Read,
 
-    seq_cntr->PeekR = Zeta_DebugDeque_PeekR;
+    .Write = Zeta_DebugDeque_Write,
 
-    seq_cntr->Access = Zeta_DebugDeque_Access;
+    .PushL = Zeta_DebugDeque_PushL,
 
-    seq_cntr->Refer = Zeta_DebugDeque_Refer;
+    .PushR = Zeta_DebugDeque_PushR,
 
-    seq_cntr->Read = Zeta_DebugDeque_Read;
+    .Insert = Zeta_DebugDeque_Insert,
 
-    seq_cntr->Write = Zeta_DebugDeque_Write;
+    .PopL = Zeta_DebugDeque_PopL,
 
-    seq_cntr->PushL = Zeta_DebugDeque_PushL;
+    .PopR = Zeta_DebugDeque_PopR,
 
-    seq_cntr->PushR = Zeta_DebugDeque_PushR;
+    .Erase = Zeta_DebugDeque_Erase,
 
-    seq_cntr->Insert = Zeta_DebugDeque_Insert;
+    .EraseAll = Zeta_DebugDeque_EraseAll,
 
-    seq_cntr->PopL = Zeta_DebugDeque_PopL;
+    .Cursor_AreEqual = Zeta_DebugDeque_Cursor_AreEqual,
 
-    seq_cntr->PopR = Zeta_DebugDeque_PopR;
+    .Cursor_Compare = Zeta_DebugDeque_Cursor_Compare,
 
-    seq_cntr->Erase = Zeta_DebugDeque_Erase;
+    .Cursor_GetDist = Zeta_DebugDeque_Cursor_GetDist,
 
-    seq_cntr->EraseAll = Zeta_DebugDeque_EraseAll;
+    .Cursor_GetIdx = Zeta_DebugDeque_Cursor_GetIdx,
 
-    seq_cntr->Cursor_AreEqual = Zeta_DebugDeque_Cursor_AreEqual;
+    .Cursor_StepL = Zeta_DebugDeque_Cursor_StepL,
 
-    seq_cntr->Cursor_Compare = Zeta_DebugDeque_Cursor_Compare;
+    .Cursor_StepR = Zeta_DebugDeque_Cursor_StepR,
 
-    seq_cntr->Cursor_GetDist = Zeta_DebugDeque_Cursor_GetDist;
+    .Cursor_AdvanceL = Zeta_DebugDeque_Cursor_AdvanceL,
 
-    seq_cntr->Cursor_GetIdx = Zeta_DebugDeque_Cursor_GetIdx;
-
-    seq_cntr->Cursor_StepL = Zeta_DebugDeque_Cursor_StepL;
-
-    seq_cntr->Cursor_StepR = Zeta_DebugDeque_Cursor_StepR;
-
-    seq_cntr->Cursor_AdvanceL = Zeta_DebugDeque_Cursor_AdvanceL;
-
-    seq_cntr->Cursor_AdvanceR = Zeta_DebugDeque_Cursor_AdvanceR;
-}
+    .Cursor_AdvanceR = Zeta_DebugDeque_Cursor_AdvanceR,
+};

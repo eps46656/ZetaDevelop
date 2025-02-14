@@ -136,8 +136,9 @@ static void InitBNode_(BNode* bn) {
 }
 
 static SNode* AllocateSNode_(Zeta_LRUCacheManager* lrucm) {
-    SNode* sn = ZETA_Allocator_SafeAllocate(lrucm->sn_allocator, alignof(SNode),
-                                            sizeof(SNode));
+    SNode* sn = ZETA_Allocator_SafeAllocate(lrucm->sn_allocator,
+
+                                            alignof(SNode), sizeof(SNode));
 
     InitBNode_(&sn->bn);
 
@@ -202,34 +203,12 @@ void Zeta_LRUCacheManager_Init(void* lrucm_) {
     lrucm->cn_cnt = 0;
     lrucm->max_cn_cnt = 0;
 
-    ZETA_DebugAssert(lrucm->origin != NULL);
+    ZETA_DebugAssert(lrucm->origin.vtable != NULL);
 
-    Zeta_Allocator* sn_allocator = lrucm->sn_allocator;
-
-    ZETA_DebugAssert(sn_allocator != NULL);
-    ZETA_DebugAssert(sn_allocator->GetAlign != NULL);
-    ZETA_DebugAssert(sn_allocator->Allocate != NULL);
-    ZETA_DebugAssert(sn_allocator->Deallocate != NULL);
-    ZETA_DebugAssert(ZETA_Allocator_GetAlign(sn_allocator) % alignof(SNode) ==
-                     0);
-
-    Zeta_Allocator* cn_allocator = lrucm->cn_allocator;
-
-    ZETA_DebugAssert(cn_allocator != NULL);
-    ZETA_DebugAssert(cn_allocator->GetAlign != NULL);
-    ZETA_DebugAssert(cn_allocator->Allocate != NULL);
-    ZETA_DebugAssert(cn_allocator->Deallocate != NULL);
-    ZETA_DebugAssert(ZETA_Allocator_GetAlign(cn_allocator) % alignof(CNode) ==
-                     0);
-
-    Zeta_Allocator* xn_allocator = lrucm->xn_allocator;
-
-    ZETA_DebugAssert(xn_allocator != NULL);
-    ZETA_DebugAssert(xn_allocator->GetAlign != NULL);
-    ZETA_DebugAssert(xn_allocator->Allocate != NULL);
-    ZETA_DebugAssert(xn_allocator->Deallocate != NULL);
-    ZETA_DebugAssert(ZETA_Allocator_GetAlign(xn_allocator) % alignof(XNode) ==
-                     0);
+    ZETA_Allocator_Check(lrucm->sn_allocator, alignof(SNode));
+    ZETA_Allocator_Check(lrucm->cn_allocator, alignof(CNode));
+    ZETA_Allocator_Check(lrucm->xn_allocator, alignof(XNode));
+    ZETA_Allocator_Check(lrucm->frame_allocator, 1);
 
     lrucm->ght.node_hash_context = NULL;
     lrucm->ght.NodeHash = BNodeHash;
@@ -239,27 +218,29 @@ void Zeta_LRUCacheManager_Init(void* lrucm_) {
 
     Zeta_GenericHashTable_Init(&lrucm->ght);
 
-    lrucm->fit_sl = ZETA_Allocator_SafeAllocate(
-        sn_allocator, alignof(Zeta_OrdLListNode), sizeof(Zeta_OrdLListNode));
+    lrucm->fit_sl = ZETA_Allocator_SafeAllocate(lrucm->sn_allocator,
+                                                alignof(Zeta_OrdLListNode),
+                                                sizeof(Zeta_OrdLListNode));
 
-    lrucm->over_sl = ZETA_Allocator_SafeAllocate(
-        sn_allocator, alignof(Zeta_OrdLListNode), sizeof(Zeta_OrdLListNode));
+    lrucm->over_sl = ZETA_Allocator_SafeAllocate(lrucm->sn_allocator,
+                                                 alignof(Zeta_OrdLListNode),
+                                                 sizeof(Zeta_OrdLListNode));
 
-    lrucm->hot_clear_cl =
-        ZETA_Allocator_SafeAllocate(cn_allocator, alignof(Zeta_OrdRBLListNode),
-                                    sizeof(Zeta_OrdRBLListNode));
+    lrucm->hot_clear_cl = ZETA_Allocator_SafeAllocate(
+        lrucm->cn_allocator, alignof(Zeta_OrdRBLListNode),
+        sizeof(Zeta_OrdRBLListNode));
 
-    lrucm->hot_dirty_cl =
-        ZETA_Allocator_SafeAllocate(cn_allocator, alignof(Zeta_OrdRBLListNode),
-                                    sizeof(Zeta_OrdRBLListNode));
+    lrucm->hot_dirty_cl = ZETA_Allocator_SafeAllocate(
+        lrucm->cn_allocator, alignof(Zeta_OrdRBLListNode),
+        sizeof(Zeta_OrdRBLListNode));
 
-    lrucm->cold_clear_cl =
-        ZETA_Allocator_SafeAllocate(cn_allocator, alignof(Zeta_OrdRBLListNode),
-                                    sizeof(Zeta_OrdRBLListNode));
+    lrucm->cold_clear_cl = ZETA_Allocator_SafeAllocate(
+        lrucm->cn_allocator, alignof(Zeta_OrdRBLListNode),
+        sizeof(Zeta_OrdRBLListNode));
 
-    lrucm->cold_dirty_cl =
-        ZETA_Allocator_SafeAllocate(cn_allocator, alignof(Zeta_OrdRBLListNode),
-                                    sizeof(Zeta_OrdRBLListNode));
+    lrucm->cold_dirty_cl = ZETA_Allocator_SafeAllocate(
+        lrucm->cn_allocator, alignof(Zeta_OrdRBLListNode),
+        sizeof(Zeta_OrdRBLListNode));
 
     Zeta_OrdLListNode_Init(lrucm->fit_sl);
     Zeta_OrdLListNode_Init(lrucm->over_sl);
@@ -270,7 +251,7 @@ void Zeta_LRUCacheManager_Init(void* lrucm_) {
     Zeta_OrdRBLListNode_Init(lrucm->cold_dirty_cl);
 }
 
-Zeta_SeqCntr* Zeta_LRUCacheManager_GetOrigin(void const* lrucm_) {
+Zeta_SeqCntr Zeta_LRUCacheManager_GetOrigin(void const* lrucm_) {
     Zeta_LRUCacheManager const* lrucm = lrucm_;
     ZETA_DebugAssert(lrucm != NULL);
 
@@ -599,7 +580,7 @@ void Zeta_LRUCacheManager_Read(void* lrucm_, void* sn_, size_t idx, size_t cnt,
     size_t rb_cache_idx = (idx + cnt - 1) / cache_size + 1;
 
     bool_t* marks = ZETA_Allocator_SafeAllocate(
-        zeta_cascade_allocator, alignof(bool_t),
+        zeta_memory_cascade_allocator, alignof(bool_t),
         sizeof(bool_t) * (rb_cache_idx - lb_cache_idx));
 
     for (size_t cache_idx = lb_cache_idx; cache_idx < rb_cache_idx;
@@ -651,7 +632,7 @@ void Zeta_LRUCacheManager_Read(void* lrucm_, void* sn_, size_t idx, size_t cnt,
         );
     }
 
-    ZETA_Allocator_Deallocate(zeta_cascade_allocator, marks);
+    ZETA_Allocator_Deallocate(zeta_memory_cascade_allocator, marks);
 }
 
 void Zeta_LRUCacheManager_Write(void* lrucm_, void* sn_, size_t idx, size_t cnt,
@@ -673,7 +654,7 @@ void Zeta_LRUCacheManager_Write(void* lrucm_, void* sn_, size_t idx, size_t cnt,
     size_t rb_cache_idx = (idx + cnt - 1) / cache_size + 1;
 
     bool_t* marks = ZETA_Allocator_SafeAllocate(
-        zeta_cascade_allocator, alignof(bool_t),
+        zeta_memory_cascade_allocator, alignof(bool_t),
         sizeof(bool_t) * (rb_cache_idx - lb_cache_idx));
 
     for (size_t cache_idx = lb_cache_idx; cache_idx < rb_cache_idx;
@@ -750,7 +731,9 @@ void Zeta_LRUCacheManager_Write(void* lrucm_, void* sn_, size_t idx, size_t cnt,
         );
     }
 
-    ZETA_Allocator_Deallocate(zeta_cascade_allocator, marks);
+    ZETA_Allocator_Deallocate(zeta_memory_cascade_allocator,
+
+                              marks);
 }
 
 void Zeta_LRUCacheManager_FlushBlock(void* lrucm_, size_t cache_idx) {
@@ -827,26 +810,14 @@ void Zeta_LRUCacheManager_Check(void const* lrucm_) {
     Zeta_LRUCacheManager const* lrucm = lrucm_;
     ZETA_DebugAssert(lrucm != NULL);
 
-    ZETA_DebugAssert(lrucm->origin != NULL);
+    ZETA_DebugAssert(lrucm->origin.vtable != NULL);
 
     ZETA_DebugAssert(0 < lrucm->cache_size);
 
-    ZETA_DebugAssert(lrucm->sn_allocator != NULL);
-    ZETA_DebugAssert(ZETA_Allocator_GetAlign(lrucm->sn_allocator) %
-                         alignof(Zeta_LRUCacheManager_SNode) ==
-                     0);
-
-    ZETA_DebugAssert(lrucm->cn_allocator != NULL);
-    ZETA_DebugAssert(ZETA_Allocator_GetAlign(lrucm->cn_allocator) %
-                         alignof(Zeta_LRUCacheManager_CNode) ==
-                     0);
-
-    ZETA_DebugAssert(lrucm->xn_allocator != NULL);
-    ZETA_DebugAssert(ZETA_Allocator_GetAlign(lrucm->xn_allocator) %
-                         alignof(Zeta_LRUCacheManager_XNode) ==
-                     0);
-
-    ZETA_DebugAssert(lrucm->frame_allocator != NULL);
+    ZETA_Allocator_Check(lrucm->sn_allocator, alignof(SNode));
+    ZETA_Allocator_Check(lrucm->cn_allocator, alignof(CNode));
+    ZETA_Allocator_Check(lrucm->xn_allocator, alignof(XNode));
+    ZETA_Allocator_Check(lrucm->frame_allocator, 1);
 
     ZETA_DebugAssert(lrucm->ght.NodeHash == BNodeHash);
     ZETA_DebugAssert(lrucm->ght.NodeCompare == BNodeCompare);
@@ -881,30 +852,22 @@ void Zeta_LRUCacheManager_CheckSessionDescriptor(void const* lrucm_,
     ZETA_DebugAssert(sn == re_sn);
 }
 
-void Zeta_LRUCacheManager_DeployCacheManager(void* lrucm_,
-                                             Zeta_CacheManager* cm) {
-    Zeta_LRUCacheManager* lrucm = lrucm_;
-    CheckLRUCM_(lrucm);
+Zeta_CacheManager_VTable const zeta_lru_cache_manager_vtable = {
+    .Deinit = Zeta_LRUCacheManager_Deinit,
 
-    Zeta_CacheManager_Init(cm);
+    .GetOrigin = Zeta_LRUCacheManager_GetOrigin,
 
-    cm->context = lrucm;
+    .GetCacheSize = Zeta_LRUCacheManager_GetCacheSize,
 
-    cm->const_context = lrucm;
+    .Open = Zeta_LRUCacheManager_Open,
 
-    cm->GetOrigin = Zeta_LRUCacheManager_GetOrigin;
+    .SetMaxCacheCnt = Zeta_LRUCacheManager_SetMaxCacheCnt,
 
-    cm->GetCacheSize = Zeta_LRUCacheManager_GetCacheSize;
+    .Close = Zeta_LRUCacheManager_Close,
 
-    cm->Open = Zeta_LRUCacheManager_Open;
+    .Read = Zeta_LRUCacheManager_Read,
 
-    cm->SetMaxCacheCnt = Zeta_LRUCacheManager_SetMaxCacheCnt;
+    .Write = Zeta_LRUCacheManager_Write,
 
-    cm->Close = Zeta_LRUCacheManager_Close;
-
-    cm->Read = Zeta_LRUCacheManager_Read;
-
-    cm->Write = Zeta_LRUCacheManager_Write;
-
-    cm->Flush = Zeta_LRUCacheManager_Flush;
-}
+    .Flush = Zeta_LRUCacheManager_Flush,
+};

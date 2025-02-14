@@ -31,6 +31,6 @@ void Zeta_CascadeAllocator_Check(void const* ca);
 void Zeta_CascadeAllocator_Sanitize(void const* ca,
                                     Zeta_MemRecorder* dst_recorder);
 
-void Zeta_CascadeAllocator_DeployAllocator(void* ca, Zeta_Allocator* allocator);
+extern Zeta_Allocator_VTable const zeta_cascade_allocator_vtable;
 
 ZETA_ExternC_End;

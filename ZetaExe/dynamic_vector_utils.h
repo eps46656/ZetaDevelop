@@ -9,85 +9,64 @@
 #include "std_allocator.h"
 
 struct DynamicVectorPack {
-    StdAllocator data_allocator_instance;
-    Zeta_Allocator data_allocator;
-
-    StdAllocator seg_allocator_instance;
-    Zeta_Allocator seg_allocator;
+    StdAllocator data_allocator;
+    StdAllocator seg_allocator;
 
     Zeta_DynamicVector dynamic_vec;
 };
 
 template <typename Val>
-void DynamicVector_Init(Zeta_SeqCntr* seq_cntr, size_t seg_capacity) {
+Zeta_SeqCntr DynamicVector_Create(size_t seg_capacity) {
     DynamicVectorPack* dynamic_vec_pack{ static_cast<DynamicVectorPack*>(
         std::malloc(sizeof(DynamicVectorPack))) };
 
-    new (&dynamic_vec_pack->data_allocator_instance) StdAllocator{};
-    new (&dynamic_vec_pack->seg_allocator_instance) StdAllocator{};
-
-    StdAllocator_DeployAllocator(&dynamic_vec_pack->data_allocator_instance,
-                                 &dynamic_vec_pack->data_allocator);
-    StdAllocator_DeployAllocator(&dynamic_vec_pack->seg_allocator_instance,
-                                 &dynamic_vec_pack->seg_allocator);
+    new (&dynamic_vec_pack->data_allocator) StdAllocator{};
+    new (&dynamic_vec_pack->seg_allocator) StdAllocator{};
 
     dynamic_vec_pack->dynamic_vec.width = sizeof(Val);
     dynamic_vec_pack->dynamic_vec.seg_capacity = seg_capacity;
 
-    dynamic_vec_pack->dynamic_vec.data_allocator =
-        &dynamic_vec_pack->data_allocator;
+    dynamic_vec_pack->dynamic_vec.data_allocator = {
+        .vtable = &zeta_std_allocator_vtable,
+        .context = &pack->data_allocator,
+    };
 
-    dynamic_vec_pack->dynamic_vec.seg_allocator =
-        &dynamic_vec_pack->seg_allocator;
+    dynamic_vec_pack->dynamic_vec.seg_allocator = {
+        .vtable = &zeta_std_allocator_vtable,
+        .context = &pack->seg_allocator,
+    };
 
     Zeta_DynamicVector_Init(&dynamic_vec_pack->dynamic_vec);
 
-    Zeta_DynamicVector_DeploySeqCntr(&dynamic_vec_pack->dynamic_vec, seq_cntr);
-
-    SeqCntrUtils_AddSanitizeFunc(Zeta_DynamicVector_GetWidth,
+    SeqCntrUtils_AddSanitizeFunc(&zeta_dynamic_vector_seq_cntr_vtable,
                                  DynamicVector_Sanitize);
 
-    SeqCntrUtils_AddDestroyFunc(Zeta_DynamicVector_GetWidth,
+    SeqCntrUtils_AddDestroyFunc(&zeta_dynamic_vector_seq_cntr_vtable,
                                 DynamicVector_Destroy);
+
+    return { &zeta_dynamic_vector_seq_cntr_vtable,
+             &dynamic_vec_pack->dynamic_vec };
 }
 
-void DynamicVector_Deinit(Zeta_SeqCntr* seq_cntr) {
-    if (seq_cntr == NULL || seq_cntr->GetSize != Zeta_DynamicVector_GetSize) {
-        return;
-    }
+void DynamicVector_Destroy(Zeta_SeqCntr seq_cntr) {
+    ZETA_DebugAssert(seq_cntr.vtable == &zeta_dynamic_vector_seq_cntr_vtable);
+    if (seq_cntr.context == NULL) { return; }
 
     DynamicVectorPack* dynamic_vec_pack{ ZETA_MemberToStruct(
-        DynamicVectorPack, dynamic_vec, seq_cntr->context) };
+        DynamicVectorPack, dynamic_vec, seq_cntr.context) };
 
-    Zeta_DynamicVector_Deinit(seq_cntr->context);
+    Zeta_DynamicVector_Deinit(&dynamic_vec_pack->dynamic_vec);
 
     std::free(dynamic_vec_pack);
 }
 
-template <typename Val>
-Zeta_SeqCntr* DynamicVector_Create(size_t seg_capacity) {
-    Zeta_SeqCntr* seq_cntr{ new Zeta_SeqCntr{} };
-    DynamicVector_Init<Val>(seq_cntr, seg_capacity);
-    return seq_cntr;
-}
+void DynamicVector_Sanitize(Zeta_SeqCntr seq_cntr) {
+    ZETA_DebugAssert(seq_cntr.vtable == &zeta_dynamic_vector_seq_cntr_vtable);
+    if (seq_cntr.context == NULL) { return; }
 
-void DynamicVector_Destroy(Zeta_SeqCntr* seq_cntr) {
-    if (seq_cntr == NULL || seq_cntr->GetSize != Zeta_DynamicVector_GetSize) {
-        return;
-    }
-
-    DynamicVector_Deinit(seq_cntr);
-
-    delete seq_cntr;
-}
-
-void DynamicVector_Sanitize(Zeta_SeqCntr const* seq_cntr) {
-    if (seq_cntr->GetSize != Zeta_DynamicVector_GetSize) { return; }
-
-#if !ZETA_EnableDebug
-#else
+#if ZETA_EnableDebug
     DynamicVectorPack* pack{ ZETA_MemberToStruct(DynamicVectorPack, dynamic_vec,
-                                                 seq_cntr->context) };
+                                                 seq_cntr.context) };
 
     Zeta_MemRecorder* data = Zeta_MemRecorder_Create();
     Zeta_MemRecorder* seg = Zeta_MemRecorder_Create();
@@ -96,9 +75,8 @@ void DynamicVector_Sanitize(Zeta_SeqCntr const* seq_cntr) {
         const_cast<void*>(static_cast<void const*>(&pack->dynamic_vec)), data,
         seg);
 
-    Zeta_MemCheck_MatchRecords(pack->data_allocator_instance.mem_recorder,
-                               data);
-    Zeta_MemCheck_MatchRecords(pack->seg_allocator_instance.mem_recorder, seg);
+    Zeta_MemCheck_MatchRecords(pack->data_allocator.mem_recorder, data);
+    Zeta_MemCheck_MatchRecords(pack->seg_allocator.mem_recorder, seg);
 
     Zeta_MemRecorder_Destroy(data);
     Zeta_MemRecorder_Destroy(seg);

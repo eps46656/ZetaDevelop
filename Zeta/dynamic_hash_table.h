@@ -2,9 +2,10 @@
 
 #include "allocator.h"
 #include "assoc_cntr.h"
+#include "bin_tree_node.h"
 #include "generic_hash_table.h"
+#include "llist_node.h"
 #include "mem_check_utils.h"
-#include "ord_llist_node.h"
 
 ZETA_ExternC_Beg;
 
@@ -19,13 +20,13 @@ struct Zeta_DynamicHashTable {
 
     Zeta_OrdLListNode* lln;
 
-    void* elem_hash_context;
     Zeta_Hash ElemHash;
+    void* elem_hash_context;
 
-    void* elem_cmp_context;
     Zeta_Compare ElemCompare;
+    void* elem_cmp_context;
 
-    Zeta_Allocator* node_allocator;
+    Zeta_Allocator node_allocator;
 
     Zeta_GenericHashTable ght;
 };
@@ -69,11 +70,11 @@ void* Zeta_DynamicHashTable_PeekR(void* dht, void* dst_cursor);
 
 void* Zeta_DynamicHashTable_Refer(void* dht, void const* pos_cursor);
 
-void* Zeta_DynamicHashTable_Find(void* dht, void const* key,
+void* Zeta_DynamicHashTable_Find(void* dht, void const* key, Zeta_Hash KeyHash,
                                  void const* key_hash_context,
-                                 Zeta_Hash KeyHash,
+                                 Zeta_Compare KeyElemCompare,
                                  void const* key_elem_cmp_context,
-                                 Zeta_Compare KeyElemCompare, void* dst_cursor);
+                                 void* dst_cursor);
 
 void* Zeta_DynamicHashTable_Insert(void* dht, void const* elem,
                                    void* dst_cursor);
@@ -99,7 +100,6 @@ void Zeta_DynamicHashTable_Cursor_StepR(void const* dht, void* cursor);
 
 void Zeta_DynamicHashTable_Cursor_Check(void const* dht, void const* cursor);
 
-void Zeta_DynamicHashTable_DeployAssocCntr(void* dht,
-                                           Zeta_AssocCntr* assoc_cntr);
+extern Zeta_AssocCntr_VTable const zeta_dynamic_hash_table_assoc_cntr_vtable;
 
 ZETA_ExternC_End;

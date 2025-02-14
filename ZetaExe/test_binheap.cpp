@@ -4,7 +4,7 @@
 #define ZETA_DIR(path) "../Zeta" path
 
 #include "../Zeta/bin_heap.h"
-#include "../Zeta/ord_cnt_rb_tree_node.h"
+#include "../Zeta/bin_tree_node.h"
 
 struct Node {
     Zeta_OrdCntRBTreeNode n;

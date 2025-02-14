@@ -113,9 +113,6 @@ void GetIdxes(Zeta_MultiLevelVector const* mlv, size_t* dst, size_t idx) {
 void Allocator_Init() {
     Zeta_Allocator_Init(&mlv_node_allocator);
     Zeta_Allocator_Init(&mlv_table_allocator);
-
-    StdAllocator_DeployAllocator(&mlv_node_allocator_, &mlv_node_allocator);
-    StdAllocator_DeployAllocator(&mlv_table_allocator_, &mlv_table_allocator);
 }
 
 void MLV_Init() {

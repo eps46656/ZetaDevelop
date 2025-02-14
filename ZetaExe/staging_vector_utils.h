@@ -9,21 +9,16 @@
 #include "std_allocator.h"
 
 struct StagingVectorUtils_Pack {
-    StdAllocator seg_allocator_instance;
-    StdAllocator data_allocator_instance;
-
-    Zeta_Allocator seg_allocator;
-    Zeta_Allocator data_allocator;
+    StdAllocator seg_allocator;
+    StdAllocator data_allocator;
 
     Zeta_StagingVector staging_vector;
 };
 
 template <typename Elem>
-void StagingVectorUtils_Init(Zeta_SeqCntr* seq_cntr,
-                             Zeta_SeqCntr* origin_seq_cntr, size_t stride,
-                             size_t seg_capacity) {
-    ZETA_DebugAssert(seq_cntr != NULL);
-    ZETA_DebugAssert(origin_seq_cntr != NULL);
+Zeta_SeqCntr StagingVectorUtils_Create(Zeta_SeqCntr origin_seq_cntr,
+                                       size_t stride, size_t seg_capacity) {
+    ZETA_DebugAssert(origin_seq_cntr.vtable != NULL);
     ZETA_DebugAssert(0 < stride);
     ZETA_DebugAssert(0 < seg_capacity);
 
@@ -31,63 +26,49 @@ void StagingVectorUtils_Init(Zeta_SeqCntr* seq_cntr,
 
     StagingVectorUtils_Pack* pack{ new StagingVectorUtils_Pack{} };
 
-    StdAllocator_DeployAllocator(&pack->seg_allocator_instance,
-                                 &pack->seg_allocator);
-    StdAllocator_DeployAllocator(&pack->data_allocator_instance,
-                                 &pack->data_allocator);
-
     pack->staging_vector.stride = stride;
     pack->staging_vector.origin = origin_seq_cntr;
     pack->staging_vector.seg_capacity = seg_capacity;
-    pack->staging_vector.seg_allocator = &pack->seg_allocator;
-    pack->staging_vector.data_allocator = &pack->data_allocator;
+
+    pack->staging_vector.seg_allocator = {
+        .vtable = &zeta_std_allocator_vtable,
+        .context = &pack->seg_allocator,
+    };
+
+    pack->staging_vector.data_allocator = {
+        .vtable = &zeta_std_allocator_vtable,
+        .context = &pack->data_allocator,
+    };
 
     Zeta_StagingVector_Init(&pack->staging_vector);
 
-    Zeta_StagingVector_DeploySeqCntr(&pack->staging_vector, seq_cntr);
-
-    SeqCntrUtils_AddSanitizeFunc(Zeta_StagingVector_GetWidth,
+    SeqCntrUtils_AddSanitizeFunc(&zeta_staging_vector_seq_cntr_vtable,
                                  StagingVectorUtils_Sanitize);
 
-    SeqCntrUtils_AddDestroyFunc(Zeta_StagingVector_GetWidth,
+    SeqCntrUtils_AddDestroyFunc(&zeta_staging_vector_seq_cntr_vtable,
                                 StagingVectorUtils_Destroy);
+
+    return { &zeta_staging_vector_seq_cntr_vtable, &pack->staging_vector };
 }
 
-void StagingVectorUtils_Deinit(Zeta_SeqCntr* seq_cntr) {
-    ZETA_DebugAssert(seq_cntr != NULL);
-    ZETA_DebugAssert(seq_cntr->GetSize == Zeta_StagingVector_GetSize);
+void StagingVectorUtils_Destroy(Zeta_SeqCntr seq_cntr) {
+    ZETA_DebugAssert(seq_cntr.vtable == &zeta_staging_vector_seq_cntr_vtable);
+    if (seq_cntr.context == NULL) { return; }
 
     StagingVectorUtils_Pack* pack{ ZETA_MemberToStruct(
-        StagingVectorUtils_Pack, staging_vector, seq_cntr->context) };
+        StagingVectorUtils_Pack, staging_vector, seq_cntr.context) };
 
-    Zeta_StagingVector_Deinit(seq_cntr->context);
+    Zeta_StagingVector_Deinit(&pack->staging_vector);
 
     delete pack;
 }
 
-template <typename Elem>
-Zeta_SeqCntr* StagingVectorUtils_Create(Zeta_SeqCntr* origin_seq_cntr,
-                                        size_t stride, size_t seg_capacity) {
-    Zeta_SeqCntr* seq_cntr{ new Zeta_SeqCntr{} };
-
-    StagingVectorUtils_Init<Elem>(seq_cntr, origin_seq_cntr, stride,
-                                  seg_capacity);
-
-    return seq_cntr;
-}
-
-void StagingVectorUtils_Destroy(Zeta_SeqCntr* seq_cntr) {
-    StagingVectorUtils_Deinit(seq_cntr);
-
-    delete seq_cntr;
-}
-
-void StagingVectorUtils_Sanitize(Zeta_SeqCntr const* seq_cntr) {
-    ZETA_DebugAssert(seq_cntr != NULL);
-    ZETA_DebugAssert(seq_cntr->GetSize == Zeta_StagingVector_GetSize);
+void StagingVectorUtils_Sanitize(Zeta_SeqCntr seq_cntr) {
+    ZETA_DebugAssert(seq_cntr.vtable == &zeta_staging_vector_seq_cntr_vtable);
+    if (seq_cntr.context == NULL) { return; }
 
     StagingVectorUtils_Pack* pack{ ZETA_MemberToStruct(
-        StagingVectorUtils_Pack, staging_vector, seq_cntr->context) };
+        StagingVectorUtils_Pack, staging_vector, seq_cntr.context) };
 
     Zeta_MemRecorder* seg = Zeta_MemRecorder_Create();
     Zeta_MemRecorder* data = Zeta_MemRecorder_Create();
@@ -96,9 +77,8 @@ void StagingVectorUtils_Sanitize(Zeta_SeqCntr const* seq_cntr) {
         const_cast<void*>(static_cast<void const*>(&pack->staging_vector)), seg,
         data);
 
-    Zeta_MemCheck_MatchRecords(pack->seg_allocator_instance.mem_recorder, seg);
-    Zeta_MemCheck_MatchRecords(pack->data_allocator_instance.mem_recorder,
-                               data);
+    Zeta_MemCheck_MatchRecords(pack->seg_allocator.mem_recorder, seg);
+    Zeta_MemCheck_MatchRecords(pack->data_allocator.mem_recorder, data);
 
     Zeta_MemRecorder_Destroy(seg);
     Zeta_MemRecorder_Destroy(data);

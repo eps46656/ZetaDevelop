@@ -47,8 +47,6 @@ void main1() {
     std::uniform_int_distribution<size_t> idx_generator{ 0, ZETA_RangeMaxOf(
                                                                 size_t) };
 
-    StdAllocator_DeployAllocator(&std_allocator_, &std_allocator);
-
     size_t width = sizeof(uintptr_t) * 3 + sizeof(size_t);
 
     allocator_.align = 8;
@@ -57,8 +55,6 @@ void main1() {
     allocator_.allocator = &std_allocator;
 
     Zeta_SlabAllocator_Init(&allocator_);
-
-    Zeta_SlabAllocator_DeployAllocator(&allocator_, &allocator);
 
     ZETA_PrintPos;
 

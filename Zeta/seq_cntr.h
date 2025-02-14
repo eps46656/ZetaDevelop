@@ -4,22 +4,13 @@
 
 ZETA_ExternC_Beg;
 
+ZETA_DeclareStruct(Zeta_SeqCntr_VTable);
 ZETA_DeclareStruct(Zeta_SeqCntr);
 
 /**
  * @brief The interface of sequential container.
  */
-struct Zeta_SeqCntr {
-    /**
-     * @brief The context of the container.
-     */
-    void* context;
-
-    /**
-     * @brief The const context of the container.
-     */
-    void const* const_context;
-
+struct Zeta_SeqCntr_VTable {
     /**
      * @brief The number of bytes occupied by cursor.
      */
@@ -330,36 +321,49 @@ struct Zeta_SeqCntr {
     void (*Cursor_AdvanceR)(void const* context, void* cursor, size_t step);
 };
 
-#define ZETA_SeqCntr_AllocaCursor(seq_cntr)                     \
-    __builtin_alloca_with_align(                                \
-        ((Zeta_SeqCntr*)ZETA_ToVoidPtr(seq_cntr))->cursor_size, \
-        __CHAR_BIT__ * alignof(max_align_t))
+struct Zeta_SeqCntr {
+    Zeta_SeqCntr_VTable const* vtable;
+    void* context;
+};
 
-#define ZETA_SeqCntr_Call_(seq_cntr, member_func, ...)                        \
-    ZETA_CallMemberFunc((Zeta_SeqCntr*)ZETA_ToVoidPtr(seq_cntr), member_func, \
-                        __VA_ARGS__)
+#define ZETA_SeqCntr_Call__(tmp_seq_cntr, seq_cntr, member_func, ...) \
+    ({                                                                \
+        ZETA_AutoVar(tmp_seq_cntr, (seq_cntr));                       \
+        ZETA_FuncPtrTable_Call(tmp_seq_cntr.vtable, member_func,      \
+                               tmp_seq_cntr.context, __VA_ARGS__);    \
+    })
 
-#define ZETA_SeqCntr_CallConst_(seq_cntr, member_func, ...)           \
-    ZETA_CallConstMemberFunc((Zeta_SeqCntr*)ZETA_ToVoidPtr(seq_cntr), \
-                             member_func, __VA_ARGS__)
+#define ZETA_SeqCntr_Call_(seq_cntr, member_func, ...) \
+    ZETA_SeqCntr_Call__(ZETA_TmpName, (seq_cntr), member_func, __VA_ARGS__)
 
-#define ZETA_SeqCntr_Deinit(seq_cntr) ZETA_SeqCntr_Call_((seq_cntr), Deinit)
+#define ZETA_SeqCntr_AllocaCursor_(tmp_seq_cntr, seq_cntr)                \
+    ({                                                                    \
+        ZETA_AutoVar(tmp_seq_cntr, (seq_cntr));                           \
+                                                                          \
+        ZETA_DebugAssert(tmp_seq_cntr.vtable != NULL);                    \
+                                                                          \
+        __builtin_alloca_with_align(tmp_seq_cntr.vtable->cursor_size,     \
+                                    __CHAR_BIT__ * alignof(max_align_t)); \
+    })
 
-#define ZETA_SeqCntr_GetWidth(seq_cntr) \
-    ZETA_SeqCntr_CallConst_((seq_cntr), GetWidth)
+#define ZETA_SeqCntr_AllocaCursor(seq_cntr) \
+    ZETA_SeqCntr_AllocaCursor_(ZETA_TmpName, (seq_cntr))
 
-#define ZETA_SeqCntr_GetSize(seq_cntr) \
-    ZETA_SeqCntr_CallConst_((seq_cntr), GetSize)
+#define ZETA_SeqCntr_Deinit(seq_cntr) ZETA_SeqCntr_Call_((seq_cntr), Deinitn)
+
+#define ZETA_SeqCntr_GetWidth(seq_cntr) ZETA_SeqCntr_Call_((seq_cntr), GetWidth)
+
+#define ZETA_SeqCntr_GetSize(seq_cntr) ZETA_SeqCntr_Call_((seq_cntr), GetSize)
 
 #define ZETA_SeqCntr_GetCapacity(seq_cntr) \
-    ZETA_SeqCntr_CallConst_((seq_cntr), GetCapacity)
+    ZETA_SeqCntr_Call_((seq_cntr), GetCapacity)
 
-#define ZETA_SeqCntr_GetLBCursor(seq_cntr, dst_cursor)              \
-    ZETA_SeqCntr_CallConst_((seq_cntr), GetLBCursor, (dst_cursor)); \
+#define ZETA_SeqCntr_GetLBCursor(seq_cntr, dst_cursor)         \
+    ZETA_SeqCntr_Call_((seq_cntr), GetLBCursor, (dst_cursor)); \
     ZETA_StaticAssert(TRUE)
 
-#define ZETA_SeqCntr_GetRBCursor(seq_cntr, dst_cursor)              \
-    ZETA_SeqCntr_CallConst_((seq_cntr), GetRBCursor, (dst_cursor)); \
+#define ZETA_SeqCntr_GetRBCursor(seq_cntr, dst_cursor)         \
+    ZETA_SeqCntr_Call_((seq_cntr), GetRBCursor, (dst_cursor)); \
     ZETA_StaticAssert(TRUE)
 
 #define ZETA_SeqCntr_PeekL(seq_cntr, dst_cursor, dst_elem) \
@@ -389,10 +393,10 @@ struct Zeta_SeqCntr {
 #define ZETA_SeqCntr_ConstRefer(seq_cntr, pos_cursor) \
     ((void const*)ZETA_SeqCntr_Call_((seq_cntr), Refer, (pos_cursor)))
 
-#define ZETA_SeqCntr_Read(seq_cntr, pos_cursor, cnt, dst, dst_stride,     \
-                          dst_cursor)                                     \
-    ZETA_SeqCntr_CallConst_((seq_cntr), Read, (pos_cursor), (cnt), (dst), \
-                            (dst_stride), (dst_cursor))
+#define ZETA_SeqCntr_Read(seq_cntr, pos_cursor, cnt, dst, dst_stride, \
+                          dst_cursor)                                 \
+    ZETA_SeqCntr_Call_((seq_cntr), Read, (pos_cursor), (cnt), (dst),  \
+                       (dst_stride), (dst_cursor))
 
 #define ZETA_SeqCntr_Write(seq_cntr, pos_cursor, cnt, src, src_stride, \
                            dst_cursor)                                 \
@@ -425,28 +429,28 @@ struct Zeta_SeqCntr {
     ZETA_StaticAssert(TRUE)
 
 #define ZETA_SeqCntr_Cursor_AreEqual(seq_cntr, cursor_a, cursor_b) \
-    ZETA_SeqCntr_CallConst_((seq_cntr), Cursor_AreEqual, (cursor_a), (cursor_b))
+    ZETA_SeqCntr_Call_((seq_cntr), Cursor_AreEqual, (cursor_a), (cursor_b))
 
 #define ZETA_SeqCntr_Cursor_Compare(seq_cntr, cursor_a, cursor_b) \
-    ZETA_SeqCntr_CallConst_((seq_cntr), Cursor_Compare, (cursor_a), (cursor_b))
+    ZETA_SeqCntr_Call_((seq_cntr), Cursor_Compare, (cursor_a), (cursor_b))
 
 #define ZETA_SeqCntr_Cursor_GetDist(seq_cntr, cursor_a, cursor_b) \
-    ZETA_SeqCntr_CallConst_((seq_cntr), Cursor_GetDist, (cursor_a), (cursor_b))
+    ZETA_SeqCntr_Call_((seq_cntr), Cursor_GetDist, (cursor_a), (cursor_b))
 
 #define ZETA_SeqCntr_Cursor_GetIdx(seq_cntr, cursor) \
-    ZETA_SeqCntr_CallConst_((seq_cntr), Cursor_GetIdx, (cursor))
+    ZETA_SeqCntr_Call_((seq_cntr), Cursor_GetIdx, (cursor))
 
 #define ZETA_SeqCntr_Cursor_StepL(seq_cntr, cursor) \
-    ZETA_SeqCntr_CallConst_((seq_cntr), Cursor_StepL, (cursor))
+    ZETA_SeqCntr_Call_((seq_cntr), Cursor_StepL, (cursor))
 
 #define ZETA_SeqCntr_Cursor_StepR(seq_cntr, cursor) \
-    ZETA_SeqCntr_CallConst_((seq_cntr), Cursor_StepR, (cursor))
+    ZETA_SeqCntr_Call_((seq_cntr), Cursor_StepR, (cursor))
 
 #define ZETA_SeqCntr_Cursor_AdvanceL(seq_cntr, cursor, step) \
-    ZETA_SeqCntr_CallConst_((seq_cntr), Cursor_AdvanceL, (cursor), (step))
+    ZETA_SeqCntr_Call_((seq_cntr), Cursor_AdvanceL, (cursor), (step))
 
 #define ZETA_SeqCntr_Cursor_AdvanceR(seq_cntr, cursor, step) \
-    ZETA_SeqCntr_CallConst_((seq_cntr), Cursor_AdvanceR, (cursor), (step))
+    ZETA_SeqCntr_Call_((seq_cntr), Cursor_AdvanceR, (cursor), (step))
 
 // -----------------------------------------------------------------------------
 
@@ -488,17 +492,12 @@ struct Zeta_SeqCntr {
 // -----------------------------------------------------------------------------
 
 /**
- * @brief Initialize the fields of interface with NULL.
- */
-void Zeta_SeqCntr_Init(Zeta_SeqCntr* seq_cntr);
-
-/**
  * @brief Resize the container with push left or pop left.
  *
  * @param seq_cntr The target container.
  * @param size The number of elements in \p seq_cntr after resizing.
  */
-void Zeta_SeqCntr_ResizeL(Zeta_SeqCntr* seq_cntr, size_t size);
+void Zeta_SeqCntr_ResizeL(Zeta_SeqCntr seq_cntr, size_t size);
 
 /**
  * @brief Resize the container with push right or pop right.
@@ -506,7 +505,7 @@ void Zeta_SeqCntr_ResizeL(Zeta_SeqCntr* seq_cntr, size_t size);
  * @param seq_cntr The target container.
  * @param size The number of elements in \p seq_cntr after resizing.
  */
-void Zeta_SeqCntr_ResizeR(Zeta_SeqCntr* seq_cntr, size_t size);
+void Zeta_SeqCntr_ResizeR(Zeta_SeqCntr seq_cntr, size_t size);
 
 /**
  * @brief Assign \p src_seq_cntr 's range to \p dst_seq_cntr 's range.
@@ -514,8 +513,8 @@ void Zeta_SeqCntr_ResizeR(Zeta_SeqCntr* seq_cntr, size_t size);
  * @param dst_seq_cntr The destination container.
  * @param src_seq_cntr The source container.
  */
-void Zeta_SeqCntr_RangeAssign(Zeta_SeqCntr* dst_seq_cntr,
-                              Zeta_SeqCntr* src_seq_cntr, size_t dst_idx,
+void Zeta_SeqCntr_RangeAssign(Zeta_SeqCntr dst_seq_cntr,
+                              Zeta_SeqCntr src_seq_cntr, size_t dst_idx,
                               size_t src_idx, size_t cnt);
 
 /**
@@ -524,9 +523,8 @@ void Zeta_SeqCntr_RangeAssign(Zeta_SeqCntr* dst_seq_cntr,
  * @param dst_seq_cntr The destination container.
  * @param src_seq_cntr The source container.
  */
-void Zeta_SeqCntr_Assign(Zeta_SeqCntr* dst_seq_cntr,
-                         Zeta_SeqCntr* src_seq_cntr);
+void Zeta_SeqCntr_Assign(Zeta_SeqCntr dst_seq_cntr, Zeta_SeqCntr src_seq_cntr);
 
-void Zeta_SeqCntr_NaiveInsert(Zeta_SeqCntr* seq_cntr, size_t idx, size_t cnt);
+void Zeta_SeqCntr_NaiveInsert(Zeta_SeqCntr seq_cntr, size_t idx, size_t cnt);
 
 ZETA_ExternC_End;

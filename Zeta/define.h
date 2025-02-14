@@ -6,6 +6,51 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+// -----------------------------------------------------------------------------
+
+#define ZETA_ForEach_GetFirst(x, ...) x
+#define ZETA_ForEach_GetRes(x, ...) __VA_OPT__(, __VA_ARGS__)
+
+#define ZETA_ForEach_0(func, x, ...)                                       \
+    func, ZETA_ForEach_GetFirst(                                           \
+              __VA_OPT__(func(x, ZETA_ForEach_GetFirst(__VA_ARGS__)), ) x) \
+              __VA_OPT__(ZETA_ForEach_GetRes(__VA_ARGS__))
+#define ZETA_ForEach_1(func, ...) \
+    ZETA_ForEach_A_1(ZETA_ForEach_0, ZETA_ForEach_0(func, __VA_ARGS__))
+#define ZETA_ForEach_2(func, ...) \
+    ZETA_ForEach_A_2(ZETA_ForEach_1, ZETA_ForEach_1(func, __VA_ARGS__))
+#define ZETA_ForEach_3(func, ...) \
+    ZETA_ForEach_A_3(ZETA_ForEach_2, ZETA_ForEach_2(func, __VA_ARGS__))
+#define ZETA_ForEach_4(func, ...) \
+    ZETA_ForEach_A_4(ZETA_ForEach_3, ZETA_ForEach_3(func, __VA_ARGS__))
+#define ZETA_ForEach_5(func, ...) \
+    ZETA_ForEach_A_5(ZETA_ForEach_4, ZETA_ForEach_4(func, __VA_ARGS__))
+#define ZETA_ForEach_6(func, ...) \
+    ZETA_ForEach_A_6(ZETA_ForEach_5, ZETA_ForEach_5(func, __VA_ARGS__))
+#define ZETA_ForEach_7(func, ...) \
+    ZETA_ForEach_A_7(ZETA_ForEach_6, ZETA_ForEach_6(func, __VA_ARGS__))
+#define ZETA_ForEach_8(func, ...) \
+    ZETA_ForEach_A_8(ZETA_ForEach_7, ZETA_ForEach_7(func, __VA_ARGS__))
+
+#define ZETA_ForEach_A_1(func, ...) func(__VA_ARGS__)
+#define ZETA_ForEach_A_2(func, ...) func(__VA_ARGS__)
+#define ZETA_ForEach_A_3(func, ...) func(__VA_ARGS__)
+#define ZETA_ForEach_A_4(func, ...) func(__VA_ARGS__)
+#define ZETA_ForEach_A_5(func, ...) func(__VA_ARGS__)
+#define ZETA_ForEach_A_6(func, ...) func(__VA_ARGS__)
+#define ZETA_ForEach_A_7(func, ...) func(__VA_ARGS__)
+#define ZETA_ForEach_A_8(func, ...) func(__VA_ARGS__)
+#define ZETA_ForEach_A(func, ...) func(__VA_ARGS__)
+
+#define ZETA_DetectError()
+
+#define ZETA_GetResult(func, x, ...) x ZETA_DetectError(__VA_ARGS__)
+
+#define ZETA_ForEach(func, ...) \
+    ZETA_ForEach_A(ZETA_GetResult, ZETA_ForEach_8(func, __VA_ARGS__))
+
+// -----------------------------------------------------------------------------
+
 #if defined(__cplusplus)
 #define bool_t bool
 #else
@@ -135,10 +180,12 @@ typedef unsigned unichar_t;
 #define ZETA_ToStr_(x) #x
 #define ZETA_ToStr(x) ZETA_ToStr_(x)
 
-#define ZETA_Concat_(x, y) x##y
-#define ZETA_Concat(x, y) ZETA_Concat_(x, y)
+#define ZETA_Concat2_(x, y) x##y
+#define ZETA_Concat2(x, y) ZETA_Concat2_(x, y)
 
-#define ZETA_UniqueName(prefix) ZETA_Concat(prefix, __COUNTER__)
+#define ZETA_Concat(x, ...) ZETA_ForEach(ZETA_Concat2, x, __VA_ARGS__)
+
+#define ZETA_UniqueName(prefix) ZETA_Concat2(prefix, __COUNTER__)
 
 #define ZETA_TmpName ZETA_UniqueName(ZETA_tmp_)
 
@@ -418,23 +465,29 @@ typedef unsigned unichar_t;
     ((struct_type*)(void*)((unsigned char*)ZETA_ToVoidPtr((member_ptr)) - \
                            offsetof(struct_type, member_name)))
 
-#define ZETA_GetMinOf_(tmp_x, tmp_y, x, y) \
-    ({                                     \
-        ZETA_AutoVar(tmp_x, x);            \
-        ZETA_AutoVar(tmp_y, y);            \
-        tmp_x <= tmp_y ? tmp_x : tmp_y;    \
+#define ZETA_GetMinOf2_(tmp_x, tmp_y, x, y) \
+    ({                                      \
+        ZETA_AutoVar(tmp_x, x);             \
+        ZETA_AutoVar(tmp_y, y);             \
+        tmp_x <= tmp_y ? tmp_x : tmp_y;     \
     })
 
-#define ZETA_GetMinOf(x, y) ZETA_GetMinOf_(ZETA_TmpName, ZETA_TmpName, (x), (y))
+#define ZETA_GetMinOf2(x, y) \
+    ZETA_GetMinOf2_(ZETA_TmpName, ZETA_TmpName, (x), (y))
 
-#define ZETA_GetMaxOf_(tmp_x, tmp_y, x, y) \
-    ({                                     \
-        ZETA_AutoVar(tmp_x, x);            \
-        ZETA_AutoVar(tmp_y, y);            \
-        tmp_x < tmp_y ? tmp_y : tmp_x;     \
+#define ZETA_GetMinOf(x, ...) ZETA_ForEach(ZETA_GetMinOf2, x, __VA_ARGS__)
+
+#define ZETA_GetMaxOf2_(tmp_x, tmp_y, x, y) \
+    ({                                      \
+        ZETA_AutoVar(tmp_x, x);             \
+        ZETA_AutoVar(tmp_y, y);             \
+        tmp_x < tmp_y ? tmp_y : tmp_x;      \
     })
 
-#define ZETA_GetMaxOf(x, y) ZETA_GetMaxOf_(ZETA_TmpName, ZETA_TmpName, (x), (y))
+#define ZETA_GetMaxOf2(x, y) \
+    ZETA_GetMaxOf2_(ZETA_TmpName, ZETA_TmpName, (x), (y))
+
+#define ZETA_GetMaxOf(x, ...) ZETA_ForEach(ZETA_GetMaxOf2, x, __VA_ARGS__)
 
 #define ZETA_ThreeWayCompare_(tmp_x, tmp_y, x, y) \
     ({                                            \
@@ -534,51 +587,51 @@ ZETA_StaticAssert(255 <= ZETA_RangeMaxOf(byte_t));
            (func));                                                      \
     ZETA_StaticAssert(TRUE)
 
-#define ZETA_PrintCurPos                                    \
-    ZETA_PrintPos(__FILE__, __LINE__, __PRETTY_FUNCTION__); \
-    printf("\n");                                           \
-    if (ZETA_ImmPrint) { fflush(stdout); }                  \
+#define ZETA_PrintCurPos                         \
+    ZETA_PrintPos(__FILE__, __LINE__, __func__); \
+    printf("\n");                                \
+    if (ZETA_ImmPrint) { fflush(stdout); }       \
     ZETA_StaticAssert(TRUE)
 
-#define ZETA_PrintVar(var)                                      \
-    {                                                           \
-        ZETA_PrintPos(__FILE__, __LINE__, __PRETTY_FUNCTION__); \
-                                                                \
-        printf("\t%24s = ", ZETA_ToStr(var));                   \
-                                                                \
-        printf(_Generic((var),                                  \
-                   bool_t: "%c\n",                              \
-                                                                \
-                   char: "%c\n",                                \
-                   unsigned char: "%X\n",                       \
-                   signed char: "%c\n",                         \
-                                                                \
-                   short: "%i\n",                               \
-                   unsigned short: "%u\n",                      \
-                                                                \
-                   int: "%i\n",                                 \
-                   unsigned: "%u\n",                            \
-                                                                \
-                   long: "%li\n",                               \
-                   unsigned long: "%lu\n",                      \
-                                                                \
-                   long long: "%lli\n",                         \
-                   unsigned long long: "%llu\n",                \
-                                                                \
-                   float: "%g\n",                               \
-                                                                \
-                   double: "%g\n",                              \
-                   long double: "%g\n",                         \
-                                                                \
-                   void*: "%p\n",                               \
-                   void const*: "%p\n",                         \
-                                                                \
-                   char*: "%s\n",                               \
-                   char const*: "%s\n"),                        \
-               (var));                                          \
-                                                                \
-        if (ZETA_ImmPrint) { fflush(stdout); }                  \
-    }                                                           \
+#define ZETA_PrintVar(var)                           \
+    {                                                \
+        ZETA_PrintPos(__FILE__, __LINE__, __func__); \
+                                                     \
+        printf("\t%24s = ", ZETA_ToStr(var));        \
+                                                     \
+        printf(_Generic((var),                       \
+                   bool_t: "%c\n",                   \
+                                                     \
+                   char: "%c\n",                     \
+                   unsigned char: "%X\n",            \
+                   signed char: "%c\n",              \
+                                                     \
+                   short: "%i\n",                    \
+                   unsigned short: "%u\n",           \
+                                                     \
+                   int: "%i\n",                      \
+                   unsigned: "%u\n",                 \
+                                                     \
+                   long: "%li\n",                    \
+                   unsigned long: "%lu\n",           \
+                                                     \
+                   long long: "%lli\n",              \
+                   unsigned long long: "%llu\n",     \
+                                                     \
+                   float: "%g\n",                    \
+                                                     \
+                   double: "%g\n",                   \
+                   long double: "%g\n",              \
+                                                     \
+                   void*: "%p\n",                    \
+                   void const*: "%p\n",              \
+                                                     \
+                   char*: "%s\n",                    \
+                   char const*: "%s\n"),             \
+               (var));                               \
+                                                     \
+        if (ZETA_ImmPrint) { fflush(stdout); }       \
+    }                                                \
     ZETA_StaticAssert(TRUE)
 
 #define ZETA_CallMemberFunc__(tmp_obj, member_func, ...) \
@@ -593,6 +646,9 @@ ZETA_StaticAssert(255 <= ZETA_RangeMaxOf(byte_t));
                               __VA_ARGS__)                            \
     })
 
+#define ZETA_CallMemberFunc(obj, member_func, ...) \
+    ZETA_CallMemberFunc_(ZETA_TmpName, obj, member_func, __VA_ARGS__)
+
 #define ZETA_CallConstMemberFunc_(tmp_obj, tmp_context, tmp_const_context, \
                                   obj, member_func, ...)                   \
     ({                                                                     \
@@ -605,12 +661,23 @@ ZETA_StaticAssert(255 <= ZETA_RangeMaxOf(byte_t));
             __VA_ARGS__)                                                   \
     })
 
-#define ZETA_CallMemberFunc(obj, member_func, ...) \
-    ZETA_CallMemberFunc_(ZETA_TmpName, obj, member_func, __VA_ARGS__)
-
 #define ZETA_CallConstMemberFunc(obj, member_func, ...)                      \
     ZETA_CallConstMemberFunc_(ZETA_TmpName, ZETA_TmpName, ZETA_TmpName, obj, \
                               member_func, __VA_ARGS__)
+
+#define ZETA_FuncPtrTable_Call_(tmp_func_ptr_table, func_ptr_table, func_name, \
+                                ...)                                           \
+    ({                                                                         \
+        ZETA_AutoVar(tmp_func_ptr_table, (func_ptr_table));                    \
+        ZETA_DebugAssert(tmp_func_ptr_table != NULL);                          \
+                                                                               \
+        ZETA_DebugAssert(tmp_func_ptr_table->func_name != NULL);               \
+        tmp_func_ptr_table->func_name(__VA_ARGS__);                            \
+    })
+
+#define ZETA_FuncPtrTable_Call(func_ptr_table, func_name, ...)         \
+    ZETA_FuncPtrTable_Call_(ZETA_TmpName, (func_ptr_table), func_name, \
+                            __VA_ARGS__)
 
 #define ZETA_LittleEndian (0)
 #define ZETA_BigEndian (1)

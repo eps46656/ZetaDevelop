@@ -2,31 +2,31 @@
 
 #include "mem_check_utils.h"
 
+#ifndef ZETA_RBTree_MacroGuard
+#define ZETA_RBTree_MacroGuard
+
+#define Zeta_RBTree_(tree_name, x) ZETA_Concat(Zeta_RBTree_, tree_name, _, x)
+
+#endif
+
 ZETA_ExternC_Beg;
 
 #if !defined(TreeNode)
 #error "TreeNode is not defined."
 #endif
 
-#pragma push_macro("Zeta_RBTree_TreeNode_")
+void* Zeta_RBTree_(TreeNode, InsertL)(void* pos, void* n);
 
-#define Zeta_RBTree_TreeNode_(x) \
-    ZETA_Concat(ZETA_Concat(ZETA_Concat(Zeta_RBTree_, TreeNode), _), x)
+void* Zeta_RBTree_(TreeNode, InsertR)(void* pos, void* n);
 
-void* Zeta_RBTree_TreeNode_(InsertL)(void* pos, void* n);
+void* Zeta_RBTree_(TreeNode, Insert)(void* pos_l, void* pos_r, void* n);
 
-void* Zeta_RBTree_TreeNode_(InsertR)(void* pos, void* n);
+void* Zeta_RBTree_(TreeNode, GeneralInsertL)(void* root, void* pos, void* n);
 
-void* Zeta_RBTree_TreeNode_(Insert)(void* pos_l, void* pos_r, void* n);
+void* Zeta_RBTree_(TreeNode, GeneralInsertR)(void* root, void* pos, void* n);
 
-void* Zeta_RBTree_TreeNode_(GeneralInsertL)(void* root, void* pos, void* n);
+void* Zeta_RBTree_(TreeNode, Extract)(void* n);
 
-void* Zeta_RBTree_TreeNode_(GeneralInsertR)(void* root, void* pos, void* n);
-
-void* Zeta_RBTree_TreeNode_(Extract)(void* n);
-
-void Zeta_RBTree_TreeNode_(Sanitize)(Zeta_MemRecorder* dst_mr, void* root);
-
-#pragma pop_macro("Zeta_RBTree_TreeNode_")
+void Zeta_RBTree_(TreeNode, Sanitize)(Zeta_MemRecorder* dst_mr, void* root);
 
 ZETA_ExternC_End;

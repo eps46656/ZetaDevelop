@@ -1,8 +1,8 @@
 #pragma once
 
 #include "allocator.h"
+#include "bin_tree_node.h"
 #include "mem_check_utils.h"
-#include "ord_rb_tree_node.h"
 
 ZETA_ExternC_Beg;
 
@@ -24,13 +24,13 @@ struct Zeta_GenericHashTable {
 
     size_t size;
 
-    void* node_hash_context;
     Zeta_Hash NodeHash;
+    void const* node_hash_context;
 
-    void* node_cmp_context;
     Zeta_Compare NodeCompare;
+    void const* node_cmp_context;
 
-    Zeta_Allocator* table_node_allocator;
+    Zeta_Allocator table_node_allocator;
 };
 
 struct Zeta_GenericHashTable_Node {
@@ -50,10 +50,10 @@ size_t Zeta_GenericHashTable_GetSize(void const* ght);
 bool_t Zeta_GenericHashTable_Contain(void const* ght, void const* node);
 
 void* Zeta_GenericHashTable_Find(void const* ght, void const* key,
-                                 void const* key_hash_context,
                                  Zeta_Hash KeyHash,
-                                 void const* key_node_cmp_context,
-                                 Zeta_Compare KeyNodeCompare);
+                                 void const* key_hash_context,
+                                 Zeta_Compare KeyNodeCompare,
+                                 void const* key_node_cmp_context);
 
 void Zeta_GenericHashTable_Insert(void* ght, void* node);
 

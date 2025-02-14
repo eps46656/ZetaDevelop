@@ -9,28 +9,30 @@
 #include "hash_utils.h"
 
 auto& AssocCntrUtils_GetSanitizeFuncs() {
-    static std::unordered_map<size_t (*)(void const* constext),
-                              void (*)(Zeta_AssocCntr const* assoc_cntr)>
+    static std::unordered_map<Zeta_AssocCntr_VTable const*,
+                              void (*)(Zeta_AssocCntr)>
         instance;
     return instance;
 }
 
 void AssocCntrUtils_AddSanitizeFunc(
-    size_t (*GetWidth)(void const* context),
-    void (*Sanitize)(Zeta_AssocCntr const* assoc_cntr)) {
+    Zeta_AssocCntr_VTable const* assoc_cntr_vtable,
+    void (*Sanitize)(Zeta_AssocCntr assoc_cntr)) {
     auto& map{ AssocCntrUtils_GetSanitizeFuncs() };
 
-    auto iter{ map.insert({ GetWidth, Sanitize }).first };
+    auto iter{ map.insert({ assoc_cntr_vtable, Sanitize }).first };
+
     ZETA_DebugAssert(iter->second == Sanitize);
 }
 
-void AssocCntrUtils_Sanitize(Zeta_AssocCntr const* assoc_cntr) {
-    if (assoc_cntr == nullptr) { return; }
+void AssocCntrUtils_Sanitize(Zeta_AssocCntr assoc_cntr) {
+    if (assoc_cntr.context == nullptr) { return; }
 
     auto& map{ AssocCntrUtils_GetSanitizeFuncs() };
 
-    auto iter{ map.find(assoc_cntr->GetWidth) };
+    auto iter{ map.find(assoc_cntr.vtable) };
     ZETA_DebugAssert(iter != map.end());
+    ZETA_DebugAssert(iter->second != NULL);
 
     iter->second(assoc_cntr);
 }
@@ -38,28 +40,31 @@ void AssocCntrUtils_Sanitize(Zeta_AssocCntr const* assoc_cntr) {
 // -----------------------------------------------------------------------------
 
 auto& AssocCntrUtils_GetDestroyFuncs() {
-    static std::unordered_map<size_t (*)(void const* constext),
-                              void (*)(Zeta_AssocCntr* assoc_cntr)>
+    static std::unordered_map<Zeta_AssocCntr_VTable const*,
+                              void (*)(Zeta_AssocCntr assoc_cntr)>
         instance;
     return instance;
 }
 
 void AssocCntrUtils_AddDestroyFunc(
-    size_t (*GetWidth)(void const* context),
-    void (*Destroy)(Zeta_AssocCntr* assoc_cntr)) {
+    Zeta_AssocCntr_VTable const* assoc_cntr_vtable,
+    void (*Destroy)(Zeta_AssocCntr)) {
     auto& map{ AssocCntrUtils_GetDestroyFuncs() };
 
-    auto iter{ map.insert({ GetWidth, Destroy }).first };
+    auto iter{ map.insert({ assoc_cntr_vtable, Destroy }).first };
+
     ZETA_DebugAssert(iter->second == Destroy);
 }
 
-void AssocCntrUtils_Destroy(Zeta_AssocCntr* assoc_cntr) {
-    if (assoc_cntr == nullptr) { return; }
+void AssocCntrUtils_Destroy(Zeta_AssocCntr assoc_cntr) {
+    if (assoc_cntr.context == nullptr) { return; }
 
     auto& map{ AssocCntrUtils_GetDestroyFuncs() };
 
-    auto iter{ map.find(assoc_cntr->GetWidth) };
+    auto iter{ map.find(assoc_cntr.vtable) };
+
     ZETA_DebugAssert(iter != map.end());
+    ZETA_DebugAssert(iter->second != NULL);
 
     iter->second(assoc_cntr);
 }
@@ -67,12 +72,12 @@ void AssocCntrUtils_Destroy(Zeta_AssocCntr* assoc_cntr) {
 // -----------------------------------------------------------------------------
 
 template <typename Key, typename Elem>
-Elem* AssocCntrUtils_Find(Zeta_AssocCntr* assoc_cntr, const Key& key) {
+Elem* AssocCntrUtils_Find(Zeta_AssocCntr assoc_cntr, const Key& key) {
     void* cursor{ ZETA_AssocCntr_AllocaCursor(assoc_cntr) };
 
-    Elem* elem{ (Elem*)ZETA_AssocCntr_Find(assoc_cntr, &key, nullptr,
-                                           &ZetaHash<Key>, nullptr,
-                                           (&ZetaCompare<Key, Elem>), cursor) };
+    Elem* elem{ (Elem*)ZETA_AssocCntr_Find(assoc_cntr, &key, &ZetaHash<Key>,
+                                           nullptr, (&ZetaCompare<Key, Elem>),
+                                           nullptr, cursor) };
 
     AssocCntrUtils_Sanitize(assoc_cntr);
 
@@ -86,7 +91,7 @@ Elem* AssocCntrUtils_Find(Zeta_AssocCntr* assoc_cntr, const Key& key) {
 }
 
 template <typename Elem>
-Elem* AssocCntrUtils_Insert(Zeta_AssocCntr* assoc_cntr, const Elem& elem) {
+Elem* AssocCntrUtils_Insert(Zeta_AssocCntr assoc_cntr, const Elem& elem) {
     void* cursor{ ZETA_AssocCntr_AllocaCursor(assoc_cntr) };
 
     Elem* ins_elem{ (Elem*)ZETA_AssocCntr_Insert(assoc_cntr, &elem, cursor) };
@@ -103,12 +108,12 @@ Elem* AssocCntrUtils_Insert(Zeta_AssocCntr* assoc_cntr, const Elem& elem) {
 }
 
 template <typename Key, typename Elem>
-bool_t AssocCntrUtils_Erase(Zeta_AssocCntr* assoc_cntr, const Key& key) {
+bool_t AssocCntrUtils_Erase(Zeta_AssocCntr assoc_cntr, const Key& key) {
     void* cursor{ ZETA_AssocCntr_AllocaCursor(assoc_cntr) };
 
-    Elem* elem{ (Elem*)ZETA_AssocCntr_Find(assoc_cntr, &key, nullptr,
-                                           ZetaHash<Key>, nullptr,
-                                           (ZetaCompare<Key, Elem>), cursor) };
+    Elem* elem{ (Elem*)ZETA_AssocCntr_Find(assoc_cntr, &key, ZetaHash<Key>,
+                                           nullptr, (ZetaCompare<Key, Elem>),
+                                           nullptr, cursor) };
 
     AssocCntrUtils_Sanitize(assoc_cntr);
 
@@ -135,11 +140,11 @@ bool_t AssocCntrUtils_Erase(Zeta_AssocCntr* assoc_cntr, const Key& key) {
 // -----------------------------------------------------------------------------
 
 size_t AssocCntrUtils_SyncGetSize(
-    const std::vector<Zeta_AssocCntr*>& assoc_cntrs) {
+    const std::vector<Zeta_AssocCntr>& assoc_cntrs) {
     ZETA_DebugAssert(!assoc_cntrs.empty());
 
     for (auto assoc_cntr : assoc_cntrs) {
-        ZETA_DebugAssert(assoc_cntr != nullptr);
+        ZETA_DebugAssert(assoc_cntr.vtable != nullptr);
     }
 
     size_t size{ ZETA_AssocCntr_GetSize(assoc_cntrs[0]) };
@@ -152,7 +157,7 @@ size_t AssocCntrUtils_SyncGetSize(
 }
 
 template <typename Key, typename Elem>
-Elem* AssocCntrUtils_SyncFind(const std::vector<Zeta_AssocCntr*> assoc_cntrs,
+Elem* AssocCntrUtils_SyncFind(const std::vector<Zeta_AssocCntr> assoc_cntrs,
                               const Key& key) {
     ZETA_DebugAssert(!assoc_cntrs.empty());
 
@@ -175,13 +180,13 @@ Elem* AssocCntrUtils_SyncFind(const std::vector<Zeta_AssocCntr*> assoc_cntrs,
 }
 
 template <typename Elem>
-bool_t AssocCntrUtils_SyncInsert(const std::vector<Zeta_AssocCntr*> assoc_cntrs,
+bool_t AssocCntrUtils_SyncInsert(const std::vector<Zeta_AssocCntr> assoc_cntrs,
                                  const Elem& elem) {
     if (AssocCntrUtils_SyncFind<Elem, Elem>(assoc_cntrs, elem) != nullptr) {
         return FALSE;
     }
 
-    for (Zeta_AssocCntr* assoc_cntr : assoc_cntrs) {
+    for (auto assoc_cntr : assoc_cntrs) {
         AssocCntrUtils_Insert(assoc_cntr, elem);
     }
 
@@ -192,13 +197,13 @@ bool_t AssocCntrUtils_SyncInsert(const std::vector<Zeta_AssocCntr*> assoc_cntrs,
 }
 
 template <typename Elem>
-bool_t AssocCntrUtils_SyncErase(const std::vector<Zeta_AssocCntr*> assoc_cntrs,
+bool_t AssocCntrUtils_SyncErase(const std::vector<Zeta_AssocCntr> assoc_cntrs,
                                 const Elem& elem) {
     if (AssocCntrUtils_SyncFind<Elem, Elem>(assoc_cntrs, elem) == nullptr) {
         return FALSE;
     }
 
-    for (Zeta_AssocCntr* assoc_cntr : assoc_cntrs) {
+    for (auto assoc_cntr : assoc_cntrs) {
         AssocCntrUtils_Erase<Elem, Elem>(assoc_cntr, elem);
     }
 
@@ -211,9 +216,9 @@ bool_t AssocCntrUtils_SyncErase(const std::vector<Zeta_AssocCntr*> assoc_cntrs,
 // -----------------------------------------------------------------------------
 
 template <typename Elem>
-void AssocCntrUtils_Contain(Zeta_AssocCntr* a, Zeta_AssocCntr* b) {
-    ZETA_DebugAssert(a != nullptr);
-    ZETA_DebugAssert(b != nullptr);
+void AssocCntrUtils_Contain(Zeta_AssocCntr a, Zeta_AssocCntr b) {
+    ZETA_DebugAssert(a.vtable != nullptr);
+    ZETA_DebugAssert(b.vtable != nullptr);
 
     void* a_iter{ ZETA_AssocCntr_AllocaCursor(a) };
     void* a_end{ ZETA_AssocCntr_AllocaCursor(a) };
@@ -245,16 +250,16 @@ void AssocCntrUtils_Contain(Zeta_AssocCntr* a, Zeta_AssocCntr* b) {
 }
 
 template <typename Elem>
-void AssocCntrUtils_Equal(Zeta_AssocCntr* a, Zeta_AssocCntr* b) {
-    ZETA_DebugAssert(a != nullptr);
-    ZETA_DebugAssert(b != nullptr);
+void AssocCntrUtils_Equal(Zeta_AssocCntr a, Zeta_AssocCntr b) {
+    ZETA_DebugAssert(a.vtable != nullptr);
+    ZETA_DebugAssert(b.vtable != nullptr);
 
     AssocCntrUtils_Contain<Elem>(a, b);
     AssocCntrUtils_Contain<Elem>(b, a);
 }
 
 template <typename Elem>
-void AssocCntrUtils_Equal(const std::vector<Zeta_AssocCntr*> assoc_cntrs) {
+void AssocCntrUtils_Equal(const std::vector<Zeta_AssocCntr> assoc_cntrs) {
     size_t size{ assoc_cntrs.size() };
 
     for (size_t i{ 1 }; i < size; ++i) {
@@ -266,13 +271,13 @@ void AssocCntrUtils_Equal(const std::vector<Zeta_AssocCntr*> assoc_cntrs) {
 
 template <typename Key, typename Elem>
 Elem* AssocCntrUtils_SyncRandomFind(
-    const std::vector<Zeta_AssocCntr*>& assoc_cntrs) {
+    const std::vector<Zeta_AssocCntr>& assoc_cntrs) {
     return AssocCntrUtils_SyncFind(assoc_cntrs, GetRandom<Key>());
 }
 
 template <typename Elem>
 bool_t AssocCntrUtils_SyncRandomInsert(
-    const std::vector<Zeta_AssocCntr*>& assoc_cntrs) {
+    const std::vector<Zeta_AssocCntr>& assoc_cntrs) {
     return AssocCntrUtils_SyncInsert(assoc_cntrs, GetRandom<Elem>());
 }
 

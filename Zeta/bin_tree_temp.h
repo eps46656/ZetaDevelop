@@ -1,7 +1,13 @@
 // define TreeNode
-// define AccSize
 
 #include "define.h"
+
+#ifndef ZETA_BinTree_MacroGuard
+#define ZETA_BinTree_MacroGuard
+
+#define Zeta_BinTree_(tree_node, x) ZETA_Concat(Zeta_BinTree_, tree_node, _, x)
+
+#endif
 
 ZETA_ExternC_Beg;
 
@@ -9,68 +15,62 @@ ZETA_ExternC_Beg;
 #error "TreeNode is not defined."
 #endif
 
-#if !defined(AccSize)
-#error "AccSize is not defined."
-#endif
+size_t Zeta_BinTree_(TreeNode, Count)(void* n);
 
-#pragma push_macro("Zeta_BinTree_TreeNode_")
+#if defined(AccSizeType)
 
-#define Zeta_BinTree_TreeNode_(x) \
-    ZETA_Concat(ZETA_Concat(ZETA_Concat(Zeta_BinTree_, TreeNode), _), x)
+size_t Zeta_BinTree_(TreeNode, GetSize)(void* n);
 
-size_t Zeta_BinTree_TreeNode_(Count)(void* n);
+void Zeta_BinTree_(TreeNode, SetSize)(void* n, size_t size);
 
-#if AccSize
-
-size_t Zeta_BinTree_TreeNode_(GetSize)(void* n);
-
-void Zeta_BinTree_TreeNode_(SetSize)(void* n, size_t size);
-
-void Zeta_BinTree_TreeNode_(SetDiffSize)(void* n, size_t diff_size);
+void Zeta_BinTree_(TreeNode, SetDiffSize)(void* n, size_t diff_size);
 
 #endif
 
-void Zeta_BinTree_TreeNode_(AttatchL)(void* pos, void* n);
+void Zeta_BinTree_(TreeNode, AttatchL)(void* pos, void* n);
 
-void Zeta_BinTree_TreeNode_(AttatchR)(void* pos, void* n);
+void Zeta_BinTree_(TreeNode, AttatchR)(void* pos, void* n);
 
-void Zeta_BinTree_TreeNode_(Detach)(void* n);
+void Zeta_BinTree_(TreeNode, Detach)(void* n);
 
-void Zeta_BinTree_TreeNode_(EraseAll)(void* root, void* callback_context,
-                                      void (*Callback)(void* callback_context,
-                                                       void* n));
+void Zeta_BinTree_(TreeNode,
+                   EraseAll)(void* root, void* callback_context,
+                             void (*Callback)(void* callback_context, void* n));
 
-void Zeta_BinTree_TreeNode_(Swap)(void* n, void* m);
+void Zeta_BinTree_(TreeNode, Swap)(void* n, void* m);
 
-void Zeta_BinTree_TreeNode_(RotateL)(void* n);
+void Zeta_BinTree_(TreeNode, RotateL)(void* n);
 
-void Zeta_BinTree_TreeNode_(RotateR)(void* n);
+void Zeta_BinTree_(TreeNode, RotateR)(void* n);
 
-void* Zeta_BinTree_TreeNode_(StepL)(void* n);
+void* Zeta_BinTree_(TreeNode, StepL)(void* n);
 
-void* Zeta_BinTree_TreeNode_(StepR)(void* n);
+void* Zeta_BinTree_(TreeNode, StepR)(void* n);
 
-#if AccSize
+#if defined(AccSizeType)
 
-void Zeta_BinTree_TreeNode_(AccessL)(void** dst_n, size_t* dst_tail_idx,
-                                     void* n, size_t idx);
+void Zeta_BinTree_(TreeNode, AccessL)(void** dst_n, size_t* dst_tail_idx,
+                                      void* n, size_t idx);
 
-void Zeta_BinTree_TreeNode_(AccessR)(void** dst_n, size_t* dst_tail_idx,
-                                     void* n, size_t idx);
+void Zeta_BinTree_(TreeNode, AccessR)(void** dst_n, size_t* dst_tail_idx,
+                                      void* n, size_t idx);
 
-void Zeta_BinTree_TreeNode_(AdvanceL)(void** dst_n, size_t* dst_tail_idx,
-                                      void* n, size_t step);
+void Zeta_BinTree_(TreeNode, AdvanceL)(void** dst_n, size_t* dst_tail_idx,
+                                       void* n, size_t step);
 
-void Zeta_BinTree_TreeNode_(AdvanceR)(void** dst_n, size_t* dst_tail_idx,
-                                      void* n, size_t step);
+void Zeta_BinTree_(TreeNode, AdvanceR)(void** dst_n, size_t* dst_tail_idx,
+                                       void* n, size_t step);
 
-void Zeta_BinTree_TreeNode_(GetAccSize)(size_t* dst_l_acc_size,
-                                        size_t* dst_r_acc_size, void* n);
+void Zeta_BinTree_(TreeNode, GetAccSize)(size_t* dst_l_acc_size,
+                                         size_t* dst_r_acc_size, void* n);
 
 #endif
 
-void Zeta_BinTree_TreeNode_(Sanitize)(void* root);
+void Zeta_BinTree_(TreeNode,
+                   ErassAll)(void* root,
+                             void (*Callback)(void* callback_context, void* n),
+                             void* callback_context);
 
-#pragma pop_macro("Zeta_BinTree_TreeNode_")
+void Zeta_BinTree_(TreeNode, Sanitize)(void* root);
 
 ZETA_ExternC_End;

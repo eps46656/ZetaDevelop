@@ -16,6 +16,13 @@ size_t Zeta_PoolAllocator_GetAlign(void const* pa_) {
     return 1;
 }
 
+size_t Zeta_PoolAllocator_Query(void const* pa_, size_t size) {
+    Zeta_PoolAllocator const* pa = pa_;
+    ZETA_DebugAssert(pa != NULL);
+
+    return size;
+}
+
 void* Zeta_PoolAllocator_Allocate(void* pa_, size_t size) {
     Zeta_PoolAllocator* pa = pa_;
     ZETA_DebugAssert(pa != NULL);
@@ -40,17 +47,12 @@ void Zeta_PoolAllocator_Deallocate(void* pa_, void* ptr) {
     pa->n = n;
 }
 
-void Zeta_PoolAllocator_DeployAllocator(void* pa_, Zeta_Allocator* dst) {
-    Zeta_PoolAllocator* pa = pa_;
-    ZETA_DebugAssert(pa != NULL);
+Zeta_Allocator_VTable const zeta_pool_allocator_vtable = {
+    .GetAlign = Zeta_PoolAllocator_GetAlign,
 
-    Zeta_Allocator_Init(dst);
+    .Query = Zeta_PoolAllocator_Query,
 
-    dst->context = pa;
+    .Allocate = Zeta_PoolAllocator_Allocate,
 
-    dst->GetAlign = Zeta_PoolAllocator_GetAlign;
-
-    dst->Allocate = Zeta_PoolAllocator_Allocate;
-
-    dst->Deallocate = Zeta_PoolAllocator_Deallocate;
-}
+    .Deallocate = Zeta_PoolAllocator_Deallocate,
+};

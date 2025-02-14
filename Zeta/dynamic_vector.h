@@ -30,8 +30,9 @@ struct Zeta_DynamicVector {
     size_t nxt_offset;
     size_t nxt_capacity;
 
-    Zeta_Allocator* data_allocator;
-    Zeta_Allocator* seg_allocator;
+    Zeta_Allocator data_allocator;
+
+    Zeta_Allocator seg_allocator;
 };
 
 struct Zeta_DynamicVector_Cursor {
@@ -107,6 +108,6 @@ void Zeta_DynamicVector_Cursor_AdvanceR(void const* dv, void* cursor,
 
 void Zeta_DynamicVector_Cursor_Check(void const* dv, void const* cursor);
 
-void Zeta_DynamicVector_DeploySeqCntr(void* dv, Zeta_SeqCntr* seq_cntr);
+extern Zeta_SeqCntr_VTable const zeta_dynamic_vector_seq_cntr_vtable;
 
 ZETA_ExternC_End;

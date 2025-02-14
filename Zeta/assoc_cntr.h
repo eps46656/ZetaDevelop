@@ -4,26 +4,19 @@
 
 ZETA_ExternC_Beg;
 
+ZETA_DeclareStruct(Zeta_AssocCntr_VTable);
 ZETA_DeclareStruct(Zeta_AssocCntr);
 
 /**
  * @brief The interface of associative container.
  */
-struct Zeta_AssocCntr {
-    /**
-     * @brief The context of the container.
-     */
-    void* context;
-
-    /**
-     * @brief The const context of the container.
-     */
-    void const* const_context;
-
+struct Zeta_AssocCntr_VTable {
     /**
      * @brief The number of bytes occupied by cursor.
      */
     size_t cursor_size;
+
+    void (*Deinit)(void* context);
 
     /**
      * @brief The byte offset of two adjacent elements in an element array.
@@ -105,9 +98,9 @@ struct Zeta_AssocCntr {
      */
     void* (*Refer)(void* context, void const* pos_cursor);
 
-    void* (*Find)(void* context, void const* key, void const* key_hash_context,
-                  Zeta_Hash KeyHash, void const* key_elem_cmp_context,
-                  Zeta_Compare KeyElemCompare, void* dst_cursor);
+    void* (*Find)(void* context, void const* key, Zeta_Hash KeyHash,
+                  void const* key_hash_context, Zeta_Compare KeyElemCompare,
+                  void const* key_elem_cmp_context, void* dst_cursor);
 
     void* (*Insert)(void* context, void const* elem, void* dst_cursor);
 
@@ -212,64 +205,80 @@ struct Zeta_AssocCntr {
     void (*Cursor_AdvanceR)(void const* context, void* cursor, size_t step);
 };
 
-void Zeta_AssocCntr_Init(Zeta_AssocCntr* assoc_cntr);
+struct Zeta_AssocCntr {
+    Zeta_AssocCntr_VTable const* vtable;
+    void* context;
+};
 
-#define ZETA_AssocCntr_AllocaCursor(assoc_cntr)                     \
-    __builtin_alloca_with_align(                                    \
-        ((Zeta_AssocCntr*)ZETA_ToVoidPtr(assoc_cntr))->cursor_size, \
-        __CHAR_BIT__ * alignof(max_align_t))
+#define ZETA_AssocCntr_Call__(tmp_assoc_cntr, assoc_cntr, member_func, ...) \
+    ({                                                                      \
+        ZETA_AutoVar(tmp_assoc_cntr, (assoc_cntr));                         \
+        ZETA_FuncPtrTable_Call(tmp_assoc_cntr.vtable, member_func,          \
+                               tmp_assoc_cntr.context, __VA_ARGS__);        \
+    })
 
-#define ZETA_AssocCntr_Call_(assoc_cntr, member_func, ...)           \
-    ZETA_CallMemberFunc((Zeta_AssocCntr*)ZETA_ToVoidPtr(assoc_cntr), \
-                        member_func, __VA_ARGS__)
+#define ZETA_AssocCntr_Call_(assoc_cntr, member_func, ...) \
+    ZETA_AssocCntr_Call__(ZETA_TmpName, (assoc_cntr), member_func, __VA_ARGS__)
 
-#define ZETA_AssocCntr_CallConst_(assoc_cntr, member_func, ...)           \
-    ZETA_CallConstMemberFunc((Zeta_AssocCntr*)ZETA_ToVoidPtr(assoc_cntr), \
-                             member_func, __VA_ARGS__)
+#define ZETA_AssocCntr_AllocaCursor_(tmp_assoc_cntr, assoc_cntr)          \
+    ({                                                                    \
+        ZETA_AutoVar(tmp_assoc_cntr, (assoc_cntr));                       \
+                                                                          \
+        ZETA_DebugAssert(tmp_assoc_cntr.vtable != NULL);                  \
+                                                                          \
+        __builtin_alloca_with_align(tmp_assoc_cntr.vtable->cursor_size,   \
+                                    __CHAR_BIT__ * alignof(max_align_t)); \
+    })
+
+#define ZETA_AssocCntr_AllocaCursor(assoc_cntr) \
+    ZETA_AssocCntr_AllocaCursor_(ZETA_TmpName, (assoc_cntr))
+
+#define ZETA_AssocCntr_Deinit(assoc_cntr) \
+    ZETA_AssocCntr_Call_((assoc_cntr), Deinit)
 
 #define ZETA_AssocCntr_GetWidth(assoc_cntr) \
-    ZETA_AssocCntr_CallConst_((assoc_cntr), GetWidth)
+    ZETA_AssocCntr_Call_((assoc_cntr), GetWidth)
 
 #define ZETA_AssocCntr_GetSize(assoc_cntr) \
-    ZETA_AssocCntr_CallConst_((assoc_cntr), GetSize)
+    ZETA_AssocCntr_Call_((assoc_cntr), GetSize)
 
 #define ZETA_AssocCntr_GetCapacity(assoc_cntr) \
-    ZETA_AssocCntr_CallConst_((assoc_cntr), GetCapacity)
+    ZETA_AssocCntr_Call_((assoc_cntr), GetCapacity)
 
-#define ZETA_AssocCntr_GetLBCursor(assoc_cntr, dst_cursor)              \
-    ZETA_AssocCntr_CallConst_((assoc_cntr), GetLBCursor, (dst_cursor)); \
+#define ZETA_AssocCntr_GetLBCursor(assoc_cntr, dst_cursor)         \
+    ZETA_AssocCntr_Call_((assoc_cntr), GetLBCursor, (dst_cursor)); \
     ZETA_StaticAssert(TRUE)
 
-#define ZETA_AssocCntr_GetRBCursor(assoc_cntr, dst_cursor)              \
-    ZETA_AssocCntr_CallConst_((assoc_cntr), GetRBCursor, (dst_cursor)); \
+#define ZETA_AssocCntr_GetRBCursor(assoc_cntr, dst_cursor)         \
+    ZETA_AssocCntr_Call_((assoc_cntr), GetRBCursor, (dst_cursor)); \
     ZETA_StaticAssert(TRUE)
 
 #define ZETA_AssocCntr_PeekL(assoc_cntr, dst_cursor) \
     ZETA_AssocCntr_Call_((assoc_cntr), PeekL, (dst_cursor))
 
 #define ZETA_AssocCntr_ConstPeekL(assoc_cntr, dst_cursor) \
-    ZETA_AssocCntr_CallConst_((assoc_cntr), PeekL, (dst_cursor))
+    ZETA_AssocCntr_Call_((assoc_cntr), PeekL, (dst_cursor))
 
 #define ZETA_AssocCntr_PeekR(assoc_cntr, dst_cursor) \
     ZETA_AssocCntr_Call_((assoc_cntr), PeekR, (dst_cursor))
 
 #define ZETA_AssocCntr_ConstPeekR(assoc_cntr, dst_cursor) \
-    ZETA_AssocCntr_CallConst_((assoc_cntr), PeekR, (dst_cursor))
+    ZETA_AssocCntr_Call_((assoc_cntr), PeekR, (dst_cursor))
 
 #define ZETA_AssocCntr_Refer(assoc_cntr, pos_cursor) \
     ZETA_AssocCntr_Call_((assoc_cntr), Refer, (pos_cursor))
 
 #define ZETA_AssocCntr_ConstRefer(assoc_cntr, pos_cursor) \
-    ZETA_AssocCntr_CallConst_((assoc_cntr), Refer, (pos_cursor))
+    ZETA_AssocCntr_Call_((assoc_cntr), Refer, (pos_cursor))
 
-#define ZETA_AssocCntr_Find(assoc_cntr, key, key_hash_context, KeyHash,       \
-                            key_elem_cmp_context, KeyElemCompare, dst_cursor) \
-    ZETA_AssocCntr_Call_((assoc_cntr), Find, (key), (key_hash_context),       \
-                         (KeyHash), (key_elem_cmp_context), (KeyElemCompare), \
-                         (dst_cursor))
+#define ZETA_AssocCntr_Find(assoc_cntr, key, KeyHash, key_hash_context,       \
+                            KeyElemCompare, key_elem_cmp_context, dst_cursor) \
+    ZETA_AssocCntr_Call_((assoc_cntr), Find, (key), (KeyHash),                \
+                         (key_hash_context), (KeyElemCompare),                \
+                         (key_elem_cmp_context), (dst_cursor))
 
 #define ZETA_AssocCntr_ConstFind(assoc_cntr, key, dst_cursor) \
-    ZETA_AssocCntr_CallConst_((assoc_cntr), Find, (key), (dst_cursor))
+    ZETA_AssocCntr_Call_((assoc_cntr), Find, (key), (dst_cursor))
 
 #define ZETA_AssocCntr_Insert(assoc_cntr, elem, dst_cursor) \
     ZETA_AssocCntr_Call_((assoc_cntr), Insert, (elem), (dst_cursor))
@@ -282,31 +291,28 @@ void Zeta_AssocCntr_Init(Zeta_AssocCntr* assoc_cntr);
     ZETA_AssocCntr_Call_((assoc_cntr), EraseAll); \
     ZETA_StaticAssert(TRUE)
 
-#define ZETA_AssocCntr_Cursor_AreEqual(assoc_cntr, cursor_a, cursor_b)   \
-    ZETA_AssocCntr_CallConst_((assoc_cntr), Cursor_AreEqual, (cursor_a), \
-                              (cursor_b))
+#define ZETA_AssocCntr_Cursor_AreEqual(assoc_cntr, cursor_a, cursor_b) \
+    ZETA_AssocCntr_Call_((assoc_cntr), Cursor_AreEqual, (cursor_a), (cursor_b))
 
-#define ZETA_AssocCntr_Cursor_Compare(assoc_cntr, cursor_a, cursor_b)   \
-    ZETA_AssocCntr_CallConst_((assoc_cntr), Cursor_Compare, (cursor_a), \
-                              (cursor_b))
+#define ZETA_AssocCntr_Cursor_Compare(assoc_cntr, cursor_a, cursor_b) \
+    ZETA_AssocCntr_Call_((assoc_cntr), Cursor_Compare, (cursor_a), (cursor_b))
 
-#define ZETA_AssocCntr_Cursor_GetDist(assoc_cntr, cursor_a, cursor_b)   \
-    ZETA_AssocCntr_CallConst_((assoc_cntr), Cursor_GetDist, (cursor_a), \
-                              (cursor_b))
+#define ZETA_AssocCntr_Cursor_GetDist(assoc_cntr, cursor_a, cursor_b) \
+    ZETA_AssocCntr_Call_((assoc_cntr), Cursor_GetDist, (cursor_a), (cursor_b))
 
 #define ZETA_AssocCntr_Cursor_GetIdx(assoc_cntr, cursor) \
-    ZETA_AssocCntr_CallConst_((assoc_cntr), Cursor_GetIdx, (cursor))
+    ZETA_AssocCntr_Call_((assoc_cntr), Cursor_GetIdx, (cursor))
 
 #define ZETA_AssocCntr_Cursor_StepL(assoc_cntr, cursor) \
-    ZETA_AssocCntr_CallConst_((assoc_cntr), Cursor_StepL, (cursor))
+    ZETA_AssocCntr_Call_((assoc_cntr), Cursor_StepL, (cursor))
 
 #define ZETA_AssocCntr_Cursor_StepR(assoc_cntr, cursor) \
-    ZETA_AssocCntr_CallConst_((assoc_cntr), Cursor_StepR, (cursor))
+    ZETA_AssocCntr_Call_((assoc_cntr), Cursor_StepR, (cursor))
 
 #define ZETA_AssocCntr_Cursor_AdvanceL(assoc_cntr, cursor, idx) \
-    ZETA_AssocCntr_CallConst_((assoc_cntr), Cursor_AdvanceL, (cursor), (idx))
+    ZETA_AssocCntr_Call_((assoc_cntr), Cursor_AdvanceL, (cursor), (idx))
 
 #define ZETA_AssocCntr_Cursor_AdvanceR(assoc_cntr, cursor, idx) \
-    ZETA_AssocCntr_CallConst_((assoc_cntr), Cursor_AdvanceR, (cursor), (idx))
+    ZETA_AssocCntr_Call_((assoc_cntr), Cursor_AdvanceR, (cursor), (idx))
 
 ZETA_ExternC_End;

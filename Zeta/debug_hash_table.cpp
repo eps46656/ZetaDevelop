@@ -11,11 +11,11 @@ struct Wrapper {
 };
 
 struct HashCore {
-    void const* elem_hash_context;
     Zeta_Hash ElemHash;
+    void const* elem_hash_context;
 
-    void const* key_hash_context;
     Zeta_Hash KeyHash;
+    void const* key_hash_context;
 
     unsigned long long operator()(const Wrapper& wrapper) const {
         if (wrapper.is_key) {
@@ -36,11 +36,11 @@ struct Hash {
 };
 
 struct KeyEqCore {
-    void const* elem_cmp_context;
     Zeta_Compare ElemCompare;
+    void const* elem_cmp_context;
 
-    void const* key_elem_cmp_context;
     Zeta_Compare KeyElemCompare;
+    void const* key_elem_cmp_context;
 
     bool_t operator()(const Wrapper& a, const Wrapper& b) const {
         if (a.is_key) {
@@ -76,17 +76,17 @@ extern "C" void Zeta_DebugHashTable_Init(void* debug_ht_) {
         0,
         Hash{ .core =
                   new HashCore{
-                      .elem_hash_context = debug_ht->elem_hash_context,
                       .ElemHash = debug_ht->ElemHash,
-                      .key_hash_context = nullptr,
+                      .elem_hash_context = debug_ht->elem_hash_context,
                       .KeyHash = nullptr,
+                      .key_hash_context = nullptr,
                   } },
         KeyEq{ .core =
                    new KeyEqCore{
-                       .elem_cmp_context = debug_ht->elem_cmp_context,
                        .ElemCompare = debug_ht->ElemCompare,
-                       .key_elem_cmp_context = nullptr,
+                       .elem_cmp_context = debug_ht->elem_cmp_context,
                        .KeyElemCompare = nullptr,
+                       .key_elem_cmp_context = nullptr,
                    } }
     };
 
@@ -181,10 +181,10 @@ extern "C" void* Zeta_DebugHashTable_Refer(void* debug_ht_,
 }
 
 extern "C" void* Zeta_DebugHashTable_Find(void* debug_ht_, void const* key,
-                                          void const* key_hash_context,
                                           Zeta_Hash KeyHash,
-                                          void const* key_elem_cmp_context,
+                                          void const* key_hash_context,
                                           Zeta_Compare KeyElemCompare,
+                                          void const* key_elem_cmp_context,
                                           void* dst_cursor_) {
     Zeta_DebugHashTable* debug_ht = (Zeta_DebugHashTable*)debug_ht_;
     ZETA_DebugAssert(debug_ht != NULL);
@@ -197,11 +197,11 @@ extern "C" void* Zeta_DebugHashTable_Find(void* debug_ht_, void const* key,
     HashCore* hash_core{ hash_table->hash_function().core };
     KeyEqCore* key_eq_core{ hash_table->key_eq().core };
 
-    hash_core->key_hash_context = key_hash_context;
     hash_core->KeyHash = KeyHash;
+    hash_core->key_hash_context = key_hash_context;
 
-    key_eq_core->key_elem_cmp_context = key_elem_cmp_context;
     key_eq_core->KeyElemCompare = KeyElemCompare;
+    key_eq_core->key_elem_cmp_context = key_elem_cmp_context;
 
     auto iter{ hash_table->find(Wrapper{ .is_key = TRUE, .ptr = key }) };
 
@@ -305,40 +305,48 @@ extern "C" void Zeta_DebugHashTable_Cursor_StepR(void const* debug_ht_,
     ++(*cursor);
 }
 
-extern "C" void Zeta_DebugHashTable_DeployAssocCntr(
-    void* debug_ht_, Zeta_AssocCntr* assoc_cntr) {
-    Zeta_DebugHashTable* debug_ht = (Zeta_DebugHashTable*)debug_ht_;
-    ZETA_DebugAssert(debug_ht != NULL);
+Zeta_AssocCntr_VTable const zeta_debug_hash_table_assoc_cntr_vtable = {
+    .cursor_size = sizeof(hash_table_t::iterator),
 
-    Zeta_AssocCntr_Init(assoc_cntr);
+    .Deinit = Zeta_DebugHashTable_Deinit,
 
-    assoc_cntr->context = debug_ht;
+    .GetWidth = Zeta_DebugHashTable_GetWidth,
 
-    assoc_cntr->cursor_size = sizeof(hash_table_t::iterator);
+    .GetSize = Zeta_DebugHashTable_GetSize,
 
-    assoc_cntr->GetWidth = Zeta_DebugHashTable_GetWidth;
+    .GetCapacity = Zeta_DebugHashTable_GetCapacity,
 
-    assoc_cntr->GetSize = Zeta_DebugHashTable_GetSize;
+    .GetLBCursor = NULL,
 
-    assoc_cntr->GetCapacity = Zeta_DebugHashTable_GetCapacity;
+    .GetRBCursor = Zeta_DebugHashTable_GetRBCursor,
 
-    assoc_cntr->GetRBCursor = Zeta_DebugHashTable_GetRBCursor;
+    .PeekL = Zeta_DebugHashTable_PeekL,
 
-    assoc_cntr->PeekL = Zeta_DebugHashTable_PeekL;
+    .PeekR = NULL,
 
-    assoc_cntr->Refer = Zeta_DebugHashTable_Refer;
+    .Refer = Zeta_DebugHashTable_Refer,
 
-    assoc_cntr->Find = Zeta_DebugHashTable_Find;
+    .Find = Zeta_DebugHashTable_Find,
 
-    assoc_cntr->Insert = Zeta_DebugHashTable_Insert;
+    .Insert = Zeta_DebugHashTable_Insert,
 
-    assoc_cntr->Erase = Zeta_DebugHashTable_Erase;
+    .Erase = Zeta_DebugHashTable_Erase,
 
-    assoc_cntr->EraseAll = Zeta_DebugHashTable_EraseAll;
+    .EraseAll = Zeta_DebugHashTable_EraseAll,
 
-    assoc_cntr->Cursor_AreEqual = Zeta_DebugHashTable_Cursor_AreEqual;
+    .Cursor_AreEqual = Zeta_DebugHashTable_Cursor_AreEqual,
 
-    assoc_cntr->Cursor_StepL = Zeta_DebugHashTable_Cursor_StepL;
+    .Cursor_Compare = NULL,
 
-    assoc_cntr->Cursor_StepR = Zeta_DebugHashTable_Cursor_StepR;
-}
+    .Cursor_GetDist = NULL,
+
+    .Cursor_GetIdx = NULL,
+
+    .Cursor_StepL = Zeta_DebugHashTable_Cursor_StepL,
+
+    .Cursor_StepR = Zeta_DebugHashTable_Cursor_StepR,
+
+    .Cursor_AdvanceL = NULL,
+
+    .Cursor_AdvanceR = NULL,
+};

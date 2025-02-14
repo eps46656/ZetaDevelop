@@ -5,7 +5,7 @@
 #include <unordered_map>
 #include <vector>
 
-struct ZetaPoolAllocator {
+struct BufferdPoolAllocator {
     size_t size;
 
     size_t max_buffered_ptrs_num;
@@ -15,13 +15,13 @@ struct ZetaPoolAllocator {
     size_t usage;
 };
 
-size_t ZetaPoolAllocator_GetAlign(void* pa_) {
+size_t BufferdPoolAllocator_GetAlign(void const* pa_) {
     ZETA_Unused(pa_);
     return alignof(max_align_t);
 }
 
-size_t ZetaPoolAllocator_Query(void* pa_, size_t size) {
-    ZetaPoolAllocator* pa = (ZetaPoolAllocator*)pa_;
+size_t BufferdPoolAllocator_Query(void const* pa_, size_t size) {
+    BufferdPoolAllocator const* pa = (BufferdPoolAllocator const*)pa_;
     ZETA_DebugAssert(pa != NULL);
 
     if (size == 0) { return 0; }
@@ -29,8 +29,8 @@ size_t ZetaPoolAllocator_Query(void* pa_, size_t size) {
     return 0;
 }
 
-void* ZetaPoolAllocator_Allocate(void* pa_, size_t size) {
-    ZetaPoolAllocator* pa = (ZetaPoolAllocator*)pa_;
+void* BufferdPoolAllocator_Allocate(void* pa_, size_t size) {
+    BufferdPoolAllocator* pa = (BufferdPoolAllocator*)pa_;
     ZETA_DebugAssert(pa != NULL);
 
     if (size == 0 || pa->size < size) { return NULL; }
@@ -53,8 +53,8 @@ void* ZetaPoolAllocator_Allocate(void* pa_, size_t size) {
     return ptr;
 }
 
-void ZetaPoolAllocator_Deallocate(void* pa_, void* ptr) {
-    ZetaPoolAllocator* pa = (ZetaPoolAllocator*)pa_;
+void BufferdPoolAllocator_Deallocate(void* pa_, void* ptr) {
+    BufferdPoolAllocator* pa = (BufferdPoolAllocator*)pa_;
     ZETA_DebugAssert(pa != NULL);
 
     if (ptr == NULL) { return; }
@@ -73,24 +73,19 @@ void ZetaPoolAllocator_Deallocate(void* pa_, void* ptr) {
     }
 }
 
-size_t ZetaPoolAllocator_GetUsage(void const* pa_) {
-    ZetaPoolAllocator* pa = (ZetaPoolAllocator*)pa_;
+size_t BufferdPoolAllocator_GetUsage(void const* pa_) {
+    BufferdPoolAllocator* pa = (BufferdPoolAllocator*)pa_;
     ZETA_DebugAssert(pa != NULL);
 
     return pa->usage;
 }
 
-void ZetaPoolAllocator_DeployAllocator(void* pa_, Zeta_Allocator* dst) {
-    ZetaPoolAllocator* pa = (ZetaPoolAllocator*)pa_;
-    ZETA_DebugAssert(pa != NULL);
+extern Zeta_Allocator_VTable const buffered_pool_allocator_vtable = {
+    .GetAlign = BufferdPoolAllocator_GetAlign,
 
-    dst->context = pa;
+    .Query = BufferdPoolAllocator_Query,
 
-    dst->GetAlign = ZetaPoolAllocator_GetAlign;
+    .Allocate = BufferdPoolAllocator_Allocate,
 
-    dst->Query = ZetaPoolAllocator_Query;
-
-    dst->Allocate = ZetaPoolAllocator_Allocate;
-
-    dst->Deallocate = ZetaPoolAllocator_Deallocate;
-}
+    .Deallocate = BufferdPoolAllocator_Deallocate,
+};

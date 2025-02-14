@@ -4,18 +4,17 @@
 
 ZETA_ExternC_Beg;
 
+ZETA_DeclareStruct(Zeta_CacheManager_VTable);
 ZETA_DeclareStruct(Zeta_CacheManager);
 
-struct Zeta_CacheManager {
-    void* context;
-
-    void const* const_context;
+struct Zeta_CacheManager_VTable {
+    void (*Deinit)(void* context);
 
     void* (*Open)(void* context, size_t max_caches_num);
 
     void (*Close)(void* context, void* sd);
 
-    Zeta_SeqCntr* (*GetOrigin)(void const* context);
+    Zeta_SeqCntr (*GetOrigin)(void const* context);
 
     size_t (*GetCacheSize)(void const* context);
 
@@ -30,21 +29,36 @@ struct Zeta_CacheManager {
     size_t (*Flush)(void* context, size_t quata);
 };
 
-void Zeta_CacheManager_Init(Zeta_CacheManager* cm);
+struct Zeta_CacheManager {
+    Zeta_CacheManager_VTable const* vtable;
+    void* context;
+};
 
-#define ZETA_CacheManager_AllocaCursor(cache_manager)                     \
-    __builtin_alloca_with_align(                                          \
-        ((Zeta_CacheManager*)ZETA_ToVoidPtr(cache_manager))->cursor_size, \
-        __CHAR_BIT__ * alignof(max_align_t))
+#define ZETA_CacheManager_AllocaCursor_(tmp_cache_manager, cache_manager)  \
+    ({                                                                     \
+        ZETA_AutoVar(tmp_cache_manager, (cache_manager));                  \
+                                                                           \
+        ZETA_DebugAssert(tmp_cache_manager.vtable != NULL);                \
+                                                                           \
+        __builtin_alloca_with_align(tmp_cache_manager.vtable->cursor_size, \
+                                    __CHAR_BIT__ * alignof(max_align_t));  \
+    })
 
-#define ZETA_CacheManager_Call_(cache_manager, member_func, ...)           \
-    ZETA_CallMemberFunc((Zeta_CacheManager*)ZETA_ToVoidPtr(cache_manager), \
-                        member_func, __VA_ARGS__)
+#define ZETA_CacheManager_AllocaCursor(cache_manager) \
+    ZETA_CacheManager_AllocaCursor_(ZETA_TmpName, (cache_manager))
 
-#define ZETA_CacheManager_CallConst_(cache_manager, member_func, ...)   \
-    ZETA_CallConstMemberFunc(                                           \
-        (Zeta_CacheManager*)ZETA_ToVoidPtr(cache_manager), member_func, \
-        __VA_ARGS__)
+#define ZETA_CacheManager_Call__(tmp_cache_manager, cache_manager,      \
+                                 member_func, ...)                      \
+    ({                                                                  \
+        ZETA_AutoVar(tmp_cache_manager, (cache_manager));               \
+                                                                        \
+        ZETA_FuncPtrTable_Call(tmp_cache_manager.vtable, member_func,   \
+                               tmp_cache_manager.context, __VA_ARGS__); \
+    })
+
+#define ZETA_CacheManager_Call_(cache_manager, member_func, ...)         \
+    ZETA_CacheManager_Call__(ZETA_TmpName, (cache_manager), member_func, \
+                             __VA_ARGS__)
 
 #define ZETA_CacheManager_Open(cache_manager, max_cache_cnt) \
     ZETA_CacheManager_Call_((cache_manager), Open, (max_cache_cnt))
@@ -53,24 +67,22 @@ void Zeta_CacheManager_Init(Zeta_CacheManager* cm);
     ZETA_CacheManager_Call_((cache_manager), Close, (sd))
 
 #define ZETA_CacheManager_GetOrigin(cache_manager) \
-    ZETA_CacheManager_CallConst_((cache_manager), GetOrigin)
+    ZETA_CacheManager_Call_((cache_manager), GetOrigin)
 
 #define ZETA_CacheManager_GetCacheSize(cache_manager) \
-    ZETA_CacheManager_CallConst_((cache_manager), GetCacheSize)
+    ZETA_CacheManager_Call_((cache_manager), GetCacheSize)
 
 #define ZETA_CacheManager_SetMaxCacheCnt(cache_manager, sd, max_cache_cnt) \
-    ZETA_CacheManager_CallConst_((cache_manager), SetMaxCacheCnt, (sd),    \
-                                 (max_cache_cnt))
+    ZETA_CacheManager_Call_((cache_manager), SetMaxCacheCnt, (sd),         \
+                            (max_cache_cnt))
 
 #define ZETA_CacheManager_Read(cache_manager, sd, idx, cnt, dst, dst_stride)  \
     ZETA_CacheManager_Call_((cache_manager), Read, (sd), (idx), (cnt), (dst), \
-                            (dst_stride));                                    \
-    ZETA_StaticAssert(TRUE)
+                            (dst_stride))
 
 #define ZETA_CacheManager_Write(cache_manager, sd, idx, cnt, src, src_stride)  \
     ZETA_CacheManager_Call_((cache_manager), Write, (sd), (idx), (cnt), (src), \
-                            (src_stride));                                     \
-    ZETA_StaticAssert(TRUE)
+                            (src_stride))
 
 #define ZETA_CacheManager_Flush(cache_manager, quata) \
     ZETA_CacheManager_Call_((cache_manager), PeekL, (quata))
